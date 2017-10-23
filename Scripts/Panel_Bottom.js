@@ -1,7 +1,7 @@
-// ====================================== //
+// ==PREPROCESSOR==
 // @name "Seekbar Panel"
 // @author "TheQwertiest"
-// ====================================== //
+// ==/PREPROCESSOR==
 properties.AddProperties(
     {
         showTimeRemaining: window.GetProperty("user.Show Time Remaining", true)

@@ -1,7 +1,7 @@
-// ====================================== //
+// ==PREPROCESSOR==
 // @name "PSS Switch Control"
 // @author "TheQwertiest"
-// ====================================== //
+// ==/PREPROCESSOR==
 
 function PssSwitchClass() {
     this.get_state = function (state_name) {
@@ -62,6 +62,7 @@ function PssSwitchClass() {
 
     this.minimode_states_list = ["Full", "Mini", "UltraMini"];
     this.spectrum_states_list = ["Hide", "Show"];
+    this.incompatibility_states_list = ["NotNotified", "Notified"];
 
 // private:
     function refresh_pss() {
@@ -88,7 +89,8 @@ var pss_switch = new PssSwitchClass();
 var common_vars =
     {
         minimode_state: pss_switch.get_state("minimode"),
-        spectrum_state: pss_switch.get_state("spectrum")
+        spectrum_state: pss_switch.get_state("spectrum"),
+        incompatibility_state: pss_switch.get_state("incompatibility")
     };
 
 // Example of use in a PSS :

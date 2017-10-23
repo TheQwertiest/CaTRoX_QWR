@@ -1,7 +1,7 @@
-// ====================================== //
+// ==PREPROCESSOR==
 // @name "Playback Panel"
 // @author "TheQwertiest"
-// ====================================== //
+// ==/PREPROCESSOR==
 
 var buttons;
 var showTooltips = false;

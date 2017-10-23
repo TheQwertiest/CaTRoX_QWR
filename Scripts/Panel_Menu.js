@@ -1,13 +1,21 @@
-// ====================================== //
+// ==PREPROCESSOR==
 // @name "Menu Panel"
 // @author "TheQwertiest"
-// ====================================== //
+// ==/PREPROCESSOR==
 
 (function checkES5Availability() {
     var test = !!Date.now && !!Array.isArray && !!Array.prototype.forEach;
     if (!test) {
         fb.ShowPopupMessage("Error: ES5 is not supported by your system! Cannot use this theme!", "CaTRoX (QWR Edition)");
     }
+})();
+
+(function checkModdedJScriptAvailability() {
+    if ( common_vars.incompatibility_state == "Notified" )
+        return;
+
+    if ( !qwr_utils.HasModdedJScript() )
+        fb.ShowPopupMessage("Warning: Vanilla JScript component detected!\nThis theme relies on modded JScript component, so some features will be unavailable!\n\nSources for modded JScript are available at https://github.com/TheQwertiest/foo-jscript-panel\n\nTo hide this warning rename file INCOMPATIBILITY_0 to INCOMPATIBILITY_1 in \\themes\\CaTRoX\\Settings\\", "CaTRoX (QWR Edition)");
 })();
 
 qwr_utils.check_fonts(["Segoe Ui", "Segoe Ui Semibold", "Segoe Ui Symbol", "Consolas", "Marlett", "Guifx v2 Transports", "FontAwesome"]);
@@ -28,8 +36,9 @@ properties.AddProperties(
     }
 );
 
+var hasModdedJScript = qwr_utils.HasModdedJScript();
 var maximizeToFullScreen = properties.maximizeToFullScreen;
-var isPinned = fb.IsMainMenuCommandChecked("View/Always on Top");
+var isPinned = hasModdedJScript ? fb.IsMainMenuCommandChecked("View/Always on Top") : false;
 
 WindowState =
     {
@@ -67,7 +76,7 @@ var guiCpuUsage = 0;
 /// Reduce move
 var moveChecker = new _.moveCheckReducer;
 
-var FbWnd = wsh_utils.GetWndByHandle(window.ID).GetAncestor(2);
+var FbWnd = hasModdedJScript ? wsh_utils.GetWndByHandle(window.ID).GetAncestor(2) : undefined;
 
 createButtonImages();
 
@@ -687,8 +696,10 @@ function toggleMiniMode() {
 
     if (new_minimode_state == "Mini") {
         if (!UIHacks.FullScreen) {
-            properties.fullMode_savedwidth = FbWnd.Width;
-            properties.fullMode_savedheight = FbWnd.Height;
+            if ( hasModdedJScript ) {
+                properties.fullMode_savedwidth = FbWnd.Width;
+                properties.fullMode_savedheight = FbWnd.Height;
+            }
             window.SetProperty("system.Full mode saved width", properties.fullMode_savedwidth);
             window.SetProperty("system.Full mode saved height", properties.fullMode_savedheight);
         }
@@ -706,8 +717,10 @@ function toggleMiniMode() {
     }
     else {
         if (!UIHacks.FullScreen) {
-            properties.miniMode_savedwidth = FbWnd.Width;
-            properties.miniMode_savedheight = FbWnd.Height;
+            if ( hasModdedJScript ) {
+                properties.miniMode_savedwidth = FbWnd.Width;
+                properties.miniMode_savedheight = FbWnd.Height;
+            }
             window.SetProperty("system.Mini mode saved width", properties.miniMode_savedwidth);
             window.SetProperty("system.Mini mode saved height", properties.miniMode_savedheight);
         }
@@ -753,14 +766,18 @@ function toggleUltraMiniMode() {
     else {
         if (!UIHacks.FullScreen) {
             if (common_vars.minimode_state == "Full") {
-                properties.fullMode_savedwidth = FbWnd.Width;
-                properties.fullMode_savedheight = FbWnd.Height;
+                if ( hasModdedJScript ) {
+                    properties.fullMode_savedwidth = FbWnd.Width;
+                    properties.fullMode_savedheight = FbWnd.Height;
+                }
                 window.SetProperty("system.Full mode saved width", properties.fullMode_savedwidth);
                 window.SetProperty("system.Full mode saved height", properties.fullMode_savedheight);
             }
             else {
-                properties.miniMode_savedwidth = FbWnd.Width;
-                properties.miniMode_savedheight = FbWnd.Height;
+                if ( hasModdedJScript ) {
+                    properties.miniMode_savedwidth = FbWnd.Width;
+                    properties.miniMode_savedheight = FbWnd.Height;
+                }
                 window.SetProperty("system.Mini mode saved width", properties.miniMode_savedwidth);
                 window.SetProperty("system.Mini mode saved height", properties.miniMode_savedheight);
             }

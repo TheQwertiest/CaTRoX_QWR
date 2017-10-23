@@ -1,7 +1,7 @@
-// ====================================== //
+// ==PREPROCESSOR==
 // @name "Scrollbar Control"
 // @author "TheQwertiest"
-// ====================================== //
+// ==/PREPROCESSOR==
 properties.AddProperties(
     {
         wheel_scroll_page: window.GetProperty("user.Scroll Whole Page With Wheel", false)

@@ -1,7 +1,7 @@
-// ====================================== //
+// ==PREPROCESSOR==
 // @name "Common"
 // @author "TheQwertiest"
-// ====================================== //
+// ==/PREPROCESSOR==
 //---> 
 //---> Common Helpers, Flags
 //--->
@@ -303,6 +303,18 @@ var qwr_utils = {
             checkedFonts += "\n\nPlease install missing " + (failCounter > 1 ? "fonts" : "font") + " and restart foobar!";
             fb.ShowPopupMessage(checkedFonts, "Font Check");
 
+            return false;
+        }
+
+        return true;
+    },
+    HasModdedJScript: function() {
+        try {
+            // Methods from modded JScript
+            wsh_utils.GetWndByHandle(666);
+            fb.IsMainMenuCommandChecked("View/Always on Top");
+        }
+        catch (e) {
             return false;
         }
 

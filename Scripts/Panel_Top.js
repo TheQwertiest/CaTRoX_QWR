@@ -10,7 +10,9 @@ properties.AddProperties(
     }
 );
 
-var isYoutubeVideoDisplayed = fb.IsMainMenuCommandChecked("View/Visualizations/Video");
+var hasModdedJScript = qwr_utils.HasModdedJScript();
+
+var isYoutubeVideoDisplayed = hasModdedJScript ? fb.IsMainMenuCommandChecked("View/Visualizations/Video") : false;
 
 var buttons;
 var rightMargin = 0;
@@ -158,7 +160,7 @@ function createButtonObjects(ww, wh)
         buttons.buttons.yt_video = new _.button(x + (w + p), y, w, h, isYoutubeVideoDisplayed ? btnImg.VideoHide : btnImg.VideoShow, function ()
         {
             fb.RunMainMenuCommand("View/Visualizations/Video");
-            isYoutubeVideoDisplayed = fb.IsMainMenuCommandChecked("View/Visualizations/Video");
+            isYoutubeVideoDisplayed = hasModdedJScript ? fb.IsMainMenuCommandChecked("View/Visualizations/Video") : false;
             buttons.buttons.yt_video.set_image(isYoutubeVideoDisplayed ? btnImg.VideoHide : btnImg.VideoShow);
             buttons.buttons.yt_video.tiptext = isYoutubeVideoDisplayed ? "Hide Youtube Video" : "Show Youtube Video";
             buttons.buttons.yt_video.repaint();

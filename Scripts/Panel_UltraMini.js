@@ -1,7 +1,7 @@
-// ====================================== //
+// ==PREPROCESSOR==
 // @name "UltraMini Main Panel"
 // @author "TheQwertiest"
-// ====================================== //
+// ==/PREPROCESSOR==
 properties.AddProperties(
     {
         artMargin: window.GetProperty("user.Art Margin", 0)

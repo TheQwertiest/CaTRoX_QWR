@@ -1,7 +1,7 @@
-// ====================================== //
+// ==PREPROCESSOR==
 // @name "Info Panel"
 // @author "eXtremeHunter & TheQwertiest"
-// ====================================== //
+// ==/PREPROCESSOR==
 properties.AddProperties(
     {
         listLeftMargin:   window.GetProperty("user.List Left", 4),

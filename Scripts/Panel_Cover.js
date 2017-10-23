@@ -1,7 +1,7 @@
-// ====================================== //
+// ==PREPROCESSOR==
 // @name "Cover Panel"
 // @author "TheQwertiest"
-// ====================================== //
+// ==/PREPROCESSOR==
 properties.AddProperties(
     {
         panelMargin: window.GetProperty("user.Panel Margin", 15)

@@ -1,7 +1,7 @@
-// ====================================== //
+// ==PREPROCESSOR==
 // @name "Art Module"
 // @author "TheQwertiest & eXtremeHunter"
-// ====================================== //
+// ==/PREPROCESSOR==
 properties.AddProperties(
     {
         displayedTrack: Math.max(1, Math.min(3, window.GetProperty("user.Displayed track", 1))),
