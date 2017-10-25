@@ -338,13 +338,23 @@ function createButtonObjects(wx, wy, ww, wh) {
     var x = wx + Math.floor(ww / 2 - (w * 5 + p * 4) / 2);
     var y = wy + Math.floor(wh / 2 - w / 2) + 1;
 
-    buttons.buttons.stop = new _.button(x, y, w, h, btnImg.Stop, function () { fb.Stop(); }, "Stop");
+    buttons.buttons.stop = new _.button(x, y, w, h, btnImg.Stop, function () { 
+        fb.Stop();
+        // Needs repaint to avoid partial art redraw
+        window.Repaint();
+    }, "Stop");
 
     x += w + p;
     buttons.buttons.previous = new _.button(x, y, w, h, btnImg.Previous, function () { fb.Prev(); }, "Previous");
 
     x += w + p;
-    buttons.buttons.play = new _.button(x, y, w, h, (!fb.IsPlaying || fb.IsPaused) ? btnImg.Play : btnImg.Pause, function () { fb.PlayOrPause(); }, (!fb.IsPlaying || fb.IsPaused) ? "Play" : "Pause");
+    buttons.buttons.play = new _.button(x, y, w, h, (!fb.IsPlaying || fb.IsPaused) ? btnImg.Play : btnImg.Pause, function () {
+    var wasNotPlaying = !fb.IsPlaying;
+    fb.PlayOrPause(); 
+    // Needs repaint to avoid partial art redraw
+    if (wasNotPlaying)
+        window.Repaint();
+    }, (!fb.IsPlaying || fb.IsPaused) ? "Play" : "Pause");
 
     x += w + p;
     buttons.buttons.next = new _.button(x, y, w, h, btnImg.Next, function () { fb.Next(); }, "Next");
