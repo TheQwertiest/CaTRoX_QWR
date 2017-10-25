@@ -1083,33 +1083,25 @@ function on_mouse_lbtn_down_header(groupNr) {
 
     pl_s.clickedOnGroup = true;
 
-    if (!CtrlKeyPressed) {
+    if (!CtrlKeyPressed)
         selectedIndexes = [];
-    }
 
     var wasEmpty = selectedIndexes.length == 0;
 
+    // TODO: add SHIFT selection
     if (!(CtrlKeyPressed && ShiftKeyPressed)) {
-        if (CtrlKeyPressed) {
-            // TODO: check if there is a method to cross arrays, so that we don't have to use nested loops
-            for (var id = firstItem[groupNr]; id <= lastItem[groupNr]; id++) {
-                for (var i = 0; i < selectedIndexes.length; i++) {
-                    if (selectedIndexes[i] == id) {
-                        selectedIndexes.splice(i, 1);
-                    }
-                }
-            }
+        var groupItems = [];
+        for (var id = firstItem[groupNr]; id <= lastItem[groupNr]; id++) {
+            groupItems.push(id);
+        }
 
-            if (!isGroupSelected(groupNr)) {
-                for (var id = firstItem[groupNr]; id <= lastItem[groupNr]; id++) {
-                    selectedIndexes.push(id);
-                }
-            }
+        if (CtrlKeyPressed) {
+            selectedIndexes = _.difference(selectedIndexes, groupItems)
+            if (!isGroupSelected(groupNr))
+                selectedIndexes = _.union(selectedIndexes, groupItems);
         }
         else {
-            for (var id = firstItem[groupNr]; id <= lastItem[groupNr]; id++) {
-                selectedIndexes.push(id);
-            }
+            selectedIndexes = _.union(selectedIndexes, groupItems);
         }
     }
 
@@ -1120,15 +1112,14 @@ function on_mouse_lbtn_down_header(groupNr) {
     clickedOnSelectedItem = true;
 
     if (properties.autoExpandCollapseGroups) {
-        if (wasEmpty) {
+        if (wasEmpty)
             collapseExpand("collapse", undefined, groupNr);
-        }
         collapseExpand(groupNr, undefined, groupNr);
         doubleClicked = true;
     }
     else if (CtrlKeyPressed && ShiftKeyPressed) {
-            collapseExpand(groupNr);
-            doubleClicked = true;
+        collapseExpand(groupNr);
+        doubleClicked = true;
     }
 }
 
