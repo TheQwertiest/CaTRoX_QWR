@@ -1079,6 +1079,7 @@ function on_mouse_lbtn_down(x, y, m) {
 
 function on_mouse_lbtn_down_header(groupNr) {
     var CtrlKeyPressed = utils.IsKeyPressed(VK_CONTROL);
+    var ShiftKeyPressed = utils.IsKeyPressed(VK_SHIFT);
 
     pl_s.clickedOnGroup = true;
 
@@ -1088,8 +1089,9 @@ function on_mouse_lbtn_down_header(groupNr) {
 
     var wasEmpty = selectedIndexes.length == 0;
 
-    if (!isCollapsed[groupNr]) {
+    if (!(CtrlKeyPressed && ShiftKeyPressed)) {
         if (CtrlKeyPressed) {
+            // TODO: check if there is a method to cross arrays, so that we don't have to use nested loops
             for (var id = firstItem[groupNr]; id <= lastItem[groupNr]; id++) {
                 for (var i = 0; i < selectedIndexes.length; i++) {
                     if (selectedIndexes[i] == id) {
@@ -1123,6 +1125,10 @@ function on_mouse_lbtn_down_header(groupNr) {
         }
         collapseExpand(groupNr, undefined, groupNr);
         doubleClicked = true;
+    }
+    else if (CtrlKeyPressed && ShiftKeyPressed) {
+            collapseExpand(groupNr);
+            doubleClicked = true;
     }
 }
 
