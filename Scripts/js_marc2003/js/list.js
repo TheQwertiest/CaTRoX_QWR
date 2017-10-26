@@ -438,13 +438,13 @@ _.mixin({
                             this.filename = _.artistFolder(this.artist) + 'lastfm.artist.getSimilar.json';
                             if (_.isFile(this.filename)) {
                                 this.data = _(_.get(_.jsonParse(_.open(this.filename)), 'similarartists.artist', []))
-                                    .map(function (item) {
+                                    .map(_.bind(function (item) {
                                         return {
                                             name:  item.name,
                                             width: _.textWidth(item.name, panel.fonts.normal),
                                             url:   this.lastfm_link == 0 ? item.url : 'artist HAS ' + item.name
                                         };
-                                    }, this)
+                                    }, this))
                                     .value();
                                 if (_.fileExpired(this.filename, ONE_DAY)) {
                                     this.get();
@@ -506,8 +506,8 @@ _.mixin({
                                 })
                                 .nest(['primary', 'secondary'])
                                 .value();
-                            _.forEach(['Album', 'Single', 'EP', 'Other', 'Broadcast', 'null'], function (primary) {
-                                _.forEach(['null', 'Audiobook', 'Compilation', 'Demo', 'DJ-mix', 'Interview', 'Live', 'Mixtape/Street', 'Remix', 'Spokenword', 'Soundtrack'], function (secondary) {
+                            _.forEach(['Album', 'Single', 'EP', 'Other', 'Broadcast', 'null'], _.bind(function (primary) {
+                                _.forEach(['null', 'Audiobook', 'Compilation', 'Demo', 'DJ-mix', 'Interview', 'Live', 'Mixtape/Street', 'Remix', 'Spokenword', 'Soundtrack'], _.bind(function (secondary) {
                                     var group = _.get(data, primary + '.' + secondary);
                                     if (group) {
                                         var name = (primary + ' + ' + secondary).replace('null + null', 'Unspecified type').replace('null + ', '').replace(' + null', '');
@@ -525,8 +525,8 @@ _.mixin({
                                             date:  ''
                                         });
                                     }
-                                }, this);
-                            }, this);
+                                }, this));
+                            }, this));
                             this.data.pop();
                             if (_.fileExpired(this.filename, ONE_DAY)) {
                                 this.get();
@@ -590,10 +590,10 @@ _.mixin({
                         this.add_rg();
                     }
                     this.data.pop();
-                    _.forEach(this.data, function (item) {
+                    _.forEach(this.data, _.bind(function (item) {
                         item.width = _.textWidth(item.value, panel.fonts.normal);
                         this.text_x = Math.max(this.text_x, _.textWidth(item.name, panel.fonts.normal) + 20);
-                    }, this);
+                    }, this));
                     _.dispose(fileinfo);
                     break;
             }

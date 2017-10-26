@@ -55,9 +55,9 @@ _.mixin({
                         this.img = null;
                         this.img = gdi.CreateImage(this.px, this.px * this.images.length);
                         var temp_gr = this.img.GetGraphics();
-                        _.forEach(this.images, function (item, i) {
+                        _.forEach(this.images, _.bind(function (item, i) {
                             _.drawImage(temp_gr, item, 0, i * this.px, this.px, this.px, image.crop_top);
-                        }, this);
+                        }, this));
                         this.img.ReleaseGraphics(temp_gr);
                         temp_gr = null;
                     }
@@ -75,9 +75,9 @@ _.mixin({
                         this.img = null;
                         this.img = gdi.CreateImage(this.px * this.images.length, this.px);
                         var temp_gr = this.img.GetGraphics();
-                        _.forEach(this.images, function (item, i) {
+                        _.forEach(this.images, _.bind(function (item, i) {
                             _.drawImage(temp_gr, item, i * this.px, 0, this.px, this.px, image.crop_top);
-                        }, this);
+                        }, this));
                         this.img.ReleaseGraphics(temp_gr);
                         temp_gr = null;
                     }
@@ -338,10 +338,10 @@ _.mixin({
                     panel.s10.CheckMenuItem(4005, this.auto_download);
 
                     _.forEach(this.download_limits, function (item) {
-                        panel.s11.AppendMenuItem(MF_STRING, item + 4010, item);
+                        panel.s14.AppendMenuItem(MF_STRING, item + 4010, item);
                     });
-                    panel.s11.CheckMenuRadioItem(_.first(this.download_limits) + 4010, _.last(this.download_limits) + 4010, this.download_limit + 4010);
-                    panel.s11.AppendTo(panel.s10, MF_STRING, 'Limit');
+                    panel.s14.CheckMenuRadioItem(_.first(this.download_limits) + 4010, _.last(this.download_limits) + 4010, this.download_limit + 4010);
+                    panel.s14.AppendTo(panel.s10, MF_STRING, 'Limit');
 
                     panel.s10.AppendTo(panel.m, MF_STRING, "Server options");
 
@@ -576,12 +576,11 @@ _.mixin({
             _(_.getElementsByTagName(this.xmlhttp.responseText, 'img'))
                 .filter({className: 'image-list-image'})
                 .take(this.download_limit)
-                .forEach(function (item) {
+                .forEach(_.bind(function (item) {
                     var url = item.src.replace('avatar170s/', '');
                     var filename = base + url.substring(url.lastIndexOf('/') + 1) + '.jpg';
                     _.runCmd('cscript //nologo ' + _.q(this.vbs_file) + ' ' + _.q(url) + ' ' + _.q(filename), false);
-                }, this)
-                .value();
+                }, this));
         }
 
         this.interval_func = _.bind(function () {

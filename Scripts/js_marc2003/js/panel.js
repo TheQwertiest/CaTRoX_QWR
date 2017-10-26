@@ -127,6 +127,7 @@ _.mixin({
 			this.s11 = window.CreatePopupMenu();
 			this.s12 = window.CreatePopupMenu();
 			this.s13 = window.CreatePopupMenu();
+            this.s14 = window.CreatePopupMenu();
 			// panel 1-999
 			// album art 2000-2999
 			// list 3000-3999
@@ -134,9 +135,9 @@ _.mixin({
 			if (object)
 				object.rbtn_up(x, y);
 			if (this.list_objects.length || this.text_objects.length) {
-				_.forEach(this.fonts.sizes, function (item) {
-					this.s1.AppendMenuItem(MF_STRING, item, item);
-				}, this);
+				_.forEach(this.fonts.sizes, _.bind(function (item) {
+                    this.s1.AppendMenuItem(MF_STRING, item, item);
+				}, this));
 				this.s1.CheckMenuRadioItem(_.first(this.fonts.sizes), _.last(this.fonts.sizes), this.fonts.size);
 				this.s1.AppendTo(this.m, MF_STRING, 'Font size');
 				this.m.AppendMenuSeparator();
@@ -206,7 +207,7 @@ _.mixin({
 					object.rbtn_up_done(idx);
 				break;
 			}
-			_.dispose(this.m, this.s1, this.s2, this.s3, this.s10, this.s11, this.s12, this.s13);
+			_.dispose(this.m, this.s1, this.s2, this.s3, this.s10, this.s11, this.s12, this.s13, this.s14);
 			return true;
 		}
 		

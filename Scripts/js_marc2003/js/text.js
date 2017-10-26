@@ -323,7 +323,7 @@ _.mixin({
                             this.allmusic_url = '';
                             _(_.getElementsByTagName(this.xmlhttp.responseText, 'li'))
                                 .filter({className: 'album'})
-                                .forEach(function (item) {
+                                .forEach(_.bind(function (item) {
                                     var divs = item.getElementsByTagName('div');
                                     var album = _.first(divs[2].getElementsByTagName('a')).innerText;
                                     var tmp = divs[3].getElementsByTagName('a');
@@ -332,8 +332,7 @@ _.mixin({
                                         this.allmusic_url = _.first(divs[2].getElementsByTagName('a')).href;
                                         return false;
                                     }
-                                }, this)
-                                .value();
+                                }, this));
                             if (this.allmusic_url.length) {
                                 console.log('A page was found for ' + _.q(this.album) + '. Now checking for review...');
                                 this.get();
