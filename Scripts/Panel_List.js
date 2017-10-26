@@ -890,7 +890,7 @@ function draw_playlist_info(gr) {
         gr.DrawString("\uF023", gdi.font("FontAwesome", 12, 0), _.RGB(150, 152, 154), sbarX + Math.round((properties.scrollbarW - 7) / 2), 0, 8, listInfoHeight, StringFormat(1, 1));
     }
 
-    var lengthText = pl_s.selectionLength == "Stream" ? "Stream" : "Length: " + pl_s.selectionLength;
+    var lengthText = pl_s.selectionLength === "Stream" ? "Stream" : "Length: " + pl_s.selectionLength;
     gr.DrawString(plman.GetPlaylistName(activeList) + ": " + totalItems + items + ", " + lengthText, pl_fonts.titleSelected, _.RGB(150, 152, 154), 10, 0, ww - 20, listInfoHeight - 2, StringFormat(1, 1, 3, 4096));
 }
 
@@ -1528,7 +1528,8 @@ function on_mouse_rbtn_up(x, y) {
 
     if (!inPlaylistInfo) {
         cpm.AppendMenuItem((plman.GetPlaylistSelectedItems(plman.ActivePlaylist).Count > 0) ? MF_STRING : MF_GRAYED, 10, "Cut \tCtrl+X");
-        cpm.AppendMenuItem(cuttedItemsCount ? MF_STRING : MF_GRAYED, 11, "Paste \tCtrl+V");
+        cpm.AppendMenuItem((plman.GetPlaylistSelectedItems(plman.ActivePlaylist).Count > 0) ? MF_STRING : MF_GRAYED, 11, "Copy \tCtrl+C");
+        cpm.AppendMenuItem((!_.isUndefined(bufferedItems) && bufferedItems.Count > 0) ? MF_STRING : MF_GRAYED, 12, "Paste \tCtrl+V");
 
         if (!isCurPlaylistEmpty) {
             cpm.AppendMenuSeparator();
@@ -1700,6 +1701,9 @@ function on_mouse_rbtn_up(x, y) {
             cut();
             break;
         case 11:
+            copy();
+            break;
+        case 12:
             paste();
             break;
         // -------------------------------------------------------------- //
@@ -2018,6 +2022,8 @@ function on_mouse_leave() {
     if (pl_s.isScrollbarDisplayed) {
         scrollbar.leave();
     }
+
+    mouseOverList = false;
 }
 
 // =================================================== //
@@ -2114,9 +2120,12 @@ function on_playlist_items_selection_change() {
     trace_call && fb.trace(qwr_utils.function_name());
 
     if (!mouseOverList) { //this code executes only if selection is made from external panel.
-        if (plman.GetPlaylistSelectedItems(plman.ActivePlaylist).Count <= 1) {
-            selectedIndexes = [];
-        }
+        selectedIndexes = [];
+        list_pure.forEach(function(item,i) {
+            if (plman.IsPlaylistItemSelected(plman.ActivePlaylist, i)) {
+                selectedIndexes.push(i);
+            }
+        });
     }
 
     if (properties.showPlaylistInfo) {
@@ -2162,71 +2171,6 @@ function on_item_focus_change(playlist, from, to) {
 
     var CtrlKeyPressed = utils.IsKeyPressed(VK_CONTROL);
     var ShiftKeyPressed = utils.IsKeyPressed(VK_SHIFT);
-
-    //-----------------------------------------------------//
-
-    if (!mouseOverList) { //this code executes only if selection is made from external panel.
-        // TODO: figure out what this is about
-        if (!selectedIndexes.length && !ShiftKeyPressed && !CtrlKeyPressed) {
-            selectedIndexes = [];
-            selectedIndexes[0] = to;
-
-        }
-
-        if (CtrlKeyPressed) {
-            if (!selectedIndexes.length) {
-                selectedIndexes[0] = from;
-            }
-
-            for (var i = 0; i < selectedIndexes.length; i++) {
-                if (selectedIndexes[i] == to) {
-                    selectedIndexes.splice(i, 1);
-                    // todo: added break, might break
-                    break;
-                }
-            } //eol
-
-            if (plman.IsPlaylistItemSelected(plman.ActivePlaylist, to)) {
-                selectedIndexes.push(to);
-                selectedIndexes.sort(numericAscending);
-            }
-
-        } //Ctrl end
-
-        if (ShiftKeyPressed) {
-            var time = 0;
-
-            var fromTo = [from, to].sort(numericAscending);
-
-            for (var i = fromTo[0], l = fromTo[1]; i <= l; i++) {
-                selectedIndexes.push(i);
-            } //eol i
-
-            //find and remove duplicates.
-            var tempSelectedIndexes = [];
-            var obj = {};
-
-            selectedIndexes.forEach(function (item) {
-                obj[item] = 0;
-            });
-
-            _.forEach(obj, function (item) {
-                tempSelectedIndexes.push(item);
-            });
-
-            selectedIndexes = tempSelectedIndexes;
-            // cleanup selectedIndexes
-            tempSelectedIndexes = [];
-
-            selectedIndexes.forEach(function (item) {
-                if (plman.IsPlaylistItemSelected(plman.ActivePlaylist, item)) {
-                    tempSelectedIndexes.push(item);
-                }
-            });
-
-            selectedIndexes = tempSelectedIndexes.sort(numericAscending);
-        } //if shift
-    }
 
     //------------------------------------------------------------//
 
@@ -2360,7 +2304,7 @@ function on_playback_new_track(metadb) {
             if (oldPlayingID < playingID) {
                 fb.Next();
             }
-            else if (oldPlayingID == undefined || oldPlayingID > playingID) {
+            else if (oldPlayingID === undefined || oldPlayingID > playingID) {
                 fb.Prev();
             }
         }
@@ -2411,7 +2355,7 @@ function on_key_down(vkey) {
 
     var focusItemIndex = plman.GetPlaylistFocusItemIndex(activeList);
 
-    if (!ShiftKeyPressed || tempFocusItemIndex == undefined) {
+    if (!ShiftKeyPressed || tempFocusItemIndex === undefined) {
         tempFocusItemIndex = focusItemIndex;
     }
 
@@ -2606,6 +2550,11 @@ function on_key_down(vkey) {
             initList();
             repaintList();
             break;
+        case VK_KEY_C:
+            if (CtrlKeyPressed) {
+                copy();
+            }
+            break;
         case VK_KEY_X:
             if (CtrlKeyPressed) {
                 cut();
@@ -2624,7 +2573,7 @@ function on_key_down(vkey) {
 function on_key_up(vkey) {
     trace_call && fb.trace(qwr_utils.function_name());
 
-    if (vkey == VK_PRIOR || vkey == VK_NEXT) {
+    if (vkey === VK_PRIOR || vkey === VK_NEXT) {
         pl_s.fastScrollActive = false;
         getAlbumArt();
     }
@@ -2903,11 +2852,11 @@ function CollapseExpandList(command) {
         return;
     }
 
-    if (command == "expand") {
+    if (command === "expand") {
         list_modded = _.clone(list_pure);
         isCollapsed = [];
     }
-    else if (command == "collapse") {
+    else if (command === "collapse") {
         for (var i = groupNr; i >= 0; i--) {
             if (!isCollapsed[i]) {
                 list_modded.splice(firstItemID_modded[i], itemCountInGroup[i]);
@@ -2952,7 +2901,7 @@ function CollapseExpandPlayingGroup() {
 
             counter++;
 
-            if (isValid || counter == 100 || !fb.IsPlaying) {
+            if (isValid || counter === 100 || !fb.IsPlaying) {
                 window.ClearInterval(timer);
 
                 if (fb.IsPlaying) {
@@ -3076,17 +3025,17 @@ function displayFocusItem(prevFocusID, focusID) {
             }
         }
 
-        if (IDnr != undefined || ID.nr == focusID) {
-            if (partialState == 1) {
+        if (IDnr !== undefined || ID.nr == focusID) {
+            if (partialState === 1) {
                 scrollbar.shift_line(-1);
             }
-            else if (partialState == 2) {
+            else if (partialState === 2) {
                 scrollbar.shift_line(1);
             }
-            else if (prevFocusID != undefined && prevFocusID + 1 == focusID) {
+            else if (prevFocusID !== undefined && prevFocusID + 1 == focusID) {
                 scrollbar.check_scroll(i - pl_s.windowSizeInRows + 1);
             }
-            else if (prevFocusID != undefined && prevFocusID - 1 == focusID) {
+            else if (prevFocusID !== undefined && prevFocusID - 1 == focusID) {
                 scrollbar.check_scroll(i);
             }
             else {
@@ -3162,6 +3111,10 @@ function showNowPlaying() {
 // =================================================== //
 
 var itemCountInGroup = [];
+var list_pure = [];
+var list_modded = []; // list_pure with collapsed items removed
+var firstItemID_pure = [];
+var firstItemID_modded = [];
 
 function initList() {
     tempAlbumOnPlaybackNewTrack = undefined;
@@ -3237,10 +3190,10 @@ function initList() {
 
             b = a;
 
-            if (i % 2 == 0) {
+            if (i % 2 === 0) {
                 oddItem = 0;
             }
-            if (i % 2 == 1) {
+            if (i % 2 === 1) {
                 oddItem = 1;
             }
         }
@@ -3249,7 +3202,7 @@ function initList() {
             metadb:    metadb,
             nr:        i,
             nrInGroup: itemNrInGroup,
-            isOdd:     i % 2 == oddItem,
+            isOdd:     i % 2 === oddItem,
             isChanged: false
         };
 
@@ -3405,7 +3358,7 @@ function initList() {
     }
 
     for (var i = 0; i < playlistCount; i++) {
-        pl_s.listPos[i] = (step[i] == undefined ? 0 : (isNaN(step[i]) ? 0 : Math.max(0, step[i])));
+        pl_s.listPos[i] = (step[i] === undefined ? 0 : (isNaN(step[i]) ? 0 : Math.max(0, step[i])));
 
     }
     window.SetProperty("system.List Step", pl_s.listPos.toString());
@@ -3513,26 +3466,30 @@ function RowButton(x, y, w, h) {
 
 // =================================================== //
 
-var cuttedItems;
+var bufferedItems;
 var cuttedItemsCount = 0;
 
+function copy() {
+    bufferedItems = plman.GetPlaylistSelectedItems(activeList);
+}
+
 function cut() {
-    cuttedItems = plman.GetPlaylistSelectedItems(activeList);
-    cuttedItemsCount = cuttedItems.Count;
+    bufferedItems = plman.GetPlaylistSelectedItems(activeList);
     plman.RemovePlaylistSelection(activeList);
 }
 
 // =============================================== //
 function paste() {
-    if (cuttedItemsCount) {
-        if (plman.GetPlaylistSelectedItems(plman.ActivePlaylist).Count > 0) {
-            plman.ClearPlaylistSelection(activeList);
-            plman.InsertPlaylistItems(activeList, plman.GetPlaylistFocusItemIndex(activeList), cuttedItems, true);
-        }
-        else {
-            plman.InsertPlaylistItems(activeList, playlistItemCount, cuttedItems, true);
-        }
-        cuttedItemsCount = 0;
+    if (_.isUndefined(bufferedItems) || bufferedItems.Count === 0) {
+        return
+    }
+
+    if (plman.GetPlaylistSelectedItems(plman.ActivePlaylist).Count > 0) {
+        plman.ClearPlaylistSelection(activeList);
+        plman.InsertPlaylistItems(activeList, plman.GetPlaylistFocusItemIndex(activeList), bufferedItems, true);
+    }
+    else {
+        plman.InsertPlaylistItems(activeList, playlistItemCount, bufferedItems, true);
     }
 }
 
@@ -3604,7 +3561,7 @@ function scrollbarRedrawCallback() {
     var partialRowShift = (pl_s.listPos[activeList] - pl_s.curRowShift);
     var difference = Math.ceil(pl_s.windowSizeInRows) - pl_s.windowSizeInRows;
 
-    pl_s.listIsScrolledUp = (pl_s.listPos[activeList] == 0);
+    pl_s.listIsScrolledUp = (pl_s.listPos[activeList] === 0);
     pl_s.listIsScrolledDown = pl_s.listPos[activeList] >= (pl_s.listLength - pl_s.windowSizeInRows) && Math.abs(partialRowShift - difference) < 0.0001;
 
     if (!pl_s.redrawEverything) {
@@ -3627,14 +3584,14 @@ function scrollbarRedrawCallback() {
 
 function calculateShiftParams() {
     var prevYFullShift = 0;
-    if (pl_s.playlistImgYShift != undefined) {
+    if (pl_s.playlistImgYShift !== undefined) {
         prevYFullShift = pl_s.curRowShift * properties.rowH - pl_s.curPixelShift;
     }
 
     pl_s.curRowShift = Math.floor(pl_s.listPos[activeList]);
     pl_s.curPixelShift = -Math.round((pl_s.listPos[activeList] - pl_s.curRowShift) * properties.rowH);
 
-    if (pl_s.playlistImgYShift == undefined) {
+    if (pl_s.playlistImgYShift === undefined) {
         pl_s.playlistImgYShift = 0;
     }
     else {
@@ -3698,37 +3655,37 @@ function createScrollbarButtonImages() {
             var icoColor;
             var backColor;
 
-            if (s == 0) {
+            if (s === 0) {
                 icoColor = scrollSymbolColorNormal;
                 backColor = scrollTrackColor;
             }
-            else if (s == 1) {
+            else if (s === 1) {
                 icoColor = scrollSymbolColorHover;
                 backColor = scrollColorHover;
             }
-            else if (s == 2) {
+            else if (s === 2) {
                 icoColor = scrollSymbolColorPressed;
                 backColor = scrollColorPressed;
             }
-            else if (s == 3) {
+            else if (s === 3) {
                 icoColor = scrollSymbolColorHot;
                 backColor = scrollColorHot;
             }
 
-            if (i == "lineDown") {
+            if (i === "lineDown") {
                 g.FillSolidRect(m, 1, w - m * 2, h - 1, backColor);
             }
-            else if (i == "lineUp") {
+            else if (i === "lineUp") {
                 g.FillSolidRect(m, 0, w - m * 2, h - 1, backColor);
             }
 
             g.SetSmoothingMode(SmoothingMode.HighQuality);
             g.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
 
-            if (i == "lineDown") {
+            if (i === "lineDown") {
                 g.DrawString(item.ico, item.font, icoColor, 0, 0, w, h, StringFormat(1, 2));
             }
-            else if (i == "lineUp") {
+            else if (i === "lineUp") {
                 g.DrawString(item.ico, item.font, icoColor, 0, 0, w, h - 1, StringFormat(1, 2));
             }
 
@@ -3763,10 +3720,10 @@ function createScrollbarThumbImages(thumbW, thumbH) {
         var g = img.GetGraphics();
 
         var color = scrollColorNormal;
-        if (s == 1) {
+        if (s === 1) {
             color = scrollColorHover;
         }
-        else if (s == 2) {
+        else if (s === 2) {
             color = scrollColorPressed;
         }
 
@@ -3792,7 +3749,6 @@ function setListChangedStateByID(ID) {
     for (var i = 0; i != pl_s.rowsToDraw; i++) {
         // Limiting search to listElems in rows
         var curIndex = i + pl_s.curRowShift;
-
         list_modded[curIndex].isChanged = (list_modded[curIndex] == ID);
     }
 }
