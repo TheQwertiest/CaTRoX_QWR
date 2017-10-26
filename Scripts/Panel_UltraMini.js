@@ -60,10 +60,10 @@ function on_paint(gr) {
 
     if (fb.IsPlaying) {
         var title;
-        if (panel_s.curTitleType == 0) {
+        if (panel_s.curTitleType === 0) {
             title = "[%title%]";
         }
-        else if (panel_s.curTitleType == 1) {
+        else if (panel_s.curTitleType === 1) {
             title = "[%artist%]";
         }
         else {
@@ -74,7 +74,7 @@ function on_paint(gr) {
         gr.DrawString(titleString, gdi.font("Segoe Ui Semibold", 12, 0), _.RGB(240, 240, 240), 5, 5, ww, wh, StringFormat(0, 0, 3, 4096));
     }
 
-    if (panel_s.playbackPanelAlpha != 0) {
+    if (panel_s.playbackPanelAlpha !== 0) {
         // Controls
         gr.FillGradRect(0, wh - playbackH - seekbarH, ww, playbackH + seekbarH + 1, 90, _.RGBA(0, 0, 0, 0), _.RGBA(0, 0, 0, panel_s.playbackPanelAlpha));
 
@@ -168,7 +168,7 @@ function on_playback_dynamic_info_track() {
 }
 
 function on_playback_stop(reason) {
-    if (reason != 2) {
+    if (reason !== 2) {
         onTitleTimer();
     }
 
@@ -281,7 +281,7 @@ function on_volume_change(val) {
 }
 
 function on_key_down(vkey) {
-    if (vkey == VK_F5) {
+    if (vkey === VK_F5) {
         artModule.reloadArt();
     }
 }
@@ -364,7 +364,7 @@ function createButtonObjects(wx, wy, ww, wh) {
 
     var volValue = _.toVolume(fb.Volume);
     var volImage = ((volValue > 50) ? btnImg.VolLoud : ((volValue > 0) ? btnImg.VolQuiet : btnImg.VolMute));
-    buttons.buttons.mute = new _.button(x, y, w, h, volImage, function () { fb.VolumeMute(); }, volValue == 0 ? "Unmute" : "Mute");
+    buttons.buttons.mute = new _.button(x, y, w, h, volImage, function () { fb.VolumeMute(); }, volValue === 0 ? "Unmute" : "Mute");
 
     x += w - 5;
     buttons.buttons.volume = new _.button(x, y + 2, btnImg.ShowVolume.normal.Width, h, btnImg.ShowVolume, function () {
@@ -386,7 +386,7 @@ function createButtonObjects(wx, wy, ww, wh) {
         var volValue = _.toVolume(fb.Volume);
         var volImage = (volValue > 50) ? btnImg.VolLoud : ((volValue > 0) ? btnImg.VolQuiet : btnImg.VolMute);
         buttons.buttons.mute.set_image(volImage);
-        buttons.buttons.mute.tiptext = volValue == 0 ? "Unmute" : "Mute";
+        buttons.buttons.mute.tiptext = volValue === 0 ? "Unmute" : "Mute";
         buttons.buttons.mute.repaint();
     };
 }
@@ -491,21 +491,21 @@ function createButtonImages() {
 
         for (var s = 0; s <= 2; s++) {
             var img = gdi.CreateImage(w, h);
-            g = img.GetGraphics();
+            var g = img.GetGraphics();
             g.SetSmoothingMode(SmoothingMode.HighQuality);
             g.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
 
             var playbackIcoColor = _.RGB(190, 192, 194);
 
-            if (s == 1) {
+            if (s === 1) {
                 playbackIcoColor = _.RGB(251, 253, 255);
             }
-            else if (s == 2) {
+            else if (s === 2) {
                 playbackIcoColor = _.RGB(90, 90, 90);
             }
 
             //---> 
-            g.DrawString(item.ico, item.font, playbackIcoColor, (i == "Stop") ? 0 : 1, 0, w, h, StringFormat(1, 1));
+            g.DrawString(item.ico, item.font, playbackIcoColor, (i === "Stop") ? 0 : 1, 0, w, h, StringFormat(1, 1));
             //--->     
 
             img.ReleaseGraphics(g);
@@ -523,7 +523,7 @@ function createButtonImages() {
 
 function AnimatorClass() {
     this.runAnimation = function (animationName) {
-        if (animationName == "fadeOut") {
+        if (animationName === "fadeOut") {
             stopFadeOut = false;
             stopDelay = false;
             // Not stopping fadeIn, because it looks borked, when stopped in the middle.
@@ -531,7 +531,7 @@ function AnimatorClass() {
             delayFadeOut();
             fadeOut();
         }
-        else if (animationName == "fadeIn") {
+        else if (animationName === "fadeIn") {
             stopFadeOut = true;
             stopDelay = true;
             stopFadeIn = false;
@@ -554,7 +554,7 @@ function AnimatorClass() {
         }
 
         if (!delayFadeOutStarted) {
-            delayTimer = window.SetInterval(function () {
+            var delayTimer = window.SetInterval(function () {
                 if (stopDelay) {
                     window.ClearInterval(delayTimer);
                     delayFadeOutStarted = false;
@@ -585,8 +585,8 @@ function AnimatorClass() {
             return;
         }
 
-        if (!fadeOutStarted && panel_s.playbackPanelAlpha != 0) {
-            fadeOutTimer = window.SetInterval(function () {
+        if (!fadeOutStarted && panel_s.playbackPanelAlpha !== 0) {
+            var fadeOutTimer = window.SetInterval(function () {
                 if (stopFadeOut) {
                     window.ClearInterval(fadeOutTimer);
                     fadeOutStarted = false;
@@ -599,7 +599,7 @@ function AnimatorClass() {
                 panel_s.playbackPanelAlpha = Math.max(0, panel_s.playbackPanelAlpha - hoverOutStep);
                 window.Repaint();
 
-                var alphaIsZero = (panel_s.playbackPanelAlpha == 0);
+                var alphaIsZero = (panel_s.playbackPanelAlpha === 0);
                 if (alphaIsZero) {
                     window.ClearInterval(fadeOutTimer);
                     fadeOutStarted = false;
@@ -618,8 +618,8 @@ function AnimatorClass() {
             return;
         }
 
-        if (!fadeInStarted && panel_s.playbackPanelAlpha != 255) {
-            fadeInTimer = window.SetInterval(function () {
+        if (!fadeInStarted && panel_s.playbackPanelAlpha !== 255) {
+            var fadeInTimer = window.SetInterval(function () {
                 if (stopFadeIn) {
                     window.ClearInterval(fadeInTimer);
                     fadeInStarted = false;
@@ -628,7 +628,7 @@ function AnimatorClass() {
                 panel_s.playbackPanelAlpha = Math.min(255, panel_s.playbackPanelAlpha += hoverInStep);
                 window.Repaint();
 
-                var alphaIsFull = (panel_s.playbackPanelAlpha == 255);
+                var alphaIsFull = (panel_s.playbackPanelAlpha === 255);
                 if (alphaIsFull) {
                     window.ClearInterval(fadeInTimer);
                     fadeInStarted = false;
@@ -653,9 +653,12 @@ function AnimatorClass() {
 }
 var animator = new AnimatorClass();
 
+var titleTimer;
 function onTitleTimer(refreshTitle) {
-    if (panel_s.titleTimerStarted && (!fb.IsPlaying || fb.IsPaused || refreshTitle == true)) {
-        window.ClearInterval(titleTimer);
+    if (panel_s.titleTimerStarted && (!fb.IsPlaying || fb.IsPaused || refreshTitle === true)) {
+        if (!_.isUndefined(titleTimer)) {
+            window.ClearInterval(titleTimer);
+        }
         panel_s.titleTimerStarted = false;
 
         if (refreshTitle) {

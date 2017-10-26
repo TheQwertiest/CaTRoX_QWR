@@ -308,24 +308,21 @@ var qwr_utils = {
 
         return true;
     },
-    HasModdedJScript: function() {
-        try {
+    HasModdedJScript: _.once(function() {
+        var ret = _.attempt(function() {
             // Methods from modded JScript
             wsh_utils.GetWndByHandle(666);
             fb.IsMainMenuCommandChecked("View/Always on Top");
-        }
-        catch (e) {
-            return false;
-        }
+        });
 
-        return true;
-    },
+        return !_.isError(ret);
+    }),
     PropList: function () {
         this.AddProperties = function (properties) {
             var props = this;
             _.forEach(properties, function (item, i) {
                 if (i == "AddProperties") {
-                    error_occupied_name;
+                    error_name_occupied;
                     return false;
                 }
                 props[i] = item;
