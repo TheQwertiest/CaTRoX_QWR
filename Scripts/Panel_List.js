@@ -65,6 +65,8 @@ if (properties.groupedID == 5) {
 
 var pl_s =
     {
+        isInitialized: false,
+
         // Scrollbar
         needsScrollbar:       false,
         isScrollbarDisplayed: false,
@@ -120,7 +122,6 @@ var gPath = "$directory_path(%path%)";
 var gDate = "%date%";
 
 var showNowPlayingCalled = false;
-var collapsedOnStart = false;
 //--->
 var wh = 0,
     ww = 0;
@@ -139,7 +140,7 @@ var AlbumArtId =
         icon:   3,
         artist: 4
     };
-// =================================================== //
+
 //---> Fonts
 var pl_fonts = {
     titleNormal:   gdi.font("Segoe Ui", 12, 0),
@@ -216,7 +217,6 @@ createScrollbarButtonImages();
 // This is especially noticeable when scrolling: with old rendering mechanism (i.e. always redrawing)
 // CPU usage was as high as 45% on overclocked Intel i5-2500K; now it uses no more than 10% on the same CPU.
 function on_paint(gr) {
-
     gr.FillSolidRect(0, 0, ww, wh, pl_colors.background);
 
     var somethingToRedraw = pl_s.redrawEverything || need_to_redraw();
@@ -904,6 +904,10 @@ function on_size() {
         return;
     }
 
+    if (!pl_s.isInitialized) {
+        Initialize();
+    }
+
     listOnSize();
 }
 
@@ -1032,7 +1036,7 @@ function on_mouse_move(x, y, m) {
     oldRow = thisRow;
 }
 
-// =================================================== //
+
 var onMouseLbtnDown = false;
 
 function on_mouse_lbtn_down(x, y, m) {
@@ -1092,13 +1096,12 @@ function on_mouse_lbtn_down_header(groupNr) {
 
         if (properties.autoExpandCollapseGroups) {
             if (selectedIndexes.length == 0) {
-                CollapseExpandList("collapse");
+                CollapseExpandPlayingGroup();
             }
             CollapseExpandGroup(groupNr, "expand");
             doubleClicked = true;
         }
 
-        // TODO: add SHIFT selection
         if (CtrlKeyPressed) {
             if (!isGroupSelected(groupNr)) {
                 selectedIndexes = _.union(selectedIndexes, _.range(firstItem[groupNr], lastItem[groupNr] + 1));
@@ -1109,8 +1112,29 @@ function on_mouse_lbtn_down_header(groupNr) {
                 });
             }
         }
+        else if (ShiftKeyPressed){
+            var a = 0,
+                b = 0;
+
+            var groupFirstItem = firstItem[groupNr];
+
+            if (selectedIndex == undefined) {
+                selectedIndex = plman.GetPlaylistFocusItemIndex(activeList);
+            }
+
+            if (selectedIndex < groupFirstItem) {
+                a = selectedIndex;
+                b = groupFirstItem;
+            }
+            else {
+                a = groupFirstItem;
+                b = selectedIndex;
+            }
+
+            selectedIndexes = _.union(_.range(a, b + 1), _.range(firstItem[groupNr], lastItem[groupNr] + 1));
+        }
         else {
-            selectedIndexes = _.union(selectedIndexes, _.range(firstItem[groupNr], lastItem[groupNr] + 1));
+            selectedIndexes = _.range(firstItem[groupNr], lastItem[groupNr] + 1);
         }
 
         plman.ClearPlaylistSelection(activeList);
@@ -1134,12 +1158,10 @@ function on_mouse_lbtn_down_row(nr, metadb) {
     }
 
     if (ShiftKeyPressed) {
-        selectedIndexes = [];
-
         var a = 0,
             b = 0;
 
-        if (selectedIndex == undefined) {
+        if (selectedIndex === undefined) {
             selectedIndex = plman.GetPlaylistFocusItemIndex(activeList);
         }
 
@@ -1152,9 +1174,7 @@ function on_mouse_lbtn_down_row(nr, metadb) {
             b = selectedIndex;
         }
 
-        for (var id = a; id <= b; id++) {
-            selectedIndexes.push(id);
-        }
+        selectedIndexes = _.range(a, b + 1);
 
         plman.ClearPlaylistSelection(activeList);
         plman.SetPlaylistSelection(activeList, selectedIndexes, true);
@@ -1184,17 +1204,15 @@ function on_mouse_lbtn_down_row(nr, metadb) {
         plman.SetPlaylistSelectionSingle(activeList, nr, !IDIsSelected);
 
         if (IDIsSelected) {
-            for (var i = 0; i < selectedIndexes.length; i++) {
-                if (selectedIndexes[i] == nr) {
-                    selectedIndexes.splice(i, 1);
-                }
-            }
+            _.remove(selectedIndexes, function(item) {
+                return item == nr;
+            });
         }
     }
 
     plman.SetPlaylistFocusItem(activeList, nr);
 
-    if (selectedIndex == undefined) {
+    if (selectedIndex === undefined) {
         selectedIndex = nr;
     }
 
@@ -1273,7 +1291,6 @@ function on_mouse_lbtn_dblclk(x, y, m) {
     }
 }
 
-// =================================================== //
 
 function on_mouse_lbtn_up(x, y, m) {
     onMouseLbtnDown = false;
@@ -1336,7 +1353,7 @@ function on_mouse_lbtn_up(x, y, m) {
                 var odd = false;
                 for (var i = 0; i < playlistItemCount; i++) {
                     if (plman.IsPlaylistItemSelected(activeList, i)) {
-                        if (temp != undefined && ((i - 1) != temp)) {
+                        if (temp !== undefined && ((i - 1) != temp)) {
                             odd = true;
                             break;
                         }
@@ -1438,19 +1455,15 @@ function on_mouse_rbtn_down(x, y, m) {
     var thisIndex = thisID.nr;
 
     if (thisID.isGroupHeader) {
-        plman.SetPlaylistFocusItem(activeList, firstItem[thisID.groupNr]);
+        var thisGroupNr = thisID.groupNr;
 
-        if (isGroupSelected(thisID.groupNr)) {
+        plman.SetPlaylistFocusItem(activeList, firstItem[thisGroupNr]);
+
+        if (isGroupSelected(thisGroupNr)) {
             return;
         }
 
-        selectedIndexes = [];
-
-        var thisGroupNr = thisID.groupNr;
-
-        for (var id = firstItem[thisGroupNr]; id <= lastItem[thisGroupNr]; id++) {
-            selectedIndexes.push(id);
-        }
+        selectedIndexes = _.range(firstItem[thisGroupNr], lastItem[thisGroupNr] + 1);
 
         plman.ClearPlaylistSelection(activeList);
         plman.SetPlaylistSelection(plman.ActivePlaylist, selectedIndexes, true);
@@ -1487,8 +1500,8 @@ function on_mouse_rbtn_up(x, y) {
 
     var metadb = utils.IsKeyPressed(VK_CONTROL) ? (fb.IsPlaying ? fb.GetNowPlaying() : fb.GetFocusItem()) : fb.GetFocusItem();
 
-    var selected = plman.GetPlaylistSelectedItems(plman.ActivePlaylist).Count;
-    var selection = (selected > 1);
+    var hasSelectedItem = plman.GetPlaylistSelectedItems(plman.ActivePlaylist).Count > 0;
+    var hasMultipleSelectedItems = plman.GetPlaylistSelectedItems(plman.ActivePlaylist).Count > 1;
     var queueActive = plman.IsPlaybackQueueActive();
     var isAutoPlaylist = plman.IsAutoPlaylist(activeList);
     var playlistCount = plman.PlaylistCount;
@@ -1517,7 +1530,7 @@ function on_mouse_rbtn_up(x, y) {
     if (!isCurPlaylistEmpty) {
         cpm.AppendMenuItem(MF_STRING, 6, "Refresh all \tF5");
         cpm.AppendMenuItem(MF_STRING, 7, "Select all \tCtrl+A");
-        if (selected) {
+        if (hasSelectedItem) {
             cpm.AppendMenuItem(isAutoPlaylist ? MF_GRAYED : MF_STRING, 8, "Remove from list \tDelete");
         }
         if (queueActive) {
@@ -1527,8 +1540,8 @@ function on_mouse_rbtn_up(x, y) {
     }
 
     if (!inPlaylistInfo) {
-        cpm.AppendMenuItem((plman.GetPlaylistSelectedItems(plman.ActivePlaylist).Count > 0) ? MF_STRING : MF_GRAYED, 10, "Cut \tCtrl+X");
-        cpm.AppendMenuItem((plman.GetPlaylistSelectedItems(plman.ActivePlaylist).Count > 0) ? MF_STRING : MF_GRAYED, 11, "Copy \tCtrl+C");
+        cpm.AppendMenuItem(hasSelectedItem ? MF_STRING : MF_GRAYED, 10, "Cut \tCtrl+X");
+        cpm.AppendMenuItem(hasSelectedItem ? MF_STRING : MF_GRAYED, 11, "Copy \tCtrl+C");
         cpm.AppendMenuItem((!_.isUndefined(bufferedItems) && bufferedItems.Count > 0) ? MF_STRING : MF_GRAYED, 12, "Paste \tCtrl+V");
 
         if (!isCurPlaylistEmpty) {
@@ -1628,7 +1641,7 @@ function on_mouse_rbtn_up(x, y) {
         sort.AppendMenuItem(MF_STRING, 66, "Sort by title");
         sort.AppendMenuItem(MF_STRING, 67, "Sort by track number");
         sort.AppendMenuItem(MF_STRING, 68, "Sort by date");
-        sort.AppendTo(cpm, isAutoPlaylist ? MF_GRAYED : MF_STRING, selection ? "Sort selection" : "Sort");
+        sort.AppendTo(cpm, isAutoPlaylist ? MF_GRAYED : MF_STRING, hasMultipleSelectedItems ? "Sort selection" : "Sort");
 
         // -------------------------------------------------------------- //
         //---> Web links
@@ -1643,7 +1656,7 @@ function on_mouse_rbtn_up(x, y) {
         // -------------------------------------------------------------- //
         //---> Send
 
-        if (selected) {
+        if (hasSelectedItem) {
             send.AppendMenuItem(MF_STRING, 100, "To top");
             send.AppendMenuItem(MF_STRING, 101, "To bottom");
             send.AppendMenuSeparator();
@@ -1661,7 +1674,7 @@ function on_mouse_rbtn_up(x, y) {
 
     // -------------------------------------------------------------- //
     //---> Context Menu Manager
-    if (selected) {
+    if (hasSelectedItem) {
         cpm.AppendMenuSeparator();
         ccmm.InitContext(plman.GetPlaylistSelectedItems(activeList));
         ccmm.BuildMenu(cpm, 2000, -1);
@@ -1675,7 +1688,7 @@ function on_mouse_rbtn_up(x, y) {
 
     var id = cpm.TrackPopupMenu(x, y);
 
-    if (selected) {
+    if (hasSelectedItem) {
         ccmm.ExecuteByID(id - 2000);
     }
 
@@ -1869,7 +1882,7 @@ function on_mouse_rbtn_up(x, y) {
         // -------------------------------------------------------------- //
         case 60:
             //---> Sort
-            if (selection) {
+            if (hasMultipleSelectedItems) {
                 fb.RunMainMenuCommand("Edit/Selection/Sort/Sort by...");
             }
             else {
@@ -1877,10 +1890,10 @@ function on_mouse_rbtn_up(x, y) {
             }
             break;
         case 61:
-            plman.SortByFormat(activeList, "", !!selection);
+            plman.SortByFormat(activeList, "", hasMultipleSelectedItems);
             break;
         case 62:
-            if (selection) {
+            if (hasMultipleSelectedItems) {
                 fb.RunMainMenuCommand("Edit/Selection/Sort/Reverse");
             }
             else {
@@ -1888,22 +1901,22 @@ function on_mouse_rbtn_up(x, y) {
             }
             break;
         case 63:
-            plman.SortByFormat(activeList, "%album%", !!selection);
+            plman.SortByFormat(activeList, "%album%", hasMultipleSelectedItems);
             break;
         case 64:
-            plman.SortByFormat(activeList, "%artist%", !!selection);
+            plman.SortByFormat(activeList, "%artist%", hasMultipleSelectedItems);
             break;
         case 65:
-            plman.SortByFormat(activeList, "%path%%subsong%", !!selection);
+            plman.SortByFormat(activeList, "%path%%subsong%", hasMultipleSelectedItems);
             break;
         case 66:
-            plman.SortByFormat(activeList, "%title%", !!selection);
+            plman.SortByFormat(activeList, "%title%", hasMultipleSelectedItems);
             break;
         case 67:
-            plman.SortByFormat(activeList, "%tracknumber%", !!selection);
+            plman.SortByFormat(activeList, "%tracknumber%", hasMultipleSelectedItems);
             break;
         case 68:
-            plman.SortByFormat(activeList, "%date%", !!selection);
+            plman.SortByFormat(activeList, "%date%", hasMultipleSelectedItems);
             break;
         // -------------------------------------------------------------- //
         // Web links
@@ -1998,7 +2011,6 @@ function PlaylistMenu(x, y) {
     cpm.Dispose();
 }
 
-// =================================================== //
 
 function on_mouse_wheel(delta) {
     if (!pl_s.listLength) {
@@ -2010,7 +2022,6 @@ function on_mouse_wheel(delta) {
     }
 }
 
-// =================================================== //
 
 function on_mouse_leave() {
     rows.forEach(function (row, i) {
@@ -2026,7 +2037,6 @@ function on_mouse_leave() {
     mouseOverList = false;
 }
 
-// =================================================== //
 
 function on_playlist_switch() {
     trace_call && fb.trace(qwr_utils.function_name());
@@ -2042,7 +2052,6 @@ function on_playlist_switch() {
     showNowPlayingCalled = false;
 }
 
-// =================================================== //
 
 function on_playlists_changed() {
     trace_call && fb.trace(qwr_utils.function_name());
@@ -2053,19 +2062,15 @@ function on_playlists_changed() {
     initList();
 }
 
-// =================================================== //
 
 function on_playlist_items_reordered(playlist) {
     trace_call && fb.trace(qwr_utils.function_name());
     if (playlist != activeList) {
         return;
     }
-    if (!collapsedOnStart) {
-        initList();
-    }
+    initList();
 }
 
-// =================================================== //
 
 function on_playlist_items_removed(playlist) {
     trace_call && fb.trace(qwr_utils.function_name());
@@ -2075,7 +2080,6 @@ function on_playlist_items_removed(playlist) {
     initList();
 }
 
-// =================================================== //
 
 function on_playlist_items_added(playlist) {
     trace_call && fb.trace(qwr_utils.function_name());
@@ -2114,14 +2118,13 @@ function on_playlist_items_added(playlist) {
     }
 }
 
-// =================================================== //
 
 function on_playlist_items_selection_change() {
     trace_call && fb.trace(qwr_utils.function_name());
 
     if (!mouseOverList) { //this code executes only if selection is made from external panel.
         selectedIndexes = [];
-        list_pure.forEach(function(item,i) {
+        list_pure.forEach(function (item, i) {
             if (plman.IsPlaylistItemSelected(plman.ActivePlaylist, i)) {
                 selectedIndexes.push(i);
             }
@@ -2141,7 +2144,6 @@ function on_playlist_items_selection_change() {
     window.Repaint();
 }
 
-// =================================================== //
 
 function on_metadb_changed(handles, fromhook) {
     trace_call && fb.trace(qwr_utils.function_name());
@@ -2161,7 +2163,6 @@ function on_metadb_changed(handles, fromhook) {
     }
 }
 
-// =================================================== //
 
 function on_item_focus_change(playlist, from, to) {
     trace_call && fb.trace(qwr_utils.function_name());
@@ -2243,7 +2244,6 @@ function on_playback_pause(state) {
     repaintList();
 }
 
-// =================================================== //
 
 function on_playback_starting(cmd, is_paused) {
     trace_call && fb.trace(qwr_utils.function_name());
@@ -2259,21 +2259,19 @@ function on_playback_starting(cmd, is_paused) {
     }
 }
 
-// =================================================== //
 
 function on_playback_edited(metadb) {
     trace_call && fb.trace(qwr_utils.function_name());
     repaintList();
 }
 
-// =================================================== //
 
 function on_playback_queue_changed() {
     trace_call && fb.trace(qwr_utils.function_name());
     repaintList();
 }
 
-// =================================================== //
+
 var oldPlayingID;
 
 function on_playback_new_track(metadb) {
@@ -2324,7 +2322,6 @@ function on_playback_new_track(metadb) {
     oldPlayingID = playingID;
 }
 
-// =================================================== //
 
 function on_playback_stop(reason) {
     trace_call && fb.trace(qwr_utils.function_name());
@@ -2334,7 +2331,6 @@ function on_playback_stop(reason) {
     }
 }
 
-// =================================================== //
 
 function on_focus(is_focused) {
     trace_call && fb.trace(qwr_utils.function_name());
@@ -2345,7 +2341,6 @@ function on_focus(is_focused) {
     repaintList();
 }
 
-// =================================================== //
 
 function on_key_down(vkey) {
     trace_call && fb.trace(qwr_utils.function_name());
@@ -2476,12 +2471,8 @@ function on_key_down(vkey) {
             plman.ClearPlaylistSelection(activeList);
 
             if (ShiftKeyPressed) {
-                selectedIndexes = [];
-
-                for (var i = tempFocusItemIndex; i >= 0; i--) {
-                    selectedIndexes.push(i);
-                    selectedIndexes.sort(numericAscending);
-                }
+                selectedIndexes = _.range(0, tempFocusItemIndex + 1);
+                selectedIndexes.sort(numericAscending);
                 plman.SetPlaylistSelection(activeList, selectedIndexes, true);
             }
             else {
@@ -2499,11 +2490,7 @@ function on_key_down(vkey) {
             plman.ClearPlaylistSelection(activeList);
 
             if (ShiftKeyPressed) {
-                selectedIndexes = [];
-
-                for (var i = tempFocusItemIndex; i <= (playlistItemCount - 1); ++i) {
-                    selectedIndexes.push(i);
-                }
+                selectedIndexes = _.range(tempFocusItemIndex, playlistItemCount);
                 plman.SetPlaylistSelection(activeList, selectedIndexes, true);
             }
             else {
@@ -2568,7 +2555,6 @@ function on_key_down(vkey) {
     }
 }
 
-// =================================================== //
 
 function on_key_up(vkey) {
     trace_call && fb.trace(qwr_utils.function_name());
@@ -2594,7 +2580,6 @@ function on_drag_enter(action, x, y, mask) {
     }
 }
 
-// =================================================== //
 
 function on_drag_drop(action, x, y, mask) {
     trace_call && fb.trace(qwr_utils.function_name());
@@ -2621,7 +2606,6 @@ function on_drag_drop(action, x, y, mask) {
     repaintList();
 }
 
-// =================================================== //
 
 function on_drag_over(action, x, y, mask) {
     trace_call && fb.trace(qwr_utils.function_name());
@@ -2646,7 +2630,6 @@ function on_drag_over(action, x, y, mask) {
     on_mouse_move(x, y);
 }
 
-// =================================================== //
 
 function on_drag_leave() {
     trace_call && fb.trace(qwr_utils.function_name());
@@ -2676,7 +2659,6 @@ function on_notify_data(name, info) {
     }
 }
 
-// =================================================== //
 
 function getAlbumArt() {
     if (!properties.showAlbumArt) {
@@ -2704,7 +2686,7 @@ function getAlbumArt() {
     }
 }
 
-// =================================================== //
+
 var artSize = properties.rowsInGroup * properties.rowH;
 
 function on_get_album_art_done(metadb, art_id, image, image_path) {
@@ -2734,7 +2716,6 @@ function on_get_album_art_done(metadb, art_id, image, image_path) {
     }
 }
 
-// =================================================== //
 
 function selectAll() {
     for (var i = 0; i != playlistItemCount; i++) {
@@ -2744,7 +2725,6 @@ function selectAll() {
     plman.SetPlaylistSelection(plman.ActivePlaylist, selectedIndexes, true);
 }
 
-// =================================================== //
 
 function resizeDone() {
     if (pl_s.listLength) {
@@ -2752,7 +2732,6 @@ function resizeDone() {
     }
 }
 
-// =================================================== //
 
 function calculateSelectionLength() {
     var selectionLengthInSeconds = 0;
@@ -2779,7 +2758,6 @@ function calculateSelectionLength() {
     return utils.FormatDuration(selectionLengthInSeconds);
 }
 
-// =================================================== //
 
 function calculateGroupLength(arrBegin, arrEnd) {
     var groupLengthInSeconds = 0;
@@ -2803,15 +2781,12 @@ function calculateGroupLength(arrBegin, arrEnd) {
     return utils.FormatDuration(groupLengthInSeconds);
 }
 
-// =================================================== //
 
 function repaintList() {
     if (window.IsVisible) {
         pl_s.listW && window.RepaintRect(pl_s.listX, pl_s.listY + 1, pl_s.listW, pl_s.listH);
     }
 }
-
-// =================================================== //
 
 
 function CollapseExpandGroup(groupNr, command) {
@@ -2846,8 +2821,6 @@ function CollapseExpandGroup(groupNr, command) {
 }
 
 function CollapseExpandList(command) {
-    collapsedOnStart = false;
-
     if (!playlistItemCount) {
         return;
     }
@@ -2888,13 +2861,12 @@ function CollapseExpandPlayingGroup() {
     var playingItemLocation = plman.GetPlayingItemLocation();
     var isValid;
 
+    CollapseExpandList("collapse");
     if (playingItemLocation.IsValid) {
-        CollapseExpandList("collapse");
         CollapseExpandGroup(getPlayingGroupNr(), "expand")
     }
 
     var counter = 0;
-
     if (!playingItemLocation.IsValid) {
         var timer = window.SetInterval(function () { // timer for getting delayed item location info when skip track selected
             isValid = plman.GetPlayingItemLocation().IsValid;
@@ -2912,20 +2884,18 @@ function CollapseExpandPlayingGroup() {
         }, 100);
     }
 
-    // TODO: test this
-    //when auto or collapse all but now playing is selected scrolls now playing album to the top
-    _.forEach(list_modded, function (ID, i) {
-        if (ID.isGroupHeader && ID.groupNr == getPlayingGroupNr()) {
-            var step = i;
-            if (step < 0) {
-                step = 0;
+    // scrollbar is not always initialized here
+    /*
+    if (!_.isNil(scrollbar) && pl_s.isInitialized) {
+        //when auto or collapse all but now playing is selected scrolls now playing album to the top
+        _.forEach(list_modded, function (ID, i) {
+            if (ID.isGroupHeader && ID.groupNr == getPlayingGroupNr()) {
+                scrollbar.check_scroll(_.max(i,0));
+                return false;
             }
-            pl_s.listPos[activeList] = Math.min(pl_s.listLength - pl_s.rowsToDraw, step);
-            window.SetProperty("system.List Step", pl_s.listPos.toString());
-            return false;
-        }
-    });
-
+        });
+    }
+    */
     function getPlayingGroupNr() {
         var playingIndex = -1;
 
@@ -3047,7 +3017,6 @@ function displayFocusItem(prevFocusID, focusID) {
     });
 }
 
-// =================================================== //
 
 function showNowPlaying() {
     if (!fb.IsPlaying) {
@@ -3108,7 +3077,6 @@ function showNowPlaying() {
     }
 }
 
-// =================================================== //
 
 var itemCountInGroup = [];
 var list_pure = [];
@@ -3376,9 +3344,6 @@ function initList() {
     }
 }
 
-initList();
-
-// =================================================== //
 var doubleClicked = false,
     mouseOverList = false,
     newTrackByClick = false,
@@ -3464,10 +3429,8 @@ function RowButton(x, y, w, h) {
     this.h = h;
 }
 
-// =================================================== //
 
 var bufferedItems;
-var cuttedItemsCount = 0;
 
 function copy() {
     bufferedItems = plman.GetPlaylistSelectedItems(activeList);
@@ -3550,7 +3513,7 @@ function scrollbarRedrawCallback() {
 
     calculateShiftParams();
 
-    //check listOnSize function for more info on this
+    //see listOnSize function for more info on this
     if (pl_s.curPixelShift && pl_s.rowsToDrawWhenZeroShift + pl_s.curRowShift < pl_s.listLength) {
         pl_s.rowsToDraw = pl_s.rowsToDrawWhenZeroShift + 1;
     }
@@ -3753,13 +3716,22 @@ function setListChangedStateByID(ID) {
     }
 }
 
-if (properties.collapseOnStart) {
-    CollapseExpandList("collapse");
-    collapsedOnStart = true;
-}
+function Initialize() {
+    if (pl_s.isInitialized) {
+        return;
+    }
 
-if (properties.autoExpandCollapseGroups) {
-    CollapseExpandPlayingGroup();
+    initList();
+
+    if (properties.collapseOnStart) {
+        CollapseExpandList("collapse");
+    }
+
+    if (properties.autoExpandCollapseGroups) {
+        CollapseExpandPlayingGroup();
+    }
+
+    pl_s.isInitialized = true;
 }
 
 // Workaround for bug: PlayingPlaylist is equal to -1 on startup
