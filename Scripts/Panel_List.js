@@ -66,45 +66,45 @@ if (properties.groupedID == 5) {
 var pl_s =
     {
         // Scrollbar
-        needsScrollbar: false,
+        needsScrollbar:       false,
         isScrollbarDisplayed: false,
 
         // Scroll
-        listPos: [],
-        listIsScrolledUp: false,
+        listPos:            [],
+        listIsScrolledUp:   false,
         listIsScrolledDown: false,
-        curRowShift: 0,
-        curPixelShift: 0,
+        curRowShift:        0,
+        curPixelShift:      0,
 
         // Control
-        fastScrollActive: false,
-        rowDrag: false,
-        fileDrag: false,
+        fastScrollActive:  false,
+        rowDrag:           false,
+        fileDrag:          false,
         makeSelectionDrag: false,
-        linkToLastItem: false,
-        keyPressed: false,
-        clickedOnGroup: false,
+        linkToLastItem:    false,
+        keyPressed:        false,
+        clickedOnGroup:    false,
 
-        itemDropped: false,
+        itemDropped:      false,
         playlistDuration: 0,
-        selectionLength: 0,
+        selectionLength:  0,
 
         // List size & pos
-        listLength: 0,
-        listX: 0,
-        listY: 0,
-        listW: 0,
-        listH: 0,
-        windowSizeInRows: 0,
-        rowsToDraw : 0,
+        listLength:              0,
+        listX:                   0,
+        listY:                   0,
+        listW:                   0,
+        listH:                   0,
+        windowSizeInRows:        0,
+        rowsToDraw:              0,
         rowsToDrawWhenZeroShift: 0,
 
         // Print screen management
-        playlistImg: undefined,
+        playlistImg:         undefined,
         playlistImgFirstRow: -1,
-        playlistImgLastRow: -1,
-        playlistImgYShift: undefined,
-        redrawEverything: true,
+        playlistImgLastRow:  -1,
+        playlistImgYShift:   undefined,
+        redrawEverything:    true,
     };
 
 var curRowsInGroup = properties.useCompactGroupHeader ? properties.rowsInCompactGroup : properties.rowsInGroup;
@@ -142,23 +142,23 @@ var AlbumArtId =
 // =================================================== //
 //---> Fonts
 var pl_fonts = {
-    titleNormal: gdi.font("Segoe Ui", 12, 0),
+    titleNormal:   gdi.font("Segoe Ui", 12, 0),
     titleSelected: gdi.font("Segoe Ui Semibold", 12, 0),
-    titlePlaying: gdi.font("Segoe Ui Semibold", 12, 0),
+    titlePlaying:  gdi.font("Segoe Ui Semibold", 12, 0),
 
-    artistNormal: gdi.font("Segoe Ui Semibold", 18, 0),
-    artistPlaying: gdi.font("Segoe Ui Semibold", 18, 0 | 4),
-    artistCompactNormal: gdi.font("Segoe Ui Semibold", 15, 0),
+    artistNormal:         gdi.font("Segoe Ui Semibold", 18, 0),
+    artistPlaying:        gdi.font("Segoe Ui Semibold", 18, 0 | 4),
+    artistCompactNormal:  gdi.font("Segoe Ui Semibold", 15, 0),
     artistCompactPlaying: gdi.font("Segoe Ui Semibold", 15, 0 | 4),
 
-    playCount: gdi.font("Segoe Ui", 9, 0),
-    album: gdi.font("Segoe Ui Semibold", 15, 0),
-    date: gdi.font("Segoe UI Semibold", 16, 1),
-    dateCompact: gdi.font("Segoe UI Semibold", 15, 0),
-    info: gdi.font("Segoe Ui", 11, 0),
-    cover: gdi.font("Segoe Ui Semibold", 11, 0),
+    playCount:      gdi.font("Segoe Ui", 9, 0),
+    album:          gdi.font("Segoe Ui Semibold", 15, 0),
+    date:           gdi.font("Segoe UI Semibold", 16, 1),
+    dateCompact:    gdi.font("Segoe UI Semibold", 15, 0),
+    info:           gdi.font("Segoe Ui", 11, 0),
+    cover:          gdi.font("Segoe Ui Semibold", 11, 0),
     ratingNotRated: gdi.font("Segoe Ui Symbol", 14),
-    ratingRated: gdi.font("Segoe Ui Symbol", 16)
+    ratingRated:    gdi.font("Segoe Ui Symbol", 16)
 };
 
 var pl_colors = {};
@@ -289,13 +289,13 @@ function on_paint(gr) {
 function need_to_redraw() {
     var somethingToRedraw = false;
     for (var i = pl_s.rowsToDraw - 1; i != -1; i--) {
-        var ID = list[i + pl_s.curRowShift];
+        var ID = list_modded[i + pl_s.curRowShift];
 
         if (ID.isChanged) {
             somethingToRedraw = true;
 
             if ((i + pl_s.curRowShift - 1) >= 0) {// Selection rectangle fix (rectangle is larger than rowH)
-                var prevID = list[i + pl_s.curRowShift - 1];
+                var prevID = list_modded[i + pl_s.curRowShift - 1];
                 if (prevID.isGroupHeader || plman.IsPlaylistItemSelected(activeList, prevID.nr)) {
                     prevID.isChanged = true;
                 }
@@ -321,14 +321,14 @@ function draw_playlist(gr, playlistShifted) {
             playingID: (plman.PlayingPlaylist == activeList) ? plman.GetPlayingItemLocation().PlaylistItemIndex : undefined,
             focusID:   plman.GetPlaylistFocusItemIndex(activeList),
 
-            queueIndexes:     [],
-            queueIndexCount:  [],
-            headerChanged:    [],
-            tempGroupNr:      -1
+            queueIndexes:    [],
+            queueIndexCount: [],
+            headerChanged:   [],
+            tempGroupNr:     -1
         };
 
         for (var i = 0; i != pl_s.rowsToDraw; i++) {
-            var ID = list[i + pl_s.curRowShift];
+            var ID = list_modded[i + pl_s.curRowShift];
             if (ID.isGroupHeader && ID.isChanged) {
                 playlistDrawData.headerChanged[ID.groupNr] = true;
             }
@@ -336,19 +336,19 @@ function draw_playlist(gr, playlistShifted) {
 
         var redrawTopGradient = false,
             redrawBottomGradient = false;
-        if (!pl_s.listIsScrolledUp && (playlistShifted || list[pl_s.curRowShift].isChanged || list[1 + pl_s.curRowShift].isChanged )) {
-            list[pl_s.curRowShift].isChanged = list[1 + pl_s.curRowShift].isChanged = true;
+        if (!pl_s.listIsScrolledUp && (playlistShifted || list_modded[pl_s.curRowShift].isChanged || list_modded[1 + pl_s.curRowShift].isChanged )) {
+            list_modded[pl_s.curRowShift].isChanged = list_modded[1 + pl_s.curRowShift].isChanged = true;
             redrawTopGradient = true;
         }
-        if (!pl_s.listIsScrolledDown && (playlistShifted || list[pl_s.rowsToDraw - 1 + pl_s.curRowShift].isChanged || list[pl_s.rowsToDraw - 2 + pl_s.curRowShift].isChanged)) {
-            list[pl_s.rowsToDraw - 1 + pl_s.curRowShift].isChanged = list[pl_s.rowsToDraw - 2 + pl_s.curRowShift].isChanged = true;
+        if (!pl_s.listIsScrolledDown && (playlistShifted || list_modded[pl_s.rowsToDraw - 1 + pl_s.curRowShift].isChanged || list_modded[pl_s.rowsToDraw - 2 + pl_s.curRowShift].isChanged)) {
+            list_modded[pl_s.rowsToDraw - 1 + pl_s.curRowShift].isChanged = list_modded[pl_s.rowsToDraw - 2 + pl_s.curRowShift].isChanged = true;
             redrawBottomGradient = true;
         }
 
         //--->
         for (var i = pl_s.rowsToDraw - 1; i != -1; i--) {
             playlistDrawData.idx = i;
-            playlistDrawData.ID = list[i + pl_s.curRowShift];
+            playlistDrawData.ID = list_modded[i + pl_s.curRowShift];
             playlistDrawData.rowY = rows[i].y + pl_s.curPixelShift;
 
             if (playlistDrawData.ID.isGroupHeader) {
@@ -459,7 +459,7 @@ function draw_group(gr, drawData) {
             var leftPad = 10;
             var path = _.tf("%path%", metadb);
 
-            var radio = path.indexOf('http') == 0;
+            var radio = _.startsWith(path, 'http');
 
             //---> DATE
             var date = _.tf("%date%", metadb);
@@ -533,14 +533,13 @@ function draw_group(gr, drawData) {
                     g.DrawImage(art, artX + 2, artY + 2, artW - 4, artH - 4, 0, 0, art.Width, art.Height, 0, artAlpha);
 
                 }
-                else if ( !properties.autoAlbumArt )
-                {
-                     if ( art === null ) {
-                          g.DrawString("NO COVER", pl_fonts.cover, _.RGB(100, 100, 100), artX, artY, artW, artH, StringFormat(1, 1));
-                     }
-                     else {
-                          g.DrawString("LOADING", pl_fonts.cover, lineColor, artX, artY, artW, artH, StringFormat(1, 1));      
-                     }
+                else if (!properties.autoAlbumArt) {
+                    if (art === null) {
+                        g.DrawString("NO COVER", pl_fonts.cover, _.RGB(100, 100, 100), artX, artY, artW, artH, StringFormat(1, 1));
+                    }
+                    else {
+                        g.DrawString("LOADING", pl_fonts.cover, lineColor, artX, artY, artW, artH, StringFormat(1, 1));
+                    }
                 }
 
                 g.DrawRect(artX, artY, artW - 1, artH - 1, 1, lineColor);
@@ -552,7 +551,7 @@ function draw_group(gr, drawData) {
             var leftPad = artX + artW + 10;
             var path = _.tf("%path%", metadb);
 
-            var radio = path.indexOf('http') === 0;
+            var radio = _.startsWith(path, 'http');
 
             //---> DATE
             var date = _.tf("%date%", metadb);
@@ -647,9 +646,9 @@ function draw_group(gr, drawData) {
                     codec = codec + sample;
                 }
                 else {
-                    codec = (path.indexOf('www.youtube.com') === 0 || path.indexOf('youtube.com') === 0) ? "yt" : path;
+                    codec = (_.startsWith(path, 'www.youtube.com') || _.startsWith(path, 'youtube.com')) ? "yt" : path;
                 }
-                var iCount = itemCount[ID.groupNr];
+                var iCount = itemCountInGroup[ID.groupNr];
                 var genre = radio ? "" : (properties.groupedID ? "%genre% | " : "");
                 var discNumber = (properties.groupedID === 2 && _.tf("[%totaldiscs%]", metadb) !== "1") ? _.tf("[ | Disc: %discnumber%/%totaldiscs%]", metadb) : "";
                 var info = _.tf(codec + discNumber + "[ | %replaygain_album_gain%]", metadb) + (radio ? "" : " | " + iCount + (iCount == 1 ? " Track" : " Tracks") + " | Time: " + calculateGroupLength(firstItem[groupNr], lastItem[groupNr]));
@@ -710,12 +709,11 @@ function draw_row(gr, drawData) {
     if (selectedID == ID.nr) {
         if (properties.alternateRowColor) {
             //gr.DrawRect(rowX, rowY - 1, rowW - 1, rowH, 1, pl_colors.rowFocusSelected);
-            if ( pl_s.listIsScrolledDown && idx === (pl_s.rowsToDraw - 1)) {
+            if (pl_s.listIsScrolledDown && idx === (pl_s.rowsToDraw - 1)) {
                 // last item is cropped
                 gr.DrawRect(rowX, rowY, rowW - 1, rowH - 1, 1, pl_colors.rowFocusSelected);
             }
-            else
-            {
+            else {
                 gr.DrawRect(rowX, rowY, rowW - 1, rowH, 1, pl_colors.rowFocusSelected);
             }
         }
@@ -740,12 +738,11 @@ function draw_row(gr, drawData) {
     //--->
     if (properties.showFocusItem && panelFocus && focusID == ID.nr) {
         //gr.DrawRect(rowX + 1, rowY, rowW - 3, rowH - 2, 1, rowColorFocus);
-        if ( pl_s.listIsScrolledDown && idx === (pl_s.rowsToDraw - 1)) {
+        if (pl_s.listIsScrolledDown && idx === (pl_s.rowsToDraw - 1)) {
             // last item is cropped
             gr.DrawRect(rowX + 1, rowY + 1, rowW - 3, rowH - 3, 1, rowColorFocus);
         }
-        else
-        {
+        else {
             gr.DrawRect(rowX + 1, rowY + 1, rowW - 3, rowH - 2, 1, rowColorFocus);
         }
     }
@@ -814,11 +811,11 @@ function draw_row(gr, drawData) {
 
     //---> TITLE
     var titleW = rowW - lengthWidth - playCountWidth - ratingW;
-    var gic =  ID.nrInGroup;
+    var gic = ID.nrInGroup;
     var itemNr = (((gic) < 10) ? ("0" + (gic)) : (gic));
     var path = _.tf("%path%", metadb);
     var titleQuery = "$if(%tracknumber%,%tracknumber%.," + itemNr + ".)  %title%";
-    var title = ( fb.IsPlaying && path.indexOf('http') === 0 && ID.nr == playingID ) ? _.tfe(titleQuery) : _.tf(titleQuery, metadb);
+    var title = ( fb.IsPlaying && _.startsWith(path, 'http') && ID.nr == playingID ) ? _.tfe(titleQuery) : _.tf(titleQuery, metadb);
     var titleArtist = _.tf("[  \u25AA  $if($greater($len(%album artist%),1),$if($greater($len(%track artist%),1),%track artist%))]", metadb);
     if (titleArtist) {
         var titleLength = gr.MeasureString(title, titleFont, 0, 0, 0, 0, StringFormat(0, 1, 3, 0x00000800 | 0x1000)).Width;
@@ -962,7 +959,7 @@ function on_mouse_move(x, y, m) {
     }
 
     if ((pl_s.fileDrag || pl_s.rowDrag || pl_s.makeSelectionDrag) && thisID && thisID.isGroupHeader && isCollapsed[thisID.groupNr]) {
-        collapseExpand(thisID.groupNr);
+        CollapseExpandGroup(thisID.groupNr, "toggle");
     }
 
     if (oldRow && oldRow != thisRow) {
@@ -1034,6 +1031,7 @@ function on_mouse_move(x, y, m) {
     oldID = thisID;
     oldRow = thisRow;
 }
+
 // =================================================== //
 var onMouseLbtnDown = false;
 
@@ -1083,43 +1081,43 @@ function on_mouse_lbtn_down_header(groupNr) {
 
     pl_s.clickedOnGroup = true;
 
-    if (!CtrlKeyPressed)
-        selectedIndexes = [];
-
-    var wasEmpty = selectedIndexes.length == 0;
-
-    // TODO: add SHIFT selection
-    if (!(CtrlKeyPressed && ShiftKeyPressed)) {
-        var groupItems = [];
-        for (var id = firstItem[groupNr]; id <= lastItem[groupNr]; id++) {
-            groupItems.push(id);
+    if (CtrlKeyPressed && ShiftKeyPressed) {
+        CollapseExpandGroup(groupNr, "toggle");
+        doubleClicked = true;
+    }
+    else {
+        if (!CtrlKeyPressed) {
+            selectedIndexes = [];
         }
 
+        if (properties.autoExpandCollapseGroups) {
+            if (selectedIndexes.length == 0) {
+                CollapseExpandList("collapse");
+            }
+            CollapseExpandGroup(groupNr, "expand");
+            doubleClicked = true;
+        }
+
+        // TODO: add SHIFT selection
         if (CtrlKeyPressed) {
-            selectedIndexes = _.difference(selectedIndexes, groupItems)
-            if (!isGroupSelected(groupNr))
-                selectedIndexes = _.union(selectedIndexes, groupItems);
+            if (!isGroupSelected(groupNr)) {
+                selectedIndexes = _.union(selectedIndexes, _.range(firstItem[groupNr], lastItem[groupNr] + 1));
+            }
+            else {
+                _.remove(selectedIndexes, function (item) {
+                    return item >= firstItem[groupNr] && item <= lastItem[groupNr];
+                });
+            }
         }
         else {
-            selectedIndexes = _.union(selectedIndexes, groupItems);
+            selectedIndexes = _.union(selectedIndexes, _.range(firstItem[groupNr], lastItem[groupNr] + 1));
         }
-    }
 
-    plman.ClearPlaylistSelection(activeList);
-    plman.SetPlaylistSelection(plman.ActivePlaylist, selectedIndexes, true);
-    plman.SetPlaylistFocusItem(activeList, firstItem[groupNr]);
+        plman.ClearPlaylistSelection(activeList);
+        plman.SetPlaylistSelection(plman.ActivePlaylist, selectedIndexes, true);
+        plman.SetPlaylistFocusItem(activeList, firstItem[groupNr]);
 
-    clickedOnSelectedItem = true;
-
-    if (properties.autoExpandCollapseGroups) {
-        if (wasEmpty)
-            collapseExpand("collapse", undefined, groupNr);
-        collapseExpand(groupNr, undefined, groupNr);
-        doubleClicked = true;
-    }
-    else if (CtrlKeyPressed && ShiftKeyPressed) {
-        collapseExpand(groupNr);
-        doubleClicked = true;
+        clickedOnSelectedItem = true;
     }
 }
 
@@ -1253,7 +1251,7 @@ function on_mouse_lbtn_dblclk(x, y, m) {
         var rate = thisRowBtnNr + 1;
 
         if (properties.useTagRating) {
-            if (metadb.RawPath.indexOf("http://") !== 0) {
+            if (!metadb.Raw_.startsWith(path, "http://")) {
                 (currentRating == 1 && rate == 1) ? metadb.UpdateFileInfoSimple("RATING", undefined) : metadb.UpdateFileInfoSimple("RATING", rate);
             }
         }
@@ -1267,13 +1265,14 @@ function on_mouse_lbtn_dblclk(x, y, m) {
     }
 
     if (thisID.isGroupHeader) {
-        collapseExpand(thisID.groupNr);
+        CollapseExpandGroup(thisID.groupNr, "toggle");
     }
     else if (!utils.IsKeyPressed(VK_KEY_Q) && !utils.IsKeyPressed(VK_KEY_Z)) {
         plman.ExecutePlaylistDefaultAction(activeList, thisID.nr);
         newTrackByClick = true;
     }
 }
+
 // =================================================== //
 
 function on_mouse_lbtn_up(x, y, m) {
@@ -1506,13 +1505,14 @@ function on_mouse_rbtn_up(x, y) {
     var skip = window.CreatePopupMenu();
     var art = window.CreatePopupMenu();
     var group = window.CreatePopupMenu();
-    
+
     var isCurPlaylistEmpty = !plman.PlaylistItemCount(plman.ActivePlaylist);
 
     plman.SetActivePlaylistContext();
 
-    if (fb.IsPlaying)
+    if (fb.IsPlaying) {
         cpm.AppendMenuItem(MF_STRING, 5, "Show now playing");
+    }
 
     if (!isCurPlaylistEmpty) {
         cpm.AppendMenuItem(MF_STRING, 6, "Refresh all \tF5");
@@ -1529,9 +1529,10 @@ function on_mouse_rbtn_up(x, y) {
     if (!inPlaylistInfo) {
         cpm.AppendMenuItem((plman.GetPlaylistSelectedItems(plman.ActivePlaylist).Count > 0) ? MF_STRING : MF_GRAYED, 10, "Cut \tCtrl+X");
         cpm.AppendMenuItem(cuttedItemsCount ? MF_STRING : MF_GRAYED, 11, "Paste \tCtrl+V");
-        
-        if ( !isCurPlaylistEmpty )
+
+        if (!isCurPlaylistEmpty) {
             cpm.AppendMenuSeparator();
+        }
     }
 
     if (!isCurPlaylistEmpty) {
@@ -1673,8 +1674,9 @@ function on_mouse_rbtn_up(x, y) {
 
     var id = cpm.TrackPopupMenu(x, y);
 
-    if (selected) 
+    if (selected) {
         ccmm.ExecuteByID(id - 2000);
+    }
 
     pl_s.redrawEverything = true; ///< TrackPopupMenu calls Redraw which causes pl_s.redrawEverything flag to reset
     // -------------------------------------------------------------- //
@@ -1703,16 +1705,16 @@ function on_mouse_rbtn_up(x, y) {
         // -------------------------------------------------------------- //
         case 20:
             //---> Collapse/Expand
-            collapseExpand("collapse");
+            CollapseExpandList("collapse");
             if (plman.ActivePlaylist == plman.PlayingPlaylist) {
                 displayFocusItem(undefined, plman.GetPlaylistFocusItemIndex(activeList));
             }
             break;
         case 21:
-            getPlayingGroupCollapseExpand();
+            CollapseExpandPlayingGroup();
             break;
         case 22:
-            collapseExpand("expand");
+            CollapseExpandList("expand");
             if (plman.ActivePlaylist == plman.PlayingPlaylist) {
                 displayFocusItem(undefined, plman.GetPlaylistFocusItemIndex(activeList));
             }
@@ -1720,7 +1722,7 @@ function on_mouse_rbtn_up(x, y) {
         case 23:
             properties.autoExpandCollapseGroups = !properties.autoExpandCollapseGroups;
             window.SetProperty("user.Auto Expand/Collapse Groups", properties.autoExpandCollapseGroups);
-            properties.autoExpandCollapseGroups && getPlayingGroupCollapseExpand();
+            properties.autoExpandCollapseGroups && CollapseExpandPlayingGroup();
             break;
         case 24:
             properties.collapseOnStart = !properties.collapseOnStart;
@@ -1995,37 +1997,45 @@ function PlaylistMenu(x, y) {
 // =================================================== //
 
 function on_mouse_wheel(delta) {
-    if (!pl_s.listLength)
+    if (!pl_s.listLength) {
         return;
+    }
 
-    if (pl_s.needsScrollbar)
+    if (pl_s.needsScrollbar) {
         scrollbar.wheel(delta);
+    }
 }
+
 // =================================================== //
 
 function on_mouse_leave() {
-    for (var i = 0; rows[i]; i++) {
-        rows[i].changeState(0);
-    }
+    rows.forEach(function (row, i) {
+        row.changeState(0);
+    });
 
     selectedIndex = oldRow = thisRow = undefined;
 
-    if (pl_s.isScrollbarDisplayed)
+    if (pl_s.isScrollbarDisplayed) {
         scrollbar.leave();
+    }
 }
+
 // =================================================== //
 
 function on_playlist_switch() {
     trace_call && fb.trace(qwr_utils.function_name());
     initList();
-    if (!showNowPlayingCalled && properties.autoExpandCollapseGroups && properties.autoCollapseOnPlaylistSwitch)
-        collapseExpand("collapse");
+    if (!showNowPlayingCalled && properties.autoExpandCollapseGroups && properties.autoCollapseOnPlaylistSwitch) {
+        CollapseExpandList("collapse");
+    }
 
-    if (plman.ActivePlaylist == plman.PlayingPlaylist)
+    if (plman.ActivePlaylist == plman.PlayingPlaylist) {
         showNowPlaying();
+    }
 
     showNowPlayingCalled = false;
 }
+
 // =================================================== //
 
 function on_playlists_changed() {
@@ -2036,6 +2046,7 @@ function on_playlists_changed() {
     window.SetProperty("system.List Step", "");
     initList();
 }
+
 // =================================================== //
 
 function on_playlist_items_reordered(playlist) {
@@ -2047,6 +2058,7 @@ function on_playlist_items_reordered(playlist) {
         initList();
     }
 }
+
 // =================================================== //
 
 function on_playlist_items_removed(playlist) {
@@ -2056,6 +2068,7 @@ function on_playlist_items_removed(playlist) {
     }
     initList();
 }
+
 // =================================================== //
 
 function on_playlist_items_added(playlist) {
@@ -2078,8 +2091,7 @@ function on_playlist_items_added(playlist) {
     initList();
 
     if (pl_s.linkToLastItem) {
-        if ( pl_s.needsScrollbar )
-        {
+        if (pl_s.needsScrollbar) {
             scrollbar.check_scroll(pl_s.listLength);
         }
 
@@ -2119,6 +2131,7 @@ function on_playlist_items_selection_change() {
     pl_s.redrawEverything = true;
     window.Repaint();
 }
+
 // =================================================== //
 
 function on_metadb_changed(handles, fromhook) {
@@ -2138,6 +2151,7 @@ function on_metadb_changed(handles, fromhook) {
         window.Repaint();
     }
 }
+
 // =================================================== //
 
 function on_item_focus_change(playlist, from, to) {
@@ -2152,7 +2166,7 @@ function on_item_focus_change(playlist, from, to) {
     //-----------------------------------------------------//
 
     if (!mouseOverList) { //this code executes only if selection is made from external panel.
-    // TODO: figure out what this is about
+        // TODO: figure out what this is about
         if (!selectedIndexes.length && !ShiftKeyPressed && !CtrlKeyPressed) {
             selectedIndexes = [];
             selectedIndexes[0] = to;
@@ -2196,7 +2210,7 @@ function on_item_focus_change(playlist, from, to) {
                 obj[item] = 0;
             });
 
-            _.forEach(obj,function (item) {
+            _.forEach(obj, function (item) {
                 tempSelectedIndexes.push(item);
             });
 
@@ -2239,7 +2253,7 @@ function on_item_focus_change(playlist, from, to) {
 
     var needsRedraw = false;
     for (var i = 0; i != pl_s.rowsToDraw; i++) {
-        var ID = list[i + pl_s.curRowShift];
+        var ID = list_modded[i + pl_s.curRowShift];
         var groupNr = ID.groupNr;
 
         if (ID.isGroupHeader && isCollapsed[groupNr] && firstItem[groupNr] == to) {
@@ -2253,28 +2267,27 @@ function on_item_focus_change(playlist, from, to) {
             needsRedraw = true;
         }
     }
-    if ( needsRedraw )
+    if (needsRedraw) {
         repaintList();
+    }
 }
 
-function RefocusGroup()
-{
+function RefocusGroup() {
     var prevFocusGroupNr = focusGroupNr;
     focusGroupNr = -1;
 
     var focusItemID = plman.GetPlaylistFocusItemIndex(activeList);
 
     for (var i = 0; i != pl_s.rowsToDraw; i++) {
-        var ID = list[i + pl_s.curRowShift];
+        var ID = list_modded[i + pl_s.curRowShift];
         var groupNr = ID.groupNr;
 
-        if (ID.isGroupHeader && isCollapsed[groupNr])
-        {
-            if ( firstItem[groupNr] == focusItemID ) {
+        if (ID.isGroupHeader && isCollapsed[groupNr]) {
+            if (firstItem[groupNr] == focusItemID) {
                 ID.isChanged = true;
                 focusGroupNr = groupNr;
             }
-            else if ( prevFocusGroupNr !== -1 && groupNr == prevFocusGroupNr) {
+            else if (prevFocusGroupNr !== -1 && groupNr == prevFocusGroupNr) {
                 ID.isChanged = true;
             }
         }
@@ -2285,6 +2298,7 @@ function on_playback_pause(state) {
     trace_call && fb.trace(qwr_utils.function_name());
     repaintList();
 }
+
 // =================================================== //
 
 function on_playback_starting(cmd, is_paused) {
@@ -2300,18 +2314,21 @@ function on_playback_starting(cmd, is_paused) {
         repaintList();
     }
 }
+
 // =================================================== //
 
 function on_playback_edited(metadb) {
     trace_call && fb.trace(qwr_utils.function_name());
     repaintList();
 }
+
 // =================================================== //
 
 function on_playback_queue_changed() {
     trace_call && fb.trace(qwr_utils.function_name());
     repaintList();
 }
+
 // =================================================== //
 var oldPlayingID;
 
@@ -2328,7 +2345,7 @@ function on_playback_new_track(metadb) {
         rating = _.tf("%rating%", metadb);
     }
 
-    if ( plman.ActivePlaylist == plman.PlayingPlaylist ) {
+    if (plman.ActivePlaylist == plman.PlayingPlaylist) {
         // Full repaint for updated metadata (in playlist info as well)
         pl_s.redrawEverything = true;
         window.Repaint();
@@ -2355,13 +2372,14 @@ function on_playback_new_track(metadb) {
             tempAlbumOnPlaybackNewTrack = album;
 
             if (properties.autoExpandCollapseGroups) {
-                getPlayingGroupCollapseExpand();
+                CollapseExpandPlayingGroup();
             }
         }
     }
 
     oldPlayingID = playingID;
 }
+
 // =================================================== //
 
 function on_playback_stop(reason) {
@@ -2371,6 +2389,7 @@ function on_playback_stop(reason) {
         repaintList();
     }
 }
+
 // =================================================== //
 
 function on_focus(is_focused) {
@@ -2457,7 +2476,7 @@ function on_key_down(vkey) {
             if (pl_s.needsScrollbar) {
                 pl_s.fastScrollActive = true;
                 scrollbar.shift_page(-1);
-                var ID = list[Math.floor(pl_s.rowsToDraw / 2) + pl_s.curRowShift];
+                var ID = list_modded[Math.floor(pl_s.rowsToDraw / 2) + pl_s.curRowShift];
                 IDnr = ID.isGroupHeader ? firstItem[ID.groupNr] : ID.nr;
             }
 
@@ -2473,7 +2492,7 @@ function on_key_down(vkey) {
             if (pl_s.needsScrollbar) {
                 pl_s.fastScrollActive = true;
                 scrollbar.shift_page(1);
-                var ID = list[Math.floor(pl_s.rowsToDraw / 2) + pl_s.curRowShift];
+                var ID = list_modded[Math.floor(pl_s.rowsToDraw / 2) + pl_s.curRowShift];
                 IDnr = ID.isGroupHeader ? firstItem[ID.groupNr] : ID.nr;
             }
 
@@ -2599,6 +2618,7 @@ function on_key_down(vkey) {
             break;
     }
 }
+
 // =================================================== //
 
 function on_key_up(vkey) {
@@ -2624,6 +2644,7 @@ function on_drag_enter(action, x, y, mask) {
         pl_s.linkToLastItem = false;
     }
 }
+
 // =================================================== //
 
 function on_drag_drop(action, x, y, mask) {
@@ -2650,6 +2671,7 @@ function on_drag_drop(action, x, y, mask) {
     pl_s.fileDrag = false;
     repaintList();
 }
+
 // =================================================== //
 
 function on_drag_over(action, x, y, mask) {
@@ -2674,6 +2696,7 @@ function on_drag_over(action, x, y, mask) {
 
     on_mouse_move(x, y);
 }
+
 // =================================================== //
 
 function on_drag_leave() {
@@ -2716,7 +2739,7 @@ function getAlbumArt() {
     }
 
     for (var i = 0; i != pl_s.rowsToDraw; i++) {
-        var ID = list[i + pl_s.curRowShift];
+        var ID = list_modded[i + pl_s.curRowShift];
 
         var groupNr = ID.groupNr;
 
@@ -2731,6 +2754,7 @@ function getAlbumArt() {
         }
     }
 }
+
 // =================================================== //
 var artSize = properties.rowsInGroup * properties.rowH;
 
@@ -2747,7 +2771,7 @@ function on_get_album_art_done(metadb, art_id, image, image_path) {
     var tempGroupNr = -1;
 
     for (var i = 0; i != pl_s.rowsToDraw; i++) {
-        var ID = list[i + pl_s.curRowShift];
+        var ID = list_modded[i + pl_s.curRowShift];
         var groupNr = ID.groupNr;
 
         if (ID.isGroupHeader && (artArray[groupNr] !== null) && groupNr != tempGroupNr && ID.metadb.Compare(metadb)) {
@@ -2760,6 +2784,7 @@ function on_get_album_art_done(metadb, art_id, image, image_path) {
         }
     }
 }
+
 // =================================================== //
 
 function selectAll() {
@@ -2769,6 +2794,7 @@ function selectAll() {
 
     plman.SetPlaylistSelection(plman.ActivePlaylist, selectedIndexes, true);
 }
+
 // =================================================== //
 
 function resizeDone() {
@@ -2776,23 +2802,26 @@ function resizeDone() {
         getAlbumArt();
     }
 }
+
 // =================================================== //
 
 function calculateSelectionLength() {
     var selectionLengthInSeconds = 0;
 
     selectedIndexes.forEach(function (item) {
-        var trackLength = parseFloat(_.tf("%length_seconds_fp%",getPlaylistItems.Item(item)));
-        if (trackLength)
+        var trackLength = parseFloat(_.tf("%length_seconds_fp%", getPlaylistItems.Item(item)));
+        if (trackLength) {
             selectionLengthInSeconds += trackLength;
+        }
     });
 
     if (!selectionLengthInSeconds && selectedIndexes.length > 0) {
-        if (selectedIndexes.length > 1)
+        if (selectedIndexes.length > 1) {
             return "Unknown";
+        }
 
-        var path = _.tf("%path%",getPlaylistItems.Item(selectedIndexes[0]));
-        var radio = (path.indexOf('http') == 0);
+        var path = _.tf("%path%", getPlaylistItems.Item(selectedIndexes[0]));
+        var radio = _.startsWith(path, 'http');
 
         return radio ? "Stream" : "Unknown";
     }
@@ -2800,19 +2829,22 @@ function calculateSelectionLength() {
 
     return utils.FormatDuration(selectionLengthInSeconds);
 }
+
 // =================================================== //
 
 function calculateGroupLength(arrBegin, arrEnd) {
     var groupLengthInSeconds = 0;
 
     for (var item = arrBegin; item <= arrEnd; item++) {
-        var trackLength = parseFloat(_.tf("%length_seconds_fp%",getPlaylistItems.Item(item)));
-        if (trackLength)
+        var trackLength = parseFloat(_.tf("%length_seconds_fp%", getPlaylistItems.Item(item)));
+        if (trackLength) {
             groupLengthInSeconds += trackLength;
+        }
     }
 
-    if (!groupLengthInSeconds)
+    if (!groupLengthInSeconds) {
         return "Unknown";
+    }
 
     //if(!qwr_utils.caller())
     //return timeFormatListTotal(groupLengthInSeconds);
@@ -2821,6 +2853,7 @@ function calculateGroupLength(arrBegin, arrEnd) {
 
     return utils.FormatDuration(groupLengthInSeconds);
 }
+
 // =================================================== //
 
 function repaintList() {
@@ -2828,102 +2861,77 @@ function repaintList() {
         pl_s.listW && window.RepaintRect(pl_s.listX, pl_s.listY + 1, pl_s.listW, pl_s.listH);
     }
 }
+
 // =================================================== //
 
 
-function collapseExpand(arg, nowPlaying, selected) {
+function CollapseExpandGroup(groupNr, command) {
+    if (!playlistItemCount) {
+        return;
+    }
+
+    if (!isCollapsed[groupNr] && (command === "collapse" || command === "toggle")) {
+        list_modded.splice(firstItemID_modded[groupNr], itemCountInGroup[groupNr]);
+        isCollapsed[groupNr] = true;
+    }
+    else if (isCollapsed[groupNr] && (command === "expand" || command === "toggle")) {
+        list_modded = _.concat(list_modded.slice(0, firstItemID_modded[groupNr]),
+            list_pure.slice(firstItemID_pure[groupNr], lastItemID_pure[groupNr] + 1),
+            list_modded.slice(firstItemID_modded[groupNr]));
+        isCollapsed[groupNr] = false;
+    }
+    else if (command !== "collapse" && command !== "expand" && command !== "toggle") {
+        unknown_command;
+    }
+
+    //---> update firstItemID_modded
+    list_modded.forEach(function (ID, i) {
+        if (ID.isGroupHeader && ID.rowNr == curRowsInGroup) {
+            firstItemID_modded[ID.groupNr] = i + 1;
+        }
+    });
+
+    pl_s.listLength = list_modded.length;
+    listOnSize();
+    repaintList();
+}
+
+function CollapseExpandList(command) {
     collapsedOnStart = false;
 
     if (!playlistItemCount) {
         return;
     }
 
-    if (typeof (arg) == "number") {
-        var thisGroupNr = arg;
-
-        if (isCollapsed[thisGroupNr]) {
-            for (var j = lastItemID[thisGroupNr]; j >= firstItemID[thisGroupNr]; j--) {
-                list.splice(_firstItemID[thisGroupNr], 0, $list[j]);
-
-            }
-
-            isCollapsed[thisGroupNr] = false;
-
-        }
-        else if (selected == undefined) {
-            list.splice(_firstItemID[thisGroupNr], itemCount[thisGroupNr]);
-            isCollapsed[thisGroupNr] = true;
-        }
+    if (command == "expand") {
+        list_modded = _.clone(list_pure);
+        isCollapsed = [];
     }
-    else {
+    else if (command == "collapse") {
         for (var i = groupNr; i >= 0; i--) {
-            if (i == selected) {
-                continue;
+            if (!isCollapsed[i]) {
+                list_modded.splice(firstItemID_modded[i], itemCountInGroup[i]);
+                isCollapsed[i] = true;
             }
-
-            if (arg == "collapse") {
-                if (isCollapsed[i] && (i == nowPlaying || i == selected)) {
-                    var thisGroupNr = nowPlaying;
-
-                    for (var j = lastItemID[thisGroupNr]; j >= firstItemID[thisGroupNr]; j--) {
-                        list.splice(_firstItemID[thisGroupNr], 0, $list[j]);
-
-                    }
-
-                    isCollapsed[thisGroupNr] = false;
-                }
-
-                if (i == nowPlaying) {
-                    continue;
-                }
-
-                if (!isCollapsed[i]) {
-                    list.splice(_firstItemID[i], itemCount[i]);
-                    isCollapsed[i] = true;
-                }
-            }
-            else if (arg == "expand") {
-                list = $list.slice(0);
-                for (var i = groupNr; i >= 0; i--) {
-                    isCollapsed = [];
-                }
-            }
-        } //eol
-    }
-
-    //---> update _firstItemID
-    for (var i = 0; list[i]; i++) {
-        var ID = list[i];
-
-        if (ID.isGroupHeader && ID.rowNr == curRowsInGroup) {
-            _firstItemID[ID.groupNr] = i + 1;
         }
-    } //eol
-
-    pl_s.listLength = list.length;
-    listOnSize();
-    window.Repaint();
-
-    if (nowPlaying != undefined) {
-        //when auto or collapse all but now playing is selected scrolls now playing album to the top
-        _.forEach(list, function (ID, j) {
-            if (ID.isGroupHeader && ID.groupNr == nowPlaying) {
-                var step = j;
-                if (step < 0) {
-                    step = 0;
-                }
-                pl_s.listPos[activeList] = Math.min(pl_s.listLength - pl_s.rowsToDraw, step);
-                window.SetProperty("system.List Step", pl_s.listPos.toString());
-                return false;
-            }
-        });
+    }
+    else if (command !== "collapse" && command !== "expand") {
+        unknown_command;
     }
 
+    //---> update firstItemID_modded
+    list_modded.forEach(function (ID, i) {
+        if (ID.isGroupHeader && ID.rowNr == curRowsInGroup) {
+            firstItemID_modded[ID.groupNr] = i + 1;
+        }
+    });
+
+    pl_s.listLength = list_modded.length;
     listOnSize();
-    window.Repaint();
+    repaintList();
 }
 
-function getPlayingGroupCollapseExpand() {
+function CollapseExpandPlayingGroup() {
     if (!fb.IsPlaying || plman.ActivePlaylist != plman.PlayingPlaylist) {
         return;
     }
@@ -2932,7 +2940,8 @@ function getPlayingGroupCollapseExpand() {
     var isValid;
 
     if (playingItemLocation.IsValid) {
-        collapseExpand("collapse", getPlayingGroupNr());
+        CollapseExpandList("collapse");
+        CollapseExpandGroup(getPlayingGroupNr(), "expand")
     }
 
     var counter = 0;
@@ -2947,11 +2956,26 @@ function getPlayingGroupCollapseExpand() {
                 window.ClearInterval(timer);
 
                 if (fb.IsPlaying) {
-                    collapseExpand("collapse", getPlayingGroupNr());
+                    CollapseExpandList("collapse");
+                    CollapseExpandGroup(getPlayingGroupNr(), "expand")
                 }
             }
         }, 100);
     }
+
+    // TODO: test this
+    //when auto or collapse all but now playing is selected scrolls now playing album to the top
+    _.forEach(list_modded, function (ID, i) {
+        if (ID.isGroupHeader && ID.groupNr == getPlayingGroupNr()) {
+            var step = i;
+            if (step < 0) {
+                step = 0;
+            }
+            pl_s.listPos[activeList] = Math.min(pl_s.listLength - pl_s.rowsToDraw, step);
+            window.SetProperty("system.List Step", pl_s.listPos.toString());
+            return false;
+        }
+    });
 
     function getPlayingGroupNr() {
         var playingIndex = -1;
@@ -2969,7 +2993,6 @@ function getPlayingGroupCollapseExpand() {
         }
     }
 }
-// =================================================== //
 
 function isGroupSelected(groupNr) {
     // searches only currently visible groups
@@ -2980,7 +3003,7 @@ function isGroupSelected(groupNr) {
         }
     }
 
-    return (selectedCount === (lastItem[groupNr] + 1 - firstItem[groupNr]));
+    return (selectedCount === itemCountInGroup[groupNr]);
 }
 
 function IsGroupPlaying(groupNr, playingID) {
@@ -3004,7 +3027,7 @@ function displayFocusItem(prevFocusID, focusID) {
     var partialState = 0; // 0 - full, 1 - top partial, 2 - bottom partial
 
     for (var i = 0; i != pl_s.rowsToDraw; i++) {
-        var ID = list[i + pl_s.curRowShift];
+        var ID = list_modded[i + pl_s.curRowShift];
 
         if (isCollapsed.length && ID.isGroupHeader) {
             var groupNr = ID.groupNr;
@@ -3016,7 +3039,7 @@ function displayFocusItem(prevFocusID, focusID) {
     }
 
     for (var i = 0; i != pl_s.rowsToDraw; i++) {
-        var ID = list[i + pl_s.curRowShift];
+        var ID = list_modded[i + pl_s.curRowShift];
         var groupNr = ID.groupNr;
         if (isCollapsed[groupNr] && ID.isGroupHeader) {
             for (var item = firstItem[groupNr]; item <= lastItem[groupNr]; item++) {
@@ -3042,7 +3065,7 @@ function displayFocusItem(prevFocusID, focusID) {
     }
 
     var IDnr;
-    _.forEach(list, function (ID, i) {
+    _.forEach(list_modded, function (ID, i) {
         var groupNr = ID.groupNr;
 
         if (isCollapsed.length && visibleGroupRows[groupNr] == curRowsInGroup) {
@@ -3074,6 +3097,7 @@ function displayFocusItem(prevFocusID, focusID) {
         }
     });
 }
+
 // =================================================== //
 
 function showNowPlaying() {
@@ -3092,7 +3116,7 @@ function showNowPlaying() {
     }
 
     if (properties.autoExpandCollapseGroups && properties.autoCollapseOnPlaylistSwitch) {
-        collapseExpand("collapse");
+        CollapseExpandList("collapse");
     }
 
     var focusItemID = plman.GetPlaylistFocusItemIndex(activeList);
@@ -3101,13 +3125,13 @@ function showNowPlaying() {
     plman.SetPlaylistSelectionSingle(activeList, playingID, true);
     plman.SetPlaylistFocusItem(activeList, playingID);
 
-    _.forEach(list, function (ID, i) {
+    _.forEach(list_modded, function (ID, i) {
         var groupNr = ID.groupNr;
 
         if (isCollapsed.length && ID.rowNr == curRowsInGroup) {
             for (var item = firstItem[groupNr]; item <= lastItem[groupNr]; item++) {
-                if (playingID == item && isCollapsed[groupNr]) {
-                    collapseExpand(groupNr);
+                if (playingID == item) {
+                    CollapseExpandGroup(groupNr, "expand");
                 }
             }
         }
@@ -3134,7 +3158,11 @@ function showNowPlaying() {
         showNowPlayingCalled = true;
     }
 }
+
 // =================================================== //
+
+var itemCountInGroup = [];
+
 function initList() {
     tempAlbumOnPlaybackNewTrack = undefined;
     tempGroupNrOnGetAlbumArt = -1;
@@ -3147,14 +3175,14 @@ function initList() {
 
     pl_s.listIsScrolledUp = pl_s.listIsScrolledDown = false;
     pl_s.playlistImgYShift = undefined;
-    list = [];
-    $list = [];
+    list_modded = [];
+    list_pure = [];
     firstItem = [];
-    firstItemID = [];
-    _firstItemID = [];
+    firstItemID_pure = [];
+    firstItemID_modded = [];
     lastItem = [];
-    lastItemID = [];
-    itemCount = [];
+    lastItemID_pure = [];
+    itemCountInGroup = [];
     isCollapsed = [];
     selectedIndexes = [];
     queueIndexes = [];
@@ -3174,7 +3202,7 @@ function initList() {
     for (var i = 0; i != playlistItemCount; i++) {
         metadb = getPlaylistItems.Item(i);
 
-        a = _.tf(properties.groupFormat,metadb);
+        a = _.tf(properties.groupFormat, metadb);
 
         if (a != b && properties.showGroupHeader) {
             itemNrInGroup = 1;
@@ -3189,20 +3217,20 @@ function initList() {
                     };
 
                 firstItem[groupNr] = i;
-                $list[id] = group;
+                list_pure[id] = group;
 
                 id++;
 
                 if (groupHeaderRow == curRowsInGroup) {
-                    firstItemID[groupNr] = id;
+                    firstItemID_pure[groupNr] = id;
                 }
             }
 
             if (groupNr > 0) {
                 var gNr = groupNr - 1;
                 lastItem[gNr] = i - 1;
-                lastItemID[gNr] = id - curRowsInGroup - 1;
-                itemCount[gNr] = lastItem[groupNr - 1] - firstItem[groupNr - 1] + 1;
+                lastItemID_pure[gNr] = id - curRowsInGroup - 1;
+                itemCountInGroup[gNr] = lastItem[groupNr - 1] - firstItem[groupNr - 1] + 1;
             }
 
             groupNr++;
@@ -3217,7 +3245,7 @@ function initList() {
             }
         }
 
-        $list[id] = {
+        list_pure[id] = {
             metadb:    metadb,
             nr:        i,
             nrInGroup: itemNrInGroup,
@@ -3241,12 +3269,12 @@ function initList() {
 
     gNr = groupNr;
     lastItem[gNr] = playlistItemCount - 1;
-    lastItemID[gNr] = id - 1;
-    itemCount[gNr] = lastItem[gNr] - firstItem[gNr] + 1;
+    lastItemID_pure[gNr] = id - 1;
+    itemCountInGroup[gNr] = lastItem[gNr] - firstItem[gNr] + 1;
 
-    list = $list.slice(0);
-    _firstItemID = firstItemID.slice(0);
-    pl_s.listLength = list.length;
+    list_modded = _.clone(list_pure);
+    firstItemID_modded = _.clone(firstItemID_pure);
+    pl_s.listLength = list_modded.length;
 
     (listOnSize = function () {
         if (ww <= 0 || wh <= 0) {
@@ -3394,6 +3422,7 @@ function initList() {
         }
     }
 }
+
 initList();
 
 // =================================================== //
@@ -3410,19 +3439,19 @@ function getMouseTraceData(x, y, data) {
     mouseOverList = false;
     mouseInRatingBtn = false;
 
-    if (!traceList(x,y)) {
+    if (!traceList(x, y)) {
         return;
     }
 
-    for (var i = 0; rows[i]; i++) {
-        if (rows[i].trace(x, y)) {
+    _.forEach(rows, function (row, i) {
+        if (row.trace(x, y)) {
             mouseOverList = true;
-            data.thisRow = rows[i];
-            data.thisID = list[i + pl_s.curRowShift];
+            data.thisRow = row;
+            data.thisID = list_modded[i + pl_s.curRowShift];
             data.thisRowNr = i;
             //->
             if (properties.showRating && !data.thisID.isGroupHeader) {
-                var buttons = rows[i].buttons;
+                var buttons = row.buttons;
 
                 for (var j = 0; j < 5; j++) {
                     if (buttons[j].trace(x, y)) {
@@ -3431,8 +3460,9 @@ function getMouseTraceData(x, y, data) {
                     }
                 }
             }
+            return false;
         }
-    }
+    });
 }
 
 function traceList(x, y) {
@@ -3480,6 +3510,7 @@ function RowButton(x, y, w, h) {
     this.w = w;
     this.h = h;
 }
+
 // =================================================== //
 
 var cuttedItems;
@@ -3490,6 +3521,7 @@ function cut() {
     cuttedItemsCount = cuttedItems.Count;
     plman.RemovePlaylistSelection(activeList);
 }
+
 // =============================================== //
 function paste() {
     if (cuttedItemsCount) {
@@ -3503,6 +3535,7 @@ function paste() {
         cuttedItemsCount = 0;
     }
 }
+
 // =============================================== //
 
 var scrollStepRepeatTimerStarted = false;
@@ -3536,6 +3569,7 @@ function startScrollRepeat(key) {
         scrollStepRepeatTimerStarted = true;
     }
 }
+
 // ====================================== //
 
 function stopScrollRepeat() {
@@ -3616,7 +3650,7 @@ function updateRowStatusOnScroll() {
     for (var i = 0; i != pl_s.rowsToDraw; i++) {
         var curIndex = i + pl_s.curRowShift;
 
-        list[curIndex].isChanged = ( curIndex <= pl_s.playlistImgFirstRow + 1 || curIndex >= pl_s.playlistImgLastRow - 1 );
+        list_modded[curIndex].isChanged = ( curIndex <= pl_s.playlistImgFirstRow + 1 || curIndex >= pl_s.playlistImgLastRow - 1 );
     }
 }
 
@@ -3759,19 +3793,20 @@ function setListChangedStateByID(ID) {
         // Limiting search to listElems in rows
         var curIndex = i + pl_s.curRowShift;
 
-        list[curIndex].isChanged = list[curIndex] == ID;
+        list_modded[curIndex].isChanged = (list_modded[curIndex] == ID);
     }
 }
 
 if (properties.collapseOnStart) {
-    collapseExpand("collapse");
+    CollapseExpandList("collapse");
     collapsedOnStart = true;
 }
 
 if (properties.autoExpandCollapseGroups) {
-    getPlayingGroupCollapseExpand();
+    CollapseExpandPlayingGroup();
 }
 
 // Workaround for bug: PlayingPlaylist is equal to -1 on startup
-if ( plman.PlayingPlaylist === (-1>>>0) )
+if (plman.PlayingPlaylist === (-1 >>> 0)) {
     plman.PlayingPlaylist = plman.ActivePlaylist;
+}
