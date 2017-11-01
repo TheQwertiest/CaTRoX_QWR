@@ -11,7 +11,7 @@
 })();
 
 (function checkModdedJScriptAvailability() {
-    if ( common_vars.incompatibility_state == "Notified" )
+    if ( common_vars.incompatibility_state === "Notified" )
         return;
 
     if ( !qwr_utils.HasModdedJScript() )
@@ -102,7 +102,7 @@ function on_paint(gr) {
         var versionW = rightMargin - leftMargin;
 
         var cpuUsageString;
-        if (common_vars.minimode_state != "Full") {
+        if (common_vars.minimode_state !== "Full") {
             cpuUsageString = cpuUsage + "% (" + guiCpuUsage + "%)";
         }
         else {
@@ -149,7 +149,7 @@ function on_size() {
     }
 
     // needed when doble clicking on caption and UIHacks.FullScreen == true;
-    if (!utils.IsKeyPressed(VK_CONTROL) && UIHacks.FullScreen && UIHacks.MainWindowState == 0) {
+    if (!utils.IsKeyPressed(VK_CONTROL) && UIHacks.FullScreen && UIHacks.MainWindowState === 0) {
         UIHacks.MainWindowState = 0;
     }
 }
@@ -167,14 +167,14 @@ function on_mouse_move(x, y, m) {
 
         if (isMousePressed) {
             UIHacks.SetPseudoCaption(0, 0, 0, 0);
-            if (UIHacks.FrameStyle == 3) {
+            if (UIHacks.FrameStyle === 3) {
                 UIHacks.DisableSizing = true;
             }
             pseudoCaption = false;
         }
         else if (!pseudoCaption || pseudoCaptionWidth != ww) {
             UIHacks.SetPseudoCaption(leftMargin, 8, rightMargin - leftMargin, wh - 8);
-            if (UIHacks.FrameStyle == 3) {
+            if (UIHacks.FrameStyle === 3) {
                 UIHacks.DisableSizing = false;
             }
             pseudoCaption = true;
@@ -221,7 +221,7 @@ function createButtonObjects(ww, wh) {
     buttons.show_tt = properties.showTooltips;
 
     //---> Menu buttons
-    if (common_vars.minimode_state == "Full") {
+    if (common_vars.minimode_state === "Full") {
         var img = btnImg.File;
         var x = 1;
         var y = 1;
@@ -281,7 +281,7 @@ function createButtonObjects(ww, wh) {
     // UltraMiniMode switch
     buttonCount++;
 
-    if (common_vars.minimode_state != "UltraMini") {// Minimode
+    if (common_vars.minimode_state !== "UltraMini") {// Minimode
         buttonCount++;
     }
 
@@ -290,11 +290,11 @@ function createButtonObjects(ww, wh) {
         buttonCount++;
 
         // Max
-        if (common_vars.minimode_state == "Full") {
+        if (common_vars.minimode_state === "Full") {
             buttonCount++;
         }
 
-        (UIHacks.FrameStyle == FrameStyle.SmallCaption && UIHacks.FullScreen != true) ? hideClose = true : hideClose = false;
+        (UIHacks.FrameStyle == FrameStyle.SmallCaption && !UIHacks.FullScreen) ? hideClose = true : hideClose = false;
         if (!hideClose) {
             buttonCount++;
         }
@@ -310,7 +310,7 @@ function createButtonObjects(ww, wh) {
 
     buttons.buttons.pin = new _.button(x, y, w, h, isPinned ? btnImg.Unpin : btnImg.Pin, function () {
         fb.RunMainMenuCommand("View/Always on Top");
-        isPinned = !isPinned;
+        isPinned = hasModdedJScript ? fb.IsMainMenuCommandChecked("View/Always on Top") : false;
         buttons.buttons.pin.set_image(isPinned ? btnImg.Unpin : btnImg.Pin);
         buttons.buttons.pin.tiptext = isPinned ? "Unpin window" : "Pin window on Top";
         buttons.buttons.pin.repaint();
@@ -332,13 +332,13 @@ function createButtonObjects(ww, wh) {
             }
         };
 
-    ultraMiniModeBtn = (common_vars.minimode_state == "Mini" || common_vars.minimode_state == "Full") ? ultraMiniModeBtnArr.MiniModeCompress :
-        ((properties.saved_mode == "Full") ? ultraMiniModeBtnArr.MiniModeExpandToFull : ultraMiniModeBtnArr.MiniModeExpandToMini);
+    ultraMiniModeBtn = (common_vars.minimode_state === "Mini" || common_vars.minimode_state === "Full") ? ultraMiniModeBtnArr.MiniModeCompress :
+        ((properties.saved_mode === "Full") ? ultraMiniModeBtnArr.MiniModeExpandToFull : ultraMiniModeBtnArr.MiniModeExpandToMini);
 
     x += w + p;
     buttons.buttons.ultraminimode = new _.button(x, y, w, h, ultraMiniModeBtn.ico, toggleUltraMiniMode, ultraMiniModeBtn.txt);
 
-    if (common_vars.minimode_state != "UltraMini") {
+    if (common_vars.minimode_state !== "UltraMini") {
         var miniModeBtnArr =
             {
                 MiniModeExpand:   {
@@ -351,7 +351,7 @@ function createButtonObjects(ww, wh) {
                 }
             };
 
-        miniModeBtn = (common_vars.minimode_state == "Mini") ? miniModeBtnArr.MiniModeExpand : miniModeBtnArr.MiniModeCompress;
+        miniModeBtn = (common_vars.minimode_state === "Mini") ? miniModeBtnArr.MiniModeExpand : miniModeBtnArr.MiniModeCompress;
 
         x += w + p;
         buttons.buttons.minimode = new _.button(x, y, w, h, miniModeBtn.ico, toggleMiniMode, miniModeBtn.txt);
@@ -361,7 +361,7 @@ function createButtonObjects(ww, wh) {
         x += w + p;
         buttons.buttons.minimize = new _.button(x, y, w, h, btnImg.Minimize, function () { fb.RunMainMenuCommand("View/Hide"); }, "Minimize");
 
-        if (common_vars.minimode_state == "Full") {
+        if (common_vars.minimode_state === "Full") {
             x += w + p;
             buttons.buttons.maximize = new _.button(x, y, w, h, btnImg.Maximize, function () {
                 try {
@@ -506,7 +506,7 @@ function on_mouse_rbtn_up(x, y) {
 }
 
 function on_notify_data(name, info) {
-    if (name == "minimode_state") {
+    if (name === "minimode_state") {
         common_vars.minimode_state = info;
         window.Repaint();
     }
@@ -620,7 +620,7 @@ function createButtonImages() {
     btnImg = [];
 
     _.forEach(btn, function (item, i) {
-        if (item.id == "menu") {
+        if (item.id === "menu") {
             var img = gdi.CreateImage(100, 100);
             g = img.GetGraphics();
 
@@ -647,28 +647,28 @@ function createButtonImages() {
             var menuRectColor = _.RGB(120, 122, 124);
             var captionIcoColor = _.RGB(140, 142, 144);
 
-            if (s == 1) {
+            if (s === 1) {
                 menuTextColor = _.RGB(180, 182, 184);
                 menuRectColor = _.RGB(170, 172, 174);
                 captionIcoColor = _.RGB(190, 192, 194);
             }
-            else if (s == 2) {
+            else if (s === 2) {
                 menuTextColor = _.RGB(120, 122, 124);
                 menuRectColor = _.RGB(110, 112, 114);
                 captionIcoColor = _.RGB(100, 102, 104);
             }
 
-            if (item.id == "menu") {
+            if (item.id === "menu") {
                 if (s != 0) {
                     g.DrawRect(Math.floor(lw / 2), Math.floor(lw / 2), w - lw, h - lw, 1, menuRectColor);
                 }
                 g.DrawString(item.ico, item.font, menuTextColor, 0, 0, w, h - 1, StringFormat(1, 1));
             }
-            else if (item.id == "caption") {
+            else if (item.id === "caption") {
                 g.DrawString(item.ico, item.font, captionIcoColor, 0, 0, w, h, StringFormat(1, 1));
             }
 
-            if (i == "Unpin") {
+            if (i === "Unpin") {
                 img.ReleaseGraphics(g);
                 var savedImg = img;
 
@@ -694,7 +694,7 @@ function createButtonImages() {
 function toggleMiniMode() {
     var new_minimode_state = ((common_vars.minimode_state == "Mini") ? "Full" : "Mini");
 
-    if (new_minimode_state == "Mini") {
+    if (new_minimode_state === "Mini") {
         if (!UIHacks.FullScreen) {
             if ( hasModdedJScript ) {
                 properties.fullMode_savedwidth = FbWnd.Width;
@@ -739,13 +739,13 @@ function toggleMiniMode() {
 }
 
 function toggleUltraMiniMode() {
-    if (common_vars.minimode_state != "UltraMini") {
+    if (common_vars.minimode_state !== "UltraMini") {
         properties.saved_mode = common_vars.minimode_state;
         window.SetProperty("system.Saved player mode", properties.saved_mode);
     }
-    var new_minimode_state = (common_vars.minimode_state != "UltraMini") ? "UltraMini" : properties.saved_mode;
+    var new_minimode_state = (common_vars.minimode_state !== "UltraMini") ? "UltraMini" : properties.saved_mode;
 
-    if (new_minimode_state == "Mini") {
+    if (new_minimode_state === "Mini") {
         pss_switch.set_state("minimode", new_minimode_state);
 
         changeWindowsSize(properties.miniMode_savedwidth, properties.miniMode_savedheight);
@@ -754,7 +754,7 @@ function toggleUltraMiniMode() {
         UIHacks.MinSize.Width = 300;
         UIHacks.MinSize.Height = 250;
     }
-    else if (new_minimode_state == "Full") {
+    else if (new_minimode_state === "Full") {
         pss_switch.set_state("minimode", new_minimode_state);
 
         changeWindowsSize(properties.fullMode_savedwidth, properties.fullMode_savedheight);
@@ -765,7 +765,7 @@ function toggleUltraMiniMode() {
     }
     else {
         if (!UIHacks.FullScreen) {
-            if (common_vars.minimode_state == "Full") {
+            if (common_vars.minimode_state === "Full") {
                 if ( hasModdedJScript ) {
                     properties.fullMode_savedwidth = FbWnd.Width;
                     properties.fullMode_savedheight = FbWnd.Height;
@@ -847,6 +847,7 @@ var idleUsage = new average_usage_func();
 var playingUsage = new average_usage_func();
 
 var cpuTimerStarted = false;
+var cpuUsageTimer;
 function startCpuUsageTimer() {
     if (!cpuTimerStarted) {
         cpuUsageTimer = window.SetInterval(function () {
@@ -907,11 +908,11 @@ function setWindowSizeLimitsForMode(miniMode) {
         maxW = 0,
         minH = 0,
         maxH = 0;
-    if (miniMode == "UltraMini") {
+    if (miniMode === "UltraMini") {
         minW = 200;
         minH = 200 + 28;
     }
-    else if (miniMode == "Mini") {
+    else if (miniMode === "Mini") {
         minW = 300;
         minH = 250;
     }

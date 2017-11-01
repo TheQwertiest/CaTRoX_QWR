@@ -524,18 +524,20 @@ function createButtonImages() {
 function AnimatorClass() {
     this.runAnimation = function (animationName) {
         if (animationName === "fadeOut") {
-            stopFadeOut = false;
-            stopDelay = false;
             // Not stopping fadeIn, because it looks borked, when stopped in the middle.
+            stopFadeOut = false;
+            stopFadeOutDelay();
 
-            delayFadeOut();
-            fadeOut();
+            delayFadeOutTimer = _.delay(function(){
+                stopFadeOutDelay();
+                fadeOut();
+            }, 1000);
         }
         else if (animationName === "fadeIn") {
             stopFadeOut = true;
-            stopDelay = true;
             stopFadeIn = false;
-
+            stopFadeOutDelay();
+            
             fadeIn();
         }
         else {
@@ -544,36 +546,10 @@ function AnimatorClass() {
     };
 
 // private:
-    function delayFadeOut() {
-        var outDelay = 1000,
-            curDelay = 0;
-
-        if (panel_s.mouseInPanel) {
-            stopDelay = true;
-            return;
-        }
-
-        if (!delayFadeOutStarted) {
-            var delayTimer = window.SetInterval(function () {
-                if (stopDelay) {
-                    window.ClearInterval(delayTimer);
-                    delayFadeOutStarted = false;
-                }
-
-                if (fadeInStarted) {
-                    return;
-                }
-
-                curDelay += timerRate;
-
-                if (curDelay >= outDelay) {
-                    window.ClearInterval(delayTimer);
-                    delayFadeOutStarted = false;
-                    stopDelay = true;
-                }
-            }, timerRate);
-
-            delayFadeOutStarted = true;
+    function stopFadeOutDelay(){
+        if ( !_.isNil(delayFadeOutTimer) ) {
+            clearInterval(delayFadeOutTimer);
+            delayFadeOutTimer = undefined;
         }
     }
 
@@ -586,13 +562,13 @@ function AnimatorClass() {
         }
 
         if (!fadeOutStarted && panel_s.playbackPanelAlpha !== 0) {
-            var fadeOutTimer = window.SetInterval(function () {
+            var fadeOutTimer = setInterval(function () {
                 if (stopFadeOut) {
-                    window.ClearInterval(fadeOutTimer);
+                    clearInterval(fadeOutTimer);
                     fadeOutStarted = false;
                 }
 
-                if (delayFadeOutStarted) {
+                if ( !_.isNil(delayFadeOutTimer) ) {
                     return;
                 }
 
@@ -601,7 +577,7 @@ function AnimatorClass() {
 
                 var alphaIsZero = (panel_s.playbackPanelAlpha === 0);
                 if (alphaIsZero) {
-                    window.ClearInterval(fadeOutTimer);
+                    clearInterval(fadeOutTimer);
                     fadeOutStarted = false;
                 }
             }, timerRate);
@@ -619,9 +595,9 @@ function AnimatorClass() {
         }
 
         if (!fadeInStarted && panel_s.playbackPanelAlpha !== 255) {
-            var fadeInTimer = window.SetInterval(function () {
+            var fadeInTimer = setInterval(function () {
                 if (stopFadeIn) {
-                    window.ClearInterval(fadeInTimer);
+                    clearInterval(fadeInTimer);
                     fadeInStarted = false;
                 }
 
@@ -630,7 +606,7 @@ function AnimatorClass() {
 
                 var alphaIsFull = (panel_s.playbackPanelAlpha === 255);
                 if (alphaIsFull) {
-                    window.ClearInterval(fadeInTimer);
+                    clearInterval(fadeInTimer);
                     fadeInStarted = false;
                 }
             }, timerRate);
@@ -640,8 +616,7 @@ function AnimatorClass() {
     }
 
 // private:
-    var delayFadeOutStarted = false;
-    var stopDelay = false;
+    var delayFadeOutTimer;
 
     var fadeOutStarted = false;
     var stopFadeOut = false;
@@ -657,7 +632,7 @@ var titleTimer;
 function onTitleTimer(refreshTitle) {
     if (panel_s.titleTimerStarted && (!fb.IsPlaying || fb.IsPaused || refreshTitle === true)) {
         if (!_.isUndefined(titleTimer)) {
-            window.ClearInterval(titleTimer);
+            clearInterval(titleTimer);
         }
         panel_s.titleTimerStarted = false;
 
@@ -669,7 +644,7 @@ function onTitleTimer(refreshTitle) {
         panel_s.titleTimerStarted = true;
         window.Repaint();
 
-        titleTimer = window.SetInterval(function () {
+        titleTimer = setInterval(function () {
             panel_s.curTitleType++;
             if (panel_s.curTitleType > 2) {
                 panel_s.curTitleType = 0;

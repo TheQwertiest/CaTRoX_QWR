@@ -44,120 +44,107 @@ ABS_LEFTHOVER = 19;
 ABS_RIGHTHOVER = 20;
 
 //// Button hover alpha timer
-var g_sbarAlphaTimerStarted = false; 
-var g_sbarAlphaTimer; 
-function startSbarAlphaTimerFn(caller) 
-{
-	var turnTimerOff = false,
-		hoverInStep = 50,
-		hoverOutStep = 15,
-		downInStep = 100,
-		downOutStep = 50,
-		timerDelay = 25;
+var g_sbarAlphaTimer;
 
-	if (!g_sbarAlphaTimerStarted) 
-	{
-		g_sbarAlphaTimer = window.SetInterval(function () 
-		{
-			_.forEach(caller.sb_parts, function (item,i) {
-				switch (item.state) {
-				case "normal":
-					item.hover_alpha = Math.max(0, item.hover_alpha -= hoverOutStep);                    
-                    item.hot_alpha = Math.max(0, item.hot_alpha -= hoverOutStep); 
-                    if ( i == "thumb")
-                    {
-                        item.pressed_alpha = Math.max(0, item.pressed_alpha -= hoverOutStep);
-                    }
-                    else
-                    {
+function startSbarAlphaTimerFn(caller) {
+    var turnTimerOff = false,
+        hoverInStep = 50,
+        hoverOutStep = 15,
+        downInStep = 100,
+        downOutStep = 50,
+        timerDelay = 25;
+
+    if (_.isNil(g_sbarAlphaTimer)) {
+        g_sbarAlphaTimer = setInterval(function () {
+            _.forEach(caller.sb_parts, function (item, i) {
+                switch (item.state) {
+                    case "normal":
+                        item.hover_alpha = Math.max(0, item.hover_alpha -= hoverOutStep);
+                        item.hot_alpha = Math.max(0, item.hot_alpha -= hoverOutStep);
+                        if (i === "thumb") {
+                            item.pressed_alpha = Math.max(0, item.pressed_alpha -= hoverOutStep);
+                        }
+                        else {
+                            item.pressed_alpha = Math.max(0, item.pressed_alpha -= downOutStep);
+                        }
+
+                        break;
+                    case "hover":
+                        item.hover_alpha = Math.min(255, item.hover_alpha += hoverInStep);
+                        item.hot_alpha = Math.max(0, item.hot_alpha -= hoverOutStep);
                         item.pressed_alpha = Math.max(0, item.pressed_alpha -= downOutStep);
-                    }
-                    
-					break;
-				case "hover":
-                    item.hover_alpha = Math.min(255, item.hover_alpha += hoverInStep);
-                    item.hot_alpha = Math.max(0, item.hot_alpha -= hoverOutStep);
-                    item.pressed_alpha = Math.max(0, item.pressed_alpha -= downOutStep);
-                    
-                    break;
-				case "pressed":
-                    item.hover_alpha = 0;
-                    item.hot_alpha = 0;
-                    if ( i == "thumb")
-                    {
-                        item.pressed_alpha = 255;
-                    }
-                    else
-                    {
-                        item.pressed_alpha = Math.min(255, item.pressed_alpha += downInStep);
-                    }
-                    
-					break;
-                case "hot":
-                    item.hover_alpha = Math.max(0, item.hover_alpha -= hoverOutStep);
-                    item.hot_alpha = Math.min(255, item.hot_alpha += hoverInStep);
-                    item.pressed_alpha = Math.max(0, item.pressed_alpha -= downOutStep);
-                    
-					break;
+
+                        break;
+                    case "pressed":
+                        item.hover_alpha = 0;
+                        item.hot_alpha = 0;
+                        if (i === "thumb") {
+                            item.pressed_alpha = 255;
+                        }
+                        else {
+                            item.pressed_alpha = Math.min(255, item.pressed_alpha += downInStep);
+                        }
+
+                        break;
+                    case "hot":
+                        item.hover_alpha = Math.max(0, item.hover_alpha -= hoverOutStep);
+                        item.hot_alpha = Math.min(255, item.hot_alpha += hoverInStep);
+                        item.pressed_alpha = Math.max(0, item.pressed_alpha -= downOutStep);
+
+                        break;
                 }
                 //fb.trace(i, item.state, item.hover_alpha , item.pressed_alpha , item.hot_alpha);
                 item.repaint();
-			});
-			
+            });
+
             //caller.repaint();
-			
-			var ready = true;
-		
-			_.forEach(caller.sb_parts, function (item) {
+
+            var ready = true;
+
+            _.forEach(caller.sb_parts, function (item) {
                 var alphaIsFull = false,
                     alphaIsZero = true;
-				//---> Test button alpha values and turn button timer off when it's not required;
-				if (item.pressed_alpha == 255 || (item.hover_alpha == 255 && item.hot_alpha == 255) || (item.hover_alpha == 0 && item.hot_alpha == 255) || (item.hover_alpha == 255 && item.hot_alpha == 0))
-				{
-					alphaIsFull = true;
-				}
-				else
-				{
-					alphaIsZero = (item.hover_alpha + item.pressed_alpha + item.hot_alpha ) == 0;                    
-				}
-                
+                //---> Test button alpha values and turn button timer off when it's not required;
+                if (item.pressed_alpha === 255 || (item.hover_alpha === 255 && item.hot_alpha === 255) || (item.hover_alpha === 0 && item.hot_alpha === 255) || (item.hover_alpha === 255 && item.hot_alpha === 0)) {
+                    alphaIsFull = true;
+                }
+                else {
+                    alphaIsZero = (item.hover_alpha + item.pressed_alpha + item.hot_alpha ) === 0;
+                }
+
                 ready &= (alphaIsZero || alphaIsFull);
-			}); 
-			
-			if (ready)
-			{
-				turnTimerOff = true;
-			}
+            });
 
-			if (turnTimerOff) 
-			{
+            if (ready) {
+                turnTimerOff = true;
+            }
+
+            if (turnTimerOff) {
                 stopSbarAlphaTimerFn();
-			}
+            }
 
-		}, timerDelay);
-
-		g_sbarAlphaTimerStarted = true;
-	}
+        }, timerDelay);
+    }
 }
 
-function stopSbarAlphaTimerFn() 
-{
-	window.ClearInterval(g_sbarAlphaTimer);
-	g_sbarAlphaTimerStarted = false; 
+function stopSbarAlphaTimerFn() {
+    if (!_.isNil(g_sbarAlphaTimer)) {
+        clearInterval(g_sbarAlphaTimer);
+        g_sbarAlphaTimer = undefined;
+    }
 }
 
 _.mixin({
-    scrollbar: function (x, y, w, h, rows_drawn, row_h, fn_redraw) {
-		this.paint = function (gr) {
-			_.forEach(this.sb_parts, function (item, i) {
+    scrollbar:      function (x, y, w, h, rows_drawn, row_h, fn_redraw) {
+        this.paint = function (gr) {
+            _.forEach(this.sb_parts, function (item, i) {
                 var x = item.x,
                     y = item.y,
                     w = item.w,
                     h = item.h;
 
                 gr.DrawImage(item.img_normal, x, y, w, h, 0, 0, w, h, 0, 255);
-                switch (i)
-                {
+                switch (i) {
                     case "lineUp":
                     case "lineDown":
                         gr.DrawImage(item.img_hot, x, y, w, h, 0, 0, w, h, 0, item.hot_alpha);
@@ -169,31 +156,26 @@ _.mixin({
                     case "thumb":
                         gr.DrawImage(item.img_hover, x, y, w, h, 0, 0, w, h, 0, item.hover_alpha);
                         gr.DrawImage(item.img_pressed, x, y, w, h, 0, 0, w, h, 0, item.pressed_alpha);
-                        
+
                         break;
                 }
-			});
-		};
+            });
+        };
 
-        this.repaint = function()
-        {
-            repaintReason = "scrollbarAnimation";
+        this.repaint = function () {
             window.RepaintRect(this.x, this.y, this.w, this.h);
         };
 
-        this.reset = function()
-        {
-            if (g_sbarAlphaTimerStarted)
-                stopSbarAlphaTimerFn();
-
+        this.reset = function () {
+            throttled_scroll_to.flush();
+            stopSbarAlphaTimerFn();
             this.stop_shift_timer();
 
             this.scroll = 0;
             this.calc_params();
         };
 
-        this.trace = function (x,y)
-        {
+        this.trace = function (x, y) {
             return x > this.x && x < this.x + this.w && y > this.y && y < this.y + this.h;
         };
 
@@ -214,36 +196,32 @@ _.mixin({
             this.drag_distance_per_row = this.scrollbar_travel / this.scrollable_lines;
         };
 
-        this.create_parts = function(img_src)
-        {
+        this.create_parts = function (img_src) {
             var x = this.x;
             var y = this.y;
             var w = this.w;
             var h = this.h;
 
             this.sb_parts = {
-                lineUp:   new _.scrollbar_part(x, y,                  w, this.btn_h,   img_src.lineUp),
-                thumb:    new _.scrollbar_part(x, y + this.thumb_y,   w, this.thumb_h, img_src.thumb),
-                lineDown: new _.scrollbar_part(x, y + h - this.btn_h, w, this.btn_h,   img_src.lineDown)
+                lineUp:   new _.scrollbar_part(x, y, w, this.btn_h, img_src.lineUp),
+                thumb:    new _.scrollbar_part(x, y + this.thumb_y, w, this.thumb_h, img_src.thumb),
+                lineDown: new _.scrollbar_part(x, y + h - this.btn_h, w, this.btn_h, img_src.lineDown)
             };
         };
 
-        this.wheel = function (wheel_direction){
+        this.wheel = function (wheel_direction) {
             var direction = -wheel_direction;
 
-            if ( this.wheel_scroll_page )
-            {
+            if (this.wheel_scroll_page) {
                 this.shift_page(direction);
             }
-            else
-            {
+            else {
                 var newScroll = this.nearestScroll(direction);
-                this.check_scroll(newScroll + direction * 2);
+                this.scroll_to(newScroll + direction * 2);
             }
         };
 
-        this.parts_leave = function()
-        {
+        this.parts_leave = function () {
             this.in_sbar = false;
             this.part = null;
 
@@ -264,40 +242,37 @@ _.mixin({
         this.parts_move = function (x, y) {
             var temp_part = null;
             _.forEach(this.sb_parts, function (item, i) {
-                if (item.trace(x, y))
+                if (item.trace(x, y)) {
                     temp_part = i;
+                }
             });
 
-            var changeHotStatus = this.trace(x,y) != this.in_sbar;
-            if ( changeHotStatus ) {
+            var changeHotStatus = this.trace(x, y) != this.in_sbar;
+            if (changeHotStatus) {
                 this.in_sbar = !this.in_sbar;
                 if (this.in_sbar) {
-                    temp_part != "lineUp" && this.part != "lineUp" && this.sb_parts["lineUp"].cs("hot");
-                    temp_part != "lineDown" && this.part != "lineDown" && this.sb_parts["lineDown"].cs("hot");
+                    temp_part !== "lineUp" && this.part !== "lineUp" && this.sb_parts["lineUp"].cs("hot");
+                    temp_part !== "lineDown" && this.part !== "lineDown" && this.sb_parts["lineDown"].cs("hot");
                     startSbarAlphaTimerFn(this);
                 }
-                else
-                {
-                    this.part != "lineUp" && this.sb_parts["lineUp"].cs("normal");
-                    this.part != "lineDown" && this.sb_parts["lineDown"].cs("normal");
+                else {
+                    this.part !== "lineUp" && this.sb_parts["lineUp"].cs("normal");
+                    this.part !== "lineDown" && this.sb_parts["lineDown"].cs("normal");
                     startSbarAlphaTimerFn(this);
                 }
             }
 
-            if (this.part == temp_part)
-            {// Nothing to do: same button
+            if (this.part == temp_part) {// Nothing to do: same button
                 return this.part;
             }
 
-            if (this.part )
-            {
-                if ( this.part == "thumb")
-                {
+            if (this.part) {
+                if (this.part === "thumb") {
                     this.sb_parts[this.part].cs("normal");
                     startSbarAlphaTimerFn(this);
                 }
                 else {
-                    if (this.sb_parts[this.part].state == "pressed") {
+                    if (this.sb_parts[this.part].state === "pressed") {
                         // Stop btn fast scroll
                         this.stop_shift_timer();
                     }
@@ -308,8 +283,7 @@ _.mixin({
                 }
             }
 
-            if (temp_part)
-            {// Select current button
+            if (temp_part) {// Select current button
                 this.sb_parts[temp_part].cs("hover");
                 startSbarAlphaTimerFn(this);
             }
@@ -319,31 +293,18 @@ _.mixin({
         };
 
         this.move = function (p_x, p_y) {
-            if (this.b_is_dragging)
-            {
-				this.timer_cpu_reducer_y = p_y - this.y - this.initial_drag_y;
+            if (this.b_is_dragging) {
+                throttled_scroll_y = p_y - this.y - this.initial_drag_y;
+                throttled_scroll_to();
+                //this.scroll_to( (p_y - this.y - this.initial_drag_y - this.btn_h) / this.drag_distance_per_row);
 
-				if (!this.timer_cpu_reducer_started)
-				{
-					var that = this;
-					this.timer_cpu_reducer = window.SetTimeout(function ()
-					{
-						that.check_scroll( (that.timer_cpu_reducer_y - that.btn_h) / that.drag_distance_per_row);
-						that.timer_cpu_reducer_started = false;
-					}, 10);
-
-					this.timer_cpu_reducer_started = true;
-				}
-
-                //this.check_scroll( (p_y - this.y - this.initial_drag_y - this.btn_h) / this.drag_distance_per_row);
-				
                 return;
             }
 
             this.parts_move(p_x, p_y);
         };
 
-        this.parts_lbtn_down = function() {
+        this.parts_lbtn_down = function () {
             if (this.part) {
                 this.sb_parts[this.part].cs("pressed");
                 startSbarAlphaTimerFn(this);
@@ -351,7 +312,7 @@ _.mixin({
         };
 
         this.lbtn_dn = function (p_x, p_y) {
-            if (!this.trace(p_x, p_y)|| this.row_count <= this.rows_drawn) {
+            if (!this.trace(p_x, p_y) || this.row_count <= this.rows_drawn) {
                 return;
             }
 
@@ -359,24 +320,22 @@ _.mixin({
 
             var y = p_y - this.y;
 
-            if (y < this.btn_h )
-            {
+            if (y < this.btn_h) {
                 this.shift_line(-1);
                 this.start_shift_timer(-1);
             }
-            else if ( y > this.h - this.btn_h) {
+            else if (y > this.h - this.btn_h) {
                 this.shift_line(1);
                 this.start_shift_timer(1);
             }
             else if (y < this.thumb_y) {
                 this.shift_page(-1);
-                this.timer_stop_y = y;
+                timer_stop_y = y;
                 this.start_shift_timer(-this.rows_drawn);
             }
-            else if ( y > this.thumb_y + this.thumb_h)
-            {
+            else if (y > this.thumb_y + this.thumb_h) {
                 this.shift_page(1);
-                this.timer_stop_y = y;
+                timer_stop_y = y;
                 this.start_shift_timer(this.rows_drawn);
             }
             else { // on bar
@@ -386,29 +345,25 @@ _.mixin({
         };
 
         this.parts_lbtn_up = function (x, y) {
-            if (this.part && this.sb_parts[this.part].state == "pressed")
-            {
-                if (this.sb_parts[this.part].trace(x,y))
-                {
+            if (this.part && this.sb_parts[this.part].state === "pressed") {
+                if (this.sb_parts[this.part].trace(x, y)) {
                     this.sb_parts[this.part].cs("hover");
                     startSbarAlphaTimerFn(this);
                 }
-                else
-                {
+                else {
                     this.sb_parts[this.part].cs("normal");
                     startSbarAlphaTimerFn(this);
                 }
 
                 return true;
             }
-            else
-            {
+            else {
                 return false;
             }
         };
 
         this.lbtn_up = function (x, y) {
-            this.parts_lbtn_up(x,y);
+            this.parts_lbtn_up(x, y);
             if (this.b_is_dragging) {
                 this.b_is_dragging = false;
             }
@@ -429,7 +384,7 @@ _.mixin({
 
             id = cpm.TrackPopupMenu(x, y);
 
-            if (id == 1) {
+            if (id === 1) {
                 qwr_utils.run_notepad("Control_Scrollbar.js");
             }
 
@@ -440,101 +395,98 @@ _.mixin({
 
         this.shift_line = function (direction) {
             var newScroll = this.nearestScroll(direction);
-            this.check_scroll(newScroll);
+            this.scroll_to(newScroll);
         };
 
         this.shift_page = function (direction) {
             var newScroll = this.nearestScroll(direction);
-            this.check_scroll(newScroll + direction*Math.floor(Math.max(rows_drawn - 1, 1)));
+            this.scroll_to(newScroll + direction * Math.floor(Math.max(rows_drawn - 1, 1)));
         };
 
-        this.start_shift_timer = function(shift)
-        {
-            if (!this.timer_shift_started) {
+        this.start_shift_timer = function (shift) {
+            if (_.isNil(timer_shift)) {
                 var shift_amount = shift;
-                var that = this;
-                this.timer_shift = window.SetInterval(function () {
-                    if (that.thumb_y <= that.btn_h || that.thumb_y + that.thumb_h >= that.h - that.btn_h )
-                    {
-                        that.stop_shift_timer();
+                timer_shift_count = 0;
+                timer_shift = setInterval(_.bind(function () {
+                    if (this.thumb_y <= this.btn_h || this.thumb_y + this.thumb_h >= this.h - this.btn_h) {
+                        this.stop_shift_timer();
                         return;
                     }
-                    if ( that.timer_stop_y != -1 )
-                    {
-                        var new_thumb_y = that.btn_h + (that.scroll + shift ) * that.scrollbar_travel / that.scrollable_lines;
+                    if (timer_stop_y != -1) {
+                        var new_thumb_y = this.btn_h + (this.scroll + shift ) * this.scrollbar_travel / this.scrollable_lines;
 
-                        if( (shift > 0 && new_thumb_y >= that.timer_stop_y)
-                            || (shift < 0 && new_thumb_y + that.thumb_h <= that.timer_stop_y) )
-                        {
-                            that.stop_shift_timer();
+                        if ((shift > 0 && new_thumb_y >= timer_stop_y)
+                            || (shift < 0 && new_thumb_y + this.thumb_h <= timer_stop_y)) {
+                            this.stop_shift_timer();
                             return;
                         }
                     }
 
-                    if (that.timer_shift_count > 6) {
-                        that.check_scroll(that.scroll + shift_amount);
+                    if (timer_shift_count > 8) {
+                        this.scroll_to(this.scroll + shift_amount);
                     }
                     else {
-                        that.timer_shift_count++;
+                        timer_shift_count++;
                     }
-                }, 40);
-
-                this.timer_shift_started = true;
+                }, this), 40);
             }
         };
 
-        this.stop_shift_timer = function()
-        {
-            if (this.timer_shift_started) {
-                window.ClearInterval(this.timer_shift);
-                this.timer_shift_started = false;
+        this.stop_shift_timer = function () {
+            if (!_.isNil(timer_shift)) {
+                clearInterval(timer_shift);
+                timer_shift = undefined;
             }
-            this.timer_shift_count = -1;
-            this.timer_stop_y = -1;
+            timer_stop_y = -1;
         };
 
-        this.nearestScroll = function(direction)
-        {
+        this.nearestScroll = function (direction) {
             var scrollShift = this.scroll - Math.floor(this.scroll);
             var drawnShift = 1 - (this.rows_drawn - Math.floor(this.rows_drawn));
             var newScroll = 0;
 
-            if ( direction < 0 && scrollShift != 0 )
-            {
+            if (direction < 0 && scrollShift !== 0) {
                 newScroll = Math.floor(this.scroll);
             }
-            else if ( direction > 0 && Math.abs(drawnShift - scrollShift) > 0.0001 )
-            {
-                if ( drawnShift > scrollShift )
-                {
+            else if (direction > 0 && Math.abs(drawnShift - scrollShift) > 0.0001) {
+                if (drawnShift > scrollShift) {
                     newScroll = Math.floor(this.scroll) + drawnShift;
                 }
-                else
-                {
+                else {
                     newScroll = Math.ceil(this.scroll) + drawnShift;
                 }
             }
-            else
-            {
+            else {
                 newScroll = this.scroll + direction;
             }
 
             return newScroll;
         };
 
+        // TODO: remove after compatibility fixes
         this.check_scroll = function (new_scroll, set_scroll_only) {
-            var s = Math.max(0, Math.min(new_scroll, this.scrollable_lines));
+            this.scroll_to(new_scroll, set_scroll_only);
+        };
+
+        this.scroll_to = function (new_position, scroll_wo_redraw) {
+            var s = Math.max(0, Math.min(new_position, this.scrollable_lines));
             if (s == this.scroll) {
                 return;
             }
             this.scroll = s;
             this.thumb_y = this.btn_h + this.scroll * this.scrollbar_travel / this.scrollable_lines;
             this.sb_parts["thumb"].y = this.y + this.thumb_y;
-            if ( !set_scroll_only ) {
+            if (!scroll_wo_redraw) {
                 this.fn_redraw();
             }
         };
 
+        // private:
+        var throttled_scroll_to = _.throttle(_.bind(function () {
+            this.scroll_to((throttled_scroll_y - this.btn_h) / this.drag_distance_per_row);
+        }, this), 1000 / 60);
+
+        // public:
         this.x = x;
         this.y = y;
         this.w = w;
@@ -547,30 +499,21 @@ _.mixin({
         this.fn_redraw = fn_redraw; // callback for list redraw
 
         this.draw_timer = false;
-        
+
         this.part = null;
         this.sb_parts = [];
 
         // Btns
-        this.btn_h;
-		
-		// Timers
-		this.timer_cpu_reducer_y = 0;
-		this.timer_cpu_reducer = false;
-		this.timer_cpu_reducer_started = false;
-        this.timer_shift = false;
-        this.timer_shift_count = -1;
-        this.timer_shift_started = false;
-        this.timer_stop_y = -1;
+        this.btn_h = 0;
 
         // Thumb
         this.thumb_h = 0;
         this.thumb_y = 0; // upper y
-        
+
         this.in_sbar = false;
 
         this.b_is_dragging = false;
-        this.drag_distance_per_row; // how far should the thumb move, when the list shifts by one row
+        this.drag_distance_per_row = 0; // how far should the thumb move, when the list shifts by one row
         this.initial_drag_y = 0; // dragging
 
         this.scroll = 0; // lines shifted in list (float)
@@ -580,49 +523,54 @@ _.mixin({
         this.scrollbar_h = 0; // space between sb_parts (arrows)
         this.scrollable_lines = 0; // not visible rows (row_count - rows_drawn)
         this.scrollbar_travel = 0; // space for thumb to travel (scrollbar_h - thumb_h)
+
+        // private:
+
+        // Timers
+        var throttled_scroll_y = 0;
+        var timer_shift;
+        var timer_shift_count;
+        var timer_stop_y = -1;
     },
-    scrollbar_part: function(x, y, w, h, img_src)
-    {
-		this.repaint = function () {
-			window.RepaintRect(this.x, this.y, this.w, this.h);
-		};
-        
+    scrollbar_part: function (x, y, w, h, img_src) {
+        this.repaint = function () {
+            window.RepaintRect(this.x, this.y, this.w, this.h);
+        };
+
         this.trace = function (x, y) {
-			return x > this.x && x < this.x + this.w && y > this.y && y < this.y + this.h;
-		};
-        
+            return x > this.x && x < this.x + this.w && y > this.y && y < this.y + this.h;
+        };
+
         this.cs = function (s) {
-			this.state = s;
-			this.repaint();
-		};
-                
-        this.assign_imgs = function(imgs)
-        {
+            this.state = s;
+            this.repaint();
+        };
+
+        this.assign_imgs = function (imgs) {
             this.img_normal = this.img_hover = this.img_hover = this.img_hover = null;
-            
-            if ( imgs == undefined )
-            {
+
+            if (imgs === undefined) {
                 return;
             }
-            
-            this.img_normal = typeof imgs.normal == "string" ? _.img(imgs.normal) : imgs.normal;
-            this.img_hover = imgs.hover ? (typeof imgs.hover == "string" ? _.img(imgs.hover) : imgs.hover) : this.img_normal;
-            this.img_pressed = imgs.pressed ? (typeof imgs.pressed == "string" ? _.img(imgs.pressed) : imgs.pressed) : this.img_normal;
-            this.img_hot = imgs.hot ? (typeof imgs.hot == "string" ? _.img(imgs.hot) : imgs.hot) : this.img_normal;
+
+            this.img_normal = _.isString(imgs.normal) ? _.img(imgs.normal) : imgs.normal;
+            this.img_hover = imgs.hover ? (_.isString(imgs.hover) ? _.img(imgs.hover) : imgs.hover) : this.img_normal;
+            this.img_pressed = imgs.pressed ? (_.isString(imgs.pressed) ? _.img(imgs.pressed) : imgs.pressed) : this.img_normal;
+            this.img_hot = imgs.hot ? (_.isString(imgs.hot) ? _.img(imgs.hot) : imgs.hot) : this.img_normal;
         };
 
         this.x = x;
         this.y = y;
         this.w = w;
         this.h = h;
-        this.img_normal;
-		this.img_hover;
-		this.img_pressed;
-        this.img_hot;
-		this.hover_alpha = 0;
+        this.img_normal = undefined;
+        this.img_hover = undefined;
+        this.img_pressed = undefined;
+        this.img_hot = undefined;
+        this.hover_alpha = 0;
         this.hot_alpha = 0;
         this.pressed_alpha = 0;
-		this.state = "normal";
+        this.state = "normal";
 
         this.assign_imgs(img_src);
     }

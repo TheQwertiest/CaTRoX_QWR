@@ -1,7 +1,7 @@
-// ====================================== //
+// ==PREPROCESSOR==
 // @name "Top Panel"
 // @author "TheQwertiest"
-// ====================================== //
+// ==/PREPROCESSOR==
 
 properties.AddProperties(
     {
@@ -137,7 +137,7 @@ function createButtonObjects(ww, wh)
     if (metadb)
     {
         var path = _.tf("%path%", metadb);
-        isYoutube = path.indexOf('youtube.com') == 0 || path.indexOf('www.youtube.com') == 0;
+        isYoutube = _.startsWith(path, 'youtube.com') || _.startsWith(path, 'www.youtube.com');
     }
 
     var buttonCount = 1;
@@ -308,3 +308,4 @@ function on_mouse_rbtn_up(x, y)
 
     return true;
 }
+                                                 
