@@ -185,6 +185,15 @@ Guifx =
         Police: "p"
     };
 
+var g_album_art_id =
+    {
+        front:  0,
+        back:   1,
+        disc:   2,
+        icon:   3,
+        artist: 4
+    };
+
 function link(site, metadb) {
     if (!metadb) {
         return;
@@ -193,28 +202,31 @@ function link(site, metadb) {
     var meta_info = metadb.GetFileInfo();
     var artist = meta_info.MetaValue(meta_info.MetaFind("artist"), 0).replace(/\s+/g, "+").replace(/\&/g, "%26");
     var album = meta_info.MetaValue(meta_info.MetaFind("album"), 0).replace(/\s+/g, "+");
+    var title = meta_info.MetaValue(meta_info.MetaFind("title"), 0).replace(/\s+/g, "+");
+
+    var search_term = artist ? artist : title;
 
     switch (site) {
         case "google":
-            site = (artist ? "http://images.google.com/search?q=" + artist + "&ie=utf-8" : null);
+            site = (search_term ? "http://images.google.com/search?q=" + search_term + "&ie=utf-8" : null);
             break;
         case "googleImages":
-            site = (artist ? "http://images.google.com/images?hl=en&q=" + artist + "&ie=utf-8" : null);
+            site = (search_term ? "http://images.google.com/images?hl=en&q=" + search_term + "&ie=utf-8" : null);
             break;
         case "eCover":
-            site = (artist || album ? "http://ecover.to/?Module=ExtendedSearch&SearchString=" + artist + "+" + album + "&ie=utf-8" : null);
+            site = (search_term || album ? "http://ecover.to/?Module=ExtendedSearch&SearchString=" + search_term + "+" + album + "&ie=utf-8" : null);
             break;
         case "wikipedia":
             site = (artist ? "http://en.wikipedia.org/wiki/" + artist.replace(/\+/g, "_") : null);
             break;
         case "youTube":
-            site = (artist ? "http://www.youtube.com/results?search_type=&search_query=" + artist + "&ie=utf-8" : null);
+            site = (search_term ? "http://www.youtube.com/results?search_type=&search_query=" + search_term + "&ie=utf-8" : null);
             break;
         case "lastFM":
-            site = (artist ? "http://www.last.fm/music/" + artist.replace("/", "%252F") : null);
+            site = (search_term ? "http://www.last.fm/music/" + search_term.replace("/", "%252F") : null);
             break;
         case "discogs":
-            site = (artist || album ? "http://www.discogs.com/search?q=" + artist + "+" + album + "&ie=utf-8" : null);
+            site = (search_term || album ? "http://www.discogs.com/search?q=" + search_term + "+" + album + "&ie=utf-8" : null);
             break;
         default:
             site = undefined;
@@ -319,17 +331,50 @@ var qwr_utils = {
     }),
     PropList: function () {
         this.AddProperties = function (properties) {
-            var props = this;
-            _.forEach(properties, function (item, i) {
-                if (i == "AddProperties") {
+            _.forEach(properties, _.bind(function (item, i) {
+                if (i === "AddProperties") {
                     error_name_occupied;
                     return false;
                 }
-                props[i] = item;
-            });
+                this[i] = item;
+            },this));
         };
     }
 };
 
+function numeric_ascending_sort(a, b) {
+    return (a - b);
+}
+
+function Property(text_id, default_value) {
+    this.get = function() {
+        if (value === undefined) {
+            value = window.GetProperty(this.text_id, default_value)
+        }
+        return value;
+
+    };
+    this.set = function(new_value) {
+        window.SetProperty(this.text_id, new_value);
+        value = new_value;
+    };
+
+    this.text_id = text_id;
+    var value = undefined;
+}
+function PropertyList() {
+    this.add_properties = function (properties) {
+        _.forEach(properties, _.bind(function (item, i) {
+            if (i === "add_properties") {
+                error_name_occupied;
+                return false;
+            }
+            var prop = new Property(item[0],item[1]);
+            this[i] = prop;
+        },this));
+    };
+}
+
 var properties = new qwr_utils.PropList;
+var properties_v2 = new PropertyList;
 

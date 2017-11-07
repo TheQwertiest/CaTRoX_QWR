@@ -126,7 +126,6 @@ _.mixin({
             return;
         }
 
-        cpm.AppendMenuSeparator();
         cpm.AppendMenuItem(MF_STRING, 500, "Console");
         cpm.AppendMenuItem(MF_STRING, 501, "Restart");
         cpm.AppendMenuItem(MF_STRING, 502, "Preferences...");
@@ -958,6 +957,23 @@ var VK_F7 = 0x76; // F7
 var VK_F8 = 0x77; // F8
 var VK_F9 = 0x78; // F9
 //--->
+
+var IDC_ARROW = 32512;
+var IDC_IBEAM = 32513;
+var IDC_WAIT = 32514;
+var IDC_CROSS = 32515;
+var IDC_UPARROW = 32516;
+var IDC_SIZE = 32640;
+var IDC_ICON = 32641;
+var IDC_SIZENWSE = 32642;
+var IDC_SIZENESW = 32643;
+var IDC_SIZEWE = 32644;
+var IDC_SIZENS = 32645;
+var IDC_SIZEALL = 32646;
+var IDC_NO = 32648;
+var IDC_APPSTARTING = 32650;
+var IDC_HAND = 32649;
+var IDC_HELP = 32651;
 
 //--->
 // Used in SetTextRenderingHint()
