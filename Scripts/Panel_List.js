@@ -3,7 +3,7 @@
 // @author "eXtremeHunter & TheQwertiest"
 // ==/PREPROCESSOR==
 
-var trace_call = false;
+var trace_call = true;
 properties.AddProperties(
     {
         listLeftMargin:   window.GetProperty("user.List Left", 0),
@@ -1490,10 +1490,8 @@ function on_mouse_rbtn_down(x, y, m) {
 function on_mouse_rbtn_up(x, y) {
     trace_call && fb.trace(qwr_utils.function_name());
 
-    if (pl_s.isScrollbarDisplayed) {
-        if (scrollbar.rbtn_up(x, y)) {
-            return true;
-        }
+    if (pl_s.isScrollbarDisplayed && scrollbar.trace(x,y) ) {
+        return scrollbar.rbtn_up(x, y);
     }
 
     var inPlaylistInfo = properties.showPlaylistInfo && (0 <= x) && (x <= ww) && (0 <= y) && (y <= listInfoHeight);

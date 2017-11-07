@@ -4,7 +4,7 @@
 // ==/PREPROCESSOR==
 properties.AddProperties(
     {
-        wheel_scroll_page: window.GetProperty("user.Scroll Whole Page With Wheel", false)
+        wheel_scroll_page: window.GetProperty("user.scrollbar.wheel_whole_page", false)
     }
 );
 
@@ -374,7 +374,7 @@ _.mixin({
 
         this.rbtn_up = function (x, y) {
             if (!this.trace(x, y)) {
-                return false;
+                return true;
             }
             var cpm = window.CreatePopupMenu();
 
@@ -382,8 +382,7 @@ _.mixin({
                 cpm.AppendMenuItem(safeMode ? MF_GRAYED : MF_STRING, 1, "Configure script...");
             }
 
-            id = cpm.TrackPopupMenu(x, y);
-
+            var id = cpm.TrackPopupMenu(x, y);
             if (id === 1) {
                 qwr_utils.run_notepad("Control_Scrollbar.js");
             }
@@ -400,7 +399,11 @@ _.mixin({
 
         this.shift_page = function (direction) {
             var newScroll = this.nearestScroll(direction);
-            this.scroll_to(newScroll + direction * Math.floor(Math.max(rows_drawn - 1, 1)));
+            this.scroll_to(newScroll + direction * Math.floor(Math.max(this.rows_drawn - 1, 1)));
+        };
+
+        this.scroll_to_end = function () {
+            this.scroll_to(this.scrollable_lines);
         };
 
         this.start_shift_timer = function (shift) {
@@ -476,9 +479,20 @@ _.mixin({
             this.scroll = s;
             this.thumb_y = this.btn_h + this.scroll * this.scrollbar_travel / this.scrollable_lines;
             this.sb_parts["thumb"].y = this.y + this.thumb_y;
+
+            this.is_scrolled_up = (this.scroll === 0);
+            this.is_scrolled_down = Math.abs(this.scroll - this.scrollable_lines) < 0.0001;
+
             if (!scroll_wo_redraw) {
                 this.fn_redraw();
             }
+        };
+
+        this.set_x = function (x) {
+            this.x = x;
+            _.forEach(this.sb_parts,function(item){
+                item.x = x;
+            });
         };
 
         // private:
@@ -513,6 +527,8 @@ _.mixin({
         this.in_sbar = false;
 
         this.b_is_dragging = false;
+        this.is_scrolled_down = false;
+        this.is_scrolled_up = true;
         this.drag_distance_per_row = 0; // how far should the thumb move, when the list shifts by one row
         this.initial_drag_y = 0; // dragging
 

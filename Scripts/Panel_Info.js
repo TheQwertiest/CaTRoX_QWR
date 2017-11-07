@@ -385,8 +385,8 @@ function on_mouse_leave()
 
 function on_mouse_rbtn_up(x, y)
 {
-    if ( needsScrollbar && properties.showScrollbar && scrollbar.rbtn_up(x, y)) {
-        return true;
+    if ( needsScrollbar && properties.showScrollbar && scrollbar.trace(x,y)) {
+        return scrollbar.rbtn_up(x, y);
     }
 
     var appear = window.CreatePopupMenu();
