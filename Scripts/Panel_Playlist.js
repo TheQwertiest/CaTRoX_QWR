@@ -8,7 +8,7 @@ var trace_call = false;
 var trace_on_paint = false;
 var trace_on_move = false;
 
-// TODO: Test with no playlists
+// TODO: Add item grouping per playlists
 // TODO: implement track skipping on low rating
 // TODO: consider making registration for on_key handlers
 properties_v2.add_properties(
@@ -53,7 +53,7 @@ properties_v2.add_properties(
         group_query:    ['system.header.group.query', '%album artist%%album%%discnumber%'],
         group_query_id: ['system.header.group.id', 3],
 
-        scroll_pos: ['system.scrollbar.position', 0],
+        scroll_pos_list: ['system.scrollbar.position.list', '[0]'],
 
         is_selection_dynamic: ['system.selection.dynamic', true]
     }
@@ -641,10 +641,6 @@ function Playlist(x, y) {
 
         if (!is_cur_playlist_empty) {
             cpm.AppendMenuItem(MF_STRING, 6, 'Refresh playlist \tF5');
-            cpm.AppendMenuItem(MF_STRING, 7, 'Select all \tCtrl+A');
-            if (has_selected_item) {
-                cpm.AppendMenuItem(is_auto_playlist ? MF_GRAYED : MF_STRING, 8, 'Remove from list \tDelete');
-            }
             if (is_queue_active) {
                 cpm.AppendMenuItem(MF_STRING, 9, 'Flush playback queue \tCtrl+Shift+Q');
             }
@@ -654,12 +650,17 @@ function Playlist(x, y) {
             cpm.AppendMenuSeparator();
 
             if (has_selected_item) {
-                cpm.AppendMenuItem(has_selected_item ? MF_STRING : MF_GRAYED, 10, 'Cut \tCtrl+X');
-                cpm.AppendMenuItem(has_selected_item ? MF_STRING : MF_GRAYED, 11, 'Copy \tCtrl+C');
+                cpm.AppendMenuItem(has_selected_item ? MF_STRING : MF_GRAYED, 10, 'Cut');
+                cpm.AppendMenuItem(has_selected_item ? MF_STRING : MF_GRAYED, 11, 'Copy');
             }
             if (copy_paste_metadb_list && copy_paste_metadb_list.Count > 0) {
-                cpm.AppendMenuItem((copy_paste_metadb_list && copy_paste_metadb_list.Count > 0) ? MF_STRING : MF_GRAYED, 12, 'Paste \tCtrl+V');
+                cpm.AppendMenuItem((copy_paste_metadb_list && copy_paste_metadb_list.Count > 0) ? MF_STRING : MF_GRAYED, 12, 'Paste');
             }
+        }
+
+        if ( has_selected_item ) {
+            cpm.AppendMenuSeparator();
+            cpm.AppendMenuItem(is_auto_playlist ? MF_GRAYED : MF_STRING, 8, 'Remove');
         }
 
         if (!is_cur_playlist_empty) {
@@ -816,10 +817,6 @@ function Playlist(x, y) {
             case 6:
                 this.initialize_list();
                 scroll_to_row(null, focused_item);
-                break;
-            case 7:
-                selection_handler.select_all();
-                selection_handler.sync_items_with_selection();
                 break;
             case 8:
                 plman.RemovePlaylistSelection(cur_playlist_idx);
@@ -1437,8 +1434,7 @@ function Playlist(x, y) {
 
     this.on_playlist_switch = function () {
         if (cur_playlist_idx !== plman.ActivePlaylist) {
-            scroll_pos = 0;
-            properties_v2.scroll_pos.set(0);
+            scroll_pos = _.isNil(scroll_pos_list[plman.ActivePlaylist]) ? 0 : scroll_pos_list[plman.ActivePlaylist];
         }
 
         if (properties_v2.show_playlist_info.get()) {
@@ -1631,9 +1627,8 @@ function Playlist(x, y) {
             }
 
             collapse_handler.set_callback(on_list_content_h_change);
-            scroll_pos = properties_v2.scroll_pos.get();
 
-            // TODO: add scroll to playing or selected (for script reinit)
+            scroll_pos = _.isNil(scroll_pos_list[cur_playlist_idx]) ? 0 : scroll_pos_list[cur_playlist_idx];
         }
         else {
             on_list_content_h_change();
@@ -1776,7 +1771,8 @@ function Playlist(x, y) {
 
     function scrollbar_redraw_callback() {
         scroll_pos = scrollbar.scroll;
-        properties_v2.scroll_pos.set(scroll_pos);
+        scroll_pos_list[cur_playlist_idx] = Math.round( scroll_pos * 1e2 ) / 1e2;
+        properties_v2.scroll_pos_list.set(JSON.stringify(scroll_pos_list));
 
         on_drawn_content_change();
 
@@ -2291,8 +2287,8 @@ function Playlist(x, y) {
     var drag_scroll_in_progress = false;
     var drag_scroll_timeout_timer;
     var drag_scroll_repeat_timer;
-
     // Scrollbar props
+    var scroll_pos_list = JSON.parse(properties_v2.scroll_pos_list.get());
     var scroll_pos = 0;
     var row_shift = 0;
     var pixel_shift = 0;
