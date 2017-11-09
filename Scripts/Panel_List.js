@@ -3301,11 +3301,8 @@ function initList() {
                 scrollbar.reset();
             }
 
-            scrollbar = new _.scrollbar(scrollbarX, scrollbarY, properties.scrollbarW, scrollbarH, pl_s.windowSizeInRows, properties.rowH, scrollbarRedrawCallback);
-            scrollbar.set_rows(pl_s.listLength);
-
-            createScrollbarThumbImages(properties.scrollbarW, scrollbar.thumb_h);
-            scrollbar.create_parts(sbarImgs);
+            scrollbar = new _.scrollbar(scrollbarX, scrollbarY, properties.scrollbarW, scrollbarH, properties.rowH, scrollbarRedrawCallback);
+            scrollbar.set_window_param(pl_s.windowSizeInRows, pl_s.listLength);
 
             scrollbar.check_scroll(pl_s.listPos[activeList], true);
         }

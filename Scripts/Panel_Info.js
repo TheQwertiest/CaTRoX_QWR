@@ -15,8 +15,7 @@ properties.AddProperties(
     }
 );
 var minRowH = 10;
-if (properties.rowH < minRowH)
-{
+if (properties.rowH < minRowH) {
     properties.rowH = minRowH;
     window.SetProperty("user.Row Height", minRowH);
 }
@@ -43,10 +42,7 @@ var moveChecker = new _.moveCheckReducer;
 
 //===============================//
 
-createButtonImages();
-
-function on_paint(gr)
-{
+function on_paint(gr) {
     gr.FillSolidRect(0, 0, ww, wh, panelsBackColor);
     gr.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
 
@@ -62,21 +58,19 @@ function on_paint(gr)
     var p = 5;
 
     var rowShift = Math.floor(listPos);
-    var pixelShift = - Math.round((listPos - rowShift)*properties.rowH);
+    var pixelShift = -Math.round((listPos - rowShift) * properties.rowH);
 
-    if (rowShift && !pixelShift )
-    {
+    if (rowShift && !pixelShift) {
         gr.DrawLine(x, y, x + w, y, 1, lineColorNormal);
     }
 
     {
         var curLine = rowShift;
         var ID = list[curLine];
-        gr.DrawString(ID[0], infoNameFont, _.RGB(160, 162, 164), x + p, y + pixelShift , ID[2], h, StringFormat(0, 1, 3, 0x00002000));
+        gr.DrawString(ID[0], infoNameFont, _.RGB(160, 162, 164), x + p, y + pixelShift, ID[2], h, StringFormat(0, 1, 3, 0x00002000));
         gr.DrawString(ID[1], infoValueFont, panelsNormalTextColor, x + p + ID[2], y + pixelShift, w - ID[2] - x, h, StringFormat(0, 1, 3, 0x00002000));
 
-        if (curLine != listLength - 1)
-        {
+        if (curLine != listLength - 1) {
             var lY = y + h;
             gr.DrawLine(x, lY + pixelShift, x + w, lY + pixelShift, 1, lineColorNormal);
         }
@@ -84,15 +78,13 @@ function on_paint(gr)
         y += h;
     }
 
-    for (var i = 1; i < rowsToDraw - 1; i++)
-    {
+    for (var i = 1; i < rowsToDraw - 1; i++) {
         var curLine = i + rowShift;
         var ID = list[curLine];
-        gr.DrawString(ID[0], infoNameFont, _.RGB(160, 162, 164), x + p, y + pixelShift , ID[2], h, StringFormat(0, 1, 3, 0x00002000));
+        gr.DrawString(ID[0], infoNameFont, _.RGB(160, 162, 164), x + p, y + pixelShift, ID[2], h, StringFormat(0, 1, 3, 0x00002000));
         gr.DrawString(ID[1], infoValueFont, panelsNormalTextColor, x + p + ID[2], y + pixelShift, w - ID[2] - x, h, StringFormat(0, 1, 3, 0x00002000));
 
-        if (curLine != listLength - 1)
-        {
+        if (curLine != listLength - 1) {
             var lY = y + h;
             gr.DrawLine(x, lY + pixelShift, x + w, lY + pixelShift, 1, lineColorNormal);
         }
@@ -103,69 +95,63 @@ function on_paint(gr)
     {
         var curLine = rowsToDraw - 1 + rowShift;
         var ID = list[curLine];
-        gr.DrawString(ID[0], infoNameFont, _.RGB(160, 162, 164), x + p, y + pixelShift , ID[2], h, StringFormat(0, 1, 3, 0x00002000));
+        gr.DrawString(ID[0], infoNameFont, _.RGB(160, 162, 164), x + p, y + pixelShift, ID[2], h, StringFormat(0, 1, 3, 0x00002000));
         gr.DrawString(ID[1], infoValueFont, panelsNormalTextColor, x + p + ID[2], y + pixelShift, w - ID[2] - x, h, StringFormat(0, 1, 3, 0x00002000));
 
         curLine = rowsToDraw + rowShift;
-        if (pixelShift && curLine < listLength)
-        {
+        if (pixelShift && curLine < listLength) {
             var lY = y + h;
             gr.DrawLine(x, lY + pixelShift, x + w, lY + pixelShift, 1, lineColorNormal);
 
             y += h;
 
             ID = list[curLine];
-            gr.DrawString(ID[0], infoNameFont, _.RGB(160, 162, 164), x + p, y + pixelShift , ID[2], h, StringFormat(0, 1, 3, 0x00002000));
+            gr.DrawString(ID[0], infoNameFont, _.RGB(160, 162, 164), x + p, y + pixelShift, ID[2], h, StringFormat(0, 1, 3, 0x00002000));
             gr.DrawString(ID[1], infoValueFont, panelsNormalTextColor, x + p + ID[2], y + pixelShift, w - ID[2] - x, h, StringFormat(0, 1, 3, 0x00002000));
         }
     }
 
-    gr.FillSolidRect( x, listY - properties.listTopMargin, listW, properties.listTopMargin, panelsBackColor);  // Top margin
-    gr.FillSolidRect( x, listY + listH, listW, properties.listBottomMargin, panelsBackColor); // Bottom margin
-    
-    
+    gr.FillSolidRect(x, listY - properties.listTopMargin, listW, properties.listTopMargin, panelsBackColor);  // Top margin
+    gr.FillSolidRect(x, listY + listH, listW, properties.listBottomMargin, panelsBackColor); // Bottom margin
+
+
     var partialRowShift = listPos - rowShift;
     var difference = Math.ceil(windowSizeInRows) - windowSizeInRows;
     var listIsScrolledDown = listPos >= (listLength - rowsToDraw) && Math.abs(partialRowShift - difference) < 0.0001;
     var listIsScrolledUp = listPos == 0;
-    
-    if ( !listIsScrolledUp )
-    {
+
+    if (!listIsScrolledUp) {
         gr.FillGradRect(listX, listY, listW, 7 + 1, 270, _.RGBtoRGBA(panelsBackColor, 0), _.RGBtoRGBA(panelsBackColor, 200));
-    }  
-    
-    if ( !listIsScrolledDown )
-    {
+    }
+
+    if (!listIsScrolledDown) {
         gr.FillGradRect(listX, listY + listH - 8, listW, 7 + 1, 90, _.RGBtoRGBA(panelsBackColor, 0), _.RGBtoRGBA(panelsBackColor, 200));
     }
 
-    if ( properties.showScrollbar && needsScrollbar ) {
+    if (properties.showScrollbar && needsScrollbar) {
         var scrollTrackColor = _.RGB(37, 37, 37); // must be without alpha channel when cleartype font is used
         var m = 2;
         gr.FillSolidRect(scrollbar.x + m, scrollbar.y, scrollbar.w - m * 2, scrollbar.h, scrollTrackColor);
         scrollbar.paint(gr);
     }
 }
+
 //===============================//
 
-function redrawListCallback()
-{
+function redrawListCallback() {
     listPos = scrollbar.scroll;
     window.Repaint();
 }
 
-function on_size()
-{
+function on_size() {
     ww = window.Width;
     wh = window.Height;
 
     listOnSize();
 }
 
-function listOnSize()
-{
-    if ( !ww || !wh)
-    {// might be 0, probably because of Panel Stack switch
+function listOnSize() {
+    if (!ww || !wh) {// might be 0, probably because of Panel Stack switch
         return;
     }
 
@@ -175,7 +161,7 @@ function listOnSize()
     listLength = 0;
 
     var metadb = fb.IsPlaying ? fb.GetNowPlaying() : fb.GetFocusItem();
-    if (!metadb) 
+    if (!metadb)
         return;
 
     var fileInfo = metadb.GetFileInfo();
@@ -184,8 +170,7 @@ function listOnSize()
     var img = gdi.CreateImage(1, 1);
     var g = img.GetGraphics();
 
-    for (var i = 0; i < fileInfo.MetaCount; i++)
-    {
+    for (var i = 0; i < fileInfo.MetaCount; i++) {
         var metaName = fileInfo.MetaName(i);
 
         if (metaName == "title" && (fb.IsPlaying && metadb.RawPath.indexOf("http://") == 0)) {
@@ -201,8 +186,7 @@ function listOnSize()
         meta[i][2] = Math.ceil(g.MeasureString(meta[i][0], infoNameFont, 0, 0, 0, 0).Width) + 5;
     }
 
-    for (var i = 0; i < fileInfo.InfoCount; i++)
-    {
+    for (var i = 0; i < fileInfo.InfoCount; i++) {
         var infoName = fileInfo.InfoName(i);
 
         info[i] = [infoName.toLowerCase().capitalize() + ":"];
@@ -226,26 +210,22 @@ function listOnSize()
     windowSizeInRows = Math.min(listLength, listH / properties.rowH);
     var rowsToDrawFull = Math.max(0, Math.floor(windowSizeInRows));
 
-    if (listPos + rowsToDrawFull > listLength && listLength >= rowsToDrawFull)
-    {
+    if (listPos + rowsToDrawFull > listLength && listLength >= rowsToDrawFull) {
         listPos = listLength - rowsToDrawFull;
         window.SetProperty("system.Playlist Step", listPos.toString());
     }
 
-    if (listLength > rowsToDrawFull)
-    {
+    if (listLength > rowsToDrawFull) {
         needsScrollbar = true;
         rowsToDraw = Math.ceil(windowSizeInRows);
     }
-    else
-    {
+    else {
         needsScrollbar = false;
         rowsToDraw = rowsToDrawFull;
     }
 
     if (needsScrollbar) {
-        if ( properties.showScrollbar )
-        {
+        if (properties.showScrollbar) {
             listW -= properties.scrollbarW - properties.sbarRightMargin;
         }
 
@@ -253,139 +233,133 @@ function listOnSize()
         var scrollbarY = properties.listTopMargin;
         var scrollbarH = window.Height - scrollbarY - properties.listBottomMargin;
 
-        if ( scrollbar )
-        {
+        if (scrollbar) {
             scrollbar.reset();
         }
-                
-        scrollbar = new _.scrollbar(scrollbarX, scrollbarY, properties.scrollbarW, scrollbarH, windowSizeInRows, properties.rowH, redrawListCallback);
-        scrollbar.set_rows(listLength);
-        
-        createScrollbarThumbImages(properties.scrollbarW, scrollbar.thumb_h);
-        scrollbar.create_parts(btnImg);
-        
-        scrollbar.check_scroll(listPos);
+
+        scrollbar = new _.scrollbar(scrollbarX, scrollbarY, properties.scrollbarW, scrollbarH, properties.rowH, redrawListCallback);
+        scrollbar.set_window_param(windowSizeInRows, listLength);
+
+        scrollbar.scroll_to(listPos);
     }
 }
+
 // =================================================== //
 
-function on_playlist_items_selection_change()
-{
+function on_playlist_items_selection_change() {
     if (fb.IsPlaying) return;
     refreshList();
 }
+
 // =================================================== //
 
-function on_playlists_changed()
-{
+function on_playlists_changed() {
     if (fb.IsPlaying) return;
     refreshList();
 }
+
 // =================================================== //
 
-function on_playlist_switch()
-{
+function on_playlist_switch() {
     if (fb.IsPlaying) return;
     refreshList();
 }
+
 // =================================================== //
 
-function on_playlist_items_added()
-{
+function on_playlist_items_added() {
     refreshList();
 }
+
 // =================================================== //
 
-function on_playlist_items_removed()
-{
+function on_playlist_items_removed() {
     refreshList();
 }
+
 // =================================================== //
 
-function on_playback_new_track(metadb)
-{
+function on_playback_new_track(metadb) {
     refreshList();
 }
+
 // =================================================== //
 
-function on_metadb_changed(handles, fromhook)
-{
+function on_metadb_changed(handles, fromhook) {
     refreshList();
 }
+
 // =================================================== //
 
-function on_playback_stop(reason)
-{
+function on_playback_stop(reason) {
     if (reason == 2) return;
     refreshList();
 }
+
 // =================================================== //
 
-function on_mouse_move(x, y, m)
-{
-	if ( moveChecker.isSameMove(x, y, m) )
-	{
-		return;
-	}
+function on_mouse_move(x, y, m) {
+    if (moveChecker.isSameMove(x, y, m)) {
+        return;
+    }
 
     qwr_utils.DisableSizing(m);
 
-    if ( needsScrollbar && properties.showScrollbar ) {
+    if (needsScrollbar && properties.showScrollbar) {
         scrollbar.move(x, y, m);
     }
 }
+
 // =================================================== //
 
-function on_mouse_lbtn_down(x, y, m)
-{
-    if ( needsScrollbar && properties.showScrollbar ) {
+function on_mouse_lbtn_down(x, y, m) {
+    if (needsScrollbar && properties.showScrollbar) {
         scrollbar.lbtn_dn(x, y, m);
     }
 }
+
 // =================================================== //
 
-function on_playback_dynamic_info_track()
-{
+function on_playback_dynamic_info_track() {
     refreshList();
 }
+
 // =================================================== //
 
-function on_mouse_lbtn_dblclk(x, y, m)
-{
-    on_mouse_lbtn_down(x,y,m)
+function on_mouse_lbtn_dblclk(x, y, m) {
+    on_mouse_lbtn_down(x, y, m)
 }
+
 // =================================================== //
 
-function on_mouse_lbtn_up(x, y, m)
-{
+function on_mouse_lbtn_up(x, y, m) {
     qwr_utils.EnableSizing(m);
 
-    if ( needsScrollbar && properties.showScrollbar ) {
+    if (needsScrollbar && properties.showScrollbar) {
         scrollbar.lbtn_up(x, y, m);
     }
 }
+
 // =================================================== //
 
-function on_mouse_wheel(delta)
-{
-    if ( needsScrollbar ) {
+function on_mouse_wheel(delta) {
+    if (needsScrollbar) {
         scrollbar.wheel(delta);
     }
 }
+
 // =================================================== //
 
-function on_mouse_leave()
-{
-    if ( needsScrollbar && properties.showScrollbar ) {
+function on_mouse_leave() {
+    if (needsScrollbar && properties.showScrollbar) {
         scrollbar.leave();
     }
 }
 
 // =================================================== //
 
-function on_mouse_rbtn_up(x, y)
-{
-    if ( needsScrollbar && properties.showScrollbar && scrollbar.trace(x,y)) {
+function on_mouse_rbtn_up(x, y) {
+    if (needsScrollbar && properties.showScrollbar && scrollbar.trace(x, y)) {
         return scrollbar.rbtn_up(x, y);
     }
 
@@ -398,14 +372,12 @@ function on_mouse_rbtn_up(x, y)
 
     cpm.AppendMenuItem(fb.IsPlaying ? MF_STRING : MF_GRAYED, 1, "Properties");
 
-    if (utils.IsKeyPressed(VK_SHIFT))
-    {
+    if (utils.IsKeyPressed(VK_SHIFT)) {
         _.appendDefaultContextMenu(cpm);
     }
 
     var id = cpm.TrackPopupMenu(x, y);
-    switch (id)
-    {
+    switch (id) {
         case 1:
             fb.RunContextCommand("Properties");
             break;
@@ -422,170 +394,16 @@ function on_mouse_rbtn_up(x, y)
     return true;
 }
 
-function createButtonImages()
-{
-    var fontSegoeUi = gdi.font("Segoe UI Symbol", 15, 0);
-    var m = 2;
-
-    scrollTrackColor = _.RGB(37, 37, 37);
-    scrollColorHot = _.RGB(140, 142, 144);
-    scrollColorHover = _.RGB(170, 172, 174);
-    scrollColorPressed = _.RGB(90, 92, 94);
-    scrollSymbolColorNormal = _.RGB(140, 142, 144);
-    scrollSymbolColorHot = _.RGB(30, 32, 34);
-    scrollSymbolColorHover = _.RGB(40, 42, 44);
-    scrollSymbolColorPressed = _.RGB(30, 32, 34);
-
-    var btn =
-    {
-        lineUp:
-        {
-            ico: "\uE010",
-            font: fontSegoeUi,
-            w: properties.scrollbarW,
-            h: properties.scrollbarW,
-        },
-        lineDown:
-        {
-            ico: "\uE011",
-            font: fontSegoeUi,
-            w: properties.scrollbarW,
-            h: properties.scrollbarW,
-        }
-    };
-
-    btnImg = [];
-
-    _.forEach(btn, function(item,i)
-    {
-        var w = item.w,
-            h = item.h;
-
-        var stateImages = []; //0=normal, 1=hover, 2=down, 3=hot;
-
-        for (var s = 0; s < 4; s++)
-        {
-            var img = gdi.CreateImage(w, h);
-            g = img.GetGraphics();            
-
-            var icoColor;
-            var backColor;
-
-            if ( s == 0 )
-            {
-                icoColor = scrollSymbolColorNormal;
-                backColor = scrollTrackColor;
-            }
-            else if (s == 1)
-            {
-                icoColor = scrollSymbolColorHover;
-                backColor = scrollColorHover;
-            }
-            else if (s == 2)
-            {
-                icoColor = scrollSymbolColorPressed;
-                backColor = scrollColorPressed;
-            }
-            else if ( s == 3 )
-            {
-                icoColor = scrollSymbolColorHot;
-                backColor = scrollColorHot;
-            }
-
-            if ( i == "lineDown") 
-            {
-                g.FillSolidRect(m, 1, w - m * 2, h - 1, backColor);
-            }
-            else if (i == "lineUp")
-            {
-                g.FillSolidRect(m, 0, w - m * 2, h - 1, backColor);
-            }
-            
-            g.SetSmoothingMode(SmoothingMode.HighQuality);
-            g.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit)
-            
-            if ( i == "lineDown") 
-            {
-                g.DrawString(item.ico, item.font, icoColor, 0, 0, w, h, StringFormat(1, 2));
-            }
-            else if (i == "lineUp")
-            {
-                g.DrawString(item.ico, item.font, icoColor, 0, 0, w, h - 1, StringFormat(1, 2));
-            }          
-
-            img.ReleaseGraphics(g);
-            stateImages[s] = img;            
-        }
-
-        btnImg[i] =
-        {
-            normal: stateImages[0],
-            hover: stateImages[1],
-            pressed: stateImages[2],
-            hot: stateImages[3]
-        };
-    });
-}
-
-function createScrollbarThumbImages(thumbW, thumbH)
-{
-    var m = 2;
-    
-    scrollColorNormal = _.RGB(110, 112, 114);
-    scrollColorHot = _.RGB(140, 142, 144);
-    scrollColorHover = _.RGB(170, 172, 174);
-    scrollColorPressed = _.RGB(90, 92, 94);
-    
-    var w = thumbW,
-        h = thumbH;
-        
-
-    var stateImages = []; //0=normal, 1=hover, 2=down;
-
-    for (var s = 0; s <= 2; s++)
-    {
-        var img = gdi.CreateImage(w, h);
-        g = img.GetGraphics();            
-
-        if ( s == 0 )
-        {
-            color = scrollColorNormal;
-        }
-        else if (s == 1)
-        {
-            color = scrollColorHover;
-        }
-        else if (s == 2)
-        {
-            color = scrollColorPressed;
-        }
-
-        g.FillSolidRect(m, 0, w - m * 2, h, color);
-
-        img.ReleaseGraphics(g);
-        stateImages[s] = img;            
-    }
-
-    btnImg["thumb"] =
-    {
-        normal: stateImages[0],
-        hover: stateImages[1],
-        pressed: stateImages[2],
-    };
-}
-
-String.prototype.capitalize = function ()
-{
+String.prototype.capitalize = function () {
     return this.charAt(0).toUpperCase() + this.slice(1);
 };
+
 // =================================================== //
 
-function refreshList()
-{
+function refreshList() {
     listOnSize();
 
-    if (!listLength)
-    {// No need to redraw, if we have nothing new to offer
+    if (!listLength) {// No need to redraw, if we have nothing new to offer
         return;
     }
 

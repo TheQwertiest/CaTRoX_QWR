@@ -4,17 +4,13 @@
 // @author 'everything else: TheQwertiest'
 // ==/PREPROCESSOR==
 
-var trace_call = true;
+var trace_call = false;
 var trace_on_paint = false;
 var trace_on_move = false;
 
-// TODO: check with no playlists
-// TODO: check with empty playlist
-// TODO: check with headers disabled
+// TODO: Test with no playlists
 // TODO: implement track skipping on low rating
 // TODO: consider making registration for on_key handlers
-// TODO: fix playlist info sometimes not having text after right click
-// TODO: fix scroll_to_row, when item is hidden (e.g. 'scroll_to_header').
 properties_v2.add_properties(
     {
         list_left_pad:   ['user.list.pad.left', 0],
@@ -121,32 +117,32 @@ var pl_colors = {};
 //---> Common
 pl_colors.background = panelsBackColor;
 //---> Group Colors
-pl_colors.groupTitle = _.RGB(180, 182, 184);
-pl_colors.groupTitleSelected = pl_colors.groupTitle;
-pl_colors.artist_normal = pl_colors.groupTitle;
+pl_colors.group_title = _.RGB(180, 182, 184);
+pl_colors.group_title_selected = pl_colors.group_title;
+pl_colors.artist_normal = pl_colors.group_title;
 pl_colors.artist_playing = pl_colors.artist_normal;
-pl_colors.albumNormal = _.RGB(130, 132, 134);
-pl_colors.albumPlaying = pl_colors.albumNormal;
-pl_colors.infoNormal = _.RGB(130, 132, 134);
-pl_colors.infoPlaying = pl_colors.infoNormal;
-pl_colors.dateNormal = _.RGB(130, 132, 134);
-pl_colors.datePlaying = pl_colors.dateNormal;
-pl_colors.lineNormal = panelsLineColor;
-pl_colors.linePlaying = pl_colors.lineNormal;
-pl_colors.lineSelected = panelsLineColorSelected;
+pl_colors.album_normal = _.RGB(130, 132, 134);
+pl_colors.album_playing = pl_colors.album_normal;
+pl_colors.info_normal = _.RGB(130, 132, 134);
+pl_colors.info_playing = pl_colors.info_normal;
+pl_colors.date_normal = _.RGB(130, 132, 134);
+pl_colors.date_playing = pl_colors.date_normal;
+pl_colors.line_normal = panelsLineColor;
+pl_colors.line_playing = pl_colors.line_normal;
+pl_colors.line_selected = panelsLineColorSelected;
 //---> Item Colors
 pl_colors.title_selected = _.RGB(160, 162, 164);
 pl_colors.title_playing = _.RGB(255, 165, 0);
 pl_colors.title_normal = panelsNormalTextColor;
-pl_colors.countNormal = _.RGB(120, 122, 124);
-pl_colors.countSelected = pl_colors.title_selected;
-pl_colors.countPlaying = pl_colors.title_playing;
+pl_colors.count_normal = _.RGB(120, 122, 124);
+pl_colors.count_selected = pl_colors.title_selected;
+pl_colors.count_playing = pl_colors.title_playing;
 //---> Row Colors
-pl_colors.rowSelected = _.RGB(35, 35, 35);
-pl_colors.rowAlternate = _.RGB(35, 35, 35);
-pl_colors.rowFocusSelected = panelsLineColorSelected;
-pl_colors.rowFocusNormal = _.RGB(80, 80, 80);
-pl_colors.rowQueued = _.RGBA(150, 150, 150, 0);
+pl_colors.row_selected = _.RGB(35, 35, 35);
+pl_colors.row_alternate = _.RGB(35, 35, 35);
+pl_colors.row_focus_selected = panelsLineColorSelected;
+pl_colors.row_focus_normal = _.RGB(80, 80, 80);
+pl_colors.row_queued = _.RGBA(150, 150, 150, 0);
 
 //--->
 
@@ -159,6 +155,8 @@ function on_paint(gr) {
 }
 
 function on_size() {
+    trace_call && fb.trace(qwr_utils.function_name());
+
     var ww = window.Width;
     var wh = window.Height;
 
@@ -369,9 +367,6 @@ function Playlist(x, y) {
         }
 
         if (is_scrollbar_visible) {
-            //var scrollTrackColor = _.RGB(37, 37, 37); // must be without alpha channel when cleartype font is used
-            //var m = 2;
-            //gr.FillSolidRect(scrollbar.x + m, scrollbar.y, scrollbar.w - m * 2, scrollbar.h, scrollTrackColor);
             scrollbar.paint(gr);
         }
 
@@ -385,7 +380,7 @@ function Playlist(x, y) {
         var w_changed = this.w !== w;
         var h_changed = this.h !== h;
 
-        if (h_changed || _.isNil(scrollbar)) {
+        if (h_changed) {
             on_h_size(h);
         }
 
@@ -430,12 +425,9 @@ function Playlist(x, y) {
                     }
                 }
                 else if (item) {
-                    if (has_headers) {
-                        collapse_handler.expand(headers[item.header_idx]);
-                        if (collapse_handler.changed) {
-                            on_list_content_h_change();
-                            this.repaint();
-                        }
+                    collapse_handler.expand(headers[item.header_idx]);
+                    if (collapse_handler.changed) {
+                        this.repaint();
                     }
 
                     selection_handler.drag(item, drop_info.is_above);
@@ -462,6 +454,7 @@ function Playlist(x, y) {
         if (mouse_double_clicked) {
             return;
         }
+
         if (is_scrollbar_visible) {
             if (scrollbar.trace(x, y)) {
                 scrollbar.lbtn_dn(x, y, m);
@@ -478,9 +471,6 @@ function Playlist(x, y) {
         if (item) {
             if (ctrl_pressed && shift_pressed && item.type === 'Header') {
                 collapse_handler.toggle_collapse(item);
-                if (collapse_handler.changed) {
-                    on_list_content_h_change();
-                }
                 mouse_down = false;
             }
             else if (item.is_selected_dynamic() && !ctrl_pressed && !shift_pressed) {
@@ -510,6 +500,7 @@ function Playlist(x, y) {
 
         if (is_scrollbar_visible) {
             if (scrollbar.trace(x, y)) {
+                scrollbar.lbtn_dn(x, y, m);
                 return;
             }
         }
@@ -538,11 +529,9 @@ function Playlist(x, y) {
             return;
         }
 
+        var was_double_clicked = mouse_double_clicked;
+        mouse_double_clicked = false;
         mouse_down = false;
-        if (mouse_double_clicked) {
-            mouse_double_clicked = false;
-            return;
-        }
 
         if (is_scrollbar_visible) {
             var wasDragging = scrollbar.b_is_dragging;
@@ -552,9 +541,13 @@ function Playlist(x, y) {
             }
         }
 
+        if (was_double_clicked){
+            return;
+        }
+
         last_hover_item = undefined;
 
-        // TODO: handle drop even if mouse is outside list;
+        // TODO: handle drop when mouse gets above or below list;
         if (selection_handler.is_dragging()) {
             stop_drag_scroll();
 
@@ -617,10 +610,10 @@ function Playlist(x, y) {
 
         var metadb = utils.IsKeyPressed(VK_CONTROL) ? (fb.IsPlaying ? fb.GetNowPlaying() : fb.GetFocusItem()) : fb.GetFocusItem();
 
-        var hasSelectedItem = selection_handler.has_selected_items();
-        var hasMultipleSelectedItems = selection_handler.selected_items_count() > 1;
-        var queueActive = plman.IsPlaybackQueueActive();
-        var isAutoPlaylist = plman.IsAutoPlaylist(cur_playlist_idx);
+        var has_selected_item = selection_handler.has_selected_items();
+        var has_multiple_selected_items = selection_handler.selected_items_count() > 1;
+        var is_queue_active = plman.IsPlaybackQueueActive();
+        var is_auto_playlist = plman.IsAutoPlaylist(cur_playlist_idx);
         var playlist_count = plman.PlaylistCount;
         var sendToPlaylistId = 0;
 
@@ -629,6 +622,8 @@ function Playlist(x, y) {
         var ce = window.CreatePopupMenu();
         var ccmm = fb.CreateContextMenuManager();
         var appear = window.CreatePopupMenu();
+        var appear_row = window.CreatePopupMenu();
+        var appear_header = window.CreatePopupMenu();
         var sort = window.CreatePopupMenu();
         var lists = window.CreatePopupMenu();
         var send = window.CreatePopupMenu();
@@ -636,7 +631,7 @@ function Playlist(x, y) {
         var art = window.CreatePopupMenu();
         var group = window.CreatePopupMenu();
 
-        var isCurPlaylistEmpty = !rows.length;
+        var is_cur_playlist_empty = !rows.length;
 
         plman.SetActivePlaylistContext();
 
@@ -644,30 +639,30 @@ function Playlist(x, y) {
             cpm.AppendMenuItem(MF_STRING, 5, 'Show now playing');
         }
 
-        if (!isCurPlaylistEmpty) {
+        if (!is_cur_playlist_empty) {
             cpm.AppendMenuItem(MF_STRING, 6, 'Refresh playlist \tF5');
             cpm.AppendMenuItem(MF_STRING, 7, 'Select all \tCtrl+A');
-            if (hasSelectedItem) {
-                cpm.AppendMenuItem(isAutoPlaylist ? MF_GRAYED : MF_STRING, 8, 'Remove from list \tDelete');
+            if (has_selected_item) {
+                cpm.AppendMenuItem(is_auto_playlist ? MF_GRAYED : MF_STRING, 8, 'Remove from list \tDelete');
             }
-            if (queueActive) {
+            if (is_queue_active) {
                 cpm.AppendMenuItem(MF_STRING, 9, 'Flush playback queue \tCtrl+Shift+Q');
             }
         }
 
-        if (hasSelectedItem || copy_paste_metadb_list && copy_paste_metadb_list.Count > 0) {
+        if (has_selected_item || copy_paste_metadb_list && copy_paste_metadb_list.Count > 0) {
             cpm.AppendMenuSeparator();
 
-            if (hasSelectedItem) {
-                cpm.AppendMenuItem(hasSelectedItem ? MF_STRING : MF_GRAYED, 10, 'Cut \tCtrl+X');
-                cpm.AppendMenuItem(hasSelectedItem ? MF_STRING : MF_GRAYED, 11, 'Copy \tCtrl+C');
+            if (has_selected_item) {
+                cpm.AppendMenuItem(has_selected_item ? MF_STRING : MF_GRAYED, 10, 'Cut \tCtrl+X');
+                cpm.AppendMenuItem(has_selected_item ? MF_STRING : MF_GRAYED, 11, 'Copy \tCtrl+C');
             }
             if (copy_paste_metadb_list && copy_paste_metadb_list.Count > 0) {
                 cpm.AppendMenuItem((copy_paste_metadb_list && copy_paste_metadb_list.Count > 0) ? MF_STRING : MF_GRAYED, 12, 'Paste \tCtrl+V');
             }
         }
 
-        if (!isCurPlaylistEmpty) {
+        if (!is_cur_playlist_empty) {
             cpm.AppendMenuSeparator();
             // -------------------------------------------------------------- //
             //---> Collapse/Expand
@@ -700,37 +695,40 @@ function Playlist(x, y) {
             //---> Appearance
 
             appear.AppendTo(cpm, MF_STRING, 'Appearance');
-            if (!properties_v2.use_compact_header.get()) {
-                appear.AppendMenuItem(MF_STRING, 31, 'Show group info');
-                appear.CheckMenuItem(31, properties_v2.show_group_info.get());
-            }
-            appear.AppendMenuItem(g_component_playcount ? MF_STRING : MF_GRAYED, 32, 'Show play count');
-            appear.CheckMenuItem(32, properties_v2.show_playcount.get());
-            appear.AppendMenuItem(g_component_playcount ? MF_STRING : MF_GRAYED, 33, 'Show rating');
-            appear.CheckMenuItem(33, properties_v2.show_rating.get());
-            appear.AppendMenuItem(MF_STRING, 34, 'Show focus item');
-            appear.CheckMenuItem(34, properties_v2.show_focused_row.get());
-            appear.AppendMenuItem(MF_STRING, 35, 'Show queue item');
-            appear.CheckMenuItem(35, properties_v2.show_queue_position.get());
-            appear.AppendMenuItem(MF_STRING, 36, 'Alternate row color');
-            appear.CheckMenuItem(36, properties_v2.alternate_row_color.get());
-            appear.AppendMenuItem(MF_STRING, 37, 'Show scrollbar');
             appear.CheckMenuItem(37, properties_v2.show_scrollbar.get());
             appear.AppendMenuItem(MF_STRING, 39, 'Show playlist info');
             appear.CheckMenuItem(39, properties_v2.show_playlist_info.get());
+            appear.AppendMenuItem(MF_STRING, 37, 'Show scrollbar');
+            appear.CheckMenuItem(37, properties_v2.show_scrollbar.get());
             appear.AppendMenuItem(MF_STRING, 40, 'Show group header');
             appear.CheckMenuItem(40, properties_v2.show_header.get());
             if (properties_v2.show_header.get()) {
-                appear.AppendMenuItem(MF_STRING, 41, 'Use compact group header');
-                appear.CheckMenuItem(41, properties_v2.use_compact_header.get());
+                appear_header.AppendTo(appear, MF_STRING, 'Headers');
+                appear_header.AppendMenuItem(MF_STRING, 41, 'Use compact group header');
+                appear_header.CheckMenuItem(41, properties_v2.use_compact_header.get());
+
+                if (!properties_v2.use_compact_header.get()) {
+                    appear_header.AppendMenuItem(MF_STRING, 31, 'Show group info');
+                    appear_header.CheckMenuItem(31, properties_v2.show_group_info.get());
+
+                    art.AppendTo(appear_header, MF_STRING, 'Album art');
+                    art.AppendMenuItem(MF_STRING, 42, 'Show');
+                    art.CheckMenuItem(42, properties_v2.show_album_art.get());
+                    art.AppendMenuItem(properties_v2.show_album_art.get() ? MF_STRING : MF_GRAYED, 43, 'Auto');
+                    art.CheckMenuItem(43, properties_v2.auto_album_art.get());
+                }
             }
-            if (!properties_v2.use_compact_header.get()) {
-                art.AppendTo(appear, MF_STRING, 'Album art');
-                art.AppendMenuItem(MF_STRING, 42, 'Show');
-                art.CheckMenuItem(42, properties_v2.show_album_art.get());
-                art.AppendMenuItem(properties_v2.show_album_art.get() ? MF_STRING : MF_GRAYED, 43, 'Auto');
-                art.CheckMenuItem(43, properties_v2.auto_album_art.get());
-            }
+            appear_row.AppendTo(appear, MF_STRING, 'Rows');
+            appear_row.AppendMenuItem(MF_STRING, 36, 'Alternate row color');
+            appear_row.CheckMenuItem(36, properties_v2.alternate_row_color.get());
+            appear_row.AppendMenuItem(MF_STRING, 34, 'Show focus item');
+            appear_row.CheckMenuItem(34, properties_v2.show_focused_row.get());
+            appear_row.AppendMenuItem(g_component_playcount ? MF_STRING : MF_GRAYED, 32, 'Show play count');
+            appear_row.CheckMenuItem(32, properties_v2.show_playcount.get());
+            appear_row.AppendMenuItem(MF_STRING, 35, 'Show queue position');
+            appear_row.CheckMenuItem(35, properties_v2.show_queue_position.get());
+            appear_row.AppendMenuItem(g_component_playcount ? MF_STRING : MF_GRAYED, 33, 'Show rating');
+            appear_row.CheckMenuItem(33, properties_v2.show_rating.get());
 
             // -------------------------------------------------------------- //
             // Grouping
@@ -758,7 +756,7 @@ function Playlist(x, y) {
             sort.AppendMenuItem(MF_STRING, 66, 'Sort by title');
             sort.AppendMenuItem(MF_STRING, 67, 'Sort by track number');
             sort.AppendMenuItem(MF_STRING, 68, 'Sort by date');
-            sort.AppendTo(cpm, isAutoPlaylist ? MF_GRAYED : MF_STRING, hasMultipleSelectedItems ? 'Sort selection' : 'Sort');
+            sort.AppendTo(cpm, is_auto_playlist ? MF_GRAYED : MF_STRING, has_multiple_selected_items ? 'Sort selection' : 'Sort');
 
             // -------------------------------------------------------------- //
             //---> Web links
@@ -773,7 +771,7 @@ function Playlist(x, y) {
             // -------------------------------------------------------------- //
             //---> Send
 
-            if (hasSelectedItem) {
+            if (has_selected_item) {
                 send.AppendMenuItem(MF_STRING, 100, 'To top');
                 send.AppendMenuItem(MF_STRING, 101, 'To bottom');
                 send.AppendMenuSeparator();
@@ -791,7 +789,7 @@ function Playlist(x, y) {
 
         // -------------------------------------------------------------- //
         //---> Context Menu Manager
-        if (hasSelectedItem) {
+        if (has_selected_item) {
             cpm.AppendMenuSeparator();
             ccmm.InitContext(plman.GetPlaylistSelectedItems(cur_playlist_idx));
             ccmm.BuildMenu(cpm, 2000, -1);
@@ -806,7 +804,7 @@ function Playlist(x, y) {
 
         var id = cpm.TrackPopupMenu(x, y);
 
-        if (hasSelectedItem) {
+        if (has_selected_item) {
             ccmm.ExecuteByID(id - 2000);
         }
 
@@ -843,21 +841,18 @@ function Playlist(x, y) {
                 //---> Collapse/Expand
                 collapse_handler.collapse_all();
                 if (collapse_handler.changed) {
-                    on_list_content_h_change();
                     scroll_to_now_playing_or_focused();
                 }
                 break;
             case 21:
                 collapse_handler.collapse_all_but_now_playing();
                 if (collapse_handler.changed) {
-                    on_list_content_h_change();
                     scroll_to_now_playing_or_focused();
                 }
                 break;
             case 22:
                 collapse_handler.expand_all();
                 if (collapse_handler.changed) {
-                    on_list_content_h_change();
                     scroll_to_now_playing_or_focused();
                 }
                 break;
@@ -866,7 +861,6 @@ function Playlist(x, y) {
                 if (properties_v2.auto_colapse.get()) {
                     collapse_handler.collapse_all_but_now_playing();
                     if (collapse_handler.changed) {
-                        on_list_content_h_change();
                         scroll_to_now_playing_or_focused();
                     }
                 }
@@ -912,16 +906,17 @@ function Playlist(x, y) {
                 break;
             case 37:
                 properties_v2.show_scrollbar.set(!properties_v2.show_scrollbar.get());
-                initialize_scrollbar();
-                on_w_size(this.w);
+                update_scrollbar();
+                on_scrollbar_visibility_change();
                 break;
             case 39:
                 properties_v2.show_playlist_info.set(!properties_v2.show_playlist_info.get());
-                on_h_size(this.h);
+                update_list_h_size();
                 break;
             case 40:
                 properties_v2.show_header.set(!properties_v2.show_header.get());
-                this.initialize_list();
+                on_list_content_h_change();
+                scroll_to_now_playing_or_focused();
                 break;
             case 41:
                 properties_v2.use_compact_header.set(!properties_v2.use_compact_header.get());
@@ -975,7 +970,7 @@ function Playlist(x, y) {
             // -------------------------------------------------------------- //
             case 60:
                 //---> Sort
-                if (hasMultipleSelectedItems) {
+                if (has_multiple_selected_items) {
                     fb.RunMainMenuCommand('Edit/Selection/Sort/Sort by...');
                 }
                 else {
@@ -983,10 +978,10 @@ function Playlist(x, y) {
                 }
                 break;
             case 61:
-                plman.SortByFormat(cur_playlist_idx, '', hasMultipleSelectedItems);
+                plman.SortByFormat(cur_playlist_idx, '', has_multiple_selected_items);
                 break;
             case 62:
-                if (hasMultipleSelectedItems) {
+                if (has_multiple_selected_items) {
                     fb.RunMainMenuCommand('Edit/Selection/Sort/Reverse');
                 }
                 else {
@@ -994,22 +989,22 @@ function Playlist(x, y) {
                 }
                 break;
             case 63:
-                plman.SortByFormat(cur_playlist_idx, '%album%', hasMultipleSelectedItems);
+                plman.SortByFormat(cur_playlist_idx, '%album%', has_multiple_selected_items);
                 break;
             case 64:
-                plman.SortByFormat(cur_playlist_idx, '%artist%', hasMultipleSelectedItems);
+                plman.SortByFormat(cur_playlist_idx, '%artist%', has_multiple_selected_items);
                 break;
             case 65:
-                plman.SortByFormat(cur_playlist_idx, '%path%%subsong%', hasMultipleSelectedItems);
+                plman.SortByFormat(cur_playlist_idx, '%path%%subsong%', has_multiple_selected_items);
                 break;
             case 66:
-                plman.SortByFormat(cur_playlist_idx, '%title%', hasMultipleSelectedItems);
+                plman.SortByFormat(cur_playlist_idx, '%title%', has_multiple_selected_items);
                 break;
             case 67:
-                plman.SortByFormat(cur_playlist_idx, '%tracknumber%', hasMultipleSelectedItems);
+                plman.SortByFormat(cur_playlist_idx, '%tracknumber%', has_multiple_selected_items);
                 break;
             case 68:
-                plman.SortByFormat(cur_playlist_idx, '%date%', hasMultipleSelectedItems);
+                plman.SortByFormat(cur_playlist_idx, '%date%', has_multiple_selected_items);
                 break;
             // -------------------------------------------------------------- //
             // Web links
@@ -1040,7 +1035,7 @@ function Playlist(x, y) {
                 plman.MovePlaylistSelection(cur_playlist_idx, -plman.GetPlaylistFocusItemIndex(cur_playlist_idx));
                 break;
             case 101: // Send to bottom
-                plman.MovePlaylistSelection(cur_playlist_idx, playlistItemCount - plman.GetPlaylistSelectedItems(cur_playlist_idx).Count);
+                plman.MovePlaylistSelection(cur_playlist_idx, plman.PlaylistItemCount(cur_playlist_idx) - plman.GetPlaylistSelectedItems(cur_playlist_idx).Count);
                 break;
             case 102:
                 plman.CreatePlaylist(playlist_count, '');
@@ -1116,7 +1111,7 @@ function Playlist(x, y) {
 
         var idx;
         if (!plman.PlaylistCount) {
-            idx = plman.CreatePlaylist(0, "Default");
+            idx = plman.CreatePlaylist(0, 'Default');
             plman.ActivePlaylist = 0;
         }
         else {
@@ -1145,10 +1140,9 @@ function Playlist(x, y) {
 
         switch (vkey) {
             case VK_UP: {
-                var header = has_headers ? headers[focused_item.header_idx] : undefined;
-
+                var header = headers[focused_item.header_idx];
                 var new_focus_idx;
-                if (header && header.is_collapsed) {
+                if (header.is_collapsed) {
                     new_focus_idx = _.last(headers[Math.max(0, focused_item.header_idx - 1)].rows).idx;
                 }
                 else {
@@ -1168,11 +1162,10 @@ function Playlist(x, y) {
                 break;
             }
             case VK_DOWN: {
-                var header = has_headers ? headers[focused_item.header_idx] : undefined;
-
+                var header = headers[focused_item.header_idx];
                 var new_focus_idx;
-                if (header && header.is_collapsed) {
-                    new_focus_idx = _.first(headers[Math.min(headers.length - 1, focused_item.header_idx + 1)].rows).idx;
+                if (header.is_collapsed) {
+                    new_focus_idx = _.head(headers[Math.min(headers.length - 1, focused_item.header_idx + 1)].rows).idx;
                 }
                 else {
                     new_focus_idx = Math.min(rows.length - 1, focused_item.idx + 1);
@@ -1191,29 +1184,16 @@ function Playlist(x, y) {
                 break;
             }
             case VK_LEFT: {
-                if (!has_headers) {
-                    break;
-                }
-
                 var header = headers[focused_item.header_idx];
                 collapse_handler.collapse(header);
-                if (collapse_handler.changed) {
-                    on_list_content_h_change();
-                }
 
                 break;
             }
             case VK_RIGHT: {
-                if (!has_headers) {
-                    break;
-                }
-
                 var header = headers[focused_item.header_idx];
                 collapse_handler.expand(header);
                 if (collapse_handler.changed) {
-                    on_list_content_h_change();
-
-                    var new_focus_item = _.first(header.rows);
+                    var new_focus_item = _.head(header.rows);
                     scroll_to_row(focused_item, new_focus_item);
 
                     plman.SetPlaylistFocusItem(cur_playlist_idx, new_focus_item.idx);
@@ -1226,7 +1206,7 @@ function Playlist(x, y) {
             case VK_PRIOR: {
                 var new_focus_item;
                 if (is_scrollbar_available) {
-                    new_focus_item = _.first(items_to_draw);
+                    new_focus_item = _.head(items_to_draw);
                     if (new_focus_item.type === 'Header') {
                         new_focus_item = rows[new_focus_item.rows[0].idx];
                     }
@@ -1236,14 +1216,14 @@ function Playlist(x, y) {
                     if (new_focus_item.idx === focused_item.idx) {
                         scrollbar.shift_page(-1);
 
-                        new_focus_item = _.first(items_to_draw);
+                        new_focus_item = _.head(items_to_draw);
                         if (new_focus_item.type === 'Header') {
                             new_focus_item = rows[new_focus_item.rows[0].idx];
                         }
                     }
                 }
                 else {
-                    new_focus_item = _.first(items_to_draw);
+                    new_focus_item = _.head(items_to_draw);
                 }
 
                 if (new_focus_item.idx !== focused_item.idx) {
@@ -1542,9 +1522,6 @@ function Playlist(x, y) {
 
                 if (properties_v2.auto_colapse.get()) {
                     collapse_handler.collapse_all_but_now_playing();
-                    if (collapse_handler.changed) {
-                        on_list_content_h_change();
-                    }
                 }
                 scroll_to_now_playing();
             }
@@ -1553,12 +1530,11 @@ function Playlist(x, y) {
         this.repaint();
     };
 
-    var rows_queue = [];
-
     this.on_playback_queue_changed = function (origin) {
         intialize_rows_queue();
         this.repaint();
     };
+
     this.on_playback_stop = function (reason) {
         if (playing_item) {
             playing_item.is_playing = false;
@@ -1587,38 +1563,14 @@ function Playlist(x, y) {
     };
 
     this.on_get_album_art_done = function (metadb, art_id, image, image_path) {
-        if (!headers.length) {
-            return;
-        }
-
-        var header_h = headers[0].h;
-
-        if (image) {
-            if (image.Height > header_h || image.Width > header_h) {
-                var ratio = image.Height / image.Width;
-                var art_h;
-                var art_w;
-                if (image.Height > image.Width) {
-                    art_h = header_h;
-                    art_w = art_h / ratio;
-                }
-                else {
-                    art_w = header_h;
-                    art_h = art_w * ratio;
-                }
-
-                image = image.Resize(art_w, art_h);
-            }
-        }
         if (!image) {
             image = null;
         }
 
-        _.forEach(headers, function (item) {
-            if (item.rows[0].metadb.Compare(metadb)) {
-                item.art = image;
+        items_to_draw.forEach( function (item) {
+            if (item.type === 'Header' && !item.has_art() && item.rows[0].metadb.Compare(metadb)) {
+                item.assign_art(image);
                 item.repaint();
-                return false;
             }
         });
     };
@@ -1640,6 +1592,7 @@ function Playlist(x, y) {
         throttled_repaint();
     };
 
+    // This method does not contain any redraw calls - it's purely back-end
     this.initialize_list = function () {
         trace_call && fb.trace('initialize_list');
         cur_playlist_idx = plman.ActivePlaylist;
@@ -1677,6 +1630,7 @@ function Playlist(x, y) {
                 collapse_handler.collapse_all();
             }
 
+            collapse_handler.set_callback(on_list_content_h_change);
             scroll_pos = properties_v2.scroll_pos.get();
 
             // TODO: add scroll to playing or selected (for script reinit)
@@ -1689,21 +1643,35 @@ function Playlist(x, y) {
     };
 
     //private:
+    function on_list_content_h_change() {
+        update_scrollbar();
+        on_scrollbar_visibility_change();
+        on_drawn_content_change();
+    }
+
     function on_drawn_content_change() {
         set_rows_boundary_status();
         calculate_shift_params();
         generate_items_to_draw();
-        debounced_get_album_art(items_to_draw);
-    }
-
-    function on_list_content_h_change() {
-        initialize_scrollbar();
-        on_w_size(that.w);
-        on_drawn_content_change();
+        get_album_art(items_to_draw);
     }
 
     function initialize_scrollbar() {
-        var total_height_in_rows = headers.length * header_h_in_rows;
+        is_scrollbar_available = false;
+
+        var scrollbar_x = that.x + that.w - properties_v2.scrollbar_w.get() - properties_v2.scrollbar_right_pad.get();
+        // Consider moving to more suitable place
+        var scrollbar_y = that.y + (properties_v2.show_playlist_info.get() ? (playlist_info.h + 2) : 0);
+        var scrollbar_h = that.h - scrollbar_y - 3;
+
+        if (scrollbar) {
+            scrollbar.reset();
+        }
+        scrollbar = new _.scrollbar(scrollbar_x, scrollbar_y, properties_v2.scrollbar_w.get(), scrollbar_h, row_h, scrollbar_redraw_callback);
+    }
+
+    function update_scrollbar() {
+        var total_height_in_rows = properties_v2.show_header.get() ? headers.length * header_h_in_rows : 0;
         headers.forEach(function (item) {
             if (!item.is_collapsed) {
                 total_height_in_rows += item.rows.length;
@@ -1717,32 +1685,31 @@ function Playlist(x, y) {
             return;
         }
 
-        is_scrollbar_visible = properties_v2.show_scrollbar.get();
-
-        var scrollbar_x = that.x + that.w - properties_v2.scrollbar_w.get() - properties_v2.scrollbar_right_pad.get();
-        // Consider moving tom more suitable place
-        var scrollbar_y = that.y + 3 + (properties_v2.show_playlist_info.get() ? (playlist_info.h + 2) : 0);
-        var scrollbar_h = that.h - scrollbar_y - 6;
-
-        if (scrollbar) {
-            scrollbar.reset();
-        }
-        scrollbar = new _.scrollbar(scrollbar_x, scrollbar_y, properties_v2.scrollbar_w.get(), scrollbar_h, rows_to_draw_precise, row_h, scrollbar_redraw_callback);
-        scrollbar.set_rows(total_height_in_rows);
-
-        // TODO: move to _.scrollbar
-        createScrollbarThumbImages(properties_v2.scrollbar_w.get(), scrollbar.thumb_h);
-        scrollbar.create_parts(scrollbar_imgs);
-
+        scrollbar.set_window_param(rows_to_draw_precise, total_height_in_rows);
         scrollbar.scroll_to(scroll_pos, true);
 
         scroll_pos = scrollbar.scroll;
 
+        is_scrollbar_visible = properties_v2.show_scrollbar.get();
         is_scrollbar_available = true;
     }
 
     function on_h_size(h) {
         that.h = h;
+        update_list_h_size();
+    }
+
+    function on_w_size(w) {
+        that.w = w;
+        playlist_info.set_w(that.w);
+        update_list_w_size();
+    }
+
+    function on_scrollbar_visibility_change() {
+        update_list_w_size();
+    }
+
+    function update_list_h_size() {
         list_y = that.y + properties_v2.list_top_pad.get();
         if (properties_v2.show_playlist_info.get()) {
             list_y += playlist_info.h + 2;
@@ -1752,18 +1719,18 @@ function Playlist(x, y) {
         rows_to_draw_precise = list_h / row_h;
 
         initialize_scrollbar();
+        update_scrollbar();
         on_drawn_content_change();
     }
 
-    function on_w_size(w) {
-        that.w = w;
+    function update_list_w_size() {
         list_w = that.w - properties_v2.list_left_pad.get() - properties_v2.list_right_pad.get();
 
         if (is_scrollbar_available) {
             if (is_scrollbar_visible) {
-                list_w -= scrollbar.w;
+                list_w -= scrollbar.w + 2;
             }
-            scrollbar.set_x(w - properties_v2.scrollbar_w.get() - properties_v2.scrollbar_right_pad.get());
+            scrollbar.set_x(that.w - properties_v2.scrollbar_w.get() - properties_v2.scrollbar_right_pad.get());
         }
 
         headers.forEach(function (item) {
@@ -1773,8 +1740,6 @@ function Playlist(x, y) {
         rows.forEach(function (item) {
             item.set_w(list_w);
         });
-
-        playlist_info.set_w(that.w);
     }
 
     function create_headers() {
@@ -1790,21 +1755,23 @@ function Playlist(x, y) {
         }
     }
 
-    var debounced_get_album_art = _.debounce(get_album_art, 500, {
+    var debounced_get_album_art = _.debounce(function(items, force) {
+        items.forEach(function (item) {
+            if (item.type === 'Header' && (force || !item.has_art() ) ) {
+                utils.GetAlbumArtAsync(window.ID, item.rows[0].metadb, g_album_art_id.front);
+            }
+        });
+    }, 500, {
         'leading':  false,
         'trailing': true
     });
 
-    function get_album_art(items) {
+    function get_album_art(items, force) {
         if (!properties_v2.show_album_art.get()) {
             return;
         }
 
-        items.forEach(function (item) {
-            if (item.type === 'Header' && item.art === undefined) {
-                utils.GetAlbumArtAsync(window.ID, item.rows[0].metadb, g_album_art_id.front);
-            }
-        });
+        debounced_get_album_art(items, force);
     }
 
     function scrollbar_redraw_callback() {
@@ -1824,7 +1791,7 @@ function Playlist(x, y) {
     function set_rows_boundary_status() {
         var last_row = _.last(rows);
         if (last_row) {
-            _.last(rows).is_cropped = is_scrollbar_available ? scrollbar.is_scrolled_down : false;
+            last_row.is_cropped = is_scrollbar_available ? scrollbar.is_scrolled_down : false;
         }
     }
 
@@ -1905,6 +1872,9 @@ function Playlist(x, y) {
             plman.ActivePlaylist = playing_item_location.PlaylistIndex;
             that.initialize_list();
         }
+        else {
+            collapse_handler.expand(headers[playing_item.header_idx]);
+        }
 
         scroll_to_now_playing();
     }
@@ -1927,6 +1897,17 @@ function Playlist(x, y) {
     }
 
     function scroll_to_row(from_row, to_row) {
+        if (!is_scrollbar_available) {
+            return;
+        }
+
+        var from_header = from_row ? headers[from_row.header_idx] : undefined;
+        var to_header = headers[to_row.header_idx];
+        var is_from_header = from_header ? from_header.is_collapsed : false;
+        var is_to_header = to_header.is_collapsed;
+
+        var partial_shift_in_rows = 0;
+
         var visibility_state = {
             'not':            0,
             'partial_top':    1,
@@ -1935,16 +1916,20 @@ function Playlist(x, y) {
         };
         var playing_item_state = visibility_state['not'];
         _.forEach(items_to_draw, function (item) {
-            if (item.type === 'Header') {
+            if (is_to_header && item.type !== 'Header'
+                || !is_to_header && item.type !== 'Row') {
                 return true;
             }
 
-            if (item.idx === to_row.idx) {
+            if (is_to_header && item.idx === to_header.idx
+                || !is_to_header && item.idx === to_row.idx) {
                 if (item.y < list_y && item.y + item.h > list_y) {
                     playing_item_state = visibility_state['partial_top'];
+                    partial_shift_in_rows = is_to_header ? (list_y - item.y)/row_h : 0;
                 }
                 else if (item.y < list_y + list_h && item.y + item.h > list_y + list_h) {
                     playing_item_state = visibility_state['partial_bottom'];
+                    partial_shift_in_rows = is_to_header ? (item.y + item.h - (list_y + list_h) )/row_h : 0;
                 }
                 else {
                     playing_item_state = visibility_state['full'];
@@ -1952,17 +1937,24 @@ function Playlist(x, y) {
                 return false;
             }
         });
+
         switch (playing_item_state) {
             case visibility_state['not']: {
-                var header = has_headers ? headers[to_row.header_idx] : undefined;
-
-                if (header && header.is_collapsed) {
-                    var item_idx = get_item_draw_row_idx(header);
-                    var new_scroll_pos = Math.max(0, item_idx - Math.floor(rows_to_draw_precise / 2));
-                    scrollbar.scroll_to(new_scroll_pos);
+                if (is_to_header) {
+                    if (from_header && from_header.idx === to_header.idx - 1) {
+                        scrollbar.scroll_to(scroll_pos + header_h_in_rows);
+                    }
+                    else if (from_header && from_header.idx === to_header.idx + 1) {
+                        scrollbar.scroll_to(scroll_pos - header_h_in_rows);
+                    }
+                    else {
+                        var item_idx = get_item_draw_row_idx(to_header);
+                        var new_scroll_pos = Math.max(0, item_idx - Math.floor(rows_to_draw_precise / 2));
+                        scrollbar.scroll_to(new_scroll_pos);
+                    }
                 }
                 else if (from_row && from_row.idx === to_row.idx - 1) {
-                    if (has_headers && _.last(headers[from_row.header_idx].rows).idx === from_row.idx) {
+                    if (_.last(from_header.rows).idx === from_row.idx) {
                         scrollbar.scroll_to(scroll_pos + header_h_in_rows + 1);
                     }
                     else {
@@ -1970,7 +1962,7 @@ function Playlist(x, y) {
                     }
                 }
                 else if (from_row && from_row.idx === to_row.idx + 1) {
-                    if (has_headers && _.first(headers[from_row.header_idx].rows).idx === to_row.idx) {
+                    if (_.head(from_header.rows).idx === to_row.idx) {
                         scrollbar.scroll_to(scroll_pos - header_h_in_rows - 1);
                     }
                     else {
@@ -1986,11 +1978,17 @@ function Playlist(x, y) {
                 break;
             }
             case visibility_state['partial_top']: {
-                scrollbar.shift_line(-1);
+                if (partial_shift_in_rows % row_h) {
+                    scrollbar.shift_line(-1);
+                }
+                scrollbar.scroll_to(scroll_pos - Math.floor(partial_shift_in_rows));
                 break;
             }
             case visibility_state['partial_bottom']: {
-                scrollbar.shift_line(1);
+                if (partial_shift_in_rows % row_h) {
+                    scrollbar.shift_line(1);
+                }
+                scrollbar.scroll_to(scroll_pos + Math.floor(partial_shift_in_rows));
                 break;
             }
             case visibility_state['full']: {
@@ -2118,7 +2116,7 @@ function Playlist(x, y) {
         if (item.type === 'Header') {
             if (is_above) {
                 if (item.idx === 0) {
-                    drop_info.item = _.first(item.rows);
+                    drop_info.item = _.head(item.rows);
                     drop_info.is_above = true;
                 }
                 else {
@@ -2127,7 +2125,7 @@ function Playlist(x, y) {
                 }
             }
             else {
-                drop_info.item = _.first(item.rows);
+                drop_info.item = _.head(item.rows);
                 drop_info.is_above = true;
             }
         }
@@ -2137,7 +2135,7 @@ function Playlist(x, y) {
                 drop_info.is_above = true;
             }
             else {
-                if (properties_v2.show_header.get() && has_headers
+                if (properties_v2.show_header.get()
                     && item.idx === _.last(headers[item.header_idx].rows).idx) {
                     drop_info.item = item;
                     drop_info.is_above = false;
@@ -2172,15 +2170,14 @@ function Playlist(x, y) {
                     if (key === 'up') {
                         scrollbar.shift_line(-1);
 
-                        cur_marked_item = _.first(items_to_draw);
+                        cur_marked_item = _.head(items_to_draw);
                         if (cur_marked_item.type === 'Header') {
                             collapse_handler.expand(cur_marked_item);
                             if (collapse_handler.changed) {
-                                on_list_content_h_change();
                                 scrollbar.scroll_to(scroll_pos + cur_marked_item.rows.length);
                             }
 
-                            cur_marked_item = _.first(cur_marked_item.rows);
+                            cur_marked_item = _.head(cur_marked_item.rows);
                         }
 
                         last_marked_item = cur_marked_item;
@@ -2194,7 +2191,6 @@ function Playlist(x, y) {
                         if (cur_marked_item.type === 'Header') {
                             collapse_handler.expand(cur_marked_item);
                             if (collapse_handler.changed) {
-                                on_list_content_h_change();
                                 that.repaint();
                             }
 
@@ -2246,139 +2242,6 @@ function Playlist(x, y) {
         }
     }
 
-
-    // TODO: move to scrollbar
-    function createScrollbarButtonImages() {
-        var fontSegoeUi = gdi.font('Segoe UI Symbol', 15, 0);
-        var m = 2;
-
-        var scrollTrackColor = _.RGB(37, 37, 37);
-        var scrollColorHot = _.RGB(140, 142, 144);
-        var scrollColorHover = _.RGB(170, 172, 174);
-        var scrollColorPressed = _.RGB(90, 92, 94);
-        var scrollSymbolColorNormal = _.RGB(140, 142, 144);
-        var scrollSymbolColorHot = _.RGB(30, 32, 34);
-        var scrollSymbolColorHover = _.RGB(40, 42, 44);
-        var scrollSymbolColorPressed = _.RGB(30, 32, 34);
-
-        var btn =
-            {
-                lineUp:   {
-                    ico:  '\uE010',
-                    font: fontSegoeUi,
-                    w:    properties_v2.scrollbar_w.get(),
-                    h:    properties_v2.scrollbar_w.get()
-                },
-                lineDown: {
-                    ico:  '\uE011',
-                    font: fontSegoeUi,
-                    w:    properties_v2.scrollbar_w.get(),
-                    h:    properties_v2.scrollbar_w.get()
-                }
-            };
-
-        scrollbar_imgs = [];
-
-        _.forEach(btn, function (item, i) {
-            var w = item.w,
-                h = item.h;
-
-            var stateImages = []; //0=normal, 1=hover, 2=down, 3=hot;
-
-            for (var s = 0; s < 4; s++) {
-                var img = gdi.CreateImage(w, h);
-                var grClip = img.GetGraphics();
-
-                var icoColor;
-                var backColor;
-
-                if (s === 0) {
-                    icoColor = scrollSymbolColorNormal;
-                    backColor = scrollTrackColor;
-                }
-                else if (s === 1) {
-                    icoColor = scrollSymbolColorHover;
-                    backColor = scrollColorHover;
-                }
-                else if (s === 2) {
-                    icoColor = scrollSymbolColorPressed;
-                    backColor = scrollColorPressed;
-                }
-                else if (s === 3) {
-                    icoColor = scrollSymbolColorHot;
-                    backColor = scrollColorHot;
-                }
-
-                if (i === 'lineDown') {
-                    grClip.FillSolidRect(m, 1, w - m * 2, h - 1, backColor);
-                }
-                else if (i === 'lineUp') {
-                    grClip.FillSolidRect(m, 0, w - m * 2, h - 1, backColor);
-                }
-
-                grClip.SetSmoothingMode(SmoothingMode.HighQuality);
-                grClip.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
-
-                if (i === 'lineDown') {
-                    grClip.DrawString(item.ico, item.font, icoColor, 0, 0, w, h, StringFormat(1, 2));
-                }
-                else if (i === 'lineUp') {
-                    grClip.DrawString(item.ico, item.font, icoColor, 0, 0, w, h - 1, StringFormat(1, 2));
-                }
-
-                img.ReleaseGraphics(grClip);
-                stateImages[s] = img;
-            }
-
-            scrollbar_imgs[i] =
-                {
-                    normal:  stateImages[0],
-                    hover:   stateImages[1],
-                    pressed: stateImages[2],
-                    hot:     stateImages[3]
-                };
-        });
-    }
-
-    // TODO: move to scrollbar
-    function createScrollbarThumbImages(thumbW, thumbH) {
-        var m = 2;
-
-        var scrollColorNormal = _.RGB(110, 112, 114);
-        var scrollColorHover = _.RGB(170, 172, 174);
-        var scrollColorPressed = _.RGB(90, 92, 94);
-
-        var w = thumbW,
-            h = thumbH;
-
-        var stateImages = []; //0=normal, 1=hover, 2=down;
-
-        for (var s = 0; s <= 2; s++) {
-            var img = gdi.CreateImage(w, h);
-            var grClip = img.GetGraphics();
-
-            var color = scrollColorNormal;
-            if (s === 1) {
-                color = scrollColorHover;
-            }
-            else if (s === 2) {
-                color = scrollColorPressed;
-            }
-
-            grClip.FillSolidRect(m, 0, w - m * 2, h, color);
-
-            img.ReleaseGraphics(grClip);
-            stateImages[s] = img;
-        }
-
-        scrollbar_imgs['thumb'] =
-            {
-                normal:  stateImages[0],
-                hover:   stateImages[1],
-                pressed: stateImages[2]
-            };
-    }
-
     //public:
     this.x = x;
     this.y = y;
@@ -2401,19 +2264,17 @@ function Playlist(x, y) {
     var items_to_draw = [];
 
     var list_x = x + properties_v2.list_left_pad.get();
-    var list_y = y + properties_v2.list_top_pad.get();
+    var list_y = 0;
     var list_w = 0;
     var list_h = 0;
 
     var is_in_focus = false;
 
-    // TODO: props
-    var has_headers = true;
-
     // Playback state
     var cur_playlist_idx = undefined;
     var playing_item = undefined;
     var focused_item = undefined;
+    var rows_queue = [];
 
     // Mouse and key state
     var mouse_in = false;
@@ -2437,8 +2298,6 @@ function Playlist(x, y) {
     var pixel_shift = 0;
     var is_scrollbar_visible = properties_v2.show_scrollbar.get();
     var is_scrollbar_available = false;
-    // TODO: move to scrollbar
-    var scrollbar_imgs = [];
 
     // copy, cut, paste data
     var copy_paste_metadb_list = fb.CreateHandleList();
@@ -2454,7 +2313,6 @@ function Playlist(x, y) {
         plman.PlayingPlaylist = plman.ActivePlaylist;
     }
     this.initialize_list();
-    createScrollbarButtonImages();
 }
 
 function PlaylistInfo(x, y, w, h) {
@@ -2473,9 +2331,9 @@ function PlaylistInfo(x, y, w, h) {
             var tracks_text = "";
             var duration_text = "";
             if (track_count > 0) {
-                tracks_text = track_count.toString() + (track_count > 1 ? " tracks" : " track");
+                tracks_text = track_count.toString() + (track_count > 1 ? ' tracks' : ' track');
                 if (is_selected) {
-                    tracks_text += " selected";
+                    tracks_text += ' selected';
                 }
 
                 var duration = metadb_list.CalcTotalDuration();
@@ -2486,10 +2344,10 @@ function PlaylistInfo(x, y, w, h) {
 
             info_text = plman.GetPlaylistName(cur_playlist_idx);
             if (tracks_text) {
-                info_text += ": " + tracks_text;
+                info_text += ': ' + tracks_text;
             }
             if (duration_text) {
-                info_text += ", " + "Length: " + duration_text;
+                info_text += ', ' + 'Length: ' + duration_text;
             }
         }
 
@@ -2499,9 +2357,9 @@ function PlaylistInfo(x, y, w, h) {
         if (plman.IsPlaylistLocked(plman.ActivePlaylist)) {
             // Position above scrollbar for eye candy
             var sbar_x = this.w - properties_v2.scrollbar_w.get() - properties_v2.scrollbar_right_pad.get();
-            var lock_text = "\uF023";
-            var lock_w = gr.MeasureString(lock_text, gdi.font("FontAwesome", 12, 0), 0, 0, 0, 0).Width;
-            gr.DrawString(lock_text, gdi.font("FontAwesome", 12, 0), _.RGB(150, 152, 154), sbar_x + Math.round((properties_v2.scrollbar_w.get() - lock_w) / 2), 0, 8, this.h, StringFormat(1, 1));
+            var lock_text = '\uF023';
+            var lock_w = gr.MeasureString(lock_text, gdi.font('FontAwesome', 12, 0), 0, 0, 0, 0).Width;
+            gr.DrawString(lock_text, gdi.font('FontAwesome', 12, 0), _.RGB(150, 152, 154), sbar_x + Math.round((properties_v2.scrollbar_w.get() - lock_w) / 2), 0, 8, this.h, StringFormat(1, 1));
         }
 
         gr.DrawString(info_text, pl_fonts.title_selected, _.RGB(150, 152, 154), 10, 0, this.w - 20, this.h - 2, StringFormat(1, 1, 3, 4096));
@@ -2522,25 +2380,25 @@ function PlaylistInfo(x, y, w, h) {
         var playlist_count = plman.PlaylistCount;
         var playlists_start_id = 4;
 
-        cpm.AppendMenuItem(MF_STRING, 1, "Playlist manager... \tCtrl+M");
+        cpm.AppendMenuItem(MF_STRING, 1, 'Playlist manager... \tCtrl+M');
         cpm.AppendMenuSeparator();
         if (g_component_utils) {
-            cpm.AppendMenuItem(MF_STRING, 2, "Lock Current Playlist");
+            cpm.AppendMenuItem(MF_STRING, 2, 'Lock Current Playlist');
             cpm.CheckMenuItem(2, plman.IsPlaylistLocked(plman.ActivePlaylist));
         }
-        cpm.AppendMenuItem(MF_STRING, 3, "Create New Playlist \tCtrl+N");
+        cpm.AppendMenuItem(MF_STRING, 3, 'Create New Playlist \tCtrl+N');
         cpm.AppendMenuSeparator();
         for (var i = 0; i < playlist_count; ++i) {
-            cpm.AppendMenuItem(MF_STRING, playlists_start_id + i, plman.GetPlaylistName(i).replace(/&/g, "&&") + " [" + plman.PlaylistItemCount(i) + "]" + (plman.IsAutoPlaylist(i) ? " (Auto)" : "") + (i === plman.PlayingPlaylist ? " \t(Now Playing)" : ""));
+            cpm.AppendMenuItem(MF_STRING, playlists_start_id + i, plman.GetPlaylistName(i).replace(/&/g, '&&') + ' [' + plman.PlaylistItemCount(i) + ']' + (plman.IsAutoPlaylist(i) ? ' (Auto)' : "") + (i === plman.PlayingPlaylist ? ' \t(Now Playing)' : ""));
         }
 
         var id = cpm.TrackPopupMenu(x, y);
         switch (id) {
             case 1:
-                fb.RunMainMenuCommand("View/Playlist Manager");
+                fb.RunMainMenuCommand('View/Playlist Manager');
                 break;
             case 2:
-                fb.RunMainMenuCommand("Edit/Read-only");
+                fb.RunMainMenuCommand('Edit/Read-only');
                 break;
             case 3:
                 plman.CreatePlaylist(playlist_count, "");
@@ -2707,43 +2565,43 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
         gr.FillSolidRect(this.x, this.y, this.w, this.h, pl_colors.background);
 
         if (this.is_odd && properties_v2.alternate_row_color.get()) {
-            //gr.FillSolidRect(this.x, this.y, this.w, this.h - 1, pl_colors.rowAlternate);
-            gr.FillSolidRect(this.x, this.y + 1, this.w, this.h - 1, pl_colors.rowAlternate);
+            //gr.FillSolidRect(this.x, this.y, this.w, this.h - 1, pl_colors.row_alternate);
+            gr.FillSolidRect(this.x, this.y + 1, this.w, this.h - 1, pl_colors.row_alternate);
         }
 
         var titleFont = pl_fonts.title_normal;
         var titleColor = pl_colors.title_normal;
-        var countColor = pl_colors.countNormal;
-        var rowColorFocus = pl_colors.rowFocusNormal;
+        var countColor = pl_colors.count_normal;
+        var rowColorFocus = pl_colors.row_focus_normal;
         var titleArtistColor = pl_colors.title_selected;
 
         if (this.is_selected_dynamic()) {
             if (properties_v2.alternate_row_color.get()) {
-                //gr.DrawRect(this.x, this.y - 1, this.w - 1, this.h, 1, pl_colors.rowFocusSelected);
+                //gr.DrawRect(this.x, this.y - 1, this.w - 1, this.h, 1, pl_colors.row_focus_selected);
                 if (this.is_cropped) {
                     // last item is cropped
-                    gr.DrawRect(this.x, this.y, this.w - 1, this.h - 1, 1, pl_colors.rowFocusSelected);
+                    gr.DrawRect(this.x, this.y, this.w - 1, this.h - 1, 1, pl_colors.row_focus_selected);
                 }
                 else {
-                    gr.DrawRect(this.x, this.y, this.w - 1, this.h, 1, pl_colors.rowFocusSelected);
+                    gr.DrawRect(this.x, this.y, this.w - 1, this.h, 1, pl_colors.row_focus_selected);
                 }
             }
             else {
-                gr.FillSolidRect(this.x, this.y, this.w, this.h, pl_colors.rowSelected);
+                gr.FillSolidRect(this.x, this.y, this.w, this.h, pl_colors.row_selected);
             }
 
             titleColor = pl_colors.title_selected;
             titleFont = pl_fonts.title_selected;
-            countColor = pl_colors.countSelected;
+            countColor = pl_colors.count_selected;
 
-            rowColorFocus = pl_colors.rowFocusSelected;
+            rowColorFocus = pl_colors.row_focus_selected;
             titleArtistColor = pl_colors.title_normal;
         }
 
         if (this.is_playing) {// Might override 'selected' fonts
             titleColor = pl_colors.title_playing;
             titleFont = pl_fonts.title_playing;
-            countColor = pl_colors.countPlaying;
+            countColor = pl_colors.count_playing;
         }
 
         //--->
@@ -2773,7 +2631,7 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
 
         //---> QUEUE
         if (!_.isNil(this.queue_idx)) {
-            gr.FillSolidRect(this.x, this.y, this.w, this.h, pl_colors.rowQueued);
+            gr.FillSolidRect(this.x, this.y, this.w, this.h, pl_colors.row_queued);
         }
 
         var queue_text = '';
@@ -2786,8 +2644,8 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
 
         //---> COUNT
         if (_.isNil(count_text)) {
-            var radio = (_.tf('%path%', this.metadb).indexOf('http') === 0);
-            count_text = (radio ? '' : _.tf('%play_count%', this.metadb));
+            var is_radio = (_.tf('%path%', this.metadb).indexOf('http') === 0);
+            count_text = (is_radio ? '' : _.tf('%play_count%', this.metadb));
             if (properties_v2.show_playcount.get() && count_text) {
                 count_text += ' |';
             }
@@ -2955,7 +2813,6 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
 function Header(x, y, w, h, idx) {
     //public:
     this.draw = function (gr) {
-        // TODO: clean up draw code
         if (properties_v2.use_compact_header.get()) {
             this.draw_compact_header(gr)
         }
@@ -2972,26 +2829,25 @@ function Header(x, y, w, h, idx) {
     };
 
     this.draw_normal_header = function (gr) {
-        var artistColor = pl_colors.artist_normal;
-        var albumColor = pl_colors.albumNormal;
-        var infoColor = pl_colors.infoNormal;
-        var dateColor = pl_colors.dateNormal;
-        var lineColor = pl_colors.lineNormal;
-        var dateFont = pl_fonts.date;
-        var artistFont = pl_fonts.artist_normal;
+        var artist_color = pl_colors.artist_normal;
+        var album_color = pl_colors.album_normal;
+        var info_color = pl_colors.info_normal;
+        var date_color = pl_colors.date_normal;
+        var line_color = pl_colors.line_normal;
+        var date_font = pl_fonts.date;
+        var artist_font = pl_fonts.artist_normal;
 
         if (this.is_playing()) {
-            artistColor = pl_colors.artist_playing;
-            albumColor = pl_colors.albumPlaying;
-            infoColor = pl_colors.infoPlaying;
-            dateColor = pl_colors.datePlaying;
-            lineColor = pl_colors.linePlaying;
-
-            artistFont = pl_fonts.artist_playing;
+            artist_color = pl_colors.artist_playing;
+            album_color = pl_colors.album_playing;
+            info_color = pl_colors.info_playing;
+            date_color = pl_colors.date_playing;
+            line_color = pl_colors.line_playing;
+            artist_font = pl_fonts.artist_playing;
         }
         if (this.is_selected_dynamic()) {
-            lineColor = pl_colors.lineSelected;
-            artistColor = albumColor = dateColor = infoColor = pl_colors.groupTitleSelected;
+            line_color = pl_colors.line_selected;
+            artist_color = album_color = date_color = info_color = pl_colors.group_title_selected;
         }
 
         var clipImg = gdi.CreateImage(this.w, this.h);
@@ -3001,22 +2857,25 @@ function Header(x, y, w, h, idx) {
         grClip.FillSolidRect(0, 0, this.w, this.h, pl_colors.background); // Solid background for ClearTypeGridFit text rendering
 
         if (this.is_selected_dynamic()) {
-            grClip.FillSolidRect(0, 0, this.w, this.h, pl_colors.rowSelected);
+            grClip.FillSolidRect(0, 0, this.w, this.h, pl_colors.row_selected);
         }
 
         grClip.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
 
         if (this.is_collapsed && is_focused()) {
-            grClip.DrawRect(2, 2, this.w - 4, this.h - 4, 1, lineColor);
+            grClip.DrawRect(2, 2, this.w - 4, this.h - 4, 1, line_color);
         }
 
         //************************************************************//
 
-        var art_box_x = 0;
-        var art_box_w = 0;
+        var left_pad = 10;
+
+        //---> Artbox
         if (properties_v2.show_album_art.get()) {
             var p = 6;
-            var has_art = !properties_v2.auto_album_art.get() || this.art !== null;
+            var has_art = !properties_v2.auto_album_art.get() || art !== null;
+            var art_box_x = 0;
+            var art_box_w = 0;
             var art_box_size = this.h - p * 2;
             var art_box_y = p;
             var art_box_h = art_box_size;
@@ -3025,115 +2884,122 @@ function Header(x, y, w, h, idx) {
                 art_box_w = art_box_size;
             }
 
-            if (this.art) {
-                var ratio = this.art.Height / this.art.Width;
-                var art_size = art_box_size - 4;
+            if (art) {
                 var art_x = art_box_x + 2;
                 var art_y = art_box_y + 2;
-                var art_h = art_size;
-                var art_w = art_size;
-                if (this.art.Height > this.art.Width) {
-                    art_w = art_h / ratio;
+                var art_h = art.Height;
+                var art_w = art.Width;
+                if (art_h > art_w) {
                     art_box_w = art_w + 4;
                 }
                 else {
-                    art_h = art_w * ratio;
                     art_box_h = art_h + 4;
-                    art_y += Math.round((art_size - art_h) / 2);
+                    art_y += Math.round((art_max_size - art_h) / 2);
                     art_box_y = art_y - 2;
                 }
-                grClip.DrawImage(this.art, art_x, art_y, art_w, art_h, 0, 0, this.art.Width, this.art.Height, 0, 220);
+                grClip.DrawImage(art, art_x, art_y, art_w, art_h, 0, 0, art_w, art_h, 0, 220);
             }
             else if (!properties_v2.auto_album_art.get()) {
-                if (this.art === null) {
+                if (art === null) {
                     grClip.DrawString('NO COVER', pl_fonts.cover, _.RGB(100, 100, 100), art_box_x, art_box_y, art_box_size, art_box_size, StringFormat(1, 1));
                 }
                 else { // === undefined
-                    grClip.DrawString('LOADING', pl_fonts.cover, lineColor, art_box_x, art_box_y, art_box_size, art_box_size, StringFormat(1, 1));
+                    grClip.DrawString('LOADING', pl_fonts.cover, line_color, art_box_x, art_box_y, art_box_size, art_box_size, StringFormat(1, 1));
                 }
             }
 
-            grClip.DrawRect(art_box_x, art_box_y, art_box_w - 1, art_box_h - 1, 1, lineColor);
+            grClip.DrawRect(art_box_x, art_box_y, art_box_w - 1, art_box_h - 1, 1, line_color);
+
+            left_pad += art_box_x + art_box_w;
         }
 
         //************************************************************//
-        var divGroupH = (!properties_v2.show_group_info.get()) ? this.h / 2 : this.h / 3;
-
-        var leftPad = art_box_x + art_box_w + 10;
         var path = _.tf('%path%', metadb);
+        var is_radio = _.startsWith(path, 'http');
 
-        var radio = _.startsWith(path, 'http');
+        // part1: artist
+        // part2: album + line + Date OR line
+        // part3: info OR album
+        var part1_cur_x = left_pad;
+        var part2_cur_x = left_pad;
+        var part3_cur_x = left_pad;
+
+        var part_h = (!properties_v2.show_group_info.get()) ? this.h / 2 : this.h / 3;
+        var part2_right_pad = 0;
 
         //---> DATE
-        var date = _.tf('%date%', metadb);
-        if (date === '?' && radio) {
-            date = '';
-        }
-        var dateW = Math.ceil(gr.MeasureString(date, dateFont, 0, 0, 0, 0).Width + 5);
-        var dateX = this.w - dateW - 5;
-        var dateY = 0;
-        var dateH = this.h;
+        if (properties_v2.group_query_id.get() !== 0 ) {
+            var date_text = _.tf('%date%', metadb);
+            if (date_text === '?' && is_radio) {
+                date_text = '';
+            }
+            var date_w = Math.ceil(gr.MeasureString(date_text, date_font, 0, 0, 0, 0).Width + 5);
+            var date_x = this.w - date_w - 5;
+            var date_y = 0;
+            var date_h = this.h;
 
-        if (properties_v2.group_query_id.get()) {
-            (dateX > leftPad) && grClip.DrawString(date, dateFont, dateColor, dateX, dateY, dateW, dateH, StringFormat(0, 1));
+            if (properties_v2.group_query_id.get() > 0 && date_x > left_pad) {
+                grClip.DrawString(date_text, date_font, date_color, date_x, date_y, date_w, date_h, StringFormat(0, 1));
+            }
+
+            part2_right_pad += this.w - date_x;
         }
+
         //---> ARTIST
-        var artistX = leftPad;
-        var artistW;
-        var artistH;
-        if (properties_v2.show_group_info.get()) {
-            artistW = this.w - artistX;
-            artistH = divGroupH;
-        }
-        else {
-            artistW = dateX - leftPad - 5;
-            artistH = divGroupH - 5;
-        }
-        var artist = _.tf('$if($greater($len(%album artist%),0),%album artist%,%artist%)', metadb);
+        {
+            var artist_x = part1_cur_x;
+            var artist_w = this.w - artist_x;
+            var artist_h = part_h;
+            if (!properties_v2.show_group_info.get()) {
+                artist_w -= part2_right_pad + 5;
+                artist_h -= 5;
+            }
+            var artist_text = _.tf('$if($greater($len(%album artist%),0),%album artist%,%artist%)', metadb);
+            if (artist_text === '?' && is_radio) {
+                artist_text = 'Radio Stream';
+            }
 
-        if (artist === '?' && radio) {
-            artist = 'Radio Stream';
-        }
+            grClip.DrawString(artist_text, artist_font, artist_color, artist_x, 0, artist_w, artist_h, StringFormat(0, 2, 3, 0x1000));
 
-        grClip.DrawString(artist, artistFont, artistColor, artistX, 0, artistW, artistH, StringFormat(0, 2, 3, 0x1000));
+            part1_cur_x += artist_w;
+        }
 
         //---> ALBUM
-        var albumX = leftPad;
-        var albumW = dateX - leftPad - 5;
-        var albumH = divGroupH;
-        var albumY = divGroupH;
+        if (properties_v2.group_query_id.get() > 0) {
+            var album_h = part_h;
+            var album_y = part_h;
+            var album_x;
+            if (properties_v2.show_group_info.get()) {
+                album_x = part2_cur_x
+            }
+            else {
+                album_y += 5;
+                album_x = part3_cur_x
+            }
+            var album_w = this.w - album_x - (part2_right_pad + 5);
 
-        if (!properties_v2.show_group_info.get()) {
-            albumY += 5;
+            var album_text = _.tf('%album%[ - %ALBUMSUBTITLE%]', metadb);
+            if (album_text === '?' && is_radio) {
+                album_text = '';
+            }
+
+            grClip.DrawString(album_text, pl_fonts.album, album_color, album_x, album_y, album_w, album_h, StringFormat(0, properties_v2.show_group_info.get() ? 1 : 0, 3, 0x1000));
+
+            var album_text_w = gr.MeasureString(album_text, pl_fonts.album, 0, 0, 0, 0).Width;
+            if (properties_v2.show_group_info.get()) {
+                part2_cur_x += album_text_w;
+            }
+            else {
+                part3_cur_x += album_text_w;
+            }
         }
-
-        var album = _.tf('%album%[ - %ALBUMSUBTITLE%]', metadb);
-        if (album === '?' && radio) {
-            album = '';
-        }
-        if (properties_v2.group_query_id.get()) {
-            grClip.DrawString(album, pl_fonts.album, albumColor, albumX, albumY, albumW, albumH, StringFormat(0, properties_v2.show_group_info.get() ? 1 : 0, 3, 0x1000));
-        }
-
-        var albumStringW = gr.MeasureString(album, pl_fonts.album, 0, 0, 0, 0).Width;
-
-        var lineX1 = (properties_v2.group_query_id.get() ? leftPad + albumStringW + 10 : leftPad);
-        var lineY = albumY + albumH / 2 + 1;
-
-        if (!properties_v2.show_group_info.get()) {
-            lineX1 = leftPad;
-            lineY = this.h / 2 + 1;
-        }
-        var lineX2 = (properties_v2.group_query_id.get() ? dateX - 10 : this.w - this.x + 10);
-
-        (lineX2 - lineX1 > 0) && grClip.DrawLine(lineX1, lineY, lineX2, lineY, 1, lineColor);
 
         //---> INFO
         if (properties_v2.show_group_info.get()) {
-            var infoX = leftPad;
-            var infoY = 0 + artistH + albumH;
-            var infoH = row_h;
-            var infoW = this.w - this.x - infoX;
+            var info_x = part3_cur_x;
+            var info_y = 2 * part_h;
+            var info_h = row_h;
+            var info_w = this.w - info_x;
 
             var bitspersample = _.tf('$Info(bitspersample)', metadb);
             var samplerate = _.tf('$Info(samplerate)', metadb);
@@ -3154,28 +3020,45 @@ function Header(x, y, w, h, idx) {
                     codec = codec + '-' + _.tf('$Info(codec_profile)', metadb);
                 }
             }
-
             if (codec) {
                 codec = codec + sample;
             }
             else {
                 codec = (_.startsWith(path, 'www.youtube.com') || _.startsWith(path, 'youtube.com')) ? 'yt' : path;
             }
-            var iCount = this.rows.length;
-            var genre = radio ? '' : (properties_v2.group_query_id.get() ? '%genre% | ' : '');
-            var discNumber = (properties_v2.group_query_id.get() === 2 && _.tf('[%totaldiscs%]', metadb) !== '1') ? _.tf('[ | Disc: %discnumber%/%totaldiscs%]', metadb) : '';
-            var info = _.tf(codec + discNumber + '[ | %replaygain_album_gain%]', metadb) + (radio ? '' : ' | ' + iCount + (iCount === 1 ? ' Track' : ' Tracks'));
+
+            var track_count = this.rows.length;
+            var genre = is_radio ? '' : (properties_v2.group_query_id.get() ? '[%genre% | ]' : '');
+            var disc_number = (properties_v2.group_query_id.get() === 2 && _.tf('[%totaldiscs%]', metadb) !== '1') ? _.tf('[ | Disc: %discnumber%/%totaldiscs%]', metadb) : '';
+            var info = _.tf(genre + codec + disc_number + '[ | %replaygain_album_gain%]', metadb) + (is_radio ? '' : ' | ' + track_count + (track_count === 1 ? ' Track' : ' Tracks'));
             if (get_duration()) {
                 info += ' | Time: ' + get_duration();
             }
 
-            grClip.DrawString(info, pl_fonts.info, infoColor, infoX, infoY, infoW, infoH, StringFormat(0, 0, 3, 0x1000));
+            grClip.DrawString(info, pl_fonts.info, info_color, info_x, info_y, info_w, info_h, StringFormat(0, 0, 3, 0x1000));
 
-            var infoStringH = Math.ceil(gr.MeasureString(info, pl_fonts.info, 0, 0, 0, 0).Height + 5);
-            var lineX1 = leftPad;
-            var lineX2 = this.w - this.x - 10;
-            var lineY = infoY + infoStringH;
-            (lineX2 - lineX1 > 0) && grClip.DrawLine(lineX1, lineY, lineX2, lineY, 1, lineColor);
+            //---> Info line
+            var info_text_h = Math.ceil(gr.MeasureString(info, pl_fonts.info, 0, 0, 0, 0).Height + 5);
+            var line_x1 = left_pad;
+            var line_x2 = this.w - this.x - 10;
+            var line_y = info_y + info_text_h;
+            if (line_x2 - line_x1 > 0) {
+                grClip.DrawLine(line_x1, line_y, line_x2, line_y, 1, line_color);
+            }
+        }
+
+        //---> Part 2 line
+        {
+            var line_x1 = part2_cur_x;
+            if ( properties_v2.show_group_info.get() ){
+                line_x1 += 10;
+            }
+            var line_x2 = this.w - part2_right_pad - 10;
+            var line_y = Math.round(this.h/2) + 1;
+
+            if (line_x2 - line_x1 > 0) {
+                grClip.DrawLine(line_x1, line_y, line_x2, line_y, 1, line_color);
+            }
         }
 
         clipImg.ReleaseGraphics(grClip);
@@ -3184,24 +3067,24 @@ function Header(x, y, w, h, idx) {
     };
 
     this.draw_compact_header = function (gr) {
-        var artistColor = pl_colors.artist_normal;
-        var albumColor = pl_colors.albumNormal;
-        var dateColor = pl_colors.dateNormal;
-        var lineColor = pl_colors.lineNormal;
-        var dateFont = pl_fonts.date_compact;
-        var artistFont = pl_fonts.artist_normal_compact;
+        var artist_color = pl_colors.artist_normal;
+        var album_color = pl_colors.album_normal;
+        var date_color = pl_colors.date_normal;
+        var line_color = pl_colors.line_normal;
+        var date_font = pl_fonts.date_compact;
+        var artist_font = pl_fonts.artist_normal_compact;
 
         if (this.is_playing()) {
-            artistColor = pl_colors.artist_playing;
-            albumColor = pl_colors.albumPlaying;
-            dateColor = pl_colors.datePlaying;
-            lineColor = pl_colors.linePlaying;
+            artist_color = pl_colors.artist_playing;
+            album_color = pl_colors.album_playing;
+            date_color = pl_colors.date_playing;
+            line_color = pl_colors.line_playing;
 
-            artistFont = pl_fonts.artist_playing_compact;
+            artist_font = pl_fonts.artist_playing_compact;
         }
         if (this.is_selected_dynamic()) {
-            lineColor = pl_colors.lineSelected;
-            artistColor = albumColor = dateColor = pl_colors.groupTitleSelected;
+            line_color = pl_colors.line_selected;
+            artist_color = album_color = date_color = pl_colors.group_title_selected;
         }
 
         var clipImg = gdi.CreateImage(this.w, this.h);
@@ -3212,65 +3095,72 @@ function Header(x, y, w, h, idx) {
         //--->
         grClip.FillSolidRect(0, 0, this.w, this.h, pl_colors.background); // Solid background for ClearTypeGridFit text rendering
         if (this.is_selected_dynamic()) {
-            grClip.FillSolidRect(0, 0, this.w, this.h, pl_colors.rowSelected);
+            grClip.FillSolidRect(0, 0, this.w, this.h, pl_colors.row_selected);
         }
 
         grClip.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
 
         if (this.is_collapsed && is_focused()) {
-            grClip.DrawRect(2, 2, this.w - 4, this.h - 4, 1, lineColor);
+            grClip.DrawRect(2, 2, this.w - 4, this.h - 4, 1, line_color);
         }
 
         //************************************************************//
 
-        var leftPad = 10;
         var path = _.tf('%path%', metadb);
+        var is_radio = _.startsWith(path, 'http');
 
-        var radio = _.startsWith(path, 'http');
+        var left_pad = 10;
+        var right_pad = 0;
+        var cur_x = left_pad;
 
         //---> DATE
-        var date = _.tf('%date%', metadb);
-        if (date === '?' && radio) {
-            date = '';
-        }
-        var dateW = Math.ceil(gr.MeasureString(date, dateFont, 0, 0, 0, 0).Width + 5);
-        var dateX = this.w - dateW - 5;
-        var dateY = 0;
-        var dateH = this.h;
+        if (properties_v2.group_query_id.get() !== 0 ) {
+            var date_text = _.tf('%date%', metadb);
+            if (date_text === '?' && is_radio) {
+                date_text = '';
+            }
+            var date_w = Math.ceil(gr.MeasureString(date_text, date_font, 0, 0, 0, 0).Width + 5);
+            var date_x = this.w - date_w - 5;
+            var date_y = 0;
+            var date_h = this.h;
 
-        if (properties_v2.group_query_id.get()) {
-            (dateX > leftPad) && grClip.DrawString(date, dateFont, dateColor, dateX, dateY, dateW, dateH, StringFormat(0, 1));
+            if (properties_v2.group_query_id.get() > 0 && date_x > left_pad) {
+                grClip.DrawString(date_text, date_font, date_color, date_x, date_y, date_w, date_h, StringFormat(0, 1));
+            }
+
+            right_pad += this.w - date_x;
         }
+
         //---> ARTIST
-        var artistX = leftPad;
-        var artistW = dateX - leftPad - 5;
-        var artistH = this.h;
+        {
+            var artist_x = cur_x;
+            var artist_w = this.w - artist_x - (right_pad + 5);
+            var artist_h = this.h;
 
-        var artist = _.tf('$if($greater($len(%album artist%),0),%album artist%,%artist%)', metadb);
-        //trace(artist.length());
-        if (artist === '?' && radio) {
-            artist = 'Radio Stream';
+            var artist_text = _.tf('$if($greater($len(%album artist%),0),%album artist%,%artist%)', metadb);
+            if (artist_text === '?' && is_radio) {
+                artist_text = 'Radio Stream';
+            }
+
+            grClip.DrawString(artist_text, artist_font, artist_color, artist_x, 0, artist_w, artist_h, StringFormat(0, 1, 3, 0x1000));
+
+            cur_x += gr.MeasureString(artist_text, artist_font, 0, 0, 0, 0).Width;
         }
-
-        grClip.DrawString(artist, artistFont, artistColor, artistX, 0, artistW, artistH, StringFormat(0, 1, 3, 0x1000));
-
-        var artistStringW = Math.ceil(gr.MeasureString(artist, artistFont, 0, 0, 0, 0).Width);
 
         //---> ALBUM
-        if (properties_v2.group_query_id.get()) {
-            var albumX = artistX + artistStringW;
-            var albumW = dateX - leftPad - artistStringW - 5;
-            if (albumW > 0) {
-                var albumH = this.h;
-                var albumY = 0;
+        if (properties_v2.group_query_id.get() > 0) {
+            var album_h = this.h;
+            var album_x = cur_x;
+            var album_w = this.w - album_x - 5;
 
-                var album = _.tf(' - %album%[ - %ALBUMSUBTITLE%]', metadb);
-                if (album === '?' && radio) {
-                    album = '';
-                }
-
-                grClip.DrawString(album, pl_fonts.album, albumColor, albumX, albumY, albumW, albumH, StringFormat(0, 1, 3, 0x1000));
+            var album_text = _.tf(' - %album%[ - %ALBUMSUBTITLE%]', metadb);
+            if (album_text === '?' && is_radio) {
+                album_text = '';
             }
+
+            grClip.DrawString(album_text, pl_fonts.album, album_color, album_x, 0, album_w, album_h, StringFormat(0, 1, 3, 0x1000));
+
+            cur_x += gr.MeasureString(album_text, pl_fonts.album, 0, 0, 0, 0).Width;
         }
 
         clipImg.ReleaseGraphics(grClip);
@@ -3284,6 +3174,29 @@ function Header(x, y, w, h, idx) {
 
     this.set_w = function (w) {
         this.w = w;
+    };
+
+    this.assign_art = function (image) {
+        if (!image || !properties_v2.show_album_art.get()) {
+            art = null;
+            return;
+        }
+
+        var ratio = image.Height / image.Width;
+        var art_h = art_max_size;
+        var art_w = art_max_size;
+        if (image.Height > image.Width) {
+            art_w = Math.round(art_h / ratio);
+        }
+        else {
+            art_h = Math.round(art_w * ratio);
+        }
+
+        art = image.Resize(art_w, art_h);
+    };
+
+    this.has_art = function () {
+        return art !== undefined;
     };
 
     this.init_rows = function (rows_to_process) {
@@ -3333,7 +3246,7 @@ function Header(x, y, w, h, idx) {
             }
         });
         return is_playing;
-    }
+    };
 
     //private:
     // TODO: consider moving this to playlist
@@ -3371,8 +3284,6 @@ function Header(x, y, w, h, idx) {
 
     this.rows = [];
 
-    this.art = undefined;
-
     this.is_selected_static = false;
     this.is_collapsed = false;
 
@@ -3384,8 +3295,10 @@ function Header(x, y, w, h, idx) {
     //private:
     var that = this;
     var row_h = properties_v2.row_h.get();
+    var art_max_size = that.h - 16;
 
     var metadb;
+    var art = undefined;
 }
 
 function SelectionHandler(rows_arg, headers_arg, cur_playlist_idx_arg) {
@@ -3425,8 +3338,8 @@ function SelectionHandler(rows_arg, headers_arg, cur_playlist_idx_arg) {
             return;
         }
 
-        selected_indexes = _.range(_.first(rows).idx, _.last(rows).idx);
-        last_single_selected_index = _.first(rows).idx;
+        selected_indexes = _.range(_.head(rows).idx, _.last(rows).idx);
+        last_single_selected_index = _.head(rows).idx;
 
         plman.SetPlaylistSelection(cur_playlist_idx, selected_indexes, true);
         plman.SetPlaylistFocusItem(cur_playlist_idx, last_single_selected_index);
@@ -3588,7 +3501,7 @@ function SelectionHandler(rows_arg, headers_arg, cur_playlist_idx_arg) {
 
         clear_last_hover_item();
 
-        selected_indexes.sort(numeric_ascending_sort);
+        selected_indexes.sort(g_numeric_ascending_sort);
 
         var is_contiguous = true;
         _.forEach(selected_indexes, function (item, i) {
@@ -3608,7 +3521,7 @@ function SelectionHandler(rows_arg, headers_arg, cur_playlist_idx_arg) {
                 move_delta = drop_idx - _.last(selected_indexes) - 1;
             }
             else {
-                move_delta = drop_idx - _.first(selected_indexes);
+                move_delta = drop_idx - _.head(selected_indexes);
             }
 
             plman.MovePlaylistSelection(cur_playlist_idx, move_delta);
@@ -3712,7 +3625,7 @@ function SelectionHandler(rows_arg, headers_arg, cur_playlist_idx_arg) {
             var a = 0,
                 b = 0;
 
-            selected_indexes.sort(numeric_ascending_sort);
+            selected_indexes.sort(g_numeric_ascending_sort);
 
             if (_.isNil(last_single_selected_index)) {
                 last_single_selected_index = plman.GetPlaylistFocusItemIndex(cur_playlist_idx);
@@ -3765,7 +3678,7 @@ function SelectionHandler(rows_arg, headers_arg, cur_playlist_idx_arg) {
             var a = 0,
                 b = 0;
 
-            selected_indexes.sort(numeric_ascending_sort);
+            selected_indexes.sort(g_numeric_ascending_sort);
 
             if (_.isNil(last_single_selected_index)) {
                 last_single_selected_index = selected_indexes[0];
@@ -3832,16 +3745,22 @@ function CollapseHandler() {
     this.toggle_collapse = function (item) {
         this.changed = true;
         item.is_collapsed = !item.is_collapsed;
+
+        trigger_callback();
     };
 
     this.collapse = function (item) {
         this.changed = item.is_collapsed !== true;
         item.is_collapsed = true;
+
+        trigger_callback();
     };
 
     this.expand = function (item) {
         this.changed = item.is_collapsed !== false;
         item.is_collapsed = false;
+
+        trigger_callback();
     };
 
     this.collapse_all = function () {
@@ -3850,6 +3769,8 @@ function CollapseHandler() {
             this.changed |= item.is_collapsed !== true;
             item.is_collapsed = true;
         }, this));
+
+        trigger_callback();
     };
 
     this.collapse_all_but_now_playing = function () {
@@ -3863,6 +3784,8 @@ function CollapseHandler() {
             this.changed |= item.is_collapsed !== true;
             item.is_collapsed = true;
         }, this));
+
+        trigger_callback();
     };
 
     this.expand_all = function () {
@@ -3871,9 +3794,23 @@ function CollapseHandler() {
             this.changed |= item.is_collapsed !== false;
             item.is_collapsed = false;
         }, this));
+
+        trigger_callback();
     };
+
+    this.set_callback = function(on_collapse_change_callback_arg) {
+        on_collapse_change_callback = on_collapse_change_callback_arg;
+    };
+
+    function trigger_callback() {
+        if (that.changed && on_collapse_change_callback) {
+            on_collapse_change_callback();
+        }
+    }
 
     this.changed = false;
 
+    var that = this;
     var headers = [];
+    var on_collapse_change_callback = undefined;
 }

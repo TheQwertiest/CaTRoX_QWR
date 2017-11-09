@@ -342,7 +342,7 @@ var qwr_utils = {
     }
 };
 
-function numeric_ascending_sort(a, b) {
+function g_numeric_ascending_sort(a, b) {
     return (a - b);
 }
 
@@ -365,12 +365,17 @@ function Property(text_id, default_value) {
 function PropertyList() {
     this.add_properties = function (properties) {
         _.forEach(properties, _.bind(function (item, i) {
-            if (i === "add_properties") {
-                error_name_occupied;
-                return false;
+            if (!_.isArray(item) || item.length !== 2 || !_.isString(item[0])) {
+                throw Error('Type Error:\nUsage: add_properties({\n  property_name, [property.string.description, property_default_value]\n})');
             }
-            var prop = new Property(item[0],item[1]);
-            this[i] = prop;
+            if (i === "add_properties") {
+                throw Error('Argument Error:\n"add_properties" name is reserved');
+            }
+            if (!_.isNil(this[i])){
+                throw Error('Argument Error:\n' + '"' + i + '"' + ' name is already occupied');
+            }
+
+            this[i] = new Property(item[0],item[1]);
         },this));
     };
 }

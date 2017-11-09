@@ -135,8 +135,9 @@ function stopSbarAlphaTimerFn() {
 }
 
 _.mixin({
-    scrollbar:      function (x, y, w, h, rows_drawn, row_h, fn_redraw) {
+    scrollbar:      function (x, y, w, h, row_h, fn_redraw) {
         this.paint = function (gr) {
+            gr.FillSolidRect(this.x, this.y, this.w, this.h, _.RGB(37, 37, 37));
             _.forEach(this.sb_parts, function (item, i) {
                 var x = item.x,
                     y = item.y,
@@ -179,9 +180,11 @@ _.mixin({
             return x > this.x && x < this.x + this.w && y > this.y && y < this.y + this.h;
         };
 
-        this.set_rows = function (row_count) {
+        this.set_window_param = function (rows_drawn, row_count) {
+            this.rows_drawn = rows_drawn;
             this.row_count = row_count;
             this.calc_params();
+            this.create_parts();
         };
 
         this.calc_params = function () {
@@ -196,16 +199,18 @@ _.mixin({
             this.drag_distance_per_row = this.scrollbar_travel / this.scrollable_lines;
         };
 
-        this.create_parts = function (img_src) {
+        this.create_parts = function () {
+            create_dynamic_scrollbar_images(this.w, this.thumb_h);
+
             var x = this.x;
             var y = this.y;
             var w = this.w;
             var h = this.h;
 
             this.sb_parts = {
-                lineUp:   new _.scrollbar_part(x, y, w, this.btn_h, img_src.lineUp),
-                thumb:    new _.scrollbar_part(x, y + this.thumb_y, w, this.thumb_h, img_src.thumb),
-                lineDown: new _.scrollbar_part(x, y + h - this.btn_h, w, this.btn_h, img_src.lineDown)
+                lineUp:   new _.scrollbar_part(x, y, w, this.btn_h, scrollbar_images.lineUp),
+                thumb:    new _.scrollbar_part(x, y + this.thumb_y, w, this.thumb_h, scrollbar_images.thumb),
+                lineDown: new _.scrollbar_part(x, y + h - this.btn_h, w, this.btn_h, scrollbar_images.lineDown)
             };
         };
 
@@ -500,6 +505,140 @@ _.mixin({
             this.scroll_to((throttled_scroll_y - this.btn_h) / this.drag_distance_per_row);
         }, this), 1000 / 60);
 
+        function create_scrollbar_images() {
+            if (scrollbar_images.length > 0){
+                return;
+            }
+
+            var fontSegoeUi = gdi.font('Segoe UI Symbol', 15, 0);
+            var m = 2;
+
+            var scrollTrackColor = _.RGB(37, 37, 37);
+            var scrollColorHot = _.RGB(140, 142, 144);
+            var scrollColorHover = _.RGB(170, 172, 174);
+            var scrollColorPressed = _.RGB(90, 92, 94);
+            var scrollSymbolColorNormal = _.RGB(140, 142, 144);
+            var scrollSymbolColorHot = _.RGB(30, 32, 34);
+            var scrollSymbolColorHover = _.RGB(40, 42, 44);
+            var scrollSymbolColorPressed = _.RGB(30, 32, 34);
+
+            var btn =
+                {
+                    lineUp:   {
+                        ico:  '\uE010',
+                        font: fontSegoeUi,
+                        w:    that.w,
+                        h:    that.w
+                    },
+                    lineDown: {
+                        ico:  '\uE011',
+                        font: fontSegoeUi,
+                        w:    that.w,
+                        h:    that.w
+                    }
+                };
+
+            scrollbar_images = [];
+
+            _.forEach(btn, function (item, i) {
+                var w = item.w,
+                    h = item.h;
+
+                var stateImages = []; //0=normal, 1=hover, 2=down, 3=hot;
+
+                for (var s = 0; s < 4; s++) {
+                    var img = gdi.CreateImage(w, h);
+                    var grClip = img.GetGraphics();
+
+                    var icoColor;
+                    var backColor;
+
+                    if (s === 0) {
+                        icoColor = scrollSymbolColorNormal;
+                        backColor = scrollTrackColor;
+                    }
+                    else if (s === 1) {
+                        icoColor = scrollSymbolColorHover;
+                        backColor = scrollColorHover;
+                    }
+                    else if (s === 2) {
+                        icoColor = scrollSymbolColorPressed;
+                        backColor = scrollColorPressed;
+                    }
+                    else if (s === 3) {
+                        icoColor = scrollSymbolColorHot;
+                        backColor = scrollColorHot;
+                    }
+
+                    if (i === 'lineUp') {
+                        grClip.FillSolidRect(m, 0, w - m * 2, h - 1, backColor);
+                    }
+                    else if (i === 'lineDown') {
+                        grClip.FillSolidRect(m, 1, w - m * 2, h - 1, backColor);
+                    }
+
+                    grClip.SetSmoothingMode(SmoothingMode.HighQuality);
+                    grClip.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
+
+                    if (i === 'lineDown') {
+                        grClip.DrawString(item.ico, item.font, icoColor, 0, 0, w, h, StringFormat(1, 2));
+                    }
+                    else if (i === 'lineUp') {
+                        grClip.DrawString(item.ico, item.font, icoColor, 0, 0, w, h - 1, StringFormat(1, 2));
+                    }
+
+                    img.ReleaseGraphics(grClip);
+                    stateImages[s] = img;
+                }
+
+                scrollbar_images[i] =
+                    {
+                        normal:  stateImages[0],
+                        hover:   stateImages[1],
+                        pressed: stateImages[2],
+                        hot:     stateImages[3]
+                    };
+            });
+        }
+
+        function create_dynamic_scrollbar_images(thumb_w, thumb_h) {
+            var m = 2;
+
+            var scrollColorNormal = _.RGB(110, 112, 114);
+            var scrollColorHover = _.RGB(170, 172, 174);
+            var scrollColorPressed = _.RGB(90, 92, 94);
+
+            var w = thumb_w,
+                h = thumb_h;
+
+            var stateImages = []; //0=normal, 1=hover, 2=down;
+
+            for (var s = 0; s <= 2; s++) {
+                var img = gdi.CreateImage(w, h);
+                var grClip = img.GetGraphics();
+
+                var color = scrollColorNormal;
+                if (s === 1) {
+                    color = scrollColorHover;
+                }
+                else if (s === 2) {
+                    color = scrollColorPressed;
+                }
+
+                grClip.FillSolidRect(m, 0, w - m * 2, h, color);
+
+                img.ReleaseGraphics(grClip);
+                stateImages[s] = img;
+            }
+
+            scrollbar_images['thumb'] =
+                {
+                    normal:  stateImages[0],
+                    hover:   stateImages[1],
+                    pressed: stateImages[2]
+                };
+        }
+
         // public:
         this.x = x;
         this.y = y;
@@ -507,7 +646,7 @@ _.mixin({
         this.h = h;
 
         this.row_h = row_h;
-        this.rows_drawn = rows_drawn; // visible list size in rows (might be float)
+        this.rows_drawn = 0; // visible list size in rows (might be float)
         this.row_count = 0; // all rows in associated list
 
         this.fn_redraw = fn_redraw; // callback for list redraw
@@ -541,12 +680,17 @@ _.mixin({
         this.scrollbar_travel = 0; // space for thumb to travel (scrollbar_h - thumb_h)
 
         // private:
+        var that = this;
+
+        var scrollbar_images = [];
 
         // Timers
         var throttled_scroll_y = 0;
         var timer_shift;
         var timer_shift_count;
         var timer_stop_y = -1;
+
+        create_scrollbar_images();
     },
     scrollbar_part: function (x, y, w, h, img_src) {
         this.repaint = function () {
