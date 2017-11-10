@@ -1894,68 +1894,69 @@ function Playlist(x, y) {
         var to_header = headers[to_row.header_idx];
         var is_from_header = from_header ? from_header.is_collapsed : false;
         var is_to_header = to_header.is_collapsed;
+        var from_item = is_from_header ? from_header : from_row;
+        var to_item = is_to_header ? to_header : to_row;
 
-        var to_item_state = get_item_visibility_state(is_to_header ? to_header : to_row );
-        
+        var to_item_h_in_rows = is_to_header ? header_h_in_rows : 1;
+        var to_item_state = get_item_visibility_state(to_item);
+
         switch (to_item_state.visibility) {
             case visibility_state['not']: {
-                if (is_to_header) {
-                    if (from_header) {
-                        var from_item_state = get_item_visibility_state(from_header);
-                        if (from_item_state.visibility !== visibility_state['not'] && from_header.idx === to_header.idx - 1) {
-                            scrollbar.scroll_to(scroll_pos + header_h_in_rows + from_item_state.visible_part - from_item_state.visible_part);
+                var shifted_successfuly = false;
+
+                if (from_item) {
+                    var from_item_state = get_item_visibility_state(from_item);
+                    if (from_item_state.visibility !== visibility_state['not']) {
+                        var row_shift = to_item_h_in_rows + from_item_state.invisible_part;
+                        if (from_item.idx === to_item.idx + 1) {
+                            if (to_item.type === "Row" && _.head(from_header.rows).idx === to_row.idx) {
+                                var to_header_state = get_item_visibility_state(to_header);
+                                if (to_header_state.visibility !== visibility_state['not']) {
+                                    row_shift += to_header_state.invisible_part;
+                                }
+                                else {
+                                    row_shift += header_h_in_rows;
+                                }
+                            }
+                            scrollbar.scroll_to(scroll_pos - row_shift);
+                            shifted_successfuly = true;
                         }
-                        else if (from_item_state.visibility !== visibility_state['not'] && from_header.idx === to_header.idx + 1) {
-                            scrollbar.scroll_to(scroll_pos - (header_h_in_rows + from_item_state.visible_part - from_item_state.visible_part));
+                        else if (from_item.idx === to_item.idx - 1) {
+                            if (to_item.type === "Row" && _.last(from_header.rows).idx === from_row.idx) {
+                                var to_header_state = get_item_visibility_state(to_header);
+                                if (to_header_state.visibility !== visibility_state['not']) {
+                                    row_shift += to_header_state.invisible_part;
+                                }
+                                else {
+                                    row_shift += header_h_in_rows;
+                                }
+                            }
+                            scrollbar.scroll_to(scroll_pos + row_shift);
+                            shifted_successfuly = true;
                         }
-                        else {
-                            var item_idx = get_item_draw_row_idx(to_header);
-                            var new_scroll_pos = Math.max(0, item_idx - Math.floor(rows_to_draw_precise / 2));
-                            scrollbar.scroll_to(new_scroll_pos);
-                        }
-                    }
-                    else {
-                        var item_idx = get_item_draw_row_idx(to_header);
-                        var new_scroll_pos = Math.max(0, item_idx - Math.floor(rows_to_draw_precise / 2));
-                        scrollbar.scroll_to(new_scroll_pos);
                     }
                 }
-                else if (from_row && from_row.idx === to_row.idx - 1) {
-                    if (_.last(from_header.rows).idx === from_row.idx) {
-                        scrollbar.scroll_to(scroll_pos + header_h_in_rows + 1);
-                    }
-                    else {
-                        scrollbar.scroll_to(scroll_pos + 1);
-                    }
-                }
-                else if (from_row && from_row.idx === to_row.idx + 1) {
-                    if (_.head(from_header.rows).idx === to_row.idx) {
-                        scrollbar.scroll_to(scroll_pos - header_h_in_rows - 1);
-                    }
-                    else {
-                        scrollbar.scroll_to(scroll_pos - 1);
-                    }
-                }
-                else {
-                    var item_idx = get_item_draw_row_idx(to_row);
-                    var new_scroll_pos = Math.max(0, item_idx - Math.floor(rows_to_draw_precise / 2));
+
+                if (!shifted_successfuly) {
+                    var item_draw_idx = get_item_draw_row_idx(to_item);
+                    var new_scroll_pos = Math.max(0, item_draw_idx - Math.floor(rows_to_draw_precise / 2));
                     scrollbar.scroll_to(new_scroll_pos);
                 }
 
                 break;
             }
             case visibility_state['partial_top']: {
-                if (to_item_state.visible_part % 1) {
+                if (to_item_state.invisible_part % 1 > 0) {
                     scrollbar.shift_line(-1);
                 }
-                scrollbar.scroll_to(scroll_pos - Math.floor(to_item_state.visible_part));
+                scrollbar.scroll_to(scroll_pos - Math.floor(to_item_state.invisible_part));
                 break;
             }
             case visibility_state['partial_bottom']: {
-                if (to_item_state.visible_part % 1 ) {
+                if (to_item_state.invisible_part % 1 > 0) {
                     scrollbar.shift_line(1);
                 }
-                scrollbar.scroll_to(scroll_pos + Math.floor(to_item_state.visible_part));
+                scrollbar.scroll_to(scroll_pos + Math.floor(to_item_state.invisible_part));
                 break;
             }
             case visibility_state['full']: {
@@ -1976,7 +1977,7 @@ function Playlist(x, y) {
     function get_item_visibility_state(item_to_check) {
         var item_state = {
             visibility : visibility_state['not'],
-            visible_part : 0
+            invisible_part : 0
         };
 
         _.forEach(items_to_draw, function (item) {
@@ -1987,11 +1988,11 @@ function Playlist(x, y) {
             if (item.idx === item_to_check.idx) {
                 if (item.y < list_y && item.y + item.h > list_y) {
                     item_state.visibility = visibility_state['partial_top'];
-                    item_state.visible_part = (list_y - item.y)/row_h;
+                    item_state.invisible_part = (list_y - item.y)/row_h;
                 }
                 else if (item.y < list_y + list_h && item.y + item.h > list_y + list_h) {
                     item_state.visibility = visibility_state['partial_bottom'];
-                    item_state.visible_part = (item.y + item.h - (list_y + list_h) )/row_h;
+                    item_state.invisible_part = ((item.y + item.h) - (list_y + list_h))/row_h;
                 }
                 else {
                     item_state.visibility = visibility_state['full'];
