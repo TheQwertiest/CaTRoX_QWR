@@ -838,7 +838,7 @@ function Playlist(x, y) {
                 //---> Collapse/Expand
                 collapse_handler.collapse_all();
                 if (collapse_handler.changed) {
-                    scroll_to_now_playing_or_focused();
+                    scroll_to_focused_or_now_playing();
                 }
                 break;
             case 21:
@@ -850,7 +850,7 @@ function Playlist(x, y) {
             case 22:
                 collapse_handler.expand_all();
                 if (collapse_handler.changed) {
-                    scroll_to_now_playing_or_focused();
+                    scroll_to_focused_or_now_playing();
                 }
                 break;
             case 23:
@@ -913,7 +913,7 @@ function Playlist(x, y) {
             case 40:
                 properties_v2.show_header.set(!properties_v2.show_header.get());
                 on_list_content_h_change();
-                scroll_to_now_playing_or_focused();
+                scroll_to_focused_or_now_playing();
                 break;
             case 41:
                 properties_v2.use_compact_header.set(!properties_v2.use_compact_header.get());
@@ -975,7 +975,12 @@ function Playlist(x, y) {
                 }
                 break;
             case 61:
-                plman.SortByFormat(cur_playlist_idx, '', has_multiple_selected_items);
+                if (has_multiple_selected_items) {
+                    fb.RunMainMenuCommand('Edit/Selection/Sort/Randomize');
+                }
+                else {
+                    fb.RunMainMenuCommand('Edit/Sort/Randomize')
+                }
                 break;
             case 62:
                 if (has_multiple_selected_items) {
@@ -986,21 +991,47 @@ function Playlist(x, y) {
                 }
                 break;
             case 63:
-                plman.SortByFormat(cur_playlist_idx, '%album%', has_multiple_selected_items);
+                if (has_multiple_selected_items) {
+                    fb.RunMainMenuCommand('Edit/Selection/Sort/Sort by album');
+                }
+                else {
+                    fb.RunMainMenuCommand('Edit/Sort/Sort by album');
+                }
                 break;
             case 64:
-                plman.SortByFormat(cur_playlist_idx, '%artist%', has_multiple_selected_items);
+                if (has_multiple_selected_items) {
+                    fb.RunMainMenuCommand('Edit/Selection/Sort/Sort by artist');
+                }
+                else {
+                    fb.RunMainMenuCommand('Edit/Sort/Sort by artist');
+                }
                 break;
             case 65:
-                plman.SortByFormat(cur_playlist_idx, '%path%%subsong%', has_multiple_selected_items);
+                if (has_multiple_selected_items) {
+                    fb.RunMainMenuCommand('Edit/Selection/Sort/Sort by file path');
+                }
+                else {
+                    fb.RunMainMenuCommand('Edit/Sort/Sort by file path');
+                }
                 break;
             case 66:
-                plman.SortByFormat(cur_playlist_idx, '%title%', has_multiple_selected_items);
+                if (has_multiple_selected_items) {
+                    fb.RunMainMenuCommand('Edit/Selection/Sort/Sort by title');
+                }
+                else {
+                    fb.RunMainMenuCommand('Edit/Sort/Sort by title');
+                }
                 break;
             case 67:
-                plman.SortByFormat(cur_playlist_idx, '%tracknumber%', has_multiple_selected_items);
+                if (has_multiple_selected_items) {
+                    fb.RunMainMenuCommand('Edit/Selection/Sort/Sort by track number');
+                }
+                else {
+                    fb.RunMainMenuCommand('Edit/Sort/Sort by track number');
+                }
                 break;
             case 68:
+                plman.UndoBackup(cur_playlist_idx);
                 plman.SortByFormat(cur_playlist_idx, '%date%', has_multiple_selected_items);
                 break;
             // -------------------------------------------------------------- //
@@ -1029,9 +1060,11 @@ function Playlist(x, y) {
             // -------------------------------------------------------------- //
             // Selection
             case 100: // Send to top
+                plman.UndoBackup(cur_playlist_idx);
                 plman.MovePlaylistSelection(cur_playlist_idx, -plman.GetPlaylistFocusItemIndex(cur_playlist_idx));
                 break;
             case 101: // Send to bottom
+                plman.UndoBackup(cur_playlist_idx);
                 plman.MovePlaylistSelection(cur_playlist_idx, plman.PlaylistItemCount(cur_playlist_idx) - plman.GetPlaylistSelectedItems(cur_playlist_idx).Count);
                 break;
             case 102:
@@ -1045,8 +1078,10 @@ function Playlist(x, y) {
 
         for (var i = 0; i < plman.PlaylistCount; i++) {
             if (id === (sendToPlaylistId + i)) {
+                plman.UndoBackup(i);
                 plman.ClearPlaylistSelection(i);
                 plman.InsertPlaylistItems(i, plman.PlaylistItemCount(i), plman.GetPlaylistSelectedItems(cur_playlist_idx), true);
+                break;
             }
         }
 
@@ -1146,15 +1181,8 @@ function Playlist(x, y) {
                     new_focus_idx = Math.max(0, focused_item.idx - 1);
                 }
 
-                if (new_focus_idx !== focused_item.idx) {
-                    scroll_to_row(focused_item, rows[new_focus_idx]);
-                    if (!shift_pressed) {
-                        selection_handler.clear_selection();
-                    }
-                    plman.SetPlaylistFocusItem(cur_playlist_idx, new_focus_idx);
-                    selection_handler.update_selection(rows[new_focus_idx], null, shift_pressed);
-                    selection_handler.sync_items_with_selection();
-                }
+                selection_handler.update_selection(rows[new_focus_idx], null, shift_pressed);
+                selection_handler.sync_items_with_selection();
 
                 break;
             }
@@ -1168,15 +1196,8 @@ function Playlist(x, y) {
                     new_focus_idx = Math.min(rows.length - 1, focused_item.idx + 1);
                 }
 
-                if (new_focus_idx !== focused_item.idx) {
-                    scroll_to_row(focused_item, rows[new_focus_idx]);
-                    if (!shift_pressed) {
-                        selection_handler.clear_selection();
-                    }
-                    plman.SetPlaylistFocusItem(cur_playlist_idx, new_focus_idx);
-                    selection_handler.update_selection(rows[new_focus_idx], null, shift_pressed);
-                    selection_handler.sync_items_with_selection();
-                }
+                selection_handler.update_selection(rows[new_focus_idx], null, shift_pressed);
+                selection_handler.sync_items_with_selection();
 
                 break;
             }
@@ -1223,14 +1244,8 @@ function Playlist(x, y) {
                     new_focus_item = _.head(items_to_draw);
                 }
 
-                if (new_focus_item.idx !== focused_item.idx) {
-                    if (!shift_pressed) {
-                        selection_handler.clear_selection();
-                    }
-                    plman.SetPlaylistFocusItem(cur_playlist_idx, new_focus_item.idx);
-                    selection_handler.update_selection(new_focus_item, null, shift_pressed);
-                    selection_handler.sync_items_with_selection();
-                }
+                selection_handler.update_selection(new_focus_item, null, shift_pressed);
+                selection_handler.sync_items_with_selection();
 
                 break;
             }
@@ -1257,14 +1272,22 @@ function Playlist(x, y) {
                     new_focus_item = _.last(items_to_draw);
                 }
 
-                if (new_focus_item.idx !== focused_item.idx) {
-                    if (!shift_pressed) {
-                        selection_handler.clear_selection();
-                    }
-                    plman.SetPlaylistFocusItem(cur_playlist_idx, new_focus_item.idx);
-                    selection_handler.update_selection(new_focus_item, null, shift_pressed);
-                    selection_handler.sync_items_with_selection();
-                }
+                selection_handler.update_selection(new_focus_item, null, shift_pressed);
+                selection_handler.sync_items_with_selection();
+
+                break;
+            }
+            case VK_HOME: {
+                var new_focus_idx = 0;
+                selection_handler.update_selection(rows[new_focus_idx], null, shift_pressed);
+                selection_handler.sync_items_with_selection();
+
+                break;
+            }
+            case VK_END: {
+                var new_focus_idx = _.last(rows).idx;
+                selection_handler.update_selection(rows[new_focus_idx], null, shift_pressed);
+                selection_handler.sync_items_with_selection();
 
                 break;
             }
@@ -1294,48 +1317,6 @@ function Playlist(x, y) {
             }
             case VK_RETURN: {
                 plman.ExecutePlaylistDefaultAction(cur_playlist_idx, focused_item.idx);
-
-                break;
-            }
-            case VK_HOME: {
-                if (focused_item.idx === 0 && scrollbar.is_scrolled_up) {
-                    return;
-                }
-
-                if (!shift_pressed) {
-                    selection_handler.clear_selection();
-                    selection_handler.sync_items_with_selection();
-                }
-
-                var new_focus_idx = 0;
-                if (new_focus_idx !== focused_item.idx) {
-                    plman.SetPlaylistFocusItem(cur_playlist_idx, new_focus_idx);
-                    selection_handler.update_selection(rows[new_focus_idx], null, shift_pressed);
-                    selection_handler.sync_items_with_selection();
-                }
-
-                break;
-            }
-            case VK_END: {
-                if (focused_item.idx === _.last(rows).idx && scrollbar.is_scrolled_down) {
-                    return;
-                }
-
-                if (!shift_pressed) {
-                    selection_handler.clear_selection();
-                    selection_handler.sync_items_with_selection();
-                }
-
-                if (is_scrollbar_available) {
-                    scrollbar.scroll_to_end();
-                }
-
-                var new_focus_idx = _.last(rows).idx;
-                if (new_focus_idx !== focused_item.idx) {
-                    plman.SetPlaylistFocusItem(cur_playlist_idx, new_focus_idx);
-                    selection_handler.update_selection(rows[new_focus_idx], null, shift_pressed);
-                    selection_handler.sync_items_with_selection();
-                }
 
                 break;
             }
@@ -1423,8 +1404,8 @@ function Playlist(x, y) {
             focused_item.is_focused = true;
         }
 
-        if (!is_in_focus && focused_item) {
-            // For selection from outside
+        if (focused_item)
+        {
             var from_row = from_idx === -1 ? null : rows[from_idx];
             scroll_to_row(from_row, focused_item);
         }
@@ -1872,6 +1853,9 @@ function Playlist(x, y) {
             collapse_handler.expand(headers[playing_item.header_idx]);
         }
 
+        selection_handler.update_selection(rows[playing_item_location.PlaylistItemIndex]);
+        selection_handler.sync_items_with_selection();
+
         scroll_to_now_playing();
     }
 
@@ -1881,6 +1865,15 @@ function Playlist(x, y) {
         }
         else if (focused_item) {
             scroll_to_row(null, focused_item);
+        }
+    }
+
+    function scroll_to_focused_or_now_playing() {
+        if (focused_item) {
+            scroll_to_row(null, focused_item);
+        }
+        else if (playing_item) {
+            scroll_to_row(null, playing_item);
         }
     }
 
@@ -1902,46 +1895,24 @@ function Playlist(x, y) {
         var is_from_header = from_header ? from_header.is_collapsed : false;
         var is_to_header = to_header.is_collapsed;
 
-        var partial_shift_in_rows = 0;
-
-        var visibility_state = {
-            'not':            0,
-            'partial_top':    1,
-            'partial_bottom': 2,
-            'full':           3
-        };
-        var playing_item_state = visibility_state['not'];
-        _.forEach(items_to_draw, function (item) {
-            if (is_to_header && item.type !== 'Header'
-                || !is_to_header && item.type !== 'Row') {
-                return true;
-            }
-
-            if (is_to_header && item.idx === to_header.idx
-                || !is_to_header && item.idx === to_row.idx) {
-                if (item.y < list_y && item.y + item.h > list_y) {
-                    playing_item_state = visibility_state['partial_top'];
-                    partial_shift_in_rows = is_to_header ? (list_y - item.y)/row_h : 0;
-                }
-                else if (item.y < list_y + list_h && item.y + item.h > list_y + list_h) {
-                    playing_item_state = visibility_state['partial_bottom'];
-                    partial_shift_in_rows = is_to_header ? (item.y + item.h - (list_y + list_h) )/row_h : 0;
-                }
-                else {
-                    playing_item_state = visibility_state['full'];
-                }
-                return false;
-            }
-        });
-
-        switch (playing_item_state) {
+        var to_item_state = get_item_visibility_state(is_to_header ? to_header : to_row );
+        
+        switch (to_item_state.visibility) {
             case visibility_state['not']: {
                 if (is_to_header) {
-                    if (from_header && from_header.idx === to_header.idx - 1) {
-                        scrollbar.scroll_to(scroll_pos + header_h_in_rows);
-                    }
-                    else if (from_header && from_header.idx === to_header.idx + 1) {
-                        scrollbar.scroll_to(scroll_pos - header_h_in_rows);
+                    if (from_header) {
+                        var from_item_state = get_item_visibility_state(from_header);
+                        if (from_item_state.visibility !== visibility_state['not'] && from_header.idx === to_header.idx - 1) {
+                            scrollbar.scroll_to(scroll_pos + header_h_in_rows + from_item_state.visible_part - from_item_state.visible_part);
+                        }
+                        else if (from_item_state.visibility !== visibility_state['not'] && from_header.idx === to_header.idx + 1) {
+                            scrollbar.scroll_to(scroll_pos - (header_h_in_rows + from_item_state.visible_part - from_item_state.visible_part));
+                        }
+                        else {
+                            var item_idx = get_item_draw_row_idx(to_header);
+                            var new_scroll_pos = Math.max(0, item_idx - Math.floor(rows_to_draw_precise / 2));
+                            scrollbar.scroll_to(new_scroll_pos);
+                        }
                     }
                     else {
                         var item_idx = get_item_draw_row_idx(to_header);
@@ -1974,26 +1945,62 @@ function Playlist(x, y) {
                 break;
             }
             case visibility_state['partial_top']: {
-                if (partial_shift_in_rows % row_h) {
+                if (to_item_state.visible_part % 1) {
                     scrollbar.shift_line(-1);
                 }
-                scrollbar.scroll_to(scroll_pos - Math.floor(partial_shift_in_rows));
+                scrollbar.scroll_to(scroll_pos - Math.floor(to_item_state.visible_part));
                 break;
             }
             case visibility_state['partial_bottom']: {
-                if (partial_shift_in_rows % row_h) {
+                if (to_item_state.visible_part % 1 ) {
                     scrollbar.shift_line(1);
                 }
-                scrollbar.scroll_to(scroll_pos + Math.floor(partial_shift_in_rows));
+                scrollbar.scroll_to(scroll_pos + Math.floor(to_item_state.visible_part));
                 break;
             }
             case visibility_state['full']: {
                 break;
             }
             default: {
-                throw Error('Argument error:\nUnknown visibility state: ' + playing_item_state);
+                throw Error('Argument error:\nUnknown visibility state: ' + to_item_state.visibility);
             }
         }
+    }
+
+    var visibility_state = {
+        'not':            0,
+        'partial_top':    1,
+        'partial_bottom': 2,
+        'full':           3
+    };
+    function get_item_visibility_state(item_to_check) {
+        var item_state = {
+            visibility : visibility_state['not'],
+            visible_part : 0
+        };
+
+        _.forEach(items_to_draw, function (item) {
+            if (item_to_check.type !== item.type) {
+                return true;
+            }
+
+            if (item.idx === item_to_check.idx) {
+                if (item.y < list_y && item.y + item.h > list_y) {
+                    item_state.visibility = visibility_state['partial_top'];
+                    item_state.visible_part = (list_y - item.y)/row_h;
+                }
+                else if (item.y < list_y + list_h && item.y + item.h > list_y + list_h) {
+                    item_state.visibility = visibility_state['partial_bottom'];
+                    item_state.visible_part = (item.y + item.h - (list_y + list_h) )/row_h;
+                }
+                else {
+                    item_state.visibility = visibility_state['full'];
+                }
+                return false;
+            }
+        });
+
+        return item_state;
     }
 
     function intialize_rows_queue() {
@@ -2045,6 +2052,7 @@ function Playlist(x, y) {
         rows_queue = [];
     }
 
+    // At worst has O(playlist_size) complexity
     function get_item_draw_row_idx(item) {
         var draw_row_idx = -1;
         var cur_row = 0;
@@ -3355,7 +3363,7 @@ function SelectionHandler(rows_arg, headers_arg, cur_playlist_idx_arg) {
             return;
         }
 
-        // TODO: this code is VERY expensive! Use with care.
+        // This code has O(playlist_size) complexity.
         headers.forEach(function (item) {
             item.is_selected_static = false;
         });
@@ -3617,7 +3625,7 @@ function SelectionHandler(rows_arg, headers_arg, cur_playlist_idx_arg) {
 
             plman.SetPlaylistSelectionSingle(cur_playlist_idx, item.idx, !is_selected);
         }
-        else if (shift_pressed && selected_indexes.length) {
+        else if (shift_pressed) {
             var a = 0,
                 b = 0;
 
@@ -3670,7 +3678,7 @@ function SelectionHandler(rows_arg, headers_arg, cur_playlist_idx_arg) {
             }
             last_single_selected_index = row_indexes[0].idx;
         }
-        else if (shift_pressed && selected_indexes.length) {
+        else if (shift_pressed) {
             var a = 0,
                 b = 0;
 
