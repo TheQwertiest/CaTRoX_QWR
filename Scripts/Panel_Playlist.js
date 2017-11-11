@@ -3144,7 +3144,7 @@ function Header(x, y, w, h, idx) {
         if (properties_v2.group_query_id.get() > 0) {
             var album_h = this.h;
             var album_x = cur_x;
-            var album_w = this.w - album_x - 5;
+            var album_w = this.w - album_x - (right_pad + 5);
 
             var album_text = _.tf(' - %album%[ - %ALBUMSUBTITLE%]', metadb);
             if (album_text === '?' && is_radio) {
