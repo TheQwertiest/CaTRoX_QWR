@@ -371,15 +371,23 @@ function PropertyList() {
             if (i === "add_properties") {
                 throw Error('Argument Error:\n"add_properties" name is reserved');
             }
-            if (!_.isNil(this[i])){
+            if (!_.isNil(this[i]) || !_.isNil(this[i + 'internal'])) {
                 throw Error('Argument Error:\n' + '"' + i + '"' + ' name is already occupied');
             }
 
-            this[i] = new Property(item[0],item[1]);
-        },this));
+            this[i + "internal"] = new Property(item[0], item[1]);
+            Object.defineProperty(this, i, {
+                get: function () {
+                    return this[i + "internal"].get()
+                },
+                set: function (new_value) {
+                    this[i + "internal"].set(new_value)
+                }
+            });
+        }, this));
     };
 }
 
 var properties = new qwr_utils.PropList;
-var properties_v2 = new PropertyList;
+var g_properties = new PropertyList;
 
