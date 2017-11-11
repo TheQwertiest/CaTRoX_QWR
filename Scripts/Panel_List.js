@@ -4,63 +4,55 @@
 // ==/PREPROCESSOR==
 
 var trace_call = true;
-properties.AddProperties(
+g_properties.add_properties(
     {
-        listLeftMargin:   window.GetProperty("user.List Left", 0),
-        listTopMargin:    window.GetProperty("user.List Top", 0),
-        listRightMargin:  window.GetProperty("user.List Right", 0),
-        listBottomMargin: window.GetProperty("user.List Bottom", 0),
+        listLeftMargin:   ["user.List Left", 0],
+        listTopMargin:    ["user.List Top", 0],
+        listRightMargin:  ["user.List Right", 0],
+        listBottomMargin: ["user.List Bottom", 0],
 
-        showScrollbar:   window.GetProperty("user.Show Scrollbar", true),
-        sbarRightMargin: window.GetProperty("user.Scrollbar Right", 0),
-        scrollbarW:      window.GetProperty("user.Scrollbar Width", utils.GetSystemMetrics(2)),
+        showScrollbar:   ["user.Show Scrollbar", true],
+        sbarRightMargin: ["user.Scrollbar Right", 0],
+        scrollbarW:      ["user.Scrollbar Width", utils.GetSystemMetrics(2)],
 
-        rowH:               window.GetProperty("user.Row Height", 20),
-        rowsInGroup:        window.GetProperty("user.Rows In Group", 4),
-        rowsInCompactGroup: window.GetProperty("user.Rows In Compact Group", 2),
+        rowH:               ["user.Row Height", 20],
+        rowsInGroup:        ["user.Rows In Group", 4],
+        rowsInCompactGroup: ["user.Rows In Compact Group", 2],
 
-        showPlayCount:         window.GetProperty("user.Show Play Count", _.cc("foo_playcount")),
-        showRating:            window.GetProperty("user.Show Rating", _.cc("foo_playcount")),
-        showAlbumArt:          window.GetProperty("user.Show Album Art", true),
-        autoAlbumArt:          window.GetProperty("user.Auto Album Art", false),
-        showGroupInfo:         window.GetProperty("user.Show Group Info", true),
-        showGroupHeader:       window.GetProperty("user.Show Group Header", true),
-        useCompactGroupHeader: window.GetProperty("user.Use Compact Group Header", false),
-
-        showFocusItem: window.GetProperty("user.Show Focus Item", false),
-        showQueueItem: window.GetProperty("user.Show Queue Item", true),
-
-        gUserDefined: window.GetProperty("user.GroupBy", ""),
-        groupFormat:  window.GetProperty("system.GroupBy", "%album artist%%album%%discnumber%"),
-        groupedID:    window.GetProperty("system.properties.groupedID", 3),
-
-        autoExpandCollapseGroups: window.GetProperty("user.Auto Expand/Collapse Groups", false),
-        alternateRowColor:        window.GetProperty("user.Alternate Row Color", false),
-        skipLessThan:             window.GetProperty("user.Skip Less Than", 2),
-        enableSkip:               window.GetProperty("user.Skip Enable", false),
-
-        useTagRating:                 window.GetProperty("user.Use Tag Rating", false),
-        showPlaylistInfo:             window.GetProperty("user.Show Playlist Info", true),
-        autoCollapseOnPlaylistSwitch: window.GetProperty("user.Auto Collapse On Playlist Switch", false),
-        collapseOnStart:              window.GetProperty("user.Collapse On Start", false)
+        showPlayCount:                ["user.Show Play Count", _.cc("foo_playcount")],
+        showRating:                   ["user.Show Rating", _.cc("foo_playcount")],
+        showAlbumArt:                 ["user.Show Album Art", true],
+        autoAlbumArt:                 ["user.Auto Album Art", false],
+        showGroupInfo:                ["user.Show Group Info", true],
+        showGroupHeader:              ["user.Show Group Header", true],
+        useCompactGroupHeader:        ["user.Use Compact Group Header", false],
+        showFocusItem:                ["user.Show Focus Item", false],
+        showQueueItem:                ["user.Show Queue Item", true],
+        gUserDefined:                 ["user.GroupBy", ""],
+        groupFormat:                  ["system.GroupBy", "%album artist%%album%%discnumber%"],
+        groupedID:                    ["system.g_properties.groupedID", 3],
+        autoExpandCollapseGroups:     ["user.Auto Expand/Collapse Groups", false],
+        alternateRowColor:            ["user.Alternate Row Color", false],
+        skipLessThan:                 ["user.Skip Less Than", 2],
+        enableSkip:                   ["user.Skip Enable", false],
+        useTagRating:                 ["user.Use Tag Rating", false],
+        showPlaylistInfo:             ["user.Show Playlist Info", true],
+        autoCollapseOnPlaylistSwitch: ["user.Auto Collapse On Playlist Switch", false],
+        collapseOnStart:              ["user.Collapse On Start", false]
     }
 );
-if (properties.rowsInGroup < 0) {
-    properties.rowsInGroup = 0;
-    window.SetProperty("user.Rows In Group", 0);
+if (g_properties.rowsInGroup < 0) {
+    g_properties.rowsInGroup = 0;
 }
-if (properties.rowsInCompactGroup < 0) {
-    properties.rowsInCompactGroup = 0;
-    window.SetProperty("user.Rows In Compact Group", 0);
+if (g_properties.rowsInCompactGroup < 0) {
+    g_properties.rowsInCompactGroup = 0;
 }
 var minRowH = 10;
-if (properties.rowH < minRowH) {
-    properties.rowH = minRowH;
-    window.SetProperty("user.Row Height", minRowH);
+if (g_properties.rowH < minRowH) {
+    g_properties.rowH = minRowH;
 }
-if (properties.groupedID == 5) {
-    properties.groupFormat = properties.gUserDefined;
-    window.SetProperty("system.GroupBy", properties.groupFormat);
+if (g_properties.groupedID == 5) {
+    g_properties.groupFormat = g_properties.gUserDefined;
 }
 
 var pl_s =
@@ -109,7 +101,7 @@ var pl_s =
         redrawEverything:    true,
     };
 
-var curRowsInGroup = properties.useCompactGroupHeader ? properties.rowsInCompactGroup : properties.rowsInGroup;
+var curRowsInGroup = g_properties.useCompactGroupHeader ? g_properties.rowsInCompactGroup : g_properties.rowsInGroup;
 
 var componentPlayCount = _.cc("foo_playcount");
 var componentUtils = _.cc("foo_utils");
@@ -257,13 +249,13 @@ function on_paint(gr) {
         pl_s.playlistImgFirstRow = pl_s.curRowShift;
         pl_s.playlistImgLastRow = pl_s.curRowShift + pl_s.rowsToDraw - 1;
 
-        if (properties.showPlaylistInfo) {
+        if (g_properties.showPlaylistInfo) {
             draw_playlist_info(g);
-            g.FillSolidRect(0, pl_s.listY - properties.listTopMargin - pssGap, ww, pssGap, pssBackColor);  // Pss margin
+            g.FillSolidRect(0, pl_s.listY - g_properties.listTopMargin - pssGap, ww, pssGap, pssBackColor);  // Pss margin
         }
 
-        g.FillSolidRect(pl_s.listX, pl_s.listY - properties.listTopMargin, pl_s.listW, properties.listTopMargin, panelsBackColor);  // Top margin
-        g.FillSolidRect(pl_s.listX, pl_s.listY + pl_s.listH, pl_s.listW, properties.listBottomMargin, panelsBackColor); // Bottom margin
+        g.FillSolidRect(pl_s.listX, pl_s.listY - g_properties.listTopMargin, pl_s.listW, g_properties.listTopMargin, panelsBackColor);  // Top margin
+        g.FillSolidRect(pl_s.listX, pl_s.listY + pl_s.listH, pl_s.listW, g_properties.listBottomMargin, panelsBackColor); // Bottom margin
 
         tmpImg.ReleaseGraphics(g);
         pl_s.playlistImg = tmpImg;
@@ -314,7 +306,7 @@ function draw_playlist(gr, playlistShifted) {
             rowX: pl_s.listX,
             rowY: 0,
             rowW: pl_s.listW,
-            rowH: properties.rowH,
+            rowH: g_properties.rowH,
             idx:  0,
             ID:   0,
 
@@ -407,8 +399,8 @@ function draw_group(gr, drawData) {
     var infoColor = pl_colors.infoNormal;
     var dateColor = pl_colors.dateNormal;
     var lineColor = pl_colors.lineNormal;
-    var dateFont = properties.useCompactGroupHeader ? pl_fonts.dateCompact : pl_fonts.date;
-    var artistFont = properties.useCompactGroupHeader ? pl_fonts.artistCompactNormal : pl_fonts.artistNormal;
+    var dateFont = g_properties.useCompactGroupHeader ? pl_fonts.dateCompact : pl_fonts.date;
+    var artistFont = g_properties.useCompactGroupHeader ? pl_fonts.artistCompactNormal : pl_fonts.artistNormal;
 
     if (IsGroupPlaying(groupNr, playingID)) {
         artistColor = pl_colors.artistPlaying;
@@ -417,7 +409,7 @@ function draw_group(gr, drawData) {
         dateColor = pl_colors.datePlaying;
         lineColor = pl_colors.linePlaying;
 
-        artistFont = properties.useCompactGroupHeader ? pl_fonts.artistCompactPlaying : pl_fonts.artistPlaying;
+        artistFont = g_properties.useCompactGroupHeader ? pl_fonts.artistCompactPlaying : pl_fonts.artistPlaying;
     }
     if (selectedGroup) {
         lineColor = pl_colors.lineSelected;
@@ -428,20 +420,20 @@ function draw_group(gr, drawData) {
 
     if (groupNr != drawData.tempGroupNr) {
         //var clipY = rowY + 1;
-        //var clipH = drawData.visibleGroupRows[groupNr].count * properties.rowH - 1;
-        var clipY = rowY + 1 - ((ID.rowNr - 1) * properties.rowH);
-        var clipH = curRowsInGroup * properties.rowH - 1;
+        //var clipH = drawData.visibleGroupRows[groupNr].count * g_properties.rowH - 1;
+        var clipY = rowY + 1 - ((ID.rowNr - 1) * g_properties.rowH);
+        var clipH = curRowsInGroup * g_properties.rowH - 1;
         var clipImg = gdi.CreateImage(pl_s.listW, clipH);
         var g = clipImg.GetGraphics();
 
         gr.FillSolidRect(rowX, clipY - 1, rowW, clipH + 1, pl_colors.background);
 
         var groupY;
-        //(i == 0 && ID.rowNr > 1) ? groupY = -((ID.rowNr - 1) * properties.rowH) : groupY = -1;
+        //(i == 0 && ID.rowNr > 1) ? groupY = -((ID.rowNr - 1) * g_properties.rowH) : groupY = -1;
         groupY = -1;
-        var groupH = curRowsInGroup * properties.rowH;
+        var groupH = curRowsInGroup * g_properties.rowH;
 
-        if (properties.useCompactGroupHeader) {
+        if (g_properties.useCompactGroupHeader) {
             //--->
             g.FillSolidRect(0, groupY, rowW, groupH, pl_colors.background); // Solid background for ClearTypeGridFit text rendering
             if (selectedGroup) {
@@ -471,7 +463,7 @@ function draw_group(gr, drawData) {
             var dateY = groupY;
             var dateH = groupH;
 
-            if (properties.groupedID) {
+            if (g_properties.groupedID) {
                 (dateX > leftPad) && g.DrawString(date, dateFont, dateColor, dateX, dateY, dateW, dateH, StringFormat(0, 1));
             }
             //---> ARTIST
@@ -490,7 +482,7 @@ function draw_group(gr, drawData) {
             var artistStringW = Math.ceil(gr.MeasureString(artist, artistFont, 0, 0, 0, 0).Width);
 
             //---> ALBUM
-            if (properties.groupedID) {
+            if (g_properties.groupedID) {
                 var albumX = artistX + artistStringW;
                 var albumW = dateX - leftPad - artistStringW - 5;
                 if (albumW > 0) {
@@ -509,9 +501,9 @@ function draw_group(gr, drawData) {
         else {
             var art = artArray[ID.groupNr];
             var p = 6,
-                artX = (properties.showAlbumArt && (properties.autoAlbumArt ? art !== null : true)) ? p : 0,
+                artX = (g_properties.showAlbumArt && (g_properties.autoAlbumArt ? art !== null : true)) ? p : 0,
                 artY = groupY + p,
-                artW = (properties.showAlbumArt && (properties.autoAlbumArt ? art !== null : true)) ? groupH - p * 2 : 0,
+                artW = (g_properties.showAlbumArt && (g_properties.autoAlbumArt ? art !== null : true)) ? groupH - p * 2 : 0,
                 artH = groupH - p * 2;
 
             //--->
@@ -528,12 +520,12 @@ function draw_group(gr, drawData) {
 
             //************************************************************//
 
-            if (properties.showAlbumArt) {
+            if (g_properties.showAlbumArt) {
                 if (art) {
                     g.DrawImage(art, artX + 2, artY + 2, artW - 4, artH - 4, 0, 0, art.Width, art.Height, 0, artAlpha);
 
                 }
-                else if (!properties.autoAlbumArt) {
+                else if (!g_properties.autoAlbumArt) {
                     if (art === null) {
                         g.DrawString("NO COVER", pl_fonts.cover, _.RGB(100, 100, 100), artX, artY, artW, artH, StringFormat(1, 1));
                     }
@@ -546,7 +538,7 @@ function draw_group(gr, drawData) {
             }
 
             //************************************************************//
-            var divGroupH = (!properties.showGroupInfo) ? groupH / 2 : groupH / 3;
+            var divGroupH = (!g_properties.showGroupInfo) ? groupH / 2 : groupH / 3;
 
             var leftPad = artX + artW + 10;
             var path = _.tf("%path%", metadb);
@@ -563,12 +555,12 @@ function draw_group(gr, drawData) {
             var dateY = groupY;
             var dateH = groupH;
 
-            if (properties.groupedID) {
+            if (g_properties.groupedID) {
                 (dateX > leftPad) && g.DrawString(date, dateFont, dateColor, dateX, dateY, dateW, dateH, StringFormat(0, 1));
             }
             //---> ARTIST
             var artistX = leftPad;
-            if (properties.showGroupInfo) {
+            if (g_properties.showGroupInfo) {
                 artistW = rowW - artistX;
                 artistH = divGroupH;
             }
@@ -590,7 +582,7 @@ function draw_group(gr, drawData) {
             var albumH = divGroupH;
             var albumY = groupY + divGroupH;
 
-            if (!properties.showGroupInfo) {
+            if (!g_properties.showGroupInfo) {
                 albumY += 5;
             }
 
@@ -598,25 +590,25 @@ function draw_group(gr, drawData) {
             if (album === "?" && radio) {
                 album = "";
             }
-            if (properties.groupedID) {
-                g.DrawString(album, pl_fonts.album, albumColor, albumX, albumY, albumW, albumH, StringFormat(0, properties.showGroupInfo ? 1 : 0, 3, 0x1000));
+            if (g_properties.groupedID) {
+                g.DrawString(album, pl_fonts.album, albumColor, albumX, albumY, albumW, albumH, StringFormat(0, g_properties.showGroupInfo ? 1 : 0, 3, 0x1000));
             }
 
             var albumStringW = gr.MeasureString(album, pl_fonts.album, 0, 0, 0, 0).Width;
 
-            var lineX1 = (properties.groupedID ? leftPad + albumStringW + 10 : leftPad);
+            var lineX1 = (g_properties.groupedID ? leftPad + albumStringW + 10 : leftPad);
             var lineY = albumY + albumH / 2 + 1;
 
-            if (!properties.showGroupInfo) {
+            if (!g_properties.showGroupInfo) {
                 lineX1 = leftPad;
                 lineY = groupY + groupH / 2 + 1;
             }
-            var lineX2 = (properties.groupedID ? dateX - 10 : rowW - rowX + 10);
+            var lineX2 = (g_properties.groupedID ? dateX - 10 : rowW - rowX + 10);
 
             (lineX2 - lineX1 > 0) && g.DrawLine(lineX1, lineY, lineX2, lineY, 1, lineColor);
 
             //---> INFO
-            if (properties.showGroupInfo) {
+            if (g_properties.showGroupInfo) {
                 var infoX = leftPad;
                 var infoY = groupY + artistH + albumH;
                 var infoH = rowH;
@@ -649,8 +641,8 @@ function draw_group(gr, drawData) {
                     codec = (_.startsWith(path, 'www.youtube.com') || _.startsWith(path, 'youtube.com')) ? "yt" : path;
                 }
                 var iCount = itemCountInGroup[ID.groupNr];
-                var genre = radio ? "" : (properties.groupedID ? "%genre% | " : "");
-                var discNumber = (properties.groupedID === 2 && _.tf("[%totaldiscs%]", metadb) !== "1") ? _.tf("[ | Disc: %discnumber%/%totaldiscs%]", metadb) : "";
+                var genre = radio ? "" : (g_properties.groupedID ? "%genre% | " : "");
+                var discNumber = (g_properties.groupedID === 2 && _.tf("[%totaldiscs%]", metadb) !== "1") ? _.tf("[ | Disc: %discnumber%/%totaldiscs%]", metadb) : "";
                 var info = _.tf(codec + discNumber + "[ | %replaygain_album_gain%]", metadb) + (radio ? "" : " | " + iCount + (iCount == 1 ? " Track" : " Tracks") + " | Time: " + calculateGroupLength(firstItem[groupNr], lastItem[groupNr]));
                 g.DrawString(info, pl_fonts.info, infoColor, infoX, infoY, infoW, infoH, StringFormat(0, 0, 3, 0x1000));
 
@@ -695,7 +687,7 @@ function draw_row(gr, drawData) {
         selectedID = ID.nr;
     }
 
-    if (ID.isOdd && properties.alternateRowColor) {
+    if (ID.isOdd && g_properties.alternateRowColor) {
         //gr.FillSolidRect(rowX, rowY, rowW, rowH - 1, pl_colors.rowAlternate);
         gr.FillSolidRect(rowX, rowY + 1, rowW, rowH - 1, pl_colors.rowAlternate);
     }
@@ -707,7 +699,7 @@ function draw_row(gr, drawData) {
     var titleArtistColor = pl_colors.titleSelected;
 
     if (selectedID == ID.nr) {
-        if (properties.alternateRowColor) {
+        if (g_properties.alternateRowColor) {
             //gr.DrawRect(rowX, rowY - 1, rowW - 1, rowH, 1, pl_colors.rowFocusSelected);
             if (pl_s.listIsScrolledDown && idx === (pl_s.rowsToDraw - 1)) {
                 // last item is cropped
@@ -736,7 +728,7 @@ function draw_row(gr, drawData) {
     }
 
     //--->
-    if (properties.showFocusItem && panelFocus && focusID == ID.nr) {
+    if (g_properties.showFocusItem && panelFocus && focusID == ID.nr) {
         //gr.DrawRect(rowX + 1, rowY, rowW - 3, rowH - 2, 1, rowColorFocus);
         if (pl_s.listIsScrolledDown && idx === (pl_s.rowsToDraw - 1)) {
             // last item is cropped
@@ -763,12 +755,12 @@ function draw_row(gr, drawData) {
     var length = _.tf("[%length%]", metadb);
     var lengthWidth = length ? 50 : 0;
     var playCountWidth = 0;
-    if (playCount != 0 && properties.showPlayCount) {
+    if (playCount != 0 && g_properties.showPlayCount) {
         playCount = playCount + " |";
         playCountWidth = gr.MeasureString(playCount, pl_fonts.playCount, 0, 0, 0, 0).Width;
     }
     var ratingW = 0;
-    if (componentPlayCount && properties.showRating) {
+    if (componentPlayCount && g_properties.showRating) {
         ratingW = pl_s.listW - ratingBtnX + 16;
     }
 
@@ -776,7 +768,7 @@ function draw_row(gr, drawData) {
     var queueContents = plman.GetPlaybackQueueContents().toArray();
     var isPlaylistItemQueued;
 
-    if (properties.showQueueItem && queueContents.length) {
+    if (g_properties.showQueueItem && queueContents.length) {
         var queueIndex = plman.FindPlaybackQueueItemIndex(metadb, activeList, ID.nr);
 
         queueContents.forEach(function (item) {
@@ -802,7 +794,7 @@ function draw_row(gr, drawData) {
     }
 
     var queue = '';
-    if ((properties.showQueueItem && queueContents.length && queueIndex != -1)) {
+    if ((g_properties.showQueueItem && queueContents.length && queueIndex != -1)) {
         queue = '  [' + (queueIndex + 1) + ']';
         if (drawData.queueIndexCount[queueIndex] > 1) {
             queue += '*' + drawData.queueIndexCount[queueIndex];
@@ -832,7 +824,7 @@ function draw_row(gr, drawData) {
     testRect && gr.DrawRect(lengthX, rowY - 1, lengthWidth, rowH, 1, _.RGBA(155, 155, 255, 250));
 
     //---> COUNT
-    if (componentPlayCount && playCount != 0 && properties.showPlayCount) {
+    if (componentPlayCount && playCount != 0 && g_properties.showPlayCount) {
         var countX = rowX + rowW - lengthWidth - playCountWidth - ratingW;
         gr.DrawString(playCount, pl_fonts.playCount, countColor, countX, rowY, playCountWidth, rowH, StringFormat(1, 1));
         testRect && gr.DrawRect(countX, rowY - 1, playCountWidth, rowH, 1, _.RGBA(155, 155, 255, 250));
@@ -840,7 +832,7 @@ function draw_row(gr, drawData) {
 
     //---> RATING
     var rating;
-    if (properties.useTagRating) {
+    if (g_properties.useTagRating) {
         var fileInfo = metadb.GetFileInfo();
         rating = fileInfo.MetaValue(fileInfo.MetaFind("rating"), 0);
     }
@@ -848,7 +840,7 @@ function draw_row(gr, drawData) {
         rating = _.tf("%rating%", metadb);
     }
 
-    if (componentPlayCount && properties.showRating) {
+    if (componentPlayCount && g_properties.showRating) {
         for (var j = 0; j < 5; j++) {
             var curRatingX = ratingBtnX + j * ratingBtnW - ratingBtnRightPad;
 
@@ -886,8 +878,8 @@ function draw_playlist_info(gr) {
     gr.FillSolidRect(0, 0, ww, listInfoHeight, panelsFrontColor);
     gr.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
     if (isLocked) {
-        var sbarX = ww - properties.scrollbarW - properties.sbarRightMargin;
-        gr.DrawString("\uF023", gdi.font("FontAwesome", 12, 0), _.RGB(150, 152, 154), sbarX + Math.round((properties.scrollbarW - 7) / 2), 0, 8, listInfoHeight, StringFormat(1, 1));
+        var sbarX = ww - g_properties.scrollbarW - g_properties.sbarRightMargin;
+        gr.DrawString("\uF023", gdi.font("FontAwesome", 12, 0), _.RGB(150, 152, 154), sbarX + Math.round((g_properties.scrollbarW - 7) / 2), 0, 8, listInfoHeight, StringFormat(1, 1));
     }
 
     var lengthText = pl_s.selectionLength === "Stream" ? "Stream" : "Length: " + pl_s.selectionLength;
@@ -1023,7 +1015,7 @@ function on_mouse_move(x, y, m) {
         // }
     }
 
-    if ((pl_s.rowDrag || pl_s.fileDrag) && (y > (rows[pl_s.rowsToDraw - 1].y + pl_s.curPixelShift + properties.rowH)) && !pl_s.linkToLastItem && ((pl_s.needsScrollbar && pl_s.listIsScrolledDown) || !pl_s.needsScrollbar)) {
+    if ((pl_s.rowDrag || pl_s.fileDrag) && (y > (rows[pl_s.rowsToDraw - 1].y + pl_s.curPixelShift + g_properties.rowH)) && !pl_s.linkToLastItem && ((pl_s.needsScrollbar && pl_s.listIsScrolledDown) || !pl_s.needsScrollbar)) {
         pl_s.linkToLastItem = true;
         rows[pl_s.rowsToDraw - 1].repaint();
     }
@@ -1094,7 +1086,7 @@ function on_mouse_lbtn_down_header(groupNr) {
             selectedIndexes = [];
         }
 
-        if (properties.autoExpandCollapseGroups) {
+        if (g_properties.autoExpandCollapseGroups) {
             if (selectedIndexes.length == 0) {
                 CollapseExpandPlayingGroup();
             }
@@ -1258,7 +1250,7 @@ function on_mouse_lbtn_dblclk(x, y, m) {
         var metadb = thisID.metadb;
 
         var currentRating;
-        if (properties.useTagRating) {
+        if (g_properties.useTagRating) {
             var fileInfo = metadb.GetFileInfo();
             currentRating = fileInfo.MetaValue(fileInfo.MetaFind("rating"), 0);
         }
@@ -1268,7 +1260,7 @@ function on_mouse_lbtn_dblclk(x, y, m) {
 
         var rate = thisRowBtnNr + 1;
 
-        if (properties.useTagRating) {
+        if (g_properties.useTagRating) {
             if (!metadb.Raw_.startsWith(path, "http://")) {
                 (currentRating == 1 && rate == 1) ? metadb.UpdateFileInfoSimple("RATING", undefined) : metadb.UpdateFileInfoSimple("RATING", rate);
             }
@@ -1309,7 +1301,7 @@ function on_mouse_lbtn_up(x, y, m) {
         }
     }
 
-    if (properties.showPlaylistInfo) {
+    if (g_properties.showPlaylistInfo) {
         if ((0 <= x) && (x <= ww) && (0 <= y) && (y <= listInfoHeight)) {
             PlaylistMenu(x, y);
             return;
@@ -1494,7 +1486,7 @@ function on_mouse_rbtn_up(x, y) {
         return scrollbar.rbtn_up(x, y);
     }
 
-    var inPlaylistInfo = properties.showPlaylistInfo && (0 <= x) && (x <= ww) && (0 <= y) && (y <= listInfoHeight);
+    var inPlaylistInfo = g_properties.showPlaylistInfo && (0 <= x) && (x <= ww) && (0 <= y) && (y <= listInfoHeight);
 
     var metadb = utils.IsKeyPressed(VK_CONTROL) ? (fb.IsPlaying ? fb.GetNowPlaying() : fb.GetFocusItem()) : fb.GetFocusItem();
 
@@ -1559,9 +1551,9 @@ function on_mouse_rbtn_up(x, y) {
             ce.AppendMenuItem(MF_STRING, 22, "Expand all");
             ce.AppendMenuSeparator();
             ce.AppendMenuItem(MF_STRING, 23, "Auto");
-            ce.CheckMenuItem(23, properties.autoExpandCollapseGroups);
+            ce.CheckMenuItem(23, g_properties.autoExpandCollapseGroups);
             ce.AppendMenuItem(MF_STRING, 24, "Collapse on start");
-            ce.CheckMenuItem(24, properties.collapseOnStart);
+            ce.CheckMenuItem(24, g_properties.collapseOnStart);
             ce.AppendTo(cpm, MF_STRING, "Collapse/Expand");
 
         }
@@ -1569,48 +1561,48 @@ function on_mouse_rbtn_up(x, y) {
         //---> Skip track
 
         skip.AppendMenuItem(MF_STRING, 25, "Enable");
-        skip.CheckMenuItem(25, properties.enableSkip);
+        skip.CheckMenuItem(25, g_properties.enableSkip);
         skip.AppendMenuSeparator();
-        skip.AppendMenuItem(properties.enableSkip ? MF_STRING : MF_GRAYED, 26, "Rated less than 2");
-        skip.AppendMenuItem(properties.enableSkip ? MF_STRING : MF_GRAYED, 27, "Rated less than 3");
-        skip.AppendMenuItem(properties.enableSkip ? MF_STRING : MF_GRAYED, 28, "Rated less than 4");
-        skip.AppendMenuItem(properties.enableSkip ? MF_STRING : MF_GRAYED, 29, "Rated less than 5");
+        skip.AppendMenuItem(g_properties.enableSkip ? MF_STRING : MF_GRAYED, 26, "Rated less than 2");
+        skip.AppendMenuItem(g_properties.enableSkip ? MF_STRING : MF_GRAYED, 27, "Rated less than 3");
+        skip.AppendMenuItem(g_properties.enableSkip ? MF_STRING : MF_GRAYED, 28, "Rated less than 4");
+        skip.AppendMenuItem(g_properties.enableSkip ? MF_STRING : MF_GRAYED, 29, "Rated less than 5");
         skip.AppendTo(cpm, MF_STRING, "Skip");
-        skip.CheckMenuRadioItem(26, 29, 24 + properties.skipLessThan);
+        skip.CheckMenuRadioItem(26, 29, 24 + g_properties.skipLessThan);
         // -------------------------------------------------------------- //
         //---> Appearance
 
         appear.AppendTo(cpm, MF_STRING, "Appearance");
-        if (!properties.useCompactGroupHeader) {
+        if (!g_properties.useCompactGroupHeader) {
             appear.AppendMenuItem(MF_STRING, 31, "Show group info");
-            appear.CheckMenuItem(31, properties.showGroupInfo);
+            appear.CheckMenuItem(31, g_properties.showGroupInfo);
         }
         appear.AppendMenuItem(componentPlayCount ? MF_STRING : MF_GRAYED, 32, "Show play count");
-        appear.CheckMenuItem(32, properties.showPlayCount);
+        appear.CheckMenuItem(32, g_properties.showPlayCount);
         appear.AppendMenuItem(componentPlayCount ? MF_STRING : MF_GRAYED, 33, "Show rating");
-        appear.CheckMenuItem(33, properties.showRating);
+        appear.CheckMenuItem(33, g_properties.showRating);
         appear.AppendMenuItem(MF_STRING, 34, "Show focus item");
-        appear.CheckMenuItem(34, properties.showFocusItem);
+        appear.CheckMenuItem(34, g_properties.showFocusItem);
         appear.AppendMenuItem(MF_STRING, 35, "Show queue item");
-        appear.CheckMenuItem(35, properties.showQueueItem);
+        appear.CheckMenuItem(35, g_properties.showQueueItem);
         appear.AppendMenuItem(MF_STRING, 36, "Alternate row color");
-        appear.CheckMenuItem(36, properties.alternateRowColor);
+        appear.CheckMenuItem(36, g_properties.alternateRowColor);
         appear.AppendMenuItem(MF_STRING, 37, "Show scrollbar");
-        appear.CheckMenuItem(37, properties.showScrollbar);
+        appear.CheckMenuItem(37, g_properties.showScrollbar);
         appear.AppendMenuItem(MF_STRING, 39, "Show playlist info");
-        appear.CheckMenuItem(39, properties.showPlaylistInfo);
+        appear.CheckMenuItem(39, g_properties.showPlaylistInfo);
         appear.AppendMenuItem(MF_STRING, 40, "Show group header");
-        appear.CheckMenuItem(40, properties.showGroupHeader);
-        if (properties.showGroupHeader) {
+        appear.CheckMenuItem(40, g_properties.showGroupHeader);
+        if (g_properties.showGroupHeader) {
             appear.AppendMenuItem(MF_STRING, 41, "Use compact group header");
-            appear.CheckMenuItem(41, properties.useCompactGroupHeader);
+            appear.CheckMenuItem(41, g_properties.useCompactGroupHeader);
         }
-        if (!properties.useCompactGroupHeader) {
+        if (!g_properties.useCompactGroupHeader) {
             art.AppendTo(appear, MF_STRING, "Album art");
             art.AppendMenuItem(MF_STRING, 42, "Show");
-            art.CheckMenuItem(42, properties.showAlbumArt);
-            art.AppendMenuItem(properties.showAlbumArt ? MF_STRING : MF_GRAYED, 43, "Auto");
-            art.CheckMenuItem(43, properties.autoAlbumArt);
+            art.CheckMenuItem(42, g_properties.showAlbumArt);
+            art.AppendMenuItem(g_properties.showAlbumArt ? MF_STRING : MF_GRAYED, 43, "Auto");
+            art.CheckMenuItem(43, g_properties.autoAlbumArt);
         }
 
         // -------------------------------------------------------------- //
@@ -1623,8 +1615,8 @@ function on_mouse_rbtn_up(x, y) {
         group.AppendMenuItem(MF_STRING, 54, "by date");
         group.AppendMenuItem(MF_STRING, 55, "by user defined");
 
-        if (properties.groupedID !== undefined) {
-            group.CheckMenuRadioItem(50, 55, 50 + properties.groupedID);
+        if (g_properties.groupedID !== undefined) {
+            group.CheckMenuRadioItem(50, 55, 50 + g_properties.groupedID);
         }
         // -------------------------------------------------------------- //
         // Selection
@@ -1735,146 +1727,116 @@ function on_mouse_rbtn_up(x, y) {
             }
             break;
         case 23:
-            properties.autoExpandCollapseGroups = !properties.autoExpandCollapseGroups;
-            window.SetProperty("user.Auto Expand/Collapse Groups", properties.autoExpandCollapseGroups);
-            properties.autoExpandCollapseGroups && CollapseExpandPlayingGroup();
+            g_properties.autoExpandCollapseGroups = !g_properties.autoExpandCollapseGroups;
+            g_properties.autoExpandCollapseGroups && CollapseExpandPlayingGroup();
             break;
         case 24:
-            properties.collapseOnStart = !properties.collapseOnStart;
-            window.SetProperty("user.Collapse On Start", properties.collapseOnStart);
+            g_properties.collapseOnStart = !g_properties.collapseOnStart;
             break;
         // -------------------------------------------------------------- //
         case 25:
-            properties.enableSkip = !properties.enableSkip;
-            window.SetProperty("user.Skip Enable", properties.enableSkip);
+            g_properties.enableSkip = !g_properties.enableSkip;
             break;
         case 26:
-            properties.skipLessThan = 2;
-            window.SetProperty("user.Skip Less Than", properties.skipLessThan);
+            g_properties.skipLessThan = 2;
             break;
         case 27:
-            properties.skipLessThan = 3;
-            window.SetProperty("user.Skip Less Than", properties.skipLessThan);
+            g_properties.skipLessThan = 3;
             break;
         case 28:
-            properties.skipLessThan = 4;
-            window.SetProperty("user.Skip Less Than", properties.skipLessThan);
+            g_properties.skipLessThan = 4;
             break;
         case 29:
-            properties.skipLessThan = 5;
-            window.SetProperty("user.Skip Less Than", properties.skipLessThan);
+            g_properties.skipLessThan = 5;
             break;
         // -------------------------------------------------------------- //
         //---> Appearance
         case 31:
-            properties.showGroupInfo = !properties.showGroupInfo;
-            window.SetProperty("user.Show Group Info", properties.showGroupInfo);
+            g_properties.showGroupInfo = !g_properties.showGroupInfo;
             repaintList();
             break;
         case 32:
-            properties.showPlayCount = !properties.showPlayCount;
-            window.SetProperty("user.Show Play Count", properties.showPlayCount);
+            g_properties.showPlayCount = !g_properties.showPlayCount;
             repaintList();
             break;
         case 33:
-            properties.showRating = !properties.showRating;
-            window.SetProperty("user.Show Rating", properties.showRating);
+            g_properties.showRating = !g_properties.showRating;
             repaintList();
             break;
         case 34:
-            properties.showFocusItem = !properties.showFocusItem;
-            window.SetProperty("user.Show Focus Item", properties.showFocusItem);
+            g_properties.showFocusItem = !g_properties.showFocusItem;
             repaintList();
             break;
         case 35:
-            properties.showQueueItem = !properties.showQueueItem;
-            window.SetProperty("user.Show Queue Item", properties.showQueueItem);
+            g_properties.showQueueItem = !g_properties.showQueueItem;
             repaintList();
             break;
         case 36:
-            properties.alternateRowColor = !properties.alternateRowColor;
-            window.SetProperty("user.Alternate Row Color", properties.alternateRowColor);
+            g_properties.alternateRowColor = !g_properties.alternateRowColor;
             repaintList();
             break;
         case 37:
-            properties.showScrollbar = !properties.showScrollbar;
-            window.SetProperty("user.Show Scrollbar", properties.showScrollbar);
+            g_properties.showScrollbar = !g_properties.showScrollbar;
             on_size();
             window.Repaint();
             break;
         case 39:
-            properties.showPlaylistInfo = !properties.showPlaylistInfo;
-            window.SetProperty("user.Show Playlist Info", properties.showPlaylistInfo);
-            if (properties.showPlaylistInfo) {
+            g_properties.showPlaylistInfo = !g_properties.showPlaylistInfo;
+            if (g_properties.showPlaylistInfo) {
                 initList();
             }
             on_size();
             window.Repaint();
             break;
         case 40:
-            properties.showGroupHeader = !properties.showGroupHeader;
-            window.SetProperty("user.Show Group Header", properties.showGroupHeader);
+            g_properties.showGroupHeader = !g_properties.showGroupHeader;
             initList();
             break;
         case 41:
-            properties.useCompactGroupHeader = !properties.useCompactGroupHeader;
-            window.SetProperty("user.Use Compact Group Header", properties.useCompactGroupHeader);
-            curRowsInGroup = properties.useCompactGroupHeader ? properties.rowsInCompactGroup : properties.rowsInGroup;
+            g_properties.useCompactGroupHeader = !g_properties.useCompactGroupHeader;
+            curRowsInGroup = g_properties.useCompactGroupHeader ? g_properties.rowsInCompactGroup : g_properties.rowsInGroup;
             initList();
             break;
         case 42:
-            properties.showAlbumArt = !properties.showAlbumArt;
-            window.SetProperty("user.Show Album Art", properties.showAlbumArt);
-            properties.showAlbumArt && getAlbumArt();
+            g_properties.showAlbumArt = !g_properties.showAlbumArt;
+            g_properties.showAlbumArt && getAlbumArt();
             repaintList();
             break;
         case 43:
-            properties.autoAlbumArt = !properties.autoAlbumArt;
-            window.SetProperty("user.Auto Album Art", properties.autoAlbumArt);
-            properties.showAlbumArt && getAlbumArt();
+            g_properties.autoAlbumArt = !g_properties.autoAlbumArt;
+            g_properties.showAlbumArt && getAlbumArt();
             repaintList();
             break;
         // -------------------------------------------------------------- //
         // Grouping
         case 50:
-            properties.groupFormat = gArtist;
-            window.SetProperty("system.GroupBy", properties.groupFormat);
-            properties.groupedID = 0;
+            g_properties.groupFormat = gArtist;
+            g_properties.groupedID = 0;
             initList();
             break;
         case 51:
-            properties.groupFormat = gArtistAlbum;
-            window.SetProperty("system.GroupBy", properties.groupFormat);
-            properties.groupedID = 1;
-            window.SetProperty("system.properties.groupedID", properties.groupedID);
+            g_properties.groupFormat = gArtistAlbum;
+            g_properties.groupedID = 1;
             initList();
             break;
         case 52:
-            properties.groupFormat = gArtistAlbumDiscnumber;
-            window.SetProperty("system.GroupBy", properties.groupFormat);
-            properties.groupedID = 2;
-            window.SetProperty("system.properties.groupedID", properties.groupedID);
+            g_properties.groupFormat = gArtistAlbumDiscnumber;
+            g_properties.groupedID = 2;
             initList();
             break;
         case 53:
-            properties.groupFormat = gPath;
-            window.SetProperty("system.GroupBy", properties.groupFormat);
-            properties.groupedID = 3;
-            window.SetProperty("system.properties.groupedID", properties.groupedID);
+            g_properties.groupFormat = gPath;
+            g_properties.groupedID = 3;
             initList();
             break;
         case 54:
-            properties.groupFormat = gDate;
-            window.SetProperty("system.GroupBy", properties.groupFormat);
-            properties.groupedID = 4;
-            window.SetProperty("system.properties.groupedID", properties.groupedID);
+            g_properties.groupFormat = gDate;
+            g_properties.groupedID = 4;
             initList();
             break;
         case 55:
-            properties.groupFormat = properties.gUserDefined;
-            window.SetProperty("system.GroupBy", properties.groupFormat);
-            properties.groupedID = 5;
-            window.SetProperty("system.properties.groupedID", properties.groupedID);
+            g_properties.groupFormat = g_properties.gUserDefined;
+            g_properties.groupedID = 5;
             initList();
             break;
         // -------------------------------------------------------------- //
@@ -2039,7 +2001,7 @@ function on_mouse_leave() {
 function on_playlist_switch() {
     trace_call && fb.trace(qwr_utils.function_name());
     initList();
-    if (!showNowPlayingCalled && properties.autoExpandCollapseGroups && properties.autoCollapseOnPlaylistSwitch) {
+    if (!showNowPlayingCalled && g_properties.autoExpandCollapseGroups && g_properties.autoCollapseOnPlaylistSwitch) {
         CollapseExpandList("collapse");
     }
 
@@ -2129,7 +2091,7 @@ function on_playlist_items_selection_change() {
         });
     }
 
-    if (properties.showPlaylistInfo) {
+    if (g_properties.showPlaylistInfo) {
         if (selectedIndexes.length > 0) {
             pl_s.selectionLength = calculateSelectionLength();
         }
@@ -2147,7 +2109,7 @@ function on_metadb_changed(handles, fromhook) {
     trace_call && fb.trace(qwr_utils.function_name());
 
     if (handles.Count > 0) {
-        if (properties.showPlaylistInfo) {
+        if (g_properties.showPlaylistInfo) {
             if (selectedIndexes.length > 0) {
                 pl_s.selectionLength = calculateSelectionLength();
             }
@@ -2277,7 +2239,7 @@ function on_playback_new_track(metadb) {
 
     var playingID = plman.GetPlayingItemLocation().PlaylistItemIndex;
     var rating;
-    if (properties.useTagRating) {
+    if (g_properties.useTagRating) {
         var fileInfo = metadb.GetFileInfo();
         rating = fileInfo.MetaValue(fileInfo.MetaFind("rating"), 0);
     }
@@ -2296,7 +2258,7 @@ function on_playback_new_track(metadb) {
     }
     else {
         //----------------------->
-        if (properties.enableSkip && rating && rating < properties.skipLessThan) {
+        if (g_properties.enableSkip && rating && rating < g_properties.skipLessThan) {
             if (oldPlayingID < playingID) {
                 fb.Next();
             }
@@ -2311,7 +2273,7 @@ function on_playback_new_track(metadb) {
         if (album != tempAlbumOnPlaybackNewTrack || plman.ActivePlaylist == plman.PlayingPlaylist) {
             tempAlbumOnPlaybackNewTrack = album;
 
-            if (properties.autoExpandCollapseGroups) {
+            if (g_properties.autoExpandCollapseGroups) {
                 CollapseExpandPlayingGroup();
             }
         }
@@ -2568,7 +2530,7 @@ function on_drag_enter(action, x, y, mask) {
 
     pl_s.itemDropped = false;
 
-    if (pl_s.listLength && (y > (rows[pl_s.rowsToDraw - 1].y + properties.rowH)) && !pl_s.linkToLastItem && ((pl_s.needsScrollbar && pl_s.listIsScrolledDown) || !pl_s.needsScrollbar)) {
+    if (pl_s.listLength && (y > (rows[pl_s.rowsToDraw - 1].y + g_properties.rowH)) && !pl_s.linkToLastItem && ((pl_s.needsScrollbar && pl_s.listIsScrolledDown) || !pl_s.needsScrollbar)) {
         pl_s.linkToLastItem = true;
         rows[pl_s.rowsToDraw - 1].repaint();
 
@@ -2659,7 +2621,7 @@ function on_notify_data(name, info) {
 
 
 function getAlbumArt() {
-    if (!properties.showAlbumArt) {
+    if (!g_properties.showAlbumArt) {
         return;
     }
 
@@ -2685,7 +2647,7 @@ function getAlbumArt() {
 }
 
 
-var artSize = properties.rowsInGroup * properties.rowH;
+var artSize = g_properties.rowsInGroup * g_properties.rowH;
 
 function on_get_album_art_done(metadb, art_id, image, image_path) {
     trace_call && fb.trace(qwr_utils.function_name());
@@ -2967,15 +2929,15 @@ function displayFocusItem(prevFocusID, focusID) {
         }
         else if (ID && focusID == ID.nr) {
             var rowY = rows[i].y + pl_s.curPixelShift;
-            if (rowY >= pl_s.listY && rowY + properties.rowH <= pl_s.listY + pl_s.listH) {
+            if (rowY >= pl_s.listY && rowY + g_properties.rowH <= pl_s.listY + pl_s.listH) {
                 ID.isChanged = true;
                 repaintList();
                 return;
             }
-            else if (rowY < pl_s.listY && rowY + properties.rowH > pl_s.listY) {
+            else if (rowY < pl_s.listY && rowY + g_properties.rowH > pl_s.listY) {
                 partialState = 1;
             }
-            else if (rowY < pl_s.listY + pl_s.listH && rowY + properties.rowH > pl_s.listY + pl_s.listH) {
+            else if (rowY < pl_s.listY + pl_s.listH && rowY + g_properties.rowH > pl_s.listY + pl_s.listH) {
                 partialState = 2;
             }
         }
@@ -3031,7 +2993,7 @@ function showNowPlaying() {
         initList();
     }
 
-    if (properties.autoExpandCollapseGroups && properties.autoCollapseOnPlaylistSwitch) {
+    if (g_properties.autoExpandCollapseGroups && g_properties.autoCollapseOnPlaylistSwitch) {
         CollapseExpandList("collapse");
     }
 
@@ -3121,9 +3083,9 @@ function initList() {
     for (var i = 0; i != playlistItemCount; i++) {
         metadb = getPlaylistItems.Item(i);
 
-        a = _.tf(properties.groupFormat, metadb);
+        a = _.tf(g_properties.groupFormat, metadb);
 
-        if (a != b && properties.showGroupHeader) {
+        if (a != b && g_properties.showGroupHeader) {
             itemNrInGroup = 1;
             for (var groupHeaderRow = 1; groupHeaderRow <= curRowsInGroup; groupHeaderRow++) {
                 var group =
@@ -3202,14 +3164,14 @@ function initList() {
 
         isResizingDone(ww, wh, resizeDone);
 
-        pl_s.listX = properties.listLeftMargin;
-        pl_s.listY = properties.listTopMargin + (properties.showPlaylistInfo ? (listInfoHeight + pssGap) : 0);
-        pl_s.listH = Math.max(0, window.Height - pl_s.listY - properties.listBottomMargin);
-        pl_s.listW = Math.max(100, window.Width - pl_s.listX - properties.listRightMargin);
+        pl_s.listX = g_properties.listLeftMargin;
+        pl_s.listY = g_properties.listTopMargin + (g_properties.showPlaylistInfo ? (listInfoHeight + pssGap) : 0);
+        pl_s.listH = Math.max(0, window.Height - pl_s.listY - g_properties.listBottomMargin);
+        pl_s.listW = Math.max(100, window.Width - pl_s.listX - g_properties.listRightMargin);
 
         pl_s.redrawEverything = true;
 
-        pl_s.windowSizeInRows = Math.min(pl_s.listLength, pl_s.listH / properties.rowH);
+        pl_s.windowSizeInRows = Math.min(pl_s.listLength, pl_s.listH / g_properties.rowH);
         var rowsToDrawFull = Math.floor(pl_s.windowSizeInRows);
 
         if (pl_s.listPos[activeList] + pl_s.windowSizeInRows > pl_s.listLength && pl_s.listLength >= pl_s.windowSizeInRows) {
@@ -3243,7 +3205,7 @@ function initList() {
             rowArrSize = pl_s.rowsToDraw;
         }
 
-        pl_s.isScrollbarDisplayed = pl_s.needsScrollbar && properties.showScrollbar;
+        pl_s.isScrollbarDisplayed = pl_s.needsScrollbar && g_properties.showScrollbar;
 
         pl_s.listIsScrolledUp = (pl_s.listPos[activeList] == 0);
         if (pl_s.needsScrollbar) {
@@ -3256,7 +3218,7 @@ function initList() {
         }
 
         if (pl_s.isScrollbarDisplayed) {
-            pl_s.listW = pl_s.listW - properties.scrollbarW - properties.sbarRightMargin;
+            pl_s.listW = pl_s.listW - g_properties.scrollbarW - g_properties.sbarRightMargin;
         }
 
         //---> Row Object
@@ -3268,8 +3230,8 @@ function initList() {
 
         if (pl_s.listLength) {
             for (var i = 0; i != rowArrSize; i++) {
-                var rowY = pl_s.listY + i * properties.rowH;
-                rows[i] = new Row(pl_s.listX, rowY, pl_s.listW, properties.rowH);
+                var rowY = pl_s.listY + i * g_properties.rowH;
+                rows[i] = new Row(pl_s.listX, rowY, pl_s.listW, g_properties.rowH);
 
             }
             ratingBtnRightPad = 5;
@@ -3278,7 +3240,7 @@ function initList() {
 
                 for (var j = 0; j < 5; j++) {
                     var x = ratingBtnX + j * ratingBtnW - ratingBtnRightPad;
-                    var y = rows[i].y + properties.rowH / 2 - ratingBtnW / 2 - 1;
+                    var y = rows[i].y + g_properties.rowH / 2 - ratingBtnW / 2 - 1;
 
                     rows[i].buttons[j] = new RowButton(x, y, ratingBtnW, ratingBtnW);
                 }
@@ -3288,20 +3250,20 @@ function initList() {
         //---> Scrollbar
 
         if (pl_s.needsScrollbar) {
-            //if ( properties.showScrollbar )
+            //if ( g_properties.showScrollbar )
             //{
-            //  pl_s.listW -= properties.scrollbarW - properties.sbarRightMargin;
+            //  pl_s.listW -= g_properties.scrollbarW - g_properties.sbarRightMargin;
             //}
 
-            var scrollbarX = ww - properties.scrollbarW - properties.sbarRightMargin;
-            var scrollbarY = 3 + properties.listTopMargin + (properties.showPlaylistInfo ? listInfoHeight : 0);
-            var scrollbarH = wh - scrollbarY - properties.listBottomMargin - 6;
+            var scrollbarX = ww - g_properties.scrollbarW - g_properties.sbarRightMargin;
+            var scrollbarY = 3 + g_properties.listTopMargin + (g_properties.showPlaylistInfo ? listInfoHeight : 0);
+            var scrollbarH = wh - scrollbarY - g_properties.listBottomMargin - 6;
 
             if (scrollbar) {
                 scrollbar.reset();
             }
 
-            scrollbar = new _.scrollbar(scrollbarX, scrollbarY, properties.scrollbarW, scrollbarH, properties.rowH, scrollbarRedrawCallback);
+            scrollbar = new _.scrollbar(scrollbarX, scrollbarY, g_properties.scrollbarW, scrollbarH, g_properties.rowH, scrollbarRedrawCallback);
             scrollbar.set_window_param(pl_s.windowSizeInRows, pl_s.listLength);
 
             scrollbar.check_scroll(pl_s.listPos[activeList], true);
@@ -3331,7 +3293,7 @@ function initList() {
 
     plman.SetActivePlaylistContext();
 
-    if (properties.showPlaylistInfo) {
+    if (g_properties.showPlaylistInfo) {
         pl_s.playlistDuration = utils.FormatDuration(getPlaylistItems.CalcTotalDuration());
         if (selectedIndexes) {
             pl_s.selectionLength = calculateSelectionLength();
@@ -3363,7 +3325,7 @@ function getMouseTraceData(x, y, data) {
             data.thisID = list_modded[i + pl_s.curRowShift];
             data.thisRowNr = i;
             //->
-            if (properties.showRating && !data.thisID.isGroupHeader) {
+            if (g_properties.showRating && !data.thisID.isGroupHeader) {
                 var buttons = row.buttons;
 
                 for (var j = 0; j < 5; j++) {
@@ -3543,17 +3505,17 @@ function scrollbarRedrawCallback() {
 function calculateShiftParams() {
     var prevYFullShift = 0;
     if (pl_s.playlistImgYShift !== undefined) {
-        prevYFullShift = pl_s.curRowShift * properties.rowH - pl_s.curPixelShift;
+        prevYFullShift = pl_s.curRowShift * g_properties.rowH - pl_s.curPixelShift;
     }
 
     pl_s.curRowShift = Math.floor(pl_s.listPos[activeList]);
-    pl_s.curPixelShift = -Math.round((pl_s.listPos[activeList] - pl_s.curRowShift) * properties.rowH);
+    pl_s.curPixelShift = -Math.round((pl_s.listPos[activeList] - pl_s.curRowShift) * g_properties.rowH);
 
     if (pl_s.playlistImgYShift === undefined) {
         pl_s.playlistImgYShift = 0;
     }
     else {
-        pl_s.playlistImgYShift = (pl_s.curRowShift * properties.rowH - pl_s.curPixelShift) - prevYFullShift;
+        pl_s.playlistImgYShift = (pl_s.curRowShift * g_properties.rowH - pl_s.curPixelShift) - prevYFullShift;
     }
 }
 
@@ -3587,14 +3549,14 @@ function createScrollbarButtonImages() {
             lineUp:   {
                 ico:  "\uE010",
                 font: fontSegoeUi,
-                w:    properties.scrollbarW,
-                h:    properties.scrollbarW
+                w:    g_properties.scrollbarW,
+                h:    g_properties.scrollbarW
             },
             lineDown: {
                 ico:  "\uE011",
                 font: fontSegoeUi,
-                w:    properties.scrollbarW,
-                h:    properties.scrollbarW
+                w:    g_properties.scrollbarW,
+                h:    g_properties.scrollbarW
             }
         };
 
@@ -3718,11 +3680,11 @@ function Initialize() {
 
     initList();
 
-    if (properties.collapseOnStart) {
+    if (g_properties.collapseOnStart) {
         CollapseExpandList("collapse");
     }
 
-    if (properties.autoExpandCollapseGroups) {
+    if (g_properties.autoExpandCollapseGroups) {
         CollapseExpandPlayingGroup();
     }
 
