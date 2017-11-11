@@ -9,7 +9,6 @@ var trace_on_paint = false;
 var trace_on_move = false;
 
 // TODO: Add item grouping per playlists
-// TODO: implement track skipping on low rating
 // TODO: consider making registration for on_key handlers
 properties_v2.add_properties(
     {
@@ -46,9 +45,7 @@ properties_v2.add_properties(
 
         user_group_query: ['user.header.group.user_defined_query', ''],
 
-        skipLessThan: ['user.playback.skip.min_rating', 2],
-        enableSkip:   ['user.playback.skip', false],
-        useTagRating: ['user.playback.rating_from_tags', false],
+        use_rating_from_tags: ['user.playback.rating_from_tags', false],
 
         group_query:    ['system.header.group.query', '%album artist%%album%%discnumber%'],
         group_query_id: ['system.header.group.id', 3],
@@ -624,7 +621,6 @@ function Playlist(x, y) {
         var sort = window.CreatePopupMenu();
         var lists = window.CreatePopupMenu();
         var send = window.CreatePopupMenu();
-        var skip = window.CreatePopupMenu();
         var art = window.CreatePopupMenu();
         var group = window.CreatePopupMenu();
 
@@ -677,18 +673,6 @@ function Playlist(x, y) {
             ce.CheckMenuItem(24, properties_v2.collapse_on_start.get());
             ce.AppendTo(cpm, MF_STRING, 'Collapse/Expand');
 
-            // -------------------------------------------------------------- //
-            //---> Skip track
-
-            skip.AppendMenuItem(MF_GRAYED, 25, 'Enable (Not yet implemented)');
-            skip.CheckMenuItem(25, properties_v2.enableSkip.get());
-            skip.AppendMenuSeparator();
-            skip.AppendMenuItem(properties_v2.enableSkip.get() ? MF_STRING : MF_GRAYED, 26, 'Rated less than 2');
-            skip.AppendMenuItem(properties_v2.enableSkip.get() ? MF_STRING : MF_GRAYED, 27, 'Rated less than 3');
-            skip.AppendMenuItem(properties_v2.enableSkip.get() ? MF_STRING : MF_GRAYED, 28, 'Rated less than 4');
-            skip.AppendMenuItem(properties_v2.enableSkip.get() ? MF_STRING : MF_GRAYED, 29, 'Rated less than 5');
-            skip.AppendTo(cpm, MF_STRING, 'Skip');
-            skip.CheckMenuRadioItem(26, 29, 24 + properties_v2.skipLessThan.get());
             // -------------------------------------------------------------- //
             //---> Appearance
 
@@ -813,7 +797,7 @@ function Playlist(x, y) {
                 break;
             case 6:
                 this.initialize_list();
-                scroll_to_row(null, focused_item);
+                scroll_to_focused_or_now_playing();
                 break;
             case 8:
                 plman.RemovePlaylistSelection(cur_playlist_idx);
@@ -861,22 +845,6 @@ function Playlist(x, y) {
                 break;
             case 24:
                 properties_v2.collapse_on_start.set(!properties_v2.collapse_on_start.get());
-                break;
-            // -------------------------------------------------------------- //
-            case 25:
-                properties_v2.enableSkip.set(!properties_v2.enableSkip.get());
-                break;
-            case 26:
-                properties_v2.skipLessThan.set(2);
-                break;
-            case 27:
-                properties_v2.skipLessThan.set(3);
-                break;
-            case 28:
-                properties_v2.skipLessThan.set(4);
-                break;
-            case 29:
-                properties_v2.skipLessThan.set(5);
                 break;
             // -------------------------------------------------------------- //
             //---> Appearance
@@ -1082,7 +1050,7 @@ function Playlist(x, y) {
             }
         }
 
-        _.dispose(cpm, ccmm, web, ce, appear, sort, lists, send, art, group);
+        _.dispose(cpm, web, ce, ccmm, appear, appear_row, appear_header, sort, lists, send, art, group);
 
         this.repaint();
         return true;
@@ -2522,7 +2490,7 @@ function Rating(x, y, w, h, metadb) {
         var new_rating = Math.floor((x - this.x) / 14) + 1;
         var current_rating = this.get_rating();
 
-        if (properties_v2.useTagRating.get()) {
+        if (properties_v2.use_rating_from_tags.get()) {
             if (_.startsWith(_.tf('%path%', this.metadb), 'http')) {
                 // TODO: replace with UpdateFileInfoFromJSON
                 throw Error('Internal error:\nRating from tags is not yet implemented, sorry =(');
@@ -2539,7 +2507,7 @@ function Rating(x, y, w, h, metadb) {
     this.get_rating = function () {
         if (_.isUndefined(rating)) {
             var current_rating;
-            if (properties_v2.useTagRating.get()) {
+            if (properties_v2.use_rating_from_tags.get()) {
                 var fileInfo = this.metadb.GetFileInfo();
                 current_rating = fileInfo.MetaValue(fileInfo.MetaFind('rating'), 0);
             }
