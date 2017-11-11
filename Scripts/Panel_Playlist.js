@@ -1900,49 +1900,43 @@ function Playlist(x, y) {
         var to_item_h_in_rows = is_to_header ? header_h_in_rows : 1;
         var to_item_state = get_item_visibility_state(to_item);
 
+
+        var shifted_successfuly = false;
+
         switch (to_item_state.visibility) {
             case visibility_state['not']: {
-                var shifted_successfuly = false;
-
                 if (from_item) {
                     var from_item_state = get_item_visibility_state(from_item);
                     if (from_item_state.visibility !== visibility_state['not']) {
-                        var row_shift = to_item_h_in_rows + from_item_state.invisible_part;
-                        if (from_item.idx === to_item.idx + 1) {
-                            if (to_item.type === "Row" && _.head(from_header.rows).idx === to_row.idx) {
-                                var to_header_state = get_item_visibility_state(to_header);
-                                if (to_header_state.visibility !== visibility_state['not']) {
-                                    row_shift += to_header_state.invisible_part;
-                                }
-                                else {
-                                    row_shift += header_h_in_rows;
-                                }
+                        var is_item_prev = from_item.type === to_item.type && from_item.idx - 1 === to_item.idx
+                            || is_from_header && !is_to_header && from_header.idx - 1 === to_header.idx && to_item.idx === _.last(to_header.rows).idx
+                            || !is_from_header && is_to_header && from_header.idx - 1 === to_header.idx && from_item.idx === _.first(from_header.rows).idx;
+
+                        var is_item_next = from_item.type === to_item.type && from_item.idx + 1 === to_item.idx
+                            || is_from_header && !is_to_header && from_header.idx + 1 === to_header.idx && to_item.idx === _.first(to_header.rows).idx
+                            || !is_from_header && is_to_header && from_header.idx + 1 === to_header.idx && from_item.idx === _.last(from_header.rows).idx;
+
+
+                        var row_shift = from_item_state.invisible_part + to_item_h_in_rows;
+                        if (is_item_prev) {
+                            if (!is_from_header && !is_to_header && to_item.idx === _.last(to_header.rows).idx){
+                                var from_header_state = get_item_visibility_state(from_header);
+                                row_shift += from_header_state.invisible_part;
                             }
                             scrollbar.scroll_to(scroll_pos - row_shift);
                             shifted_successfuly = true;
                         }
-                        else if (from_item.idx === to_item.idx - 1) {
-                            if (to_item.type === "Row" && _.last(from_header.rows).idx === from_row.idx) {
+                        else if (is_item_next) {
+                            if (!is_to_header && to_item.idx === _.first(to_header.rows).idx){
                                 var to_header_state = get_item_visibility_state(to_header);
-                                if (to_header_state.visibility !== visibility_state['not']) {
-                                    row_shift += to_header_state.invisible_part;
-                                }
-                                else {
-                                    row_shift += header_h_in_rows;
-                                }
+                                row_shift += to_header_state.invisible_part;
                             }
+
                             scrollbar.scroll_to(scroll_pos + row_shift);
                             shifted_successfuly = true;
                         }
                     }
                 }
-
-                if (!shifted_successfuly) {
-                    var item_draw_idx = get_item_draw_row_idx(to_item);
-                    var new_scroll_pos = Math.max(0, item_draw_idx - Math.floor(rows_to_draw_precise / 2));
-                    scrollbar.scroll_to(new_scroll_pos);
-                }
-
                 break;
             }
             case visibility_state['partial_top']: {
@@ -1950,6 +1944,7 @@ function Playlist(x, y) {
                     scrollbar.shift_line(-1);
                 }
                 scrollbar.scroll_to(scroll_pos - Math.floor(to_item_state.invisible_part));
+                shifted_successfuly = true;
                 break;
             }
             case visibility_state['partial_bottom']: {
@@ -1957,14 +1952,28 @@ function Playlist(x, y) {
                     scrollbar.shift_line(1);
                 }
                 scrollbar.scroll_to(scroll_pos + Math.floor(to_item_state.invisible_part));
+                shifted_successfuly = true;
                 break;
             }
             case visibility_state['full']: {
+                shifted_successfuly = true;
                 break;
             }
             default: {
                 throw Error('Argument error:\nUnknown visibility state: ' + to_item_state.visibility);
             }
+        }
+
+        if (shifted_successfuly) {
+            if (!is_to_header && to_item.idx === _.first(to_header.rows).idx) {
+                var to_header_state = get_item_visibility_state(to_header);
+                scrollbar.scroll_to(scroll_pos - to_header_state.invisible_part);
+            }
+        }
+        else {
+            var item_draw_idx = get_item_draw_row_idx(to_item);
+            var new_scroll_pos = Math.max(0, item_draw_idx - Math.floor(rows_to_draw_precise / 2));
+            scrollbar.scroll_to(new_scroll_pos);
         }
     }
 
@@ -1977,7 +1986,7 @@ function Playlist(x, y) {
     function get_item_visibility_state(item_to_check) {
         var item_state = {
             visibility : visibility_state['not'],
-            invisible_part : 0
+            invisible_part : item_to_check.h/row_h
         };
 
         _.forEach(items_to_draw, function (item) {
@@ -1996,6 +2005,7 @@ function Playlist(x, y) {
                 }
                 else {
                     item_state.visibility = visibility_state['full'];
+                    item_state.invisible_part = 0;
                 }
                 return false;
             }
@@ -2296,6 +2306,7 @@ function Playlist(x, y) {
     var drag_scroll_in_progress = false;
     var drag_scroll_timeout_timer;
     var drag_scroll_repeat_timer;
+
     // Scrollbar props
     var scroll_pos_list = JSON.parse(properties_v2.scroll_pos_list.get());
     var scroll_pos = 0;
@@ -2489,8 +2500,6 @@ function PlaylistInfo(x, y, w, h) {
     var info_text = undefined;
 }
 
-var azaz = 0
-
 function Rating(x, y, w, h, metadb) {
     this.draw = function (gr, color) {
         for (var j = 0; j < 5; j++) {
@@ -2574,11 +2583,12 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
             gr.FillSolidRect(this.x, this.y + 1, this.w, this.h - 1, pl_colors.row_alternate);
         }
 
-        var titleFont = pl_fonts.title_normal;
-        var titleColor = pl_colors.title_normal;
-        var countColor = pl_colors.count_normal;
-        var rowColorFocus = pl_colors.row_focus_normal;
-        var titleArtistColor = pl_colors.title_selected;
+        var title_font = pl_fonts.title_normal;
+        var title_color = pl_colors.title_normal;
+        var count_color = pl_colors.count_normal;
+        var row_color_focus = pl_colors.row_focus_normal;
+        var title_artist_font = pl_fonts.title_selected;
+        var title_artist_color = pl_colors.title_selected;
 
         if (this.is_selected_dynamic()) {
             if (properties_v2.alternate_row_color.get()) {
@@ -2595,29 +2605,29 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
                 gr.FillSolidRect(this.x, this.y, this.w, this.h, pl_colors.row_selected);
             }
 
-            titleColor = pl_colors.title_selected;
-            titleFont = pl_fonts.title_selected;
-            countColor = pl_colors.count_selected;
+            title_color = pl_colors.title_selected;
+            title_font = pl_fonts.title_selected;
+            count_color = pl_colors.count_selected;
 
-            rowColorFocus = pl_colors.row_focus_selected;
-            titleArtistColor = pl_colors.title_normal;
+            row_color_focus = pl_colors.row_focus_selected;
+            title_artist_color = pl_colors.title_normal;
         }
 
         if (this.is_playing) {// Might override 'selected' fonts
-            titleColor = pl_colors.title_playing;
-            titleFont = pl_fonts.title_playing;
-            countColor = pl_colors.count_playing;
+            title_color = pl_colors.title_playing;
+            title_font = pl_fonts.title_playing;
+            count_color = pl_colors.count_playing;
         }
 
         //--->
         if (properties_v2.show_focused_row.get() && this.is_focused) {
-            //gr.DrawRect(this.x + 1, this.y, this.w - 3, this.h - 2, 1, rowColorFocus);
+            //gr.DrawRect(this.x + 1, this.y, this.w - 3, this.h - 2, 1, row_color_focus);
             if (this.is_cropped) {
                 // last item is cropped
-                gr.DrawRect(this.x + 1, this.y + 1, this.w - 3, this.h - 3, 1, rowColorFocus);
+                gr.DrawRect(this.x + 1, this.y + 1, this.w - 3, this.h - 3, 1, row_color_focus);
             }
             else {
-                gr.DrawRect(this.x + 1, this.y + 1, this.w - 3, this.h - 2, 1, rowColorFocus);
+                gr.DrawRect(this.x + 1, this.y + 1, this.w - 3, this.h - 2, 1, row_color_focus);
             }
         }
 
@@ -2628,82 +2638,103 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
             gr.DrawLine(this.x, this.y + this.h - 1, this.x + this.w, this.y + this.h - 1, 2, this.is_drop_boundary_reached ? _.RGB(255, 165, 0) : _.RGB(140, 142, 144));
         }
 
+        ////////////////////////////////////////////////////////////
+
+        var cur_x = this.x + 10;
+        var right_pad = 0;
+        var testRect = false;
+
         //---> RATING
-        var rating_padded_w = 0;
         if (properties_v2.show_rating.get()) {
-            rating_padded_w = rating.w + rating_right_pad + rating_left_pad;
+            rating.draw(gr, title_color);
+
+            right_pad += rating.w + rating_right_pad + rating_left_pad;
         }
 
-        //---> QUEUE
-        if (!_.isNil(this.queue_idx)) {
-            gr.FillSolidRect(this.x, this.y, this.w, this.h, pl_colors.row_queued);
-        }
+        //---> LENGTH
+        {
+            if (_.isNil(length_text)) {
+                length_text = _.tf('[%length%]', this.metadb);
+            }
 
-        var queue_text = '';
-        if (properties_v2.show_queue_position.get() && !_.isNil(this.queue_idx)) {
-            queue_text = '  [' + this.queue_idx + ']';
-            if (this.queue_idx_count > 1) {
-                queue_text += '*' + this.queue_idx_count;
+            if (length_text) {
+                var length_w = 50;
+                var length_x = this.x + this.w - length_w - right_pad;
+
+                gr.DrawString(length_text, title_font, title_color, length_x, this.y, length_w, this.h, StringFormat(1, 1));
+                testRect && gr.DrawRect(length_x, this.y - 1, length_w, this.h, 1, _.RGBA(155, 155, 255, 250));
+
+                right_pad += Math.max(length_w, gr.MeasureString(length_text, title_font, 0, 0, 0, 0).Width + 10);
             }
         }
 
         //---> COUNT
-        if (_.isNil(count_text)) {
-            var is_radio = (_.tf('%path%', this.metadb).indexOf('http') === 0);
-            count_text = (is_radio ? '' : _.tf('%play_count%', this.metadb));
-            if (properties_v2.show_playcount.get() && count_text) {
-                count_text += ' |';
+        if (properties_v2.show_playcount.get()) {
+            if (_.isNil(count_text)) {
+                var is_radio = (_.tf('%path%', this.metadb).indexOf('http') === 0);
+                count_text = (is_radio ? '' : _.tf('%play_count%', this.metadb));
+                if ( count_text ) {
+                    count_text = _.toNumber(count_text) === 0 ? '' : (count_text + ' |');
+                }
+            }
+
+            if (count_text) {
+                var count_w = gr.MeasureString(count_text, pl_fonts.playcount, 0, 0, 0, 0).Width;
+                var count_x = this.x + this.w - count_w - right_pad;
+
+                gr.DrawString(count_text, pl_fonts.playcount, count_color, count_x, this.y, count_w, this.h, StringFormat(1, 1));
+                testRect && gr.DrawRect(count_x, this.y - 1, count_w, this.h, 1, _.RGBA(155, 155, 255, 250));
+
+                right_pad += count_w;
             }
         }
 
-        var count_w = 0;
-        if (properties_v2.show_playcount.get() && count_text) {
-            count_w = gr.MeasureString(count_text, pl_fonts.playcount, 0, 0, 0, 0).Width;
-        }
+        //---> QUEUE
+        if (properties_v2.show_queue_position.get()) {
+            if (!_.isNil(this.queue_idx)) {
+                gr.FillSolidRect(this.x, this.y, this.w, this.h, pl_colors.row_queued);
+            }
 
-        //---> LENGTH
-        if (_.isNil(length_text)) {
-            length_text = _.tf('[%length%]', this.metadb);
+            var queue_text = '';
+            if (!_.isNil(this.queue_idx)) {
+                queue_text = '  [' + this.queue_idx + ']';
+                if (this.queue_idx_count > 1) {
+                    queue_text += '*' + this.queue_idx_count;
+                }
+            }
         }
-        var length_w = length_text ? 50 : 0;
 
         //---> TITLE
-        var title_and_artist_w = this.w - length_w - count_w - rating_padded_w;
-        if (_.isNil(title_text) || _.isNil(title_artist_text)) {
-            var gic = this.num_in_header;
-            var track_num = (((gic) < 10) ? ('0' + (gic)) : (gic));
-            var path = _.tf('%path%', metadb);
-            var title_query = '$if(%tracknumber%,%tracknumber%.,' + track_num + '.)  %title%';
-            title_text = ( fb.IsPlaying && _.startsWith(path, 'http') && this.is_playing ) ? _.tfe(title_query) : _.tf(title_query, metadb);
-            title_artist_text = _.tf('[  \u25AA  $if($greater($len(%album artist%),1),$if($greater($len(%track artist%),1),%track artist%))]', metadb);
+        {
+            var title_w = this.w - right_pad - 10;
+
+            if (_.isNil(title_text)) {
+                var gic = this.num_in_header;
+                var track_num = (((gic) < 10) ? ('0' + (gic)) : (gic));
+                var path = _.tf('%path%', metadb);
+                var title_query = '$if(%tracknumber%,%tracknumber%.,' + track_num + '.)  %title%';
+                title_text = ( fb.IsPlaying && _.startsWith(path, 'http') && this.is_playing ) ? _.tfe(title_query) : _.tf(title_query, metadb);
+            }
+
+            gr.DrawString(title_text + (title_artist_text ? '' : queue_text), title_font, title_color, cur_x, this.y, title_w, this.h, StringFormat(0, 1, 3, 0x1000));
+
+            testRect && gr.DrawRect(this.x, this.y - 1, title_w, this.h, 1, _.RGBA(155, 155, 255, 250));
+
+            cur_x += gr.MeasureString(title_text, title_font, 0, 0, 0, 0, StringFormat(0, 1, 3, 0x00000800 | 0x1000)).Width
         }
 
-        //---> TITLE draw
-        if (title_artist_text) {
-            var title_text_w = gr.MeasureString(title_text, titleFont, 0, 0, 0, 0, StringFormat(0, 1, 3, 0x00000800 | 0x1000)).Width;
-            var title_artist_font = gdi.font('Segoe Ui Semibold', 12, 0);
-            gr.DrawString(title_artist_text + queue_text, title_artist_font, titleArtistColor, this.x + 10 + title_text_w, this.y, title_and_artist_w - 10 - title_text_w, this.h, StringFormat(0, 1, 3, 0x1000));
-        }
-        gr.DrawString(title_text + (title_artist_text ? '' : queue_text), titleFont, titleColor, this.x + 10, this.y, title_and_artist_w - 10, this.h, StringFormat(0, 1, 3, 0x1000));
+        //---> TITLE ARTIST
+        {
+            if (_.isNil(title_artist_text)) {
+                title_artist_text = _.tf('[  \u25AA  $if($greater($len(%album artist%),1),$if($greater($len(%track artist%),1),%track artist%))]', metadb);
+            }
 
-        var testRect = false;
-        testRect && gr.DrawRect(this.x, this.y - 1, title_and_artist_w, this.h, 1, _.RGBA(155, 155, 255, 250));
+            if (title_artist_text) {
+                var title_artist_x = cur_x;
+                var title_artist_w = this.w - (title_artist_x - this.x) - right_pad;
 
-        //---> LENGTH draw
-        var length_x = this.x + this.w - length_w - rating_padded_w;
-        gr.DrawString(length_text, titleFont, titleColor, length_x, this.y, length_w, this.h, StringFormat(1, 1));
-        testRect && gr.DrawRect(length_x, this.y - 1, length_w, this.h, 1, _.RGBA(155, 155, 255, 250));
-
-        //---> COUNT draw
-        if (properties_v2.show_playcount.get() && count_text) {
-            var count_x = this.x + this.w - length_w - count_w - rating_padded_w;
-            gr.DrawString(count_text, pl_fonts.playcount, countColor, count_x, this.y, count_w, this.h, StringFormat(1, 1));
-            testRect && gr.DrawRect(count_x, this.y - 1, count_w, this.h, 1, _.RGBA(155, 155, 255, 250));
-        }
-
-        //---> RATING draw
-        if (properties_v2.show_rating.get()) {
-            rating.draw(gr, titleColor);
+                gr.DrawString(title_artist_text + queue_text, title_artist_font, title_artist_color, title_artist_x, this.y, title_artist_w, this.h, StringFormat(0, 1, 3, 0x1000));
+            }
         }
     };
 
@@ -2720,9 +2751,7 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
 
     this.set_y = function (y) {
         this.y = y;
-        if (rating) {
-            rating.y = y;
-        }
+        rating.y = y;
     };
 
     this.set_w = function (w) {
@@ -2736,20 +2765,18 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
         count_text = undefined;
         length_text = undefined;
 
-        if (rating) {
-            rating.reset_queried_data();
-        }
+        rating.reset_queried_data();
     };
 
     this.rating_trace = function (x, y) {
-        if (!rating) {
+        if (!properties_v2.show_rating.get()) {
             return false;
         }
         return rating.trace(x, y);
     };
 
     this.rating_click = function (x, y) {
-        if (!rating) {
+        if (!properties_v2.show_rating.get()) {
             throw Error('Logic error:\n Rating_click was called, when there wass no rating object.\nShould use trace before calling click');
         }
         rating.click(x, y);
@@ -2763,10 +2790,6 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
     };
 
     function initialize_rating() {
-        if (!properties_v2.show_rating.get()) {
-            return;
-        }
-
         rating = new Rating(0, that.y, 0, that.h, metadb);
         rating.x = that.x + that.w - rating.w - rating_right_pad;
     }
@@ -2966,7 +2989,7 @@ function Header(x, y, w, h, idx) {
 
             grClip.DrawString(artist_text, artist_font, artist_color, artist_x, 0, artist_w, artist_h, StringFormat(0, 2, 3, 0x1000));
 
-            part1_cur_x += artist_w;
+            //part1_cur_x += artist_w;
         }
 
         //---> ALBUM
@@ -3165,7 +3188,7 @@ function Header(x, y, w, h, idx) {
 
             grClip.DrawString(album_text, pl_fonts.album, album_color, album_x, 0, album_w, album_h, StringFormat(0, 1, 3, 0x1000));
 
-            cur_x += gr.MeasureString(album_text, pl_fonts.album, 0, 0, 0, 0).Width;
+            //cur_x += gr.MeasureString(album_text, pl_fonts.album, 0, 0, 0, 0).Width;
         }
 
         clipImg.ReleaseGraphics(grClip);
