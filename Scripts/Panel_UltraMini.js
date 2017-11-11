@@ -2,9 +2,9 @@
 // @name "UltraMini Main Panel"
 // @author "TheQwertiest"
 // ==/PREPROCESSOR==
-properties.AddProperties(
+g_properties.add_properties(
     {
-        artMargin: window.GetProperty("user.Art Margin", 0)
+        art_pad: ["user.art.pad", 0]
     }
 );
 
@@ -51,7 +51,7 @@ function on_paint(gr) {
         artModule.paint(gr);
     }
     else {
-        gr.DrawString(themeName + " " + themeVersion, gdi.font("Segoe Ui Semibold", 24, 0), _.RGB(70, 70, 70), 0, 0, ww, wh, StringFormat(1, 1));
+        gr.DrawString(g_theme_name + " " + g_theme_version, gdi.font("Segoe Ui Semibold", 24, 0), _.RGB(70, 70, 70), 0, 0, ww, wh, StringFormat(1, 1));
     }
 
     // Title
@@ -70,7 +70,7 @@ function on_paint(gr) {
             title = "[%album%]";
         }
 
-        var titleString = fb.IsPlaying ? fb.TitleFormat(title).Eval() : fb.TitleFormat(title).EvalWithMetadb(metadb);
+        var titleString = fb.TitleFormat(title).Eval();
         gr.DrawString(titleString, gdi.font("Segoe Ui Semibold", 12, 0), _.RGB(240, 240, 240), 5, 5, ww, wh, StringFormat(0, 0, 3, 4096));
     }
 
@@ -127,7 +127,7 @@ function on_size() {
     var volumebarY = playbackY + Math.floor(playbackH / 2 - volumebarH / 2) + 2;
     volumeBar = new _.volume(rightBtnX, volumebarY, Math.min(ww - rightBtnX - 4, 60), volumebarH);
 
-    artModule.on_size(properties.artMargin, properties.artMargin, ww - 2 * properties.artMargin, wh - 2 * properties.artMargin);
+    artModule.on_size(g_properties.art_pad, g_properties.art_pad, ww - 2 * g_properties.art_pad, wh - 2 * g_properties.art_pad);
     artModule.getAlbumArt();
 }
 

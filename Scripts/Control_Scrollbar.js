@@ -2,9 +2,9 @@
 // @name "Scrollbar Control"
 // @author "TheQwertiest"
 // ==/PREPROCESSOR==
-properties.AddProperties(
+g_properties.add_properties(
     {
-        wheel_scroll_page: window.GetProperty("user.scrollbar.wheel_whole_page", false)
+        wheel_scroll_page: ["user.scrollbar.wheel_whole_page", false]
     }
 );
 
@@ -673,7 +673,7 @@ _.mixin({
 
         this.scroll = 0; // lines shifted in list (float)
 
-        this.wheel_scroll_page = properties.wheel_scroll_page;
+        this.wheel_scroll_page = g_properties.wheel_scroll_page;
 
         this.scrollbar_h = 0; // space between sb_parts (arrows)
         this.scrollable_lines = 0; // not visible rows (row_count - rows_drawn)

@@ -1,31 +1,31 @@
 // ==PREPROCESSOR==
-// @name "Common"
-// @author "TheQwertiest"
+// @name 'Common'
+// @author 'TheQwertiest'
 // ==/PREPROCESSOR==
 //---> 
 //---> Common Helpers, Flags
 //--->
-var themeName = "CaTRoX (QWR Edition)";
-var themeFolder = "CaTRoX";
-var themeVersion = "3.0";
+var g_theme_name = 'CaTRoX (QWR Edition)';
+var g_theme_folder = 'CaTRoX';
+var g_theme_version = '3.0';
 
-var scriptFolder = "themes\\" + themeFolder + "\\Scripts\\";
+var scriptFolder = 'themes\\' + g_theme_folder + '\\Scripts\\';
 // ================================================================================= //
 var safeMode = uiHacks = false;
 var UIHacks;
 try {
-    WshShell = new ActiveXObject("WScript.Shell");
+    WshShell = new ActiveXObject('WScript.Shell');
 } catch (e) {
-    fb.trace("----------------------------------------------------------------------");
-    fb.trace(e + "\nFix: Disable safe mode in Preferences > Tools > WSH Panel Mod");
-    fb.trace("----------------------------------------------------------------------");
+    fb.trace('----------------------------------------------------------------------');
+    fb.trace(e + '\nFix: Disable safe mode in Preferences > Tools > WSH Panel Mod');
+    fb.trace('----------------------------------------------------------------------');
     safeMode = true;
 }
 
 if (!safeMode) {
-    uiHacks = utils.CheckComponent("foo_ui_hacks");
+    uiHacks = utils.CheckComponent('foo_ui_hacks');
     if (uiHacks) {
-        UIHacks = new ActiveXObject("UIHacks");
+        UIHacks = new ActiveXObject('UIHacks');
     }
 }
 
@@ -43,11 +43,11 @@ function timeFormat(s, truncate) {
         minutes = Math.floor(((s % 86400) % 3600) / 60),
         seconds = Math.round((((s % 86400) % 3600) % 60));
 
-    weeks = weeks > 0 ? weeks + "wk " : "";
-    days = days > 0 ? days + "d " : "";
-    hours = hours > 0 ? hours + ":" : "";
-    (truncate ? minutes = minutes + ":" : minutes = (minutes < 10 ? "0" + minutes : minutes) + ":");
-    seconds = seconds < 10 ? "0" + seconds : seconds;
+    weeks = weeks > 0 ? weeks + 'wk ' : '';
+    days = days > 0 ? days + 'd ' : '';
+    hours = hours > 0 ? hours + ':' : '';
+    (truncate ? minutes = minutes + ':' : minutes = (minutes < 10 ? '0' + minutes : minutes) + ':');
+    seconds = seconds < 10 ? '0' + seconds : seconds;
 
     return weeks + days + hours + minutes + seconds;
 }
@@ -135,54 +135,54 @@ Guifx =
         Next: 8,
         Replay: 9,
         Refresh: 0,
-        Mute: "!",
-        Mute2: "@",
-        VolumeDown: "#",
-        VolumeUp: "$",
-        ThumbsDown: "%",
-        ThumbsUp: "^",
-        Shuffle: "\&",
-        Repeat: "*",
-        Repeat1: "(",
-        Zoom: ")",
-        ZoomOut: "_",
-        ZoomIn: "+",
-        Minus: "-",
-        Plus: "=",
-        Up: "W",
-        Down: "S",
-        Left: "A",
-        Right: "D",
-        Up2: "w",
-        Down2: "s",
-        Left2: "a",
-        Right2: "d",
-        Start: "{",
-        End: "}",
-        Top: "?",
-        Bottom: "/",
-        JumpBackward: "[",
-        JumpForward: "]",
-        SlowBackward: ":",
-        SlowForward: "\"",
-        Eject: "\'",
-        Reject: ";",
-        Up3: ".",
-        Down3: ",",
-        Left3: "<",
-        Right: ">",
-        Guifx: "g",
-        ScreenUp: "|",
-        ScreenDown: "\\",
-        Power: "q",
-        Checkmark: "z",
-        Close: "x",
-        Hourglass: "c",
-        Heart: "v",
-        Star: "b",
-        Fire: "i",
-        Medical: "o",
-        Police: "p"
+        Mute: '!',
+        Mute2: '@',
+        VolumeDown: '#',
+        VolumeUp: '$',
+        ThumbsDown: '%',
+        ThumbsUp: '^',
+        Shuffle: '\&',
+        Repeat: '*',
+        Repeat1: '(',
+        Zoom: ')',
+        ZoomOut: '_',
+        ZoomIn: '+',
+        Minus: '-',
+        Plus: '=',
+        Up: 'W',
+        Down: 'S',
+        Left: 'A',
+        Right: 'D',
+        Up2: 'w',
+        Down2: 's',
+        Left2: 'a',
+        Right2: 'd',
+        Start: '{',
+        End: '}',
+        Top: '?',
+        Bottom: '/',
+        JumpBackward: '[',
+        JumpForward: ']',
+        SlowBackward: ':',
+        SlowForward: '\'',
+        Eject: '\'',
+        Reject: ';',
+        Up3: '.',
+        Down3: ',',
+        Left3: '<',
+        Right: '>',
+        Guifx: 'g',
+        ScreenUp: '|',
+        ScreenDown: '\\',
+        Power: 'q',
+        Checkmark: 'z',
+        Close: 'x',
+        Hourglass: 'c',
+        Heart: 'v',
+        Star: 'b',
+        Fire: 'i',
+        Medical: 'o',
+        Police: 'p'
     };
 
 var g_album_art_id =
@@ -200,33 +200,33 @@ function link(site, metadb) {
     }
 
     var meta_info = metadb.GetFileInfo();
-    var artist = meta_info.MetaValue(meta_info.MetaFind("artist"), 0).replace(/\s+/g, "+").replace(/\&/g, "%26");
-    var album = meta_info.MetaValue(meta_info.MetaFind("album"), 0).replace(/\s+/g, "+");
-    var title = meta_info.MetaValue(meta_info.MetaFind("title"), 0).replace(/\s+/g, "+");
+    var artist = meta_info.MetaValue(meta_info.MetaFind('artist'), 0).replace(/\s+/g, '+').replace(/\&/g, '%26');
+    var album = meta_info.MetaValue(meta_info.MetaFind('album'), 0).replace(/\s+/g, '+');
+    var title = meta_info.MetaValue(meta_info.MetaFind('title'), 0).replace(/\s+/g, '+');
 
     var search_term = artist ? artist : title;
 
     switch (site) {
-        case "google":
-            site = (search_term ? "http://images.google.com/search?q=" + search_term + "&ie=utf-8" : null);
+        case 'google':
+            site = (search_term ? 'http://images.google.com/search?q=' + search_term + '&ie=utf-8' : null);
             break;
-        case "googleImages":
-            site = (search_term ? "http://images.google.com/images?hl=en&q=" + search_term + "&ie=utf-8" : null);
+        case 'googleImages':
+            site = (search_term ? 'http://images.google.com/images?hl=en&q=' + search_term + '&ie=utf-8' : null);
             break;
-        case "eCover":
-            site = (search_term || album ? "http://ecover.to/?Module=ExtendedSearch&SearchString=" + search_term + "+" + album + "&ie=utf-8" : null);
+        case 'eCover':
+            site = (search_term || album ? 'http://ecover.to/?Module=ExtendedSearch&SearchString=' + search_term + '+' + album + '&ie=utf-8' : null);
             break;
-        case "wikipedia":
-            site = (artist ? "http://en.wikipedia.org/wiki/" + artist.replace(/\+/g, "_") : null);
+        case 'wikipedia':
+            site = (artist ? 'http://en.wikipedia.org/wiki/' + artist.replace(/\+/g, '_') : null);
             break;
-        case "youTube":
-            site = (search_term ? "http://www.youtube.com/results?search_type=&search_query=" + search_term + "&ie=utf-8" : null);
+        case 'youTube':
+            site = (search_term ? 'http://www.youtube.com/results?search_type=&search_query=' + search_term + '&ie=utf-8' : null);
             break;
-        case "lastFM":
-            site = (search_term ? "http://www.last.fm/music/" + search_term.replace("/", "%252F") : null);
+        case 'lastFM':
+            site = (search_term ? 'http://www.last.fm/music/' + search_term.replace('/', '%252F') : null);
             break;
-        case "discogs":
-            site = (search_term || album ? "http://www.discogs.com/search?q=" + search_term + "+" + album + "&ie=utf-8" : null);
+        case 'discogs':
+            site = (search_term || album ? 'http://www.discogs.com/search?q=' + search_term + '+' + album + '&ie=utf-8' : null);
             break;
         default:
             site = undefined;
@@ -288,11 +288,11 @@ var qwr_utils = {
     },
     run_notepad: function (script_name) {
         try {
-            WshShell.Run("notepad++.exe " + scriptFolder + script_name);
+            WshShell.Run('notepad++.exe ' + scriptFolder + script_name);
         }
         catch (e) {
             try {
-                WshShell.Run("notepad.exe " + scriptFolder + script_name);
+                WshShell.Run('notepad.exe ' + scriptFolder + script_name);
             }
             catch (e) {
                 fb.trace(e)
@@ -300,7 +300,7 @@ var qwr_utils = {
         }
     },
     check_fonts: function (fonts) {
-        var checkedFonts = "";
+        var checkedFonts = '';
         var failCounter = 0;
 
         fonts.forEach(function (item) {
@@ -308,38 +308,27 @@ var qwr_utils = {
             if (!check) {
                 failCounter++;
             }
-            checkedFonts += ("\n" + item + (check ? ": Installed." : ": NOT INSTALLED!"));
+            checkedFonts += ('\n' + item + (check ? ': Installed.' : ': NOT INSTALLED!'));
         });
 
         if (failCounter) {
-            checkedFonts += "\n\nPlease install missing " + (failCounter > 1 ? "fonts" : "font") + " and restart foobar!";
-            fb.ShowPopupMessage(checkedFonts, "Font Check");
+            checkedFonts += '\n\nPlease install missing ' + (failCounter > 1 ? 'fonts' : 'font') + ' and restart foobar!';
+            fb.ShowPopupMessage(checkedFonts, 'Font Check');
 
             return false;
         }
 
         return true;
     },
-    HasModdedJScript: _.once(function() {
+    has_modded_jscript: _.once(function() {
         var ret = _.attempt(function() {
             // Methods from modded JScript
             wsh_utils.GetWndByHandle(666);
-            fb.IsMainMenuCommandChecked("View/Always on Top");
+            fb.IsMainMenuCommandChecked('View/Always on Top');
         });
 
         return !_.isError(ret);
-    }),
-    PropList: function () {
-        this.AddProperties = function (properties) {
-            _.forEach(properties, _.bind(function (item, i) {
-                if (i === "AddProperties") {
-                    error_name_occupied;
-                    return false;
-                }
-                this[i] = item;
-            },this));
-        };
-    }
+    })
 };
 
 function g_numeric_ascending_sort(a, b) {
@@ -348,19 +337,18 @@ function g_numeric_ascending_sort(a, b) {
 
 function Property(text_id, default_value) {
     this.get = function() {
-        if (value === undefined) {
-            value = window.GetProperty(this.text_id, default_value)
-        }
         return value;
 
     };
     this.set = function(new_value) {
-        window.SetProperty(this.text_id, new_value);
-        value = new_value;
+        if (value !== new_value) {
+            window.SetProperty(this.text_id, new_value);
+            value = new_value;
+        }
     };
 
     this.text_id = text_id;
-    var value = undefined;
+    var value = window.GetProperty(this.text_id, default_value);
 }
 function PropertyList() {
     this.add_properties = function (properties) {
@@ -368,26 +356,25 @@ function PropertyList() {
             if (!_.isArray(item) || item.length !== 2 || !_.isString(item[0])) {
                 throw Error('Type Error:\nUsage: add_properties({\n  property_name, [property.string.description, property_default_value]\n})');
             }
-            if (i === "add_properties") {
+            if (i === 'add_properties') {
                 throw Error('Argument Error:\n"add_properties" name is reserved');
             }
             if (!_.isNil(this[i]) || !_.isNil(this[i + 'internal'])) {
                 throw Error('Argument Error:\n' + '"' + i + '"' + ' name is already occupied');
             }
 
-            this[i + "internal"] = new Property(item[0], item[1]);
+            this[i + 'internal'] = new Property(item[0], item[1]);
             Object.defineProperty(this, i, {
                 get: function () {
-                    return this[i + "internal"].get()
+                    return this[i + 'internal'].get()
                 },
                 set: function (new_value) {
-                    this[i + "internal"].set(new_value)
+                    this[i + 'internal'].set(new_value)
                 }
             });
         }, this));
     };
 }
 
-var properties = new qwr_utils.PropList;
 var g_properties = new PropertyList;
 

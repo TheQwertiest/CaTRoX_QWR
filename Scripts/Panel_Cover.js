@@ -2,9 +2,9 @@
 // @name "Cover Panel"
 // @author "TheQwertiest"
 // ==/PREPROCESSOR==
-properties.AddProperties(
+g_properties.add_properties(
     {
-        panelMargin: window.GetProperty("user.Panel Margin", 15)
+        panel_pad: ["user.panel.pad",   5]
     }
 );
 
@@ -28,7 +28,7 @@ function on_size() {
     ww = window.Width;
     wh = window.Height;
 
-    artModule.on_size(properties.panelMargin, properties.panelMargin, ww - 2 * properties.panelMargin, wh - 2 * properties.panelMargin);
+    artModule.on_size(g_properties.panel_pad, g_properties.panel_pad, ww - 2 * g_properties.panel_pad, wh - 2 * g_properties.panel_pad);
     artModule.getAlbumArt();
 }
 

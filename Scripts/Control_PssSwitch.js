@@ -76,7 +76,7 @@ function PssSwitchClass() {
         }
     }
 
-    var settings_path = fb.FoobarPath + "themes\\" + themeFolder + "\\Settings";
+    var settings_path = fb.FoobarPath + "themes\\" + g_theme_folder + "\\Settings";
     var fso = new ActiveXObject("Scripting.FileSystemObject");
 
     if (!fso.FolderExists(settings_path)) {

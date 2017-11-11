@@ -14,31 +14,31 @@
     if ( common_vars.incompatibility_state === "Notified" )
         return;
 
-    if ( !qwr_utils.HasModdedJScript() )
+    if ( !qwr_utils.has_modded_jscript() )
         fb.ShowPopupMessage("Warning: Vanilla JScript component detected!\nThis theme relies on modded JScript component, so some features will be unavailable!\n\nSources for modded JScript are available at https://github.com/TheQwertiest/foo-jscript-panel\n\nTo hide this warning rename file INCOMPATIBILITY_0 to INCOMPATIBILITY_1 in \\themes\\CaTRoX\\Settings\\", "CaTRoX (QWR Edition)");
 })();
 
 qwr_utils.check_fonts(["Segoe Ui", "Segoe Ui Semibold", "Segoe Ui Symbol", "Consolas", "Marlett", "Guifx v2 Transports", "FontAwesome"]);
 
-properties.AddProperties(
+g_properties.add_properties(
     {
-        maximizeToFullScreen: window.GetProperty("user.Maximize To FullScreen", true),
-        frameFocusShadow:     window.GetProperty("user.Frame Focus Shadow", false),
-        showFoobarVersion:    window.GetProperty("user.Show Foobar Version", false),
-        showThemeVersion:     window.GetProperty("user.Show Theme Version", false),
-        showCpuUsage:         window.GetProperty("user.Show CPU Usage", false),
-        showTooltips:         window.GetProperty("user.Show Button Tooltips", true),
-        saved_mode:           window.GetProperty("system.Saved player mode", "Full"),
-        fullMode_savedwidth:  window.GetProperty("system.Full mode saved width", 895),
-        fullMode_savedheight: window.GetProperty("system.Full mode saved height", 650),
-        miniMode_savedwidth:  window.GetProperty("system.Mini mode saved width", 250),
-        miniMode_savedheight: window.GetProperty("system.Mini mode saved height", 600)
+        g_maximize_to_fullscreen: ["user.window.maximize_to_fullscreen", true],
+        frameFocusShadow:         ["user.window.shadow.show", false],
+        show_fb2k_version:        ["user.title_bar.fb2k_version.show", false],
+        show_theme_version:       ["user.title_bar.theme_version.show", false],
+        show_cpu_usage:           ["user.title_bar.cpu_usage.show", false],
+        show_tooltips:            ["user.global.tooltips.show", true],
+        saved_mode:               ["system.window.saved_mode", "Full"],
+        full_mode_saved_width:    ["system.window.full.saved_width", 895],
+        full_mode_saved_height:   ["system.window.full.saved_height", 650],
+        mini_mode_saved_width:    ["system.window.mini.saved_width", 250],
+        mini_mode_saved_height:   ["system.window.mini.saved_height", 600]
     }
 );
 
-var hasModdedJScript = qwr_utils.HasModdedJScript();
-var maximizeToFullScreen = properties.maximizeToFullScreen;
-var isPinned = hasModdedJScript ? fb.IsMainMenuCommandChecked("View/Always on Top") : false;
+var g_has_modded_jscript = qwr_utils.has_modded_jscript();
+var g_maximize_to_fullscreen = g_properties.g_maximize_to_fullscreen;
+var g_is_pinned = g_has_modded_jscript ? fb.IsMainMenuCommandChecked("View/Always on Top") : false;
 
 WindowState =
     {
@@ -76,16 +76,16 @@ var guiCpuUsage = 0;
 /// Reduce move
 var moveChecker = new _.moveCheckReducer;
 
-var FbWnd = hasModdedJScript ? wsh_utils.GetWndByHandle(window.ID).GetAncestor(2) : undefined;
+var FbWnd = g_has_modded_jscript ? wsh_utils.GetWndByHandle(window.ID).GetAncestor(2) : undefined;
 
 createButtonImages();
 
 function on_paint(gr) {
     if (isMenuInitialized) {
-        window.NotifyOthers("showTooltips", properties.showTooltips);
+        window.NotifyOthers("showTooltips", g_properties.show_tooltips);
         window.NotifyOthers("minimode_state", common_vars.minimode_state);
 
-        if (properties.showCpuUsage) {
+        if (g_properties.show_cpu_usage) {
             startCpuUsageTimer();
         }
 
@@ -95,9 +95,9 @@ function on_paint(gr) {
 
     gr.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
 
-    properties.frameFocusShadow && gr.DrawLine(0, 0, ww, 0, 1, panelsFrontColor);
+    g_properties.frameFocusShadow && gr.DrawLine(0, 0, ww, 0, 1, panelsFrontColor);
 
-    if (properties.showFoobarVersion || properties.showThemeVersion || properties.showCpuUsage) {
+    if (g_properties.show_fb2k_version || g_properties.show_theme_version || g_properties.show_cpu_usage) {
         var versionX = leftMargin;
         var versionW = rightMargin - leftMargin;
 
@@ -109,24 +109,24 @@ function on_paint(gr) {
             cpuUsageString = "CPU: " + cpuUsage + "% (GUI: " + guiCpuUsage + "%)";
         }
 
-        var themeString = themeName + (themeVersion == "" ? "" : " " + themeVersion);
+        var themeString = g_theme_name + (g_theme_version ? "" : " " + g_theme_version);
         var foobarString = fb.TitleFormat("%_foobar2000_version%").eval(true);
         var separatorString = "  \u25AA  ";
         var titleString = "";
 
-        if (properties.showCpuUsage) {
+        if (g_properties.show_cpu_usage) {
             titleString = cpuUsageString;
         }
 
-        if (properties.showThemeVersion) {
-            if (titleString != "") {
+        if (g_properties.show_theme_version) {
+            if (titleString) {
                 titleString += separatorString;
             }
             titleString += themeString;
         }
 
-        if (properties.showFoobarVersion) {
-            if (titleString != "") {
+        if (g_properties.show_fb2k_version) {
+            if (titleString) {
                 titleString += separatorString;
             }
             titleString += foobarString;
@@ -148,7 +148,7 @@ function on_size() {
         return;
     }
 
-    // needed when doble clicking on caption and UIHacks.FullScreen == true;
+    // needed when double clicking on caption and UIHacks.FullScreen == true;
     if (!utils.IsKeyPressed(VK_CONTROL) && UIHacks.FullScreen && UIHacks.MainWindowState === 0) {
         UIHacks.MainWindowState = 0;
     }
@@ -218,7 +218,7 @@ function createButtonObjects(ww, wh) {
         buttons.reset();
     }
     buttons = new _.buttons();
-    buttons.show_tt = properties.showTooltips;
+    buttons.show_tt = g_properties.show_tooltips;
 
     //---> Menu buttons
     if (common_vars.minimode_state === "Full") {
@@ -308,13 +308,13 @@ function createButtonObjects(ww, wh) {
 
     rightMargin = x;
 
-    buttons.buttons.pin = new _.button(x, y, w, h, isPinned ? btnImg.Unpin : btnImg.Pin, function () {
+    buttons.buttons.pin = new _.button(x, y, w, h, g_is_pinned ? btnImg.Unpin : btnImg.Pin, function () {
         fb.RunMainMenuCommand("View/Always on Top");
-        isPinned = hasModdedJScript ? fb.IsMainMenuCommandChecked("View/Always on Top") : false;
-        buttons.buttons.pin.set_image(isPinned ? btnImg.Unpin : btnImg.Pin);
-        buttons.buttons.pin.tiptext = isPinned ? "Unpin window" : "Pin window on Top";
+        g_is_pinned = g_has_modded_jscript ? fb.IsMainMenuCommandChecked("View/Always on Top") : false;
+        buttons.buttons.pin.set_image(g_is_pinned ? btnImg.Unpin : btnImg.Pin);
+        buttons.buttons.pin.tiptext = g_is_pinned ? "Unpin window" : "Pin window on Top";
         buttons.buttons.pin.repaint();
-    }, isPinned ? "Unpin window" : "Pin window on Top");
+    }, g_is_pinned ? "Unpin window" : "Pin window on Top");
 
     var ultraMiniModeBtnArr =
         {
@@ -333,7 +333,7 @@ function createButtonObjects(ww, wh) {
         };
 
     ultraMiniModeBtn = (common_vars.minimode_state === "Mini" || common_vars.minimode_state === "Full") ? ultraMiniModeBtnArr.MiniModeCompress :
-        ((properties.saved_mode === "Full") ? ultraMiniModeBtnArr.MiniModeExpandToFull : ultraMiniModeBtnArr.MiniModeExpandToMini);
+        ((g_properties.saved_mode === "Full") ? ultraMiniModeBtnArr.MiniModeExpandToFull : ultraMiniModeBtnArr.MiniModeExpandToMini);
 
     x += w + p;
     buttons.buttons.ultraminimode = new _.button(x, y, w, h, ultraMiniModeBtn.ico, toggleUltraMiniMode, ultraMiniModeBtn.txt);
@@ -365,7 +365,7 @@ function createButtonObjects(ww, wh) {
             x += w + p;
             buttons.buttons.maximize = new _.button(x, y, w, h, btnImg.Maximize, function () {
                 try {
-                    if (maximizeToFullScreen ? !utils.IsKeyPressed(VK_CONTROL) : utils.IsKeyPressed(VK_CONTROL)) {
+                    if (g_maximize_to_fullscreen ? !utils.IsKeyPressed(VK_CONTROL) : utils.IsKeyPressed(VK_CONTROL)) {
                         UIHacks.FullScreen = !UIHacks.FullScreen;
                     }
                     else if (UIHacks.MainWindowState == WindowState.Maximized) {
@@ -408,18 +408,18 @@ function on_mouse_rbtn_up(x, y) {
             cpm.AppendMenuSeparator();
             cpm.AppendMenuItem(MF_STRING, 6, "Maximize button -> to fullscreen");
         }
-        cpm.CheckMenuItem(6, properties.maximizeToFullScreen);
+        cpm.CheckMenuItem(6, g_properties.g_maximize_to_fullscreen);
         cpm.AppendMenuSeparator();
     }
 
     cpm.AppendMenuItem(MF_STRING, 7, "Show foobar version");
-    cpm.CheckMenuItem(7, properties.showFoobarVersion);
+    cpm.CheckMenuItem(7, g_properties.show_fb2k_version);
 
     cpm.AppendMenuItem(MF_STRING, 8, "Show theme version");
-    cpm.CheckMenuItem(8, properties.showThemeVersion);
+    cpm.CheckMenuItem(8, g_properties.show_theme_version);
 
     cpm.AppendMenuItem(MF_STRING, 9, "Show button tooltips");
-    cpm.CheckMenuItem(9, properties.showTooltips);
+    cpm.CheckMenuItem(9, g_properties.show_tooltips);
 
     if (utils.CheckComponent("foo_ui_hacks") && safeMode) {
         cpm.AppendMenuItem(MF_STRING, 102, "Frame styles not available (disable WSH safe mode)");
@@ -428,7 +428,7 @@ function on_mouse_rbtn_up(x, y) {
     if (utils.IsKeyPressed(VK_SHIFT)) {
         cpm.AppendMenuSeparator();
         cpm.AppendMenuItem(MF_STRING, 99, "Show CPU usage");
-        cpm.CheckMenuItem(99, properties.showCpuUsage);
+        cpm.CheckMenuItem(99, g_properties.show_cpu_usage);
         _.appendDefaultContextMenu(cpm);
     }
 
@@ -460,35 +460,29 @@ function on_mouse_rbtn_up(x, y) {
             on_size();
             break;
         case 5:
-            properties.frameFocusShadow = !properties.frameFocusShadow;
-            frameShadowSwitch(properties.frameFocusShadow);
-            window.SetProperty("user.Frame Focus Shadow", properties.frameFocusShadow);
+            g_properties.frameFocusShadow = !g_properties.frameFocusShadow;
+            frameShadowSwitch(g_properties.frameFocusShadow);
             break;
         case 6:
-            properties.maximizeToFullScreen = !properties.maximizeToFullScreen;
-            window.SetProperty("user.Maximize To FullScreen", properties.maximizeToFullScreen);
+            g_properties.g_maximize_to_fullscreen = !g_properties.g_maximize_to_fullscreen;
             break;
         case 7:
-            properties.showFoobarVersion = !properties.showFoobarVersion;
-            window.SetProperty("user.Show Foobar Version", properties.showFoobarVersion);
+            g_properties.show_fb2k_version = !g_properties.show_fb2k_version;
             window.Repaint();
             break;
         case 8:
-            properties.showThemeVersion = !properties.showThemeVersion;
-            window.SetProperty("user.Show Theme Version", properties.showThemeVersion);
+            g_properties.show_theme_version = !g_properties.show_theme_version;
             window.Repaint();
             break;
         case 9:
-            properties.showTooltips = !properties.showTooltips;
-            buttons.show_tt = properties.showTooltips;
-            window.SetProperty("user.Show Button Tooltips", properties.showTooltips);
-            window.NotifyOthers("showTooltips", properties.showTooltips);
+            g_properties.show_tooltips = !g_properties.show_tooltips;
+            buttons.show_tt = g_properties.show_tooltips;
+            window.NotifyOthers("showTooltips", g_properties.show_tooltips);
             break;
         case 99:
-            properties.showCpuUsage = !properties.showCpuUsage;
-            window.SetProperty("user.Show CPU Usage", properties.showCpuUsage);
+            g_properties.show_cpu_usage = !g_properties.show_cpu_usage;
 
-            if (properties.showCpuUsage) {
+            if (g_properties.show_cpu_usage) {
                 startCpuUsageTimer();
             }
             else {
@@ -696,12 +690,10 @@ function toggleMiniMode() {
 
     if (new_minimode_state === "Mini") {
         if (!UIHacks.FullScreen) {
-            if ( hasModdedJScript ) {
-                properties.fullMode_savedwidth = FbWnd.Width;
-                properties.fullMode_savedheight = FbWnd.Height;
+            if ( g_has_modded_jscript ) {
+                g_properties.full_mode_saved_width = FbWnd.Width;
+                g_properties.full_mode_saved_height = FbWnd.Height;
             }
-            window.SetProperty("system.Full mode saved width", properties.fullMode_savedwidth);
-            window.SetProperty("system.Full mode saved height", properties.fullMode_savedheight);
         }
         else {
             UIHacks.FullScreen = false;
@@ -709,7 +701,7 @@ function toggleMiniMode() {
 
         pss_switch.set_state("minimode", new_minimode_state);
 
-        changeWindowsSize(properties.miniMode_savedwidth, properties.miniMode_savedheight);
+        changeWindowsSize(g_properties.mini_mode_saved_width, g_properties.mini_mode_saved_height);
 
         UIHacks.MinSize = true;
         UIHacks.MinSize.Width = 300;
@@ -717,12 +709,10 @@ function toggleMiniMode() {
     }
     else {
         if (!UIHacks.FullScreen) {
-            if ( hasModdedJScript ) {
-                properties.miniMode_savedwidth = FbWnd.Width;
-                properties.miniMode_savedheight = FbWnd.Height;
+            if ( g_has_modded_jscript ) {
+                g_properties.mini_mode_saved_width = FbWnd.Width;
+                g_properties.mini_mode_saved_height = FbWnd.Height;
             }
-            window.SetProperty("system.Mini mode saved width", properties.miniMode_savedwidth);
-            window.SetProperty("system.Mini mode saved height", properties.miniMode_savedheight);
         }
         else {
             UIHacks.FullScreen = false;
@@ -730,7 +720,7 @@ function toggleMiniMode() {
 
         pss_switch.set_state("minimode", new_minimode_state);
 
-        changeWindowsSize(properties.fullMode_savedwidth, properties.fullMode_savedheight);
+        changeWindowsSize(g_properties.full_mode_saved_width, g_properties.full_mode_saved_height);
 
         UIHacks.MinSize = true;
         UIHacks.MinSize.Width = 650;
@@ -740,15 +730,14 @@ function toggleMiniMode() {
 
 function toggleUltraMiniMode() {
     if (common_vars.minimode_state !== "UltraMini") {
-        properties.saved_mode = common_vars.minimode_state;
-        window.SetProperty("system.Saved player mode", properties.saved_mode);
+        g_properties.saved_mode = common_vars.minimode_state;
     }
-    var new_minimode_state = (common_vars.minimode_state !== "UltraMini") ? "UltraMini" : properties.saved_mode;
+    var new_minimode_state = (common_vars.minimode_state !== "UltraMini") ? "UltraMini" : g_properties.saved_mode;
 
     if (new_minimode_state === "Mini") {
         pss_switch.set_state("minimode", new_minimode_state);
 
-        changeWindowsSize(properties.miniMode_savedwidth, properties.miniMode_savedheight);
+        changeWindowsSize(g_properties.mini_mode_saved_width, g_properties.mini_mode_saved_height);
 
         UIHacks.MinSize = true;
         UIHacks.MinSize.Width = 300;
@@ -757,7 +746,7 @@ function toggleUltraMiniMode() {
     else if (new_minimode_state === "Full") {
         pss_switch.set_state("minimode", new_minimode_state);
 
-        changeWindowsSize(properties.fullMode_savedwidth, properties.fullMode_savedheight);
+        changeWindowsSize(g_properties.full_mode_saved_width, g_properties.full_mode_saved_height);
 
         UIHacks.MinSize = true;
         UIHacks.MinSize.Width = 650;
@@ -766,20 +755,16 @@ function toggleUltraMiniMode() {
     else {
         if (!UIHacks.FullScreen) {
             if (common_vars.minimode_state === "Full") {
-                if ( hasModdedJScript ) {
-                    properties.fullMode_savedwidth = FbWnd.Width;
-                    properties.fullMode_savedheight = FbWnd.Height;
+                if ( g_has_modded_jscript ) {
+                    g_properties.full_mode_saved_width = FbWnd.Width;
+                    g_properties.full_mode_saved_height = FbWnd.Height;
                 }
-                window.SetProperty("system.Full mode saved width", properties.fullMode_savedwidth);
-                window.SetProperty("system.Full mode saved height", properties.fullMode_savedheight);
             }
             else {
-                if ( hasModdedJScript ) {
-                    properties.miniMode_savedwidth = FbWnd.Width;
-                    properties.miniMode_savedheight = FbWnd.Height;
+                if ( g_has_modded_jscript ) {
+                    g_properties.mini_mode_saved_width = FbWnd.Width;
+                    g_properties.mini_mode_saved_height = FbWnd.Height;
                 }
-                window.SetProperty("system.Mini mode saved width", properties.miniMode_savedwidth);
-                window.SetProperty("system.Mini mode saved height", properties.miniMode_savedheight);
             }
         }
         else {
@@ -939,23 +924,24 @@ function setWindowSizeLimits(minW, maxW, minH, maxH) {
 
 }
 
-(function frameShadowSwitch(frameFocusShadow) {
+function frameShadowSwitch(frameFocusShadow) {
     if (!uiHacks) {
         return;
     }
     if (frameFocusShadow) {
         UIHacks.Aero.Effect = 2;
-        UIHacks.Aero.Top = 1;
+        UIHacks.Aero.Left = UIHacks.Aero.Top = UIHacks.Aero.Right = UIHacks.Aero.Bottom = 1;
     }
     else {
         UIHacks.Aero.Effect = 0;
         UIHacks.Aero.Left = UIHacks.Aero.Top = UIHacks.Aero.Right = UIHacks.Aero.Bottom = 0;
     }
-})(properties.frameFocusShadow);
+}
+frameShadowSwitch(g_properties.frameFocusShadow);
 
 // Workaround bug, when always on top is not working on startup, even if set
 (function alwaysOnTopToggleFix() {
-    if (isPinned) {
+    if (g_is_pinned) {
         fb.RunMainMenuCommand("View/Always on Top");
         fb.RunMainMenuCommand("View/Always on Top");
     }

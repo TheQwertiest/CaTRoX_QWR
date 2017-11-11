@@ -2,13 +2,14 @@
 // @name "Art Module"
 // @author "TheQwertiest & eXtremeHunter"
 // ==/PREPROCESSOR==
-properties.AddProperties(
+g_properties.add_properties(
     {
-        displayedTrack: Math.max(1, Math.min(3, window.GetProperty("user.Displayed track", 1))),
-        groupFormat: window.GetProperty("user.Group Format", "%album artist%%album%%discnumber%"),
-        useDiscMask: window.GetProperty("user.Use Disc Mask", true)
+        track_mode:         ["user.track_mode", 1],
+        group_format_query: ["user.group_format", "%album artist%%album%%discnumber%"],
+        use_disc_mask:      ["user.use_disc_mask", true]
     }
 );
+g_properties.track_mode = Math.max(1, Math.min(3, g_properties.track_mode));
 
 function ArtModule(features_arg) {//(Most of the art handling code was done by eXtremeHunter)
 //public:
@@ -33,7 +34,7 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
                 if (curArtId == artType.cd) {
                     g.DrawImage(art[0], x + 2, y + 2, w - 4, h - 4, 0, 0, artImgWidth, artImgHeight);
 
-                    if (properties.useDiscMask) {
+                    if (g_properties.use_disc_mask) {
                         g.SetSmoothingMode(SmoothingMode.HighQuality);
                         g.DrawEllipse(x, y, w - 1, h - 1, 1, frameColor);
                     }
@@ -55,14 +56,14 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
                 g.DrawString("\uF0BB", gdi.font("Webdings", 130, 0), _.RGB(70, 70, 70), this.x, this.y, this.w, this.h, SF);
             }
             else {
-                g.DrawString(themeName + " " + themeVersion, gdi.font("Segoe Ui Semibold", 24, 0), _.RGB(70, 70, 70), this.x, this.y, this.w, this.h, StringFormat(1, 1));
+                g.DrawString(g_theme_name + " " + g_theme_version, gdi.font("Segoe Ui Semibold", 24, 0), _.RGB(70, 70, 70), this.x, this.y, this.w, this.h, StringFormat(1, 1));
             }
         }
         else {
             g.DrawString("LOADING", gdi.font("Segoe Ui Semibold", 24, 0), _.RGB(70, 70, 70), this.x, this.y, this.w, this.h, StringFormat(1, 1));
         }
 
-        if (feature_thumbs && properties.showThumbs) {
+        if (feature_thumbs && g_properties.show_thumbs) {
             fillThumbImage(thumbs.buttons.front, artArr[0]);
             fillThumbImage(thumbs.buttons.back, artArr[1]);
             fillThumbImage(thumbs.buttons.cd, artArr[2]);
@@ -108,20 +109,20 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
             image = image.Resize(artImgWidth, artImgWidth, 0);
         }
 
-        if (currentAlbum == fb.TitleFormat(properties.groupFormat).EvalWithMetadb(metadb)) {
+        if (currentAlbum == fb.TitleFormat(g_properties.group_format_query).EvalWithMetadb(metadb)) {
             var isEmbedded = image_path.slice(image_path.lastIndexOf(".") + 1) == fb.TitleFormat("$ext(%path%)").EvalWithMetadb(metadb);
 
             artArr[art_id] = [image];
             artArr[art_id][1] = image.Width;
             artArr[art_id][2] = image.Height;
             if (feature_thumbs) {
-                artArr[art_id][3] = image.Resize(properties.thumbSize, properties.thumbSize, 0);
+                artArr[art_id][3] = image.Resize(g_properties.thumb_size, g_properties.thumb_size, 0);
             }
             artArr[art_id][4] = image_path;
             artArr[art_id][5] = isEmbedded;
         }
 
-        if (properties.useDiscMask && art_id == artType.cd) {
+        if (g_properties.use_disc_mask && art_id == artType.cd) {
             var artWidth = image.Width,
                 artHeight = image.Height,
                 discMask = gdi.CreateImage(artWidth, artHeight),
@@ -140,27 +141,27 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
         }
     };
     this.playlist_switch = function () {
-        if (!fb.IsPlaying || displayedTrack == display.selected) {
+        if (!fb.IsPlaying || track_mode == display.selected) {
             this.getAlbumArt();
         }
     };
     this.playlist_items_selection_change = function () {
-        if (!fb.IsPlaying || displayedTrack == display.selected) {
+        if (!fb.IsPlaying || track_mode == display.selected) {
             this.getAlbumArt();
         }
     };
     this.item_focus_change = function () {
-        if (!fb.IsPlaying || displayedTrack == display.selected) {
+        if (!fb.IsPlaying || track_mode == display.selected) {
             this.getAlbumArt();
         }
     };
     this.playback_new_track = function (metadb) {
-        if (displayedTrack != display.selected) {
+        if (track_mode != display.selected) {
             this.getAlbumArt();
         }
     };
     this.playback_stop = function (reason) {
-        if (reason != 2 && displayedTrack != display.selected) {
+        if (reason != 2 && track_mode != display.selected) {
             this.getAlbumArt();
         }
     };
@@ -228,7 +229,7 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
             return;
         }
 
-        currentAlbum = fb.TitleFormat(properties.groupFormat).EvalWithMetadb(metadb);
+        currentAlbum = fb.TitleFormat(g_properties.group_format_query).EvalWithMetadb(metadb);
         if (oldAlbum == currentAlbum) {
             if (artArr[curArtId] === null) {
                 this.repaint();
@@ -299,14 +300,14 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
 
         if (feature_thumbs) {
             thumbs.AppendMenuItem(MF_STRING, 601, "Thumbs show");
-            thumbs.CheckMenuItem(601, properties.showThumbs);
+            thumbs.CheckMenuItem(601, g_properties.show_thumbs);
             thumbs.AppendMenuSeparator();
-            var mf_string = (properties.showThumbs ? MF_STRING : MF_GRAYED);
+            var mf_string = (g_properties.show_thumbs ? MF_STRING : MF_GRAYED);
             thumbs.AppendMenuItem(mf_string, 602, "Thumbs left");
             thumbs.AppendMenuItem(mf_string, 603, "Thumbs top");
             thumbs.AppendMenuItem(mf_string, 604, "Thumbs right");
             thumbs.AppendMenuItem(mf_string, 605, "Thumbs bottom");
-            thumbs.CheckMenuRadioItem(602, 605, properties.thumbPos + 601);
+            thumbs.CheckMenuRadioItem(602, 605, g_properties.thumb_position + 601);
             thumbs.AppendTo(cpm, MF_STRING, "Thumbs");
             cpm.AppendMenuSeparator();
         }
@@ -314,14 +315,14 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
         track.AppendMenuItem(MF_STRING, 606, "Automatic (current selection/playing item)");
         track.AppendMenuItem(MF_STRING, 607, "Playing item");
         track.AppendMenuItem(MF_STRING, 608, "Current selection");
-        track.CheckMenuRadioItem(606, 608, properties.displayedTrack + 605);
+        track.CheckMenuRadioItem(606, 608, g_properties.track_mode + 605);
         track.AppendTo(cpm, MF_STRING, "Displayed track");
 
         if (feature_cycle) {
             cycle.AppendMenuItem(MF_STRING, 620, "Enable cycle");
-            cycle.CheckMenuItem(620, properties.cycleCovers);
+            cycle.CheckMenuItem(620, g_properties.enable_cycle);
             cycle.AppendMenuSeparator();
-            var grayIfNoCycle = (properties.cycleCovers ? MF_STRING : MF_GRAYED);
+            var grayIfNoCycle = (g_properties.enable_cycle ? MF_STRING : MF_GRAYED);
             cycle.AppendMenuItem(grayIfNoCycle, 621, "5 sec");
             cycle.AppendMenuItem(grayIfNoCycle, 622, "10 sec");
             cycle.AppendMenuItem(grayIfNoCycle, 623, "20 sec");
@@ -333,13 +334,13 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
             cycle.AppendMenuItem(grayIfNoCycle, 629, "3 min");
             cycle.AppendMenuItem(grayIfNoCycle, 620, "4 min");
             cycle.AppendMenuItem(grayIfNoCycle, 631, "5 min");
-            cycle.CheckMenuRadioItem(621, 631, properties.cycleInterval[1]);
+            cycle.CheckMenuRadioItem(621, 631, JSON.parse(g_properties.cycle_interval)[1]);
             cycle.AppendTo(cpm, MF_STRING, "Cycle covers");
         }
 
         cpm.AppendMenuSeparator();
         cpm.AppendMenuItem(MF_STRING, 632, "Use disc mask");
-        cpm.CheckMenuItem(632, properties.useDiscMask);
+        cpm.CheckMenuItem(632, g_properties.use_disc_mask);
         if (artArr[curArtId]) {
             cpm.AppendMenuItem((safeMode || (artArr[curArtId][5])) ? MF_GRAYED : MF_STRING, 633, "Open image");
             if (isPhotoshopAvailable) {
@@ -371,28 +372,23 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
             idxFound = true;
             switch (idx) {
                 case 601:
-                    properties.showThumbs = !properties.showThumbs;
-                    window.SetProperty("user.Show Thumbs", properties.showThumbs);
+                    g_properties.show_thumbs = !g_properties.show_thumbs;
                     on_thumb_position_change();
                     break;
                 case 602:
-                    properties.thumbPos = pos.left;
-                    window.SetProperty("user.Thumb Pos", properties.thumbPos);
+                    g_properties.thumb_position = pos.left;
                     on_thumb_position_change();
                     break;
                 case 603:
-                    properties.thumbPos = pos.top;
-                    window.SetProperty("user.Thumb Pos", properties.thumbPos);
+                    g_properties.thumb_position = pos.top;
                     on_thumb_position_change();
                     break;
                 case 604:
-                    properties.thumbPos = pos.right;
-                    window.SetProperty("user.Thumb Pos", properties.thumbPos);
+                    g_properties.thumb_position = pos.right;
                     on_thumb_position_change();
                     break;
                 case 605:
-                    properties.thumbPos = pos.bottom;
-                    window.SetProperty("user.Thumb Position", properties.thumbPos);
+                    g_properties.thumb_position = pos.bottom;
                     on_thumb_position_change();
                     break;
                 default:
@@ -404,9 +400,8 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
             idxFound = true;
             switch (idx) {
                 case 620:
-                    properties.cycleCovers = !properties.cycleCovers;
-                    window.SetProperty("user.Cycle Covers", properties.cycleCovers);
-                    onCycleTimer(properties.cycleCovers, artArr.length);
+                    g_properties.enable_cycle = !g_properties.enable_cycle;
+                    onCycleTimer(g_properties.enable_cycle, artArr.length);
                     break;
                 case 621:
                     setInterval(5000, idx);
@@ -446,10 +441,9 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
             }
 
             function setInterval(iv, id) {
-                properties.cycleInterval = [iv, id];
-                window.SetProperty("user.Cycle Interval", properties.cycleInterval.toString());
+                g_properties.cycle_interval = JSON.stringify([iv, id]);
 
-                onCycleTimer(properties.cycleCovers, artArr.length, true);
+                onCycleTimer(g_properties.enable_cycle, artArr.length, true);
             }
         }
 
@@ -457,23 +451,19 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
             idxFound = true;
             switch (idx) {
                 case 606:
-                    properties.displayedTrack = display.auto;
-                    window.SetProperty("user.Displayed Track", properties.displayedTrack);
+                    g_properties.track_mode = display.auto;
                     fb.IsPlaying ? this.getAlbumArt(fb.GetNowPlaying()) : (selectedItm ? this.getAlbumArt(selectedItm) : nullArt());
                     break;
                 case 607:
-                    properties.displayedTrack = display.playing;
-                    window.SetProperty("user.Displayed Track", properties.displayedTrack);
+                    g_properties.track_mode = display.playing;
                     fb.IsPlaying ? this.getAlbumArt(fb.GetNowPlaying()) : nullArt();
                     break;
                 case 608:
-                    properties.displayedTrack = display.selected;
-                    window.SetProperty("user.Displayed Track", properties.displayedTrack);
+                    g_properties.track_mode = display.selected;
                     selectedItm ? this.getAlbumArt(selectedItm) : nullArt();
                     break;
                 case 632:
-                    properties.useDiscMask = !properties.useDiscMask;
-                    window.SetProperty("user.Use Disc Mask", properties.useDiscMask);
+                    g_properties.use_disc_mask = !g_properties.use_disc_mask;
                     this.reloadArt();
                     break;
                 case 633:
@@ -541,12 +531,12 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
         var artBottomMargin = 0;
 
         if (feature_thumbs) {
-            var thumbsMargin = properties.thumbSize + properties.thumbMargin;
+            var thumbsMargin = g_properties.thumb_size + g_properties.thumb_margin;
 
-            artLeftMargin = (properties.showThumbs && properties.thumbPos == pos.left) ? thumbsMargin : 0;
-            artTopMargin = (properties.showThumbs && properties.thumbPos == pos.top) ? thumbsMargin : 0;
-            artRightMargin = (properties.showThumbs && properties.thumbPos == pos.right) ? thumbsMargin : 0;
-            artBottomMargin = (properties.showThumbs && properties.thumbPos == pos.bottom) ? thumbsMargin : 0;
+            artLeftMargin = (g_properties.show_thumbs && g_properties.thumb_position == pos.left) ? thumbsMargin : 0;
+            artTopMargin = (g_properties.show_thumbs && g_properties.thumb_position == pos.top) ? thumbsMargin : 0;
+            artRightMargin = (g_properties.show_thumbs && g_properties.thumb_position == pos.right) ? thumbsMargin : 0;
+            artBottomMargin = (g_properties.show_thumbs && g_properties.thumb_position == pos.bottom) ? thumbsMargin : 0;
         }
 
         var artImgWidth = art[1],
@@ -573,7 +563,7 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
 
     function getMetadb() {
         var metadb = null;
-        switch (displayedTrack) {
+        switch (track_mode) {
             case display.auto: {
                 if (fb.IsPlaying) {
                     metadb = fb.GetNowPlaying();
@@ -618,18 +608,18 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
         return metadb;
     }
 
-    function onCycleTimer(cycleCovers, artLength, restartCycle) {
-        if (cycleTimerStarted && (!cycleCovers || !artArr[curArtId] || artLength <= 1 || restartCycle)) {
+    function onCycleTimer(enable_cycle, artLength, restartCycle) {
+        if (cycleTimerStarted && (!enable_cycle || !artArr[curArtId] || artLength <= 1 || restartCycle)) {
             cycleTimerStarted = false;
             window.ClearInterval(cycleTimer);
         }
 
-        if (cycleCovers && !cycleTimerStarted && artLength > 1) {
+        if (enable_cycle && !cycleTimerStarted && artLength > 1) {
             cycleTimerStarted = true;
 
             cycleTimer = window.SetInterval(function () {
                 that.mouse_wheel(-1);
-            }, properties.cycleInterval[0]);
+            }, JSON.parse(g_properties.cycle_interval)[0]);
         }
     }
 
@@ -642,20 +632,20 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
             tw = that.w,
             th = that.h;
 
-        switch (properties.thumbPos) {
+        switch (g_properties.thumb_position) {
             case pos.left:
-                tw = that.h - properties.thumbSize;
+                tw = that.h - g_properties.thumb_size;
                 break;
             case pos.right:
-                tx += that.w - properties.thumbSize;
-                tw = that.w - properties.thumbSize;
+                tx += that.w - g_properties.thumb_size;
+                tw = that.w - g_properties.thumb_size;
                 break;
             case pos.top:
-                th = that.h - properties.thumbSize;
+                th = that.h - g_properties.thumb_size;
                 break;
             case pos.bottom:
-                ty += that.h - properties.thumbSize;
-                th = that.h - properties.thumbSize;
+                ty += that.h - g_properties.thumb_size;
+                th = that.h - g_properties.thumb_size;
                 break;
         }
 
@@ -680,19 +670,19 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
 
         thumbs = new _.buttons();
 
-        if (!properties.showThumbs) {
+        if (!g_properties.show_thumbs) {
             return;
         }
 
-        var p = properties.thumbPadding;
-        var vertical = (properties.thumbPos == pos.left || properties.thumbPos == pos.right);
+        var p = g_properties.thumb_padding;
+        var vertical = (g_properties.thumb_position == pos.left || g_properties.thumb_position == pos.right);
 
         var x = wx,
             y = wy;
-        var w = Math.min(properties.thumbSize, Math.floor(((vertical ? wh : ww) - 3 * p) / 4));
+        var w = Math.min(g_properties.thumb_size, Math.floor(((vertical ? wh : ww) - 3 * p) / 4));
         var h = w;
 
-        switch (properties.thumbPos) {
+        switch (g_properties.thumb_position) {
             case pos.left:
             case pos.right:
                 y += Math.max(0, Math.floor(wh / 2 - (4 * w + 3 * p) / 2));
@@ -703,7 +693,7 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
                 break;
         }
 
-        if (properties.showThumbs) {
+        if (g_properties.show_thumbs) {
             thumbs.buttons.front = new _.button(x, y, w, h, thumbImages.Front, function () {coverSwitch(0);}, "Front");
 
             x += (vertical ? 0 : (w + p));
@@ -752,7 +742,7 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
             var stateImages = []; //0=normal, 1=hover, 2=down;
 
             for (var s = 0; s <= 2; s++) {
-                stateImages[s] = createThumbImage(properties.thumbSize, properties.thumbSize, 0, s, item.text);
+                stateImages[s] = createThumbImage(g_properties.thumb_size, g_properties.thumb_size, 0, s, item.text);
             }
 
             thumbImages[i] =
@@ -848,7 +838,7 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
     var feature_thumbs = _.includes(features, "thumbs");
     var feature_cycle = _.includes(features, "auto_cycle");
     var frameColor = panelsLineColor;
-    var displayedTrack = properties.displayedTrack;
+    var track_mode = g_properties.track_mode;
 
     var oldAlbum;
     var currentAlbum;
@@ -872,24 +862,23 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
     var cycleTimerStarted = false;
 
     if (feature_thumbs) {
-        properties.AddProperties(
+        g_properties.add_properties(
             {
-                showThumbs: window.GetProperty("user.Show Thumbs", false),
-                thumbMargin: window.GetProperty("user.Thumb Margin", 15),
-                thumbPos: Math.max(1, Math.min(4, window.GetProperty("user.Thumb Position", 4))),
-                thumbSize: window.GetProperty("user.Thumb Size", 50),
-                thumbPadding: window.GetProperty("user.Thumb Padding", 10)
+                show_thumbs:    ["user.thumbs.show", false],
+                thumb_margin:   ["user.thumbs.margin", 15],
+                thumb_size:     ["user.thumbs.size", 50],
+                thumb_padding:  ["user.thumbs.padding", 10],
+                thumb_position: ["user.thumbs.position", 4]
             }
         );
-
+        g_properties.track_mode = Math.max(1, Math.min(3, g_properties.thumb_position));
         createDefaultThumbImages();
     }
 
     if (feature_cycle) {
-        properties.AddProperties(
-            {
-                cycleCovers: window.GetProperty("user.Cycle Covers", false),
-                cycleInterval: window.GetProperty("user.Cycle Interval", "10000,622").split(",")
+        g_properties.add_properties({
+                enable_cycle:   ["user.cycle.enable", false],
+                cycle_interval: ["user.cycle.interval", JSON.stringify([10000,622])]
             }
         );
     }

@@ -3102,10 +3102,24 @@ function Rating(x, y, w, h, metadb) {
         var current_rating = this.get_rating();
 
         if (g_properties.use_rating_from_tags) {
-            if (_.startsWith(_.tf('%path%', this.metadb), 'http')) {
-                // TODO: replace with UpdateFileInfoFromJSON
-                throw Error('Internal error:\nRating from tags is not yet implemented, sorry =(');
-                // this.metadb.UpdateFileInfoSimple('RATING', (current_rating === new_rating) ? undefined : new_rating);
+            if (!_.startsWith(_.tf('%path%', this.metadb), 'http')) {
+                /*
+                var file_info = this.metadb.GetFileInfo();
+                var rating_meta_idx = file_info.MetaFind('RATING');
+                if (rating_meta_idx === (-1 >>> 0)){
+                    file_info.MetaAdd('RATING',(current_rating === new_rating) ? undefined : new_rating );
+                }
+                else {
+                    file_info.MetaSet(rating_meta_idx,(current_rating === new_rating) ? undefined : new_rating );
+                }
+                */
+                var handle = fb.CreateHandleList();
+                handle.Add(this.metadb);
+                handle.UpdateFileInfoFromJSON(
+                    JSON.stringify({
+                        'RATING': (current_rating === new_rating) ? '' : new_rating
+                    })
+                );
             }
         }
         else {
@@ -3119,8 +3133,9 @@ function Rating(x, y, w, h, metadb) {
         if (_.isUndefined(rating)) {
             var current_rating;
             if (g_properties.use_rating_from_tags) {
-                var fileInfo = this.metadb.GetFileInfo();
-                current_rating = fileInfo.MetaValue(fileInfo.MetaFind('rating'), 0);
+                var file_info = this.metadb.GetFileInfo();
+                var rating_meta_idx = file_info.MetaFind('RATING');
+                current_rating = rating_meta_idx !== (-1 >>> 0) ? file_info.MetaValue(rating_meta_idx, 0) : 0;
             }
             else {
                 current_rating = _.tf('%rating%', this.metadb);

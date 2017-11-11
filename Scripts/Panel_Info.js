@@ -2,23 +2,20 @@
 // @name "Info Panel"
 // @author "eXtremeHunter & TheQwertiest"
 // ==/PREPROCESSOR==
-properties.AddProperties(
+g_properties.add_properties(
     {
-        listLeftMargin:   window.GetProperty("user.List Left", 4),
-        listTopMargin:    window.GetProperty("user.List Top", 4),
-        listRightMargin:  window.GetProperty("user.List Right", 4),
-        listBottomMargin: window.GetProperty("user.List Bottom", 4),
-        rowH:             window.GetProperty("user.Row Height", 20),
-        showScrollbar:    window.GetProperty("user.Show Scrollbar", true),
-        sbarRightMargin:  window.GetProperty("user.Scrollbar Right", 0),
-        scrollbarW:       window.GetProperty("user.Scrollbar Width", utils.GetSystemMetrics(2))
+        list_left_pad:       ["user.list.pad.left", 4],
+        list_top_pad:        ["user.list.pad.top", 4],
+        list_right_pad:      ["user.list.pad.right", 4],
+        list_bottom_pad:     ["user.list.pad.bottom", 4],
+        row_h:               ["user.row.height", 20],
+        show_scrollbar:      ["user.scrollbar.show", true],
+        scrollbar_right_pad: ["user.scrollbar.pad.right", 0],
+        scrollbar_w:         ["user.scrollbar.width", utils.GetSystemMetrics(2)]
     }
 );
-var minRowH = 10;
-if (properties.rowH < minRowH) {
-    properties.rowH = minRowH;
-    window.SetProperty("user.Row Height", minRowH);
-}
+
+g_properties.row_h = Math.max(10, g_properties.row_h);
 
 //--->
 var listLength = 0;
@@ -54,11 +51,11 @@ function on_paint(gr) {
     var x = listX;
     var y = listY;
     var w = listW;
-    var h = properties.rowH;
+    var h = g_properties.row_h;
     var p = 5;
 
     var rowShift = Math.floor(listPos);
-    var pixelShift = -Math.round((listPos - rowShift) * properties.rowH);
+    var pixelShift = -Math.round((listPos - rowShift) * g_properties.row_h);
 
     if (rowShift && !pixelShift) {
         gr.DrawLine(x, y, x + w, y, 1, lineColorNormal);
@@ -111,8 +108,8 @@ function on_paint(gr) {
         }
     }
 
-    gr.FillSolidRect(x, listY - properties.listTopMargin, listW, properties.listTopMargin, panelsBackColor);  // Top margin
-    gr.FillSolidRect(x, listY + listH, listW, properties.listBottomMargin, panelsBackColor); // Bottom margin
+    gr.FillSolidRect(x, listY - g_properties.list_top_pad, listW, g_properties.list_top_pad, panelsBackColor);  // Top margin
+    gr.FillSolidRect(x, listY + listH, listW, g_properties.list_bottom_pad, panelsBackColor); // Bottom margin
 
 
     var partialRowShift = listPos - rowShift;
@@ -128,7 +125,7 @@ function on_paint(gr) {
         gr.FillGradRect(listX, listY + listH - 8, listW, 7 + 1, 90, _.RGBtoRGBA(panelsBackColor, 0), _.RGBtoRGBA(panelsBackColor, 200));
     }
 
-    if (properties.showScrollbar && needsScrollbar) {
+    if (g_properties.show_scrollbar && needsScrollbar) {
         var scrollTrackColor = _.RGB(37, 37, 37); // must be without alpha channel when cleartype font is used
         var m = 2;
         gr.FillSolidRect(scrollbar.x + m, scrollbar.y, scrollbar.w - m * 2, scrollbar.h, scrollTrackColor);
@@ -192,7 +189,6 @@ function listOnSize() {
         info[i] = [infoName.toLowerCase().capitalize() + ":"];
         info[i][1] = fileInfo.InfoValue(fileInfo.InfoFind(infoName));
         info[i][2] = Math.ceil(g.MeasureString(info[i][0], infoNameFont, 0, 0, 0, 0).Width) + 5;
-
     }
 
     list = list.concat(meta, info);
@@ -202,17 +198,16 @@ function listOnSize() {
     img.ReleaseGraphics(g);
     img.Dispose();
 
-    listX = properties.listLeftMargin;
-    listY = properties.listTopMargin;
-    listH = Math.max(0, wh - listY - properties.listBottomMargin);
-    listW = Math.max(100, ww - listX - properties.listRightMargin);
+    listX = g_properties.list_left_pad;
+    listY = g_properties.list_top_pad;
+    listH = Math.max(0, wh - listY - g_properties.list_bottom_pad);
+    listW = Math.max(100, ww - listX - g_properties.list_right_pad);
 
-    windowSizeInRows = Math.min(listLength, listH / properties.rowH);
+    windowSizeInRows = Math.min(listLength, listH / g_properties.row_h);
     var rowsToDrawFull = Math.max(0, Math.floor(windowSizeInRows));
 
     if (listPos + rowsToDrawFull > listLength && listLength >= rowsToDrawFull) {
         listPos = listLength - rowsToDrawFull;
-        window.SetProperty("system.Playlist Step", listPos.toString());
     }
 
     if (listLength > rowsToDrawFull) {
@@ -225,19 +220,19 @@ function listOnSize() {
     }
 
     if (needsScrollbar) {
-        if (properties.showScrollbar) {
-            listW -= properties.scrollbarW - properties.sbarRightMargin;
+        if (g_properties.show_scrollbar) {
+            listW -= g_properties.scrollbar_w - g_properties.scrollbar_right_pad;
         }
 
-        var scrollbarX = window.Width - properties.scrollbarW - properties.sbarRightMargin;
-        var scrollbarY = properties.listTopMargin;
-        var scrollbarH = window.Height - scrollbarY - properties.listBottomMargin;
+        var scrollbarX = window.Width - g_properties.scrollbar_w - g_properties.scrollbar_right_pad;
+        var scrollbarY = g_properties.list_top_pad;
+        var scrollbarH = window.Height - scrollbarY - g_properties.list_bottom_pad;
 
         if (scrollbar) {
             scrollbar.reset();
         }
 
-        scrollbar = new _.scrollbar(scrollbarX, scrollbarY, properties.scrollbarW, scrollbarH, properties.rowH, redrawListCallback);
+        scrollbar = new _.scrollbar(scrollbarX, scrollbarY, g_properties.scrollbar_w, scrollbarH, g_properties.row_h, redrawListCallback);
         scrollbar.set_window_param(windowSizeInRows, listLength);
 
         scrollbar.scroll_to(listPos);
@@ -305,7 +300,7 @@ function on_mouse_move(x, y, m) {
 
     qwr_utils.DisableSizing(m);
 
-    if (needsScrollbar && properties.showScrollbar) {
+    if (needsScrollbar && g_properties.show_scrollbar) {
         scrollbar.move(x, y, m);
     }
 }
@@ -313,7 +308,7 @@ function on_mouse_move(x, y, m) {
 // =================================================== //
 
 function on_mouse_lbtn_down(x, y, m) {
-    if (needsScrollbar && properties.showScrollbar) {
+    if (needsScrollbar && g_properties.show_scrollbar) {
         scrollbar.lbtn_dn(x, y, m);
     }
 }
@@ -335,7 +330,7 @@ function on_mouse_lbtn_dblclk(x, y, m) {
 function on_mouse_lbtn_up(x, y, m) {
     qwr_utils.EnableSizing(m);
 
-    if (needsScrollbar && properties.showScrollbar) {
+    if (needsScrollbar && g_properties.show_scrollbar) {
         scrollbar.lbtn_up(x, y, m);
     }
 }
@@ -351,7 +346,7 @@ function on_mouse_wheel(delta) {
 // =================================================== //
 
 function on_mouse_leave() {
-    if (needsScrollbar && properties.showScrollbar) {
+    if (needsScrollbar && g_properties.show_scrollbar) {
         scrollbar.leave();
     }
 }
@@ -359,7 +354,7 @@ function on_mouse_leave() {
 // =================================================== //
 
 function on_mouse_rbtn_up(x, y) {
-    if (needsScrollbar && properties.showScrollbar && scrollbar.trace(x, y)) {
+    if (needsScrollbar && g_properties.show_scrollbar && scrollbar.trace(x, y)) {
         return scrollbar.rbtn_up(x, y);
     }
 
@@ -367,7 +362,7 @@ function on_mouse_rbtn_up(x, y) {
     var cpm = window.CreatePopupMenu();
 
     appear.AppendMenuItem(MF_STRING, 2, "Show scrollbar");
-    appear.CheckMenuItem(2, properties.showScrollbar);
+    appear.CheckMenuItem(2, g_properties.show_scrollbar);
     appear.AppendTo(cpm, MF_STRING, "Appearance");
 
     cpm.AppendMenuItem(fb.IsPlaying ? MF_STRING : MF_GRAYED, 1, "Properties");
@@ -382,8 +377,7 @@ function on_mouse_rbtn_up(x, y) {
             fb.RunContextCommand("Properties");
             break;
         case 2:
-            properties.showScrollbar = !properties.showScrollbar;
-            window.SetProperty("user.Show Scrollbar", properties.showScrollbar);
+            g_properties.show_scrollbar = !g_properties.show_scrollbar;
             refreshList();
             break;
         default:

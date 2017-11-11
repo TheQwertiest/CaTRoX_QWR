@@ -3,16 +3,16 @@
 // @author "TheQwertiest"
 // ==/PREPROCESSOR==
 
-properties.AddProperties(
+g_properties.add_properties(
     {
-        showLogo:             window.GetProperty("user.Show foobar2000 logo", false),
-        showBtnEllipse:       window.GetProperty("user.Show always button ellipse", false),
+        show_logo:        ["user.fb2k_logo.show", false],
+        show_btn_ellipse: ["user.buttons.eclipse.show_always", false]
     }
 );
 
-var hasModdedJScript = qwr_utils.HasModdedJScript();
+var g_has_modded_jscript = qwr_utils.has_modded_jscript();
 
-var isYoutubeVideoDisplayed = hasModdedJScript ? fb.IsMainMenuCommandChecked("View/Visualizations/Video") : false;
+var isYoutubeVideoDisplayed = g_has_modded_jscript ? fb.IsMainMenuCommandChecked("View/Visualizations/Video") : false;
 
 var buttons;
 var rightMargin = 0;
@@ -31,13 +31,13 @@ function on_paint(gr)
     gr.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
 
     // Logo
-    if (properties.showLogo)
+    if (g_properties.show_logo)
     {
         var logoX = 10,
             logoW = 16,
             logoY = Math.floor((wh - logoW) / 2);
 			
-        var fooLogo = gdi.Image(fb.FoobarPath + "themes\\" + themeFolder + "\\Images\\fooLogo.png");
+        var fooLogo = gdi.Image(fb.FoobarPath + "themes\\" + g_theme_folder + "\\Images\\fooLogo.png");
         gr.SetInterpolationMode(InterpolationMode.HighQualityBicubic);
         gr.DrawImage(fooLogo, logoX, logoY, logoW, logoW, 0, 0, fooLogo.Width, fooLogo.Height, 0, 225);
     }
@@ -49,7 +49,7 @@ function on_paint(gr)
 
         var textMargin = 10;
         var text = (fb.IsPlaying ? _.tfe(fields) : _.tf(fields, metadb)),
-            x = ( properties.showLogo ? logoX + logoW + textMargin : 15),
+            x = ( g_properties.show_logo ? logoX + logoW + textMargin : 15),
             y = 0,
             w = ww - x - textMargin - rightMargin,
             h = wh,
@@ -160,7 +160,7 @@ function createButtonObjects(ww, wh)
         buttons.buttons.yt_video = new _.button(x + (w + p), y, w, h, isYoutubeVideoDisplayed ? btnImg.VideoHide : btnImg.VideoShow, function ()
         {
             fb.RunMainMenuCommand("View/Visualizations/Video");
-            isYoutubeVideoDisplayed = hasModdedJScript ? fb.IsMainMenuCommandChecked("View/Visualizations/Video") : false;
+            isYoutubeVideoDisplayed = g_has_modded_jscript ? fb.IsMainMenuCommandChecked("View/Visualizations/Video") : false;
             buttons.buttons.yt_video.set_image(isYoutubeVideoDisplayed ? btnImg.VideoHide : btnImg.VideoShow);
             buttons.buttons.yt_video.tiptext = isYoutubeVideoDisplayed ? "Hide Youtube Video" : "Show Youtube Video";
             buttons.buttons.yt_video.repaint();
@@ -233,7 +233,7 @@ function createButtonImages()
                         break;
                     default:
                         playbackIcoColor = _.RGB(150, 152, 154);
-                        playbackEllipseColor = _.RGBA(70, 70, 70, (properties.showBtnEllipse ? 255 : 0));
+                        playbackEllipseColor = _.RGBA(70, 70, 70, (g_properties.show_btn_ellipse ? 255 : 0));
                         break;
                 }
             }
@@ -250,7 +250,7 @@ function createButtonImages()
                         break;
                     default:
                         playbackIcoColor = item.cNormal;
-                        playbackEllipseColor = _.RGBA(70, 70, 70, (properties.showBtnEllipse ? 255 : 0));
+                        playbackEllipseColor = _.RGBA(70, 70, 70, (g_properties.show_btn_ellipse ? 255 : 0));
                         break;
                 }
             }
@@ -276,8 +276,8 @@ function on_mouse_rbtn_up(x, y)
     var cpm = window.CreatePopupMenu();
 
     cpm.AppendMenuItem(MF_STRING, 8, "Show foobar2000 logo");
-    cpm.CheckMenuItem(8, properties.showLogo);
-    cpm.AppendMenuItem(MF_STRING, 12, properties.showBtnEllipse ? "Hide button ellipse" : "Show button ellipse");
+    cpm.CheckMenuItem(8, g_properties.show_logo);
+    cpm.AppendMenuItem(MF_STRING, 12, g_properties.show_btn_ellipse ? "Hide button ellipse" : "Show button ellipse");
 
     if (utils.IsKeyPressed(VK_SHIFT))
     {
@@ -289,13 +289,11 @@ function on_mouse_rbtn_up(x, y)
     switch (id)
     {
         case 8:
-            properties.showLogo = !properties.showLogo;
-            window.SetProperty("Show foobar2000 logo", properties.showLogo);
+            g_properties.show_logo = !g_properties.show_logo;
             window.Repaint();
             break;
         case 12:
-            properties.showBtnEllipse = !properties.showBtnEllipse;
-            window.SetProperty("Button Normal State Ellipse", properties.showBtnEllipse);
+            g_properties.show_btn_ellipse = !g_properties.show_btn_ellipse;
             createButtonImages();
             on_size();
             window.Repaint();
@@ -308,4 +306,3 @@ function on_mouse_rbtn_up(x, y)
 
     return true;
 }
-                                                 

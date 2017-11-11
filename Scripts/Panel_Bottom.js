@@ -2,9 +2,9 @@
 // @name "Seekbar Panel"
 // @author "TheQwertiest"
 // ==/PREPROCESSOR==
-properties.AddProperties(
+g_properties.add_properties(
     {
-        showTimeRemaining: window.GetProperty("user.Show Time Remaining", true)
+        show_remaining_time: ["user.seekbar.show_ramaining_time", true]
     }
 );
 
@@ -49,7 +49,7 @@ function on_paint(gr)
         isStream = (bool && (fb.GetNowPlaying().RawPath.indexOf("http://") == 0)),
         length = (fb.IsPlaying ? (!fb.PlaybackTime ? "0:00" : fb.TitleFormat("%length%").Eval()) : metadb && fb.TitleFormat("$if(%length%,%length%,0:00)").EvalWithMetadb(metadb)),
         sliderTextColor = (fb.IsPlaying ? _.RGB(130, 132, 134) : _.RGB(80, 80, 80));
-    time2 = isStream ? "stream" : (properties.showTimeRemaining && playbackTimeRemaining ? timeRemaining : " " + length);
+    time2 = isStream ? "stream" : (g_properties.show_remaining_time && playbackTimeRemaining ? timeRemaining : " " + length);
 
     if (!seekbar.drag)
     {
@@ -464,7 +464,7 @@ function on_mouse_rbtn_up(x, y)
     var cpm = window.CreatePopupMenu();
 
     cpm.AppendMenuItem(MF_STRING, 3, "Show time remaining");
-    cpm.CheckMenuItem(3, properties.showTimeRemaining);
+    cpm.CheckMenuItem(3, g_properties.show_remaining_time);
     if (common_vars.minimode_state == "Full")
     {
         cpm.AppendMenuItem(MF_STRING, 4, "Show music spectrum");
@@ -479,12 +479,11 @@ function on_mouse_rbtn_up(x, y)
     switch (id)
     {
         case 3:
-            properties.showTimeRemaining = !properties.showTimeRemaining;
-            window.SetProperty("user.Show Time Remaining", properties.showTimeRemaining);
+            g_properties.show_remaining_time = !g_properties.show_remaining_time;
             window.Repaint();
             break;
         case 4:
-            pss_switch.set_state("spectrum", common_vars.spectrum_state == "Show" ? "Hide" : "Show" );
+            pss_switch.set_state("spectrum", common_vars.spectrum_state === "Show" ? "Hide" : "Show" );
             break;
         default:
             _.executeDefaultContextMenu(id, scriptFolder + "Panel_Bottom.js");
