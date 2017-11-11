@@ -59,23 +59,13 @@ g_properties.add_properties(
 var g_component_playcount = _.cc('foo_playcount');
 var g_component_utils = _.cc('foo_utils');
 
-if (g_properties.rows_in_header < 0) {
-    g_properties.rows_in_header = 0;
-}
-if (g_properties.rows_in_compact_header < 0) {
-    g_properties.rows_in_compact_header = 0;
-}
-if (g_properties.row_h < 10) {
-    g_properties.row_h = 10;
-}
+g_properties.rows_in_header = Math.max(0, g_properties.rows_in_header);
+g_properties.rows_in_compact_header = Math.max(0, g_properties.rows_in_compact_header);
+g_properties.row_h = Math.max(10, g_properties.row_h);
+g_properties.show_rating = g_properties.show_rating && g_component_playcount;
+g_properties.show_playcount = g_properties.show_playcount && g_component_playcount;
 if (g_properties.group_query_id === 5) {
     g_properties.group_query = g_properties.user_group_query;
-}
-if (g_properties.show_rating && !g_component_playcount) {
-    g_properties.show_rating = false;
-}
-if (g_properties.show_playcount && !g_component_playcount) {
-    g_properties.show_playcount = false;
 }
 
 // Evaluators
