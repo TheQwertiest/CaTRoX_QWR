@@ -8,6 +8,7 @@ Theme for foobar2000.
    * Portable installation: installation directory
    * Default installation: %AppData%/foobar2000
 1. Download and install all the [required components](#required-components).
+1. (Optional) Download and install all the [optional components](#optional-components)
 1. Install additional fonts (these are not optional!):  
    They can be either installed from the included 'fonts' directory or downloaded directly from their homepages:
    * Font Awesome (ttf version): http://fontawesome.io/
@@ -58,26 +59,32 @@ When Youtube audio is being played, it's associated video can be displayed via c
 
 Theme contains a lot more features, so explore it thoroughly ;)
 
-Developer menu on the panels can be accessed with SHIFT-Right-click.
+Developer menu on the panels can be accessed with SHIFT-Right-Click.
 
 ### Required components
 
  - foo_jscript_panel: modified version of marc2003's component (see below), compiled from https://github.com/TheQwertiest/foo-jscript-panel
  - foo_musical_spectrum: http://wiki.hydrogenaud.io/index.php?title=Foobar2000:Components/Musical_Spectrum_(foo_musical_spectrum)
- - foo_playcount: https://www.foobar2000.org/components/view/foo_playcount
  - foo_uie_lyrics3: https://www.foobar2000.org/components/view/foo_uie_lyrics3
  - foo_uie_panel_splitter: http://wiki.hydrogenaud.io/index.php?title=Foobar2000:Components_0.9/Panel_Stack_Splitter_(foo_uie_panel_splitter)
  - foo_ui_columns: https://www.foobar2000.org/components/view/foo_ui_columns
  - foo_ui_hacks: http://foobar2000.ru/forum/viewtopic.php?p=44399#p44399
- - foo_utils: http://foosion.foobar2000.org/components/?id=utils
  - foo_youtube: http://fy.3dyd.com/home
 
 These compononents can't be removed without breaking theme in some way.
 
 Theme is not fully compatible with the original foo_jscript_panel (https://github.com/19379/foo-jscript-panel), since it relies on several extensions added in the modified version.
 
+### Optional components
+
+- foo_playcount: https://www.foobar2000.org/components/view/foo_playcount
+- foo_utils: http://foosion.foobar2000.org/components/?id=utils
+
+Some features will be unavailable and disabled if these are not installed. But the theme will still work properly without errors.
+
 ### Included 3rd party scripts
- - YouTube Track Manager script (https://hydrogenaud.io/index.php/topic,105522.0.html) and Library Tree script (https://hydrogenaud.io/index.php/topic,110938.0.html) by WilB.
+ - YouTube Track Manager (Panel_YT.js): https://hydrogenaud.io/index.php/topic,105522.0.html by WilB.
+ - Library Tree (Panel_Library.js): https://hydrogenaud.io/index.php/topic,110938.0.html by WilB.
  - Various samples from foo_jscript_panel by marc2003.
 
 ## Credits
