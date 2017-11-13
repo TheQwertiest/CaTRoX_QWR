@@ -2917,7 +2917,7 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
             }
 
             if (count_text) {
-                var count_w = gr.MeasureString(count_text, g_pl_fonts.playcount, 0, 0, 0, 0).Width;
+                var count_w = Math.round(gr.MeasureString(count_text, g_pl_fonts.playcount, 0, 0, 0, 0).Width);
                 var count_x = this.x + this.w - count_w - right_pad;
 
                 gr.DrawString(count_text, g_pl_fonts.playcount, count_color, count_x, this.y, count_w, this.h, g_string_format.align_center);
@@ -3070,9 +3070,13 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
     var rating_right_pad = 10;
     var rating = undefined;
 
+    /** @type {string|undefined} */
     var title_text = undefined;
+    /** @type {string|undefined} */
     var title_artist_text = undefined;
+    /** @type {string|undefined} */
     var count_text = undefined;
+    /** @type {string|undefined} */
     var length_text = undefined;
 
     initialize_rating();
@@ -3702,7 +3706,7 @@ function PlaylistInfo(x, y, w, h) {
                     tracks_text += ' selected';
                 }
 
-                var duration = metadb_list.CalcTotalDuration();
+                var duration = Math.round(metadb_list.CalcTotalDuration());
                 if (duration) {
                     duration_text = utils.FormatDuration(duration);
                 }
@@ -3848,5 +3852,6 @@ function PlaylistInfo(x, y, w, h) {
     this.h = h;
 
     //private:
+    /** @type {string|undefined} */
     var info_text = undefined;
 }

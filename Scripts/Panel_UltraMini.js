@@ -17,7 +17,7 @@ var panel_s =
         showVolumeBar: 0,
         // Animation
         playbackPanelAlpha: 255,
-        curTitleType: 0,
+        curTitleType: 0
     };
 
 // Tunable const vars
