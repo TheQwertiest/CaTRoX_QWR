@@ -27,7 +27,7 @@ var trace_on_move = false;
 g_properties.add_properties(
     {
         g_maximize_to_fullscreen: ['user.window.maximize_to_fullscreen', true],
-        frameFocusShadow:         ['user.window.shadow.show', false],
+        show_window_shadow:         ['user.window.shadow.show', false],
         show_fb2k_version:        ['user.title_bar.fb2k_version.show', false],
         show_theme_version:       ['user.title_bar.theme_version.show', false],
         show_cpu_usage:           ['user.title_bar.cpu_usage.show', false],
@@ -123,11 +123,21 @@ function on_notify_data(name, info) {
 
 function Menu() {
     this.on_paint = function (gr) {
+        if (!has_notified) {
+            // When on_paint is called all other panels are loaded and can receive notifications
+            window.NotifyOthers('show_tooltips', g_properties.show_tooltips);
+            window.NotifyOthers('minimode_state', common_vars.minimode_state);
+            has_notified = true;
+        }
+
+        gr.FillSolidRect(this.x - pad, this.y - pad, this.w + 2*pad, this.h + pad, pssBackColor);
         gr.FillSolidRect(this.x, this.y, this.w, this.h, panelsFrontColor);
         gr.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
 
-        // TODO: think about fixing this hack
-        // g_properties.frameFocusShadow && gr.DrawLine(0, 0, ww, 0, 1, panelsFrontColor);
+        if (g_properties.show_window_shadow) {
+            // Dirty hack to fix the appearing border
+            gr.DrawLine(this.x - pad, this.y - pad, this.w + 2*pad, this.y - pad, 1, pssBackColor);
+        }
 
         if (g_properties.show_fb2k_version || g_properties.show_theme_version || g_properties.show_cpu_usage) {
             var title_x = this.x + left_pad;
@@ -168,9 +178,9 @@ function Menu() {
     };
 
     this.on_size = function (w, h) {
-        this.h = h;
-        this.w = w;
-        create_buttons(w, h);
+        this.h = h - pad;
+        this.w = w - 2*pad;
+        create_buttons(this.x, this.y, this.w, this.h);
 
         if (!uiHacks) {
             return;
@@ -198,7 +208,7 @@ function Menu() {
             pseudo_caption_enabled = false;
         }
         else if (!pseudo_caption_enabled || pseudo_caption_w !== this.w) {
-            UIHacks.SetPseudoCaption(left_pad, 4, right_pad - left_pad, this.h);
+            UIHacks.SetPseudoCaption(left_pad, this.y, right_pad - left_pad, this.h);
             qwr_utils.EnableSizing(m);
             pseudo_caption_enabled = true;
             pseudo_caption_w = this.w;
@@ -233,7 +243,8 @@ function Menu() {
             frame.AppendMenuItem(MF_STRING, 4, 'No border');
             frame.CheckMenuRadioItem(1, 4, UIHacks.FrameStyle + 1);
             if (UIHacks.FrameStyle === FrameStyle.NoBorder && UIHacks.Aero.Active) {
-                frame.AppendMenuItem(MF_STRING, 5, 'Frame focus shadow');
+                frame.AppendMenuSeparator();
+                frame.AppendMenuItem(MF_STRING, 5, 'Show window shadow');
                 frame.CheckMenuItem(5, (UIHacks.Aero.Left + UIHacks.Aero.Top + UIHacks.Aero.Right + UIHacks.Aero.Bottom));
             }
             frame.AppendTo(cpm, MF_STRING, 'Frame style');
@@ -273,29 +284,29 @@ function Menu() {
                 UIHacks.FrameStyle = FrameStyle.Default;
                 UIHacks.MoveStyle = MoveStyle.Default;
                 UIHacks.Aero.Effect = 0;
-                create_buttons(this.w, this.h);
+                create_buttons(this.x, this.y, this.w, this.h);
                 break;
             case 2:
                 UIHacks.FrameStyle = FrameStyle.SmallCaption;
                 UIHacks.MoveStyle = MoveStyle.Default;
                 UIHacks.Aero.Effect = 0;
-                create_buttons(this.w, this.h);
+                create_buttons(this.x, this.y, this.w, this.h);
                 break;
             case 3:
                 UIHacks.FrameStyle = FrameStyle.NoCaption;
                 UIHacks.MoveStyle = MoveStyle.Both;
                 UIHacks.Aero.Effect = 0;
-                create_buttons(this.w, this.h);
+                create_buttons(this.x, this.y, this.w, this.h);
                 break;
             case 4:
                 UIHacks.FrameStyle = FrameStyle.NoBorder;
                 UIHacks.MoveStyle = MoveStyle.Both;
                 UIHacks.Aero.Effect = 2;
-                create_buttons(this.w, this.h);
+                create_buttons(this.x, this.y, this.w, this.h);
                 break;
             case 5:
-                g_properties.frameFocusShadow = !g_properties.frameFocusShadow;
-                toggle_window_shadow(g_properties.frameFocusShadow);
+                g_properties.show_window_shadow = !g_properties.show_window_shadow;
+                toggle_window_shadow(g_properties.show_window_shadow);
                 break;
             case 6:
                 g_properties.g_maximize_to_fullscreen = !g_properties.g_maximize_to_fullscreen;
@@ -309,7 +320,7 @@ function Menu() {
             case 9:
                 g_properties.show_tooltips = !g_properties.show_tooltips;
                 buttons.show_tt = g_properties.show_tooltips;
-                window.NotifyOthers('showTooltips', g_properties.show_tooltips);
+                window.NotifyOthers('show_tooltips', g_properties.show_tooltips);
                 break;
             case 99:
                 g_properties.show_cpu_usage = !g_properties.show_cpu_usage;
@@ -362,18 +373,16 @@ function Menu() {
         // Workaround for messed up settings file or properties
         mode_handler.set_window_size_limits_for_mode(common_vars.minimode_state);
 
-        toggle_window_shadow(g_properties.frameFocusShadow);
+        toggle_window_shadow(g_properties.show_window_shadow);
 
         create_button_images();
-        window.NotifyOthers('show_tooltips', g_properties.show_tooltips);
-        window.NotifyOthers('minimode_state', common_vars.minimode_state);
 
         if (g_properties.show_cpu_usage) {
             cpu_usage_tracker.start();
         }
     }
 
-    function create_buttons(ww, wh) {
+    function create_buttons(x_arg, y_arg, w_arg, h_arg) {
         if (buttons) {
             buttons.reset();
         }
@@ -383,8 +392,8 @@ function Menu() {
         //---> Menu buttons
         if (common_vars.minimode_state === 'Full') {
             var img = button_images.File;
-            var x = 1;
-            var y = 1;
+            var x = x_arg + 1;
+            var y = y_arg + 1;
             var h = img.normal.Height;
             var w = img.normal.Width;
             buttons.buttons.file = new _.button(x, y, w, h, button_images.File, function (xx, yy, x, y, h, w) { _.menu_item(x, y + h, 'File'); });
@@ -417,8 +426,8 @@ function Menu() {
             left_pad = x + w;
         }
         else {
-            var x = 1;
-            var y = 1;
+            var x = x_arg + 1;
+            var y = y_arg + 1;
             var h = button_images.Menu.normal.Height;
             var w = button_images.Menu.normal.Width;
 
@@ -459,11 +468,11 @@ function Menu() {
             }
         }
 
-        var y = 1;
+        var y = y_arg + 1;
         var w = 22;
         var h = w;
         var p = 3;
-        var x = ww - w * button_count - p * (button_count - 1) - 4;
+        var x = w_arg - w * button_count - p * (button_count - 1);
 
         right_pad = x;
 
@@ -513,7 +522,7 @@ function Menu() {
                     }
                 };
 
-            miniModeBtn = (common_vars.minimode_state === 'Mini') ? miniModeBtnArr.MiniModeExpand : miniModeBtnArr.MiniModeCompress;
+            var miniModeBtn = (common_vars.minimode_state === 'Mini') ? miniModeBtnArr.MiniModeExpand : miniModeBtnArr.MiniModeCompress;
 
             x += w + p;
             buttons.buttons.minimode = new _.button(x, y, w, h, miniModeBtn.ico, _.bind(mode_handler.toggle_mini_mode, mode_handler), miniModeBtn.txt);
@@ -676,7 +685,7 @@ function Menu() {
                 var img = gdi.CreateImage(w, h);
                 g = img.GetGraphics();
                 g.SetSmoothingMode(SmoothingMode.HighQuality);
-                g.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit)
+                g.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
                 g.FillSolidRect(0, 0, w, h, panelsFrontColor); // Cleartype is borked, if drawn without background
 
                 var menuTextColor = _.RGB(140, 142, 144);
@@ -695,7 +704,7 @@ function Menu() {
                 }
 
                 if (item.id === 'menu') {
-                    if (s != 0) {
+                    if (s !== 0) {
                         g.DrawRect(Math.floor(lw / 2), Math.floor(lw / 2), w - lw, h - lw, 1, menuRectColor);
                     }
                     g.DrawString(item.ico, item.font, menuTextColor, 0, 0, w, h - 1, StringFormat(1, 1));
@@ -727,11 +736,11 @@ function Menu() {
         });
     }
 
-    function toggle_window_shadow(frameFocusShadow) {
+    function toggle_window_shadow(show_window_shadow) {
         if (!uiHacks) {
             return;
         }
-        if (frameFocusShadow) {
+        if (show_window_shadow) {
             UIHacks.Aero.Effect = 2;
             UIHacks.Aero.Top = 1;
         }
@@ -742,14 +751,13 @@ function Menu() {
     }
 
     // public:
-
-    this.x = 0;
-    this.y = 0;
+    var pad = 4;
+    this.x = pad;
+    this.y = pad;
     this.w = 0;
     this.h = 0;
 
     // private:
-    var that = this;
 
     // Mouse state
     var mouse_down = false;
@@ -766,6 +774,8 @@ function Menu() {
     var left_pad = 0;
     var right_pad = 0;
 
+    var has_notified = false;
+
     initialize();
 }
 
@@ -780,7 +790,7 @@ function WindowModeHandler() {
         if (new_minimode_state === 'Mini') {
             pss_switch.set_state('minimode', new_minimode_state);
 
-            this.set_window_size(g_properties.mini_mode_saved_width, g_properties.mini_mode_saved_height);
+            set_window_size(g_properties.mini_mode_saved_width, g_properties.mini_mode_saved_height);
 
             UIHacks.MinSize = true;
             UIHacks.MinSize.Width = 300;
@@ -789,7 +799,7 @@ function WindowModeHandler() {
         else if (new_minimode_state === 'Full') {
             pss_switch.set_state('minimode', new_minimode_state);
 
-            this.set_window_size(g_properties.full_mode_saved_width, g_properties.full_mode_saved_height);
+            set_window_size(g_properties.full_mode_saved_width, g_properties.full_mode_saved_height);
 
             UIHacks.MinSize = true;
             UIHacks.MinSize.Width = 650;
@@ -816,7 +826,7 @@ function WindowModeHandler() {
 
             pss_switch.set_state('minimode', new_minimode_state);
 
-            this.set_window_size(250, 250 + 28);
+            set_window_size(250, 250 + 28);
 
             UIHacks.MinSize = true;
             UIHacks.MinSize.Width = 200;
@@ -840,7 +850,7 @@ function WindowModeHandler() {
 
             pss_switch.set_state('minimode', new_minimode_state);
 
-            this.set_window_size(g_properties.mini_mode_saved_width, g_properties.mini_mode_saved_height);
+            set_window_size(g_properties.mini_mode_saved_width, g_properties.mini_mode_saved_height);
 
             UIHacks.MinSize = true;
             UIHacks.MinSize.Width = 300;
@@ -859,29 +869,12 @@ function WindowModeHandler() {
 
             pss_switch.set_state('minimode', new_minimode_state);
 
-            this.set_window_size(g_properties.full_mode_saved_width, g_properties.full_mode_saved_height);
+            set_window_size(g_properties.full_mode_saved_width, g_properties.full_mode_saved_height);
 
             UIHacks.MinSize = true;
             UIHacks.MinSize.Width = 650;
             UIHacks.MinSize.Height = 600;
         }
-    };
-
-    this.set_window_size = function (width, height) {
-        //To avoid resizing bugs, when the window is bigger\smaller than the saved one.
-        UIHacks.MinSize = false;
-        UIHacks.MaxSize = false;
-        UIHacks.MinSize.Width = width;
-        UIHacks.MinSize.Height = height;
-        UIHacks.MaxSize.Width = width;
-        UIHacks.MaxSize.Height = height;
-
-        UIHacks.MaxSize = true;
-        UIHacks.MaxSize = false;
-        UIHacks.MinSize = true;
-        UIHacks.MinSize = false;
-
-        window.NotifyOthers('minimode_state_size', common_vars.minimode_state);
     };
 
     this.set_window_size_limits_for_mode = function (miniMode) {
@@ -902,10 +895,27 @@ function WindowModeHandler() {
             minH = 600;
         }
 
-        this.set_window_size_limits(minW, maxW, minH, maxH);
+        set_window_size_limits(minW, maxW, minH, maxH);
     };
 
-    this.set_window_size_limits = function (minW, maxW, minH, maxH) {
+    function set_window_size (width, height) {
+        //To avoid resizing bugs, when the window is bigger\smaller than the saved one.
+        UIHacks.MinSize = false;
+        UIHacks.MaxSize = false;
+        UIHacks.MinSize.Width = width;
+        UIHacks.MinSize.Height = height;
+        UIHacks.MaxSize.Width = width;
+        UIHacks.MaxSize.Height = height;
+
+        UIHacks.MaxSize = true;
+        UIHacks.MaxSize = false;
+        UIHacks.MinSize = true;
+        UIHacks.MinSize = false;
+
+        window.NotifyOthers('minimode_state_size', common_vars.minimode_state);
+    }
+
+    function set_window_size_limits(minW, maxW, minH, maxH) {
 
         UIHacks.MinSize = !!minW;
         UIHacks.MinSize.Width = minW;
@@ -918,7 +928,7 @@ function WindowModeHandler() {
 
         UIHacks.MaxSize = !!maxH;
         UIHacks.MaxSize.Height = maxH;
-    };
+    }
 
     var fb_handle = g_has_modded_jscript ? wsh_utils.GetWndByHandle(window.ID).GetAncestor(2) : undefined;
 }

@@ -502,7 +502,7 @@ function on_notify_data(name, info)
                 common_vars.minimode_state = info;
                 break;
             }
-        case "showTooltips":
+        case "show_tooltips":
             {
                 showTooltips = info;
                 buttons.show_tt = showTooltips;

@@ -31,7 +31,7 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
 
             if (w + h > 10) {
 
-                if (curArtId == artType.cd) {
+                if (curArtId === artType.cd) {
                     g.DrawImage(art[0], x + 2, y + 2, w - 4, h - 4, 0, 0, artImgWidth, artImgHeight);
 
                     if (g_properties.use_disc_mask) {
@@ -52,7 +52,7 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
         }
         else if (art === null) {
             var metadb = fb.IsPlaying ? fb.GetNowPlaying() : fb.GetFocusItem();
-            if (metadb && (metadb.RawPath.indexOf("http://") == 0) && utils.CheckFont("Webdings")) {
+            if (metadb && (_.startsWith(metadb.RawPath,"http://")) && utils.CheckFont("Webdings")) {
                 g.DrawString("\uF0BB", gdi.font("Webdings", 130, 0), _.RGB(70, 70, 70), this.x, this.y, this.w, this.h, SF);
             }
             else {
@@ -87,12 +87,12 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
         recalculateArtPosition();
     };
     this.get_album_art_done = function (metadb, art_id, image, image_path) {
-        if (art_id == 4) {
+        if (art_id === 4) {
             art_id = artType.artist;
         }
 
         if (!image) {
-            if (!!artArr[art_id] && curArtId == art_id) {
+            if (!!artArr[art_id] && curArtId === art_id) {
                 artArr[art_id] = null;
                 this.repaint();
             }
@@ -105,11 +105,11 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
         var artImgWidth = image.Width,
             artImgHeight = image.Height;
 
-        if (art_id == artType.cd && artImgWidth != artImgHeight) {
+        if (art_id === artType.cd && artImgWidth !== artImgHeight) {
             image = image.Resize(artImgWidth, artImgWidth, 0);
         }
 
-        if (currentAlbum == fb.TitleFormat(g_properties.group_format_query).EvalWithMetadb(metadb)) {
+        if (currentAlbum === fb.TitleFormat(g_properties.group_format_query).EvalWithMetadb(metadb)) {
             var isEmbedded = image_path.slice(image_path.lastIndexOf(".") + 1) == fb.TitleFormat("$ext(%path%)").EvalWithMetadb(metadb);
 
             artArr[art_id] = [image];
@@ -122,7 +122,7 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
             artArr[art_id][5] = isEmbedded;
         }
 
-        if (g_properties.use_disc_mask && art_id == artType.cd) {
+        if (g_properties.use_disc_mask && art_id === artType.cd) {
             var artWidth = image.Width,
                 artHeight = image.Height,
                 discMask = gdi.CreateImage(artWidth, artHeight),
@@ -135,33 +135,33 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
             discMask.Dispose();
         }
 
-        if (art_id == curArtId) {
+        if (art_id === curArtId) {
             recalculateArtPosition(artArr[curArtId]);
             this.repaint();
         }
     };
     this.playlist_switch = function () {
-        if (!fb.IsPlaying || track_mode == display.selected) {
+        if (!fb.IsPlaying || track_mode === display.selected) {
             this.getAlbumArt();
         }
     };
     this.playlist_items_selection_change = function () {
-        if (!fb.IsPlaying || track_mode == display.selected) {
+        if (!fb.IsPlaying || track_mode === display.selected) {
             this.getAlbumArt();
         }
     };
     this.item_focus_change = function () {
-        if (!fb.IsPlaying || track_mode == display.selected) {
+        if (!fb.IsPlaying || track_mode === display.selected) {
             this.getAlbumArt();
         }
     };
     this.playback_new_track = function (metadb) {
-        if (track_mode != display.selected) {
+        if (track_mode !== display.selected) {
             this.getAlbumArt();
         }
     };
     this.playback_stop = function (reason) {
-        if (reason != 2 && track_mode != display.selected) {
+        if (reason !== 2 && track_mode !== display.selected) {
             this.getAlbumArt();
         }
     };
@@ -197,15 +197,15 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
 
         do
         {
-            if (delta == -1) {
-                curArtId == artType.lastVal ? curArtId = artType.firstVal : curArtId++;
+            if (delta === -1) {
+                curArtId === artType.lastVal ? curArtId = artType.firstVal : ++curArtId;
             }
-            else if (delta == 1) {
-                curArtId == artType.firstVal ? curArtId = artType.lastVal : curArtId--;
+            else if (delta === 1) {
+                curArtId === artType.firstVal ? curArtId = artType.lastVal : --curArtId;
             }
-        } while (oldArtID != curArtId && !artArr[curArtId]);
+        } while (oldArtID !== curArtId && !artArr[curArtId]);
 
-        if (oldArtID != curArtId) {
+        if (oldArtID !== curArtId) {
             recalculateArtPosition();
             this.repaint();
         }
@@ -230,7 +230,7 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
         }
 
         currentAlbum = fb.TitleFormat(g_properties.group_format_query).EvalWithMetadb(metadb);
-        if (oldAlbum == currentAlbum) {
+        if (oldAlbum === currentAlbum) {
             if (artArr[curArtId] === null) {
                 this.repaint();
             }
@@ -244,8 +244,8 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
 
         var artID = artType.firstVal;
 
-        albumTimer = window.SetInterval(function () {
-            utils.GetAlbumArtAsync(window.ID, metadb, (artID == artType.artist) ? artID = 4 : artID);
+        albumTimer = window.setInterval(function () {
+            utils.GetAlbumArtAsync(window.ID, metadb, (artID === artType.artist) ? artID = 4 : artID);
 
             if (artID >= artType.lastVal) {
                 window.ClearInterval(albumTimer);
@@ -404,43 +404,43 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
                     onCycleTimer(g_properties.enable_cycle, artArr.length);
                     break;
                 case 621:
-                    setInterval(5000, idx);
+                    setCycleInterval(5000, idx);
                     break;
                 case 622:
-                    setInterval(10000, idx);
+                    setCycleInterval(10000, idx);
                     break;
                 case 623:
-                    setInterval(20000, idx);
+                    setCycleInterval(20000, idx);
                     break;
                 case 624:
-                    setInterval(30000, idx);
+                    setCycleInterval(30000, idx);
                     break;
                 case 625:
-                    setInterval(40000, idx);
+                    setCycleInterval(40000, idx);
                     break;
                 case 626:
-                    setInterval(50000, idx);
+                    setCycleInterval(50000, idx);
                     break;
                 case 627:
-                    setInterval(60000, idx);
+                    setCycleInterval(60000, idx);
                     break;
                 case 628:
-                    setInterval(120000, idx);
+                    setCycleInterval(120000, idx);
                     break;
                 case 629:
-                    setInterval(180000, idx);
+                    setCycleInterval(180000, idx);
                     break;
                 case 630:
-                    setInterval(240000, idx);
+                    setCycleInterval(240000, idx);
                     break;
                 case 631:
-                    setInterval(300000, idx);
+                    setCycleInterval(300000, idx);
                     break;
                 default:
                     idxFound = false;
             }
 
-            function setInterval(iv, id) {
+            function setCycleInterval(iv, id) {
                 g_properties.cycle_interval = JSON.stringify([iv, id]);
 
                 onCycleTimer(g_properties.enable_cycle, artArr.length, true);
@@ -452,15 +452,15 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
             switch (idx) {
                 case 606:
                     g_properties.track_mode = display.auto;
-                    fb.IsPlaying ? this.getAlbumArt(fb.GetNowPlaying()) : (selectedItm ? this.getAlbumArt(selectedItm) : nullArt());
+                    fb.IsPlaying ? this.getAlbumArt(fb.GetNowPlaying()) : (selectedItm ? this.getAlbumArt(selectedItm) : this.nullArt());
                     break;
                 case 607:
                     g_properties.track_mode = display.playing;
-                    fb.IsPlaying ? this.getAlbumArt(fb.GetNowPlaying()) : nullArt();
+                    fb.IsPlaying ? this.getAlbumArt(fb.GetNowPlaying()) : this.nullArt();
                     break;
                 case 608:
                     g_properties.track_mode = display.selected;
-                    selectedItm ? this.getAlbumArt(selectedItm) : nullArt();
+                    selectedItm ? this.getAlbumArt(selectedItm) : this.nullArt();
                     break;
                 case 632:
                     g_properties.use_disc_mask = !g_properties.use_disc_mask;
@@ -468,17 +468,17 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
                     break;
                 case 633:
                     try {
-                        WshShell.Run("\"" + art_s.artArr[art_s.curArtId][4] + "\"");
+                        WshShell.Run("\"" + artArr[curArtId][4] + "\"");
                     } catch (e) { }
                     break;
                 case 634:
                     try {
-                        WshShell.Run("Photoshop " + "\"" + art_s.artArr[art_s.curArtId][4] + "\"");
+                        WshShell.Run("Photoshop " + "\"" + artArr[curArtId][4] + "\"");
                     } catch (e) { }
                     break;
                 case 635:
                     try {
-                        WshShell.Run("explorer /select," + "\"" + art_s.artArr[art_s.curArtId][4] + "\"");
+                        WshShell.Run("explorer /select," + "\"" + artArr[curArtId][4] + "\"");
                     } catch (e) { }
                     break;
                 case 636:
@@ -533,10 +533,10 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
         if (feature_thumbs) {
             var thumbsMargin = g_properties.thumb_size + g_properties.thumb_margin;
 
-            artLeftMargin = (g_properties.show_thumbs && g_properties.thumb_position == pos.left) ? thumbsMargin : 0;
-            artTopMargin = (g_properties.show_thumbs && g_properties.thumb_position == pos.top) ? thumbsMargin : 0;
-            artRightMargin = (g_properties.show_thumbs && g_properties.thumb_position == pos.right) ? thumbsMargin : 0;
-            artBottomMargin = (g_properties.show_thumbs && g_properties.thumb_position == pos.bottom) ? thumbsMargin : 0;
+            artLeftMargin = (g_properties.show_thumbs && g_properties.thumb_position === pos.left) ? thumbsMargin : 0;
+            artTopMargin = (g_properties.show_thumbs && g_properties.thumb_position === pos.top) ? thumbsMargin : 0;
+            artRightMargin = (g_properties.show_thumbs && g_properties.thumb_position === pos.right) ? thumbsMargin : 0;
+            artBottomMargin = (g_properties.show_thumbs && g_properties.thumb_position === pos.bottom) ? thumbsMargin : 0;
         }
 
         var artImgWidth = art[1],
@@ -595,17 +595,9 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
     }
 
     function getSelectedItem() {
-        var apl = plman.ActivePlaylist;
-        var metadb = null;
+        var selected_metadb_list = plman.GetPlaylistSelectedItems(plman.ActivePlaylist);
 
-        for (var i = 0, l = plman.PlaylistItemCount(apl); i != l; i++) {
-            if (plman.IsPlaylistItemSelected(apl, i)) {
-                metadb = plman.GetPlaylistItems(apl).Item(i);
-                break;
-            }
-        }
-
-        return metadb;
+        return selected_metadb_list.Count > 0 ? selected_metadb_list.Item(0) : null;
     }
 
     function onCycleTimer(enable_cycle, artLength, restartCycle) {
@@ -617,7 +609,7 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
         if (enable_cycle && !cycleTimerStarted && artLength > 1) {
             cycleTimerStarted = true;
 
-            cycleTimer = window.SetInterval(function () {
+            cycleTimer = window.setInterval(function () {
                 that.mouse_wheel(-1);
             }, JSON.parse(g_properties.cycle_interval)[0]);
         }
@@ -675,7 +667,7 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
         }
 
         var p = g_properties.thumb_padding;
-        var vertical = (g_properties.thumb_position == pos.left || g_properties.thumb_position == pos.right);
+        var vertical = (g_properties.thumb_position === pos.left || g_properties.thumb_position === pos.right);
 
         var x = wx,
             y = wy;

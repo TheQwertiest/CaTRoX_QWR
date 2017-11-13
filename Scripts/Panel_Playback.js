@@ -412,7 +412,7 @@ function on_notify_data(name, info) {
             window.Repaint();
             break;
         }
-        case "showTooltips": {
+        case "show_tooltips": {
             showTooltips = info;
             buttons.show_tt = showTooltips;
             break;

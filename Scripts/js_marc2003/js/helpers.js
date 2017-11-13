@@ -2,7 +2,7 @@ Array.prototype.srt=function(){for(var z=0,t;t=this[z];z++){this[z]=[];var x=0,y
 this[z][y]+=j;}}
 this.sort(function(a,b){for(var x=0,aa,bb;(aa=a[x])&&(bb=b[x]);x++){aa=aa.toLowerCase();bb=bb.toLowerCase();if(aa!==bb){var c=Number(aa),d=Number(bb);if(c==aa&&d==bb){return c-d;}else return(aa>bb)?1:-1;}}
 return a.length-b.length;});for(var z=0;z<this.length;z++)
-this[z]=this[z].join('');}
+this[z]=this[z].join('');};
 
 function on_script_unload() {
     _.tt('');
@@ -14,17 +14,17 @@ var g_tooltipTimer;
 var g_tooltipTimerStarted = false;
 var tt_caller = undefined;
 
-function startTooltipTimerFn(id, text) {
+function g_startTooltipTimerFn(id, text) {
     tt_caller = id;
 
     if (g_tooltipTimerStarted) {
-        stopTooltipTimerInternal(); /// < There can be only one tooltip present at all times, so we can kill the timer w/o any worries
+        g_stopTooltipTimerInternal(); /// < There can be only one tooltip present at all times, so we can kill the timer w/o any worries
     }
 
     var turnOffTimer = false;
-    maxDelay = 500,
-        curDelay = 0,
-        delayStep = 100;
+    var maxDelay = 500;
+    var curDelay = 0;
+    var delayStep = 100;
     if (!g_tooltipTimerStarted) {
         _.tt("");
         g_tooltipTimer = window.SetInterval(function () {
@@ -36,23 +36,23 @@ function startTooltipTimerFn(id, text) {
             }
 
             if (turnOffTimer) {
-                stopTooltipTimerInternal();
+                g_stopTooltipTimerInternal();
             }
         }, delayStep);
         g_tooltipTimerStarted = true;
     }
 };
 
-function stopTooltipTimerInternal() {
+function g_stopTooltipTimerInternal() {
     window.ClearInterval(g_tooltipTimer);
     g_tooltipTimerStarted = false;
 }
 
-function clearTooltipFn(id) {
-    if (tt_caller == id) {// Do not stop other callers
+function g_clearTooltipFn(id) {
+    if (tt_caller === id) {// Do not stop other callers
         _.tt("");
         if (g_tooltipTimerStarted) {
-            stopTooltipTimerInternal();
+            g_stopTooltipTimerInternal();
         }
     }
 }
@@ -61,7 +61,7 @@ function clearTooltipFn(id) {
 var g_btnAlphaTimerStarted = false;
 var g_btnAlphaTimer;
 
-function startBtnAlphaTimerFn(caller) {
+function g_startBtnAlphaTimerFn(caller) {
     var turnButtonTimerOff = false,
         buttonHoverInStep = 50,
         buttonHoverOutStep = 15,
@@ -92,11 +92,11 @@ function startBtnAlphaTimerFn(caller) {
 
             _.forEach(caller.buttons, function (item) {
                 //---> Test button alpha values and turn button timer off when it's not required;
-                if (item.hover_alpha == 255) {
+                if (item.hover_alpha === 255) {
                     currentAlphaIsFull = true;
                 }
                 else {
-                    alphaIsZero = (testAlpha += item.hover_alpha) == 0;
+                    alphaIsZero = (testAlpha += item.hover_alpha) === 0;
                 }
             });
 
@@ -149,8 +149,8 @@ _.mixin({
     },
     button:                    function (x, y, w, h, img_src, fn, tiptext) {
         this.paint = function (gr, alpha) {
-            if (this.state != "pressed") {
-                var hoverAlpha = (alpha != undefined) ? Math.min(this.hover_alpha, alpha) : this.hover_alpha;
+            if (this.state !== "pressed") {
+                var hoverAlpha = !_.isNil(alpha) ? Math.min(this.hover_alpha, alpha) : this.hover_alpha;
                 this.img_normal && _.drawImage(gr, this.img_normal, this.x, this.y, this.w, this.h, undefined, undefined, alpha);
                 this.img_hover && _.drawImage(gr, this.img_hover, this.x, this.y, this.w, this.h, undefined, undefined, hoverAlpha);
             }
@@ -177,16 +177,16 @@ _.mixin({
 
         this.cs = function (s) {
             this.state = s;
-            if (s == "pressed" || s == "normal") {
+            if (s === "pressed" || s === "normal") {
                 this.tt.clear();
             }
             this.repaint();
         };
 
         this.set_image = function (img_src) {
-            this.img_normal = typeof img_src.normal == "string" ? _.img(img_src.normal) : img_src.normal;
-            this.img_hover = img_src.hover ? (typeof img_src.hover == "string" ? _.img(img_src.hover) : img_src.hover) : this.img_normal;
-            this.img_pressed = img_src.pressed ? (typeof img_src.pressed == "string" ? _.img(img_src.pressed) : img_src.pressed) : this.img_normal;
+            this.img_normal = _.isString(img_src.normal) ? _.img(img_src.normal) : img_src.normal;
+            this.img_hover = img_src.hover ? (_.isString(img_src.hover) ? _.img(img_src.hover) : img_src.hover) : this.img_normal;
+            this.img_pressed = img_src.pressed ? (_.isString(img_src.pressed) ? _.img(img_src.pressed) : img_src.pressed) : this.img_normal;
         };
 
         this.x = x;
@@ -211,7 +211,7 @@ _.mixin({
                 stopBtnAlphaTimerFn();
             }
             if (g_tooltipTimerStarted) {
-                stopTooltipTimerInternal();
+                g_stopTooltipTimerInternal();
             }
         };
 
@@ -239,14 +239,14 @@ _.mixin({
                 return null;
             }
 
-            if (this.btn == temp_btn) {// Same button
+            if (this.btn === temp_btn) {// Same button
                 return this.btn;
             }
 
             if (this.btn) {// Return prev button to normal state
                 this.buttons[this.btn].cs("normal");
 
-                startBtnAlphaTimerFn(this);
+                g_startBtnAlphaTimerFn(this);
             }
 
             if (temp_btn) {// Select current button
@@ -254,7 +254,7 @@ _.mixin({
                 if (this.show_tt) {
                     this.buttons[temp_btn].tt.showDelayed(this.buttons[temp_btn].tiptext);
                 }
-                startBtnAlphaTimerFn(this);
+                g_startBtnAlphaTimerFn(this);
             }
 
             this.btn = temp_btn;
@@ -265,7 +265,7 @@ _.mixin({
             if (this.btn) {
                 this.buttons[this.btn].cs("normal");
                 if (!this.buttons[this.btn].hide) {
-                    startBtnAlphaTimerFn(this);
+                    g_startBtnAlphaTimerFn(this);
                 }
             }
             this.btn = null;
@@ -282,7 +282,7 @@ _.mixin({
         };
 
         this.lbtn_up = function (x, y) {
-            if (this.btn && !this.buttons[this.btn].hide && this.buttons[this.btn].state == "pressed") {
+            if (this.btn && !this.buttons[this.btn].hide && this.buttons[this.btn].state === "pressed") {
                 if (this.buttons[this.btn].trace(x, y)) {
                     this.buttons[this.btn].cs("hover");
                 }
@@ -336,7 +336,7 @@ _.mixin({
                     var dst_w = img.Width;
                     var dst_h = Math.round(src_h * img.Width / src_w);
                     var dst_x = 0;
-                    var dst_y = Math.round((img.Height - dst_h) / (aspect == image.crop_top ? 4 : 2));
+                    var dst_y = Math.round((img.Height - dst_h) / (aspect === image.crop_top ? 4 : 2));
                 }
                 else {
                     var dst_w = Math.round(src_w * img.Height / src_h);
@@ -366,11 +366,11 @@ _.mixin({
                 var dst_h = img.Height;
                 break;
         }
-        if (_.isUndefined(aspect)) {
-            gr.DrawImage(img, src_x, src_y, src_w, src_h, dst_x, dst_y, dst_w, dst_h, 0, alpha == undefined ? 255 : alpha);
+        if (_.isNil(aspect)) {
+            gr.DrawImage(img, src_x, src_y, src_w, src_h, dst_x, dst_y, dst_w, dst_h, 0, _.isNil(alpha) ? 255 : alpha);
         }
         else {
-            gr.DrawImage(img, src_x, src_y, src_w, src_h, dst_x + 5, dst_y + 5, dst_w - 10, dst_h - 10, 0, alpha == undefined ? 255 : alpha);
+            gr.DrawImage(img, src_x, src_y, src_w, src_h, dst_x + 5, dst_y + 5, dst_w - 10, dst_h - 10, 0, _.isNil(alpha) ? 255 : alpha);
         }
         if (border) {
             gr.DrawRect(src_x, src_y, src_w - 1, src_h - 1, 1, border);
@@ -466,7 +466,7 @@ _.mixin({
         var s2 = window.CreatePopupMenu();
         _.forEach(ha_links, function (item, i) {
             m1.AppendMenuItem(MF_STRING, i + 100, item[0]);
-            if (i == 1) {
+            if (i === 1) {
                 m1.AppendMenuSeparator();
             }
         });
@@ -474,9 +474,9 @@ _.mixin({
         m1.AppendMenuItem(MF_STRING, 1, "Configure...");
         var idx = m1.TrackPopupMenu(x, y, flags);
         switch (true) {
-            case idx == 0:
+            case idx === 0:
                 break;
-            case idx == 1:
+            case idx === 1:
                 window.ShowConfigure();
                 break;
             default:
@@ -507,7 +507,7 @@ _.mixin({
         return _.isString(folder) ? fso.FolderExists(folder) : false;
     },
     isUUID:                    function (value) {
-        var re = /^[0-9a-f]{8}-[0-9a-f]{4}-[345][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
+        var re = /^[0-9a-f]{8}-[0-9a-f]{4}-[345][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
         return re.test(value);
     },
     jsonParse:                 function (value) {
@@ -527,7 +527,7 @@ _.mixin({
         var result = [];
         _.forEach(value.split('\n'), function (paragraph) {
             var lines = _.filter(temp_gr.EstimateLineWrap(paragraph, font, width).toArray(), function (item, i) {
-                return i % 2 == 0;
+                return i % 2 === 0;
             });
             result.push.apply(result, _.map(lines, _.trim));
         });
@@ -585,9 +585,9 @@ _.mixin({
          */
         var idx = m1.TrackPopupMenu(x, y, flags);
         switch (true) {
-            case idx == 0:
+            case idx === 0:
                 break;
-            case idx == 1:
+            case idx === 1:
                 fb.RunMainMenuCommand('View/Switch to UI/' + (window.InstanceType ? 'Columns UI' : 'Default User Interface'));
                 break;
             case idx < 2000:
@@ -631,7 +631,7 @@ _.mixin({
     },
     moveCheckReducer:          function () {
         this.isSameMove = function (x, y, m) {
-            if (this.mx == x && this.my == y && this.mm == m) {
+            if (this.mx === x && this.my === y && this.mm === m) {
                 return true;
             }
             else {
@@ -641,7 +641,7 @@ _.mixin({
 
                 return false;
             }
-        }
+        };
 
         this.mx = undefined;
         this.my = undefined;
@@ -710,11 +710,11 @@ _.mixin({
             if (this.v()) {
                 gr.DrawString(this.t, this.guifx_font, colour, this.x, this.y, this.w, this.h, SF_CENTRE);
             }
-        }
+        };
 
         this.trace = function (x, y) {
             return x > this.x && x < this.x + this.w && y > this.y && y < this.y + this.h && this.v();
-        }
+        };
 
         this.move = function (x, y) {
             if (this.trace(x, y)) {
@@ -725,7 +725,7 @@ _.mixin({
                 window.SetCursor(IDC_ARROW);
                 return false;
             }
-        }
+        };
 
         this.lbtn_up = function (x, y) {
             if (this.trace(x, y)) {
@@ -737,7 +737,7 @@ _.mixin({
             else {
                 return false;
             }
-        }
+        };
 
         this.t = t;
         this.x = x;
@@ -759,7 +759,7 @@ _.mixin({
     },
     splitRGB:                  function (c) {
         var tmp = c.split('-');
-        if (tmp.length == 4) {
+        if (tmp.length === 4) {
             return _.RGBA(tmp[0], tmp[1], tmp[2], tmp[3]);
         }
         else {
@@ -810,7 +810,7 @@ _.mixin({
         return [a >> 16, a >> 8 & 0xFF, a & 0xFF];
     },
     toVolume:                  function (db) {
-        if (db == -100) {
+        if (db === -100) {
             return 0;
         }
 
@@ -820,21 +820,21 @@ _.mixin({
         return Math.floor(_.now() / 1000);
     },
     tt:                        function (value) {
-        if (tooltip.Text != value) {
+        if (tooltip.Text !== _.toString(value)) {
             tooltip.Text = value;
             tooltip.Activate();
         }
     },
     tt_handler:                function () {
         this.showDelayed = function (text) {
-            startTooltipTimerFn(this.id, text);
+            g_startTooltipTimerFn(this.id, text);
         };
         this.showImmediate = function (text) {
-            clearTooltipFn(this.id);
+            g_clearTooltipFn(this.id);
             _.tt(text);
         };
         this.clear = function () {
-            clearTooltipFn(this.id);
+            g_clearTooltipFn(this.id);
         };
         this.id = Math.ceil(Math.random().toFixed(8) * 1000);
     }
@@ -1058,7 +1058,7 @@ var console = {
     log : function (text) {
         fb.Trace(this.pre + text);
     }
-}
+};
 
 var guifx = {
     font : 'Guifx v2 Transports',
