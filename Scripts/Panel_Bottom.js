@@ -45,16 +45,16 @@ function on_paint(gr)
     var bool = (fb.IsPlaying && fb.PlaybackTime),
         metadb = fb.GetFocusItem(),
         playbackTimeRemaining = bool ? fb.TitleFormat("[%playback_time_remaining%]").Eval() : "0:00",
-        timeRemaining = ((playbackTimeRemaining != "0:00" ? "-" : " ") + playbackTimeRemaining),
-        isStream = (bool && (fb.GetNowPlaying().RawPath.indexOf("http://") == 0)),
+        timeRemaining = ((playbackTimeRemaining !== "0:00" ? "-" : " ") + playbackTimeRemaining),
+        isStream = (bool && (_.startsWith(fb.GetNowPlaying().RawPath,"http://"))),
         length = (fb.IsPlaying ? (!fb.PlaybackTime ? "0:00" : fb.TitleFormat("%length%").Eval()) : metadb && fb.TitleFormat("$if(%length%,%length%,0:00)").EvalWithMetadb(metadb)),
         sliderTextColor = (fb.IsPlaying ? _.RGB(130, 132, 134) : _.RGB(80, 80, 80));
-    time2 = isStream ? "stream" : (g_properties.show_remaining_time && playbackTimeRemaining ? timeRemaining : " " + length);
+    var time2 = isStream ? "stream" : (g_properties.show_remaining_time && playbackTimeRemaining ? timeRemaining : " " + length);
 
     if (!seekbar.drag)
     {
         seekbarTime1 = ((fb.IsPlaying && fb.PlaybackTime) ? fb.TitleFormat("%playback_time%").Eval() : "0:00");
-        seekbarTime2 = (fb.IsPlaying ? (fb.IsPlaying && seekbarTime1 == "0:00" ? "-" + fb.TitleFormat("%length%").Eval() : time2) : (metadb ? " " + length : " 0:00"));
+        seekbarTime2 = (fb.IsPlaying ? (fb.IsPlaying && seekbarTime1 === "0:00" ? "-" + fb.TitleFormat("%length%").Eval() : time2) : (metadb ? " " + length : " 0:00"));
     }
 
     var sliderBarHoverColor = _.RGBA(151, 153, 155, seekbar.hover_alpha);
@@ -66,11 +66,11 @@ function on_paint(gr)
     }
 
     var seekbarTextFont = gdi.font("Consolas", 14, 1);
-    gr.DrawString(seekbarTime1, seekbarTextFont, sliderTextColor, x - seekbarTextW, y - 1, seekbarTextW, h, StringFormat(1, 1));
-    gr.DrawString(seekbarTime2, seekbarTextFont, sliderTextColor, x + w, y - 1, seekbarTextW, h, StringFormat(1, 1));
+    gr.DrawString(seekbarTime1, seekbarTextFont, sliderTextColor, x - seekbarTextW, y - 1, seekbarTextW, h, g_string_format.align_center);
+    gr.DrawString(seekbarTime2, seekbarTextFont, sliderTextColor, x + w, y - 1, seekbarTextW, h, g_string_format.align_center);
 
     // VolBar
-    if (common_vars.minimode_state == "Full")
+    if (common_vars.minimode_state === "Full")
     {
         var x = volumeBar.x,
             y = volumeBar.y,
@@ -99,7 +99,7 @@ function on_size()
     volumeBar = new _.volume(volumeBarX, volumeBarY, volumeBarW, volumeBarH);
     volumeBar.show_tt = showTooltips;
 
-    if (common_vars.minimode_state == "Full")
+    if (common_vars.minimode_state === "Full")
     {
         var textW = seekbarTextW;
         var gap = 80;
@@ -143,7 +143,7 @@ function on_mouse_move(x, y, m)
     {
         seekbarTime1 = timeFormat(fb.PlaybackLength * seekbar.drag_seek, true);
         seekbarTime2 = timeFormat(fb.PlaybackLength - fb.PlaybackLength * seekbar.drag_seek, true);
-        if (seekbarTime2 != "0:00")
+        if (seekbarTime2 !== "0:00")
             seekbarTime2 = "-" + seekbarTime2;
         else
             seekbarTime2 = " " + seekbarTime2;
@@ -156,7 +156,7 @@ function on_mouse_move(x, y, m)
 
     buttons.move(x, y);
 
-    if (common_vars.minimode_state == "Full")
+    if (common_vars.minimode_state === "Full")
         volumeBar.move(x, y);
 }
 
@@ -164,7 +164,7 @@ function on_mouse_lbtn_down(x, y, m)
 {
     buttons.lbtn_down(x, y);
     seekbar.lbtn_down(x, y);
-    if (common_vars.minimode_state == "Full")
+    if (common_vars.minimode_state === "Full")
         volumeBar.lbtn_down(x, y);
 }
 
@@ -174,7 +174,7 @@ function on_mouse_lbtn_up(x, y, m)
 
     buttons.lbtn_up(x, y);
     seekbar.lbtn_up(x, y);
-    if (common_vars.minimode_state == "Full")
+    if (common_vars.minimode_state === "Full")
         volumeBar.lbtn_up(x, y);
 }
 
@@ -221,7 +221,7 @@ function on_playback_seek()
 
 function on_volume_change(val)
 {
-    if (common_vars.minimode_state == "Full")
+    if (common_vars.minimode_state === "Full")
     {
         buttons.refresh_vol_button();
         volumeBar.volume_change();
@@ -247,13 +247,13 @@ function createButtonObjects(wx, wy, ww, wh)
     var h = w;
     var p = 9;
 
-    var rightMargin = (common_vars.minimode_state != "Full") ? ((w + p) * 2 + 2) : (6 + (w + p) * 2 + 6 + (volumeBarW + 35));
+    var rightMargin = (common_vars.minimode_state !== "Full") ? ((w + p) * 2 + 2) : (6 + (w + p) * 2 + 6 + (volumeBarW + 35));
     var x = ww - rightMargin;
 
     var repeatImg;
-    if (plman.PlaybackOrder == playbackOrder.RepeatPlaylist)
+    if (plman.PlaybackOrder === playbackOrder.RepeatPlaylist)
         repeatImg = btnImg.RepeatPlaylist;
-    else if (plman.PlaybackOrder == playbackOrder.RepeatTrack)
+    else if (plman.PlaybackOrder === playbackOrder.RepeatTrack)
         repeatImg = btnImg.Repeat1;
     else
         repeatImg = btnImg.Repeat;
@@ -261,11 +261,11 @@ function createButtonObjects(wx, wy, ww, wh)
     var repeatFn = function ()
     {
         var pbo = plman.PlaybackOrder;
-        if (pbo == playbackOrder.Default)
+        if (pbo === playbackOrder.Default)
             plman.PlaybackOrder = playbackOrder.RepeatPlaylist;
-        else if (pbo == playbackOrder.RepeatPlaylist)
+        else if (pbo === playbackOrder.RepeatPlaylist)
             plman.PlaybackOrder = playbackOrder.RepeatTrack;
-        else if (pbo == playbackOrder.RepeatTrack)
+        else if (pbo === playbackOrder.RepeatTrack)
             plman.PlaybackOrder = playbackOrder.Default;
         else
             plman.PlaybackOrder = playbackOrder.RepeatPlaylist;
@@ -275,27 +275,27 @@ function createButtonObjects(wx, wy, ww, wh)
     var shuffleFn = function ()
     {
         var pbo = plman.PlaybackOrder;
-        if (pbo != playbackOrder.ShuffleTracks)
+        if (pbo !== playbackOrder.ShuffleTracks)
             plman.PlaybackOrder = playbackOrder.ShuffleTracks;
         else
             plman.PlaybackOrder = playbackOrder.Default;
     };
-    buttons.buttons.shuffle = new _.button(x + (w + p), y, w, h, (plman.PlaybackOrder == playbackOrder.ShuffleTracks) ? btnImg.ShuffleTracks : btnImg.Shuffle, shuffleFn, "Shuffle");
+    buttons.buttons.shuffle = new _.button(x + (w + p), y, w, h, (plman.PlaybackOrder === playbackOrder.ShuffleTracks) ? btnImg.ShuffleTracks : btnImg.Shuffle, shuffleFn, "Shuffle");
 
-    if (common_vars.minimode_state == "Full")
+    if (common_vars.minimode_state === "Full")
     {
         var volValue = _.toVolume(fb.Volume);
         var volImage = ((volValue > 50) ? btnImg.VolLoud : ((volValue > 0) ? btnImg.VolQuiet : btnImg.VolMute));
         buttons.buttons.mute = new _.button(ww - 30, y, w, h, volImage, function ()
-            { fb.VolumeMute(); }, volValue == 0 ? "Unmute" : "Mute");
+            { fb.VolumeMute(); }, volValue === 0 ? "Unmute" : "Mute");
     }
 
     buttons.refresh_repeat_button = function ()
     {
         var repeatImg;
-        if (plman.PlaybackOrder == playbackOrder.RepeatPlaylist)
+        if (plman.PlaybackOrder === playbackOrder.RepeatPlaylist)
             repeatImg = btnImg.RepeatPlaylist;
-        else if (plman.PlaybackOrder == playbackOrder.RepeatTrack)
+        else if (plman.PlaybackOrder === playbackOrder.RepeatTrack)
             repeatImg = btnImg.Repeat1;
         else
             repeatImg = btnImg.Repeat;
@@ -306,7 +306,7 @@ function createButtonObjects(wx, wy, ww, wh)
 
     buttons.refresh_shuffle_button = function ()
     {
-        buttons.buttons.shuffle.set_image((plman.PlaybackOrder == playbackOrder.ShuffleTracks) ? btnImg.ShuffleTracks : btnImg.Shuffle);
+        buttons.buttons.shuffle.set_image((plman.PlaybackOrder === playbackOrder.ShuffleTracks) ? btnImg.ShuffleTracks : btnImg.Shuffle);
         buttons.buttons.shuffle.repaint();
     };
 
@@ -315,7 +315,7 @@ function createButtonObjects(wx, wy, ww, wh)
         var volValue = _.toVolume(fb.Volume);
         var volImage = ((volValue > 50) ? btnImg.VolLoud : ((volValue > 0) ? btnImg.VolQuiet : btnImg.VolMute));
         buttons.buttons.mute.set_image(volImage);
-        buttons.buttons.mute.tiptext = fb.Volume == -100 ? "Unmute" : "Mute";
+        buttons.buttons.mute.tiptext = fb.Volume === -100 ? "Unmute" : "Mute";
         buttons.buttons.mute.repaint();
     };
 }
@@ -429,11 +429,11 @@ function createButtonImages()
         {
             var color = item.cNormal;
 
-            if (s == 1)
+            if (s === 1)
             {
                 color = item.cHover;
             }
-            else if (s == 2)
+            else if (s === 2)
             {
                 color = item.cDown;
             }
@@ -441,10 +441,10 @@ function createButtonImages()
             var img = gdi.CreateImage(w, h);
             g = img.GetGraphics();
             g.SetSmoothingMode(SmoothingMode.HighQuality);
-            g.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit)
+            g.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
             g.FillSolidRect(0, 0, w, h, pssBackColor); // Cleartype is borked, if drawn without background
 
-            g.DrawString(item.ico, item.font, color, 0, 0, w, h, StringFormat(1, 1));
+            g.DrawString(item.ico, item.font, color, 0, 0, w, h, g_string_format.align_center);
 
             img.ReleaseGraphics(g);
             stateImages[s] = img;
@@ -465,10 +465,10 @@ function on_mouse_rbtn_up(x, y)
 
     cpm.AppendMenuItem(MF_STRING, 3, "Show time remaining");
     cpm.CheckMenuItem(3, g_properties.show_remaining_time);
-    if (common_vars.minimode_state == "Full")
+    if (common_vars.minimode_state === "Full")
     {
         cpm.AppendMenuItem(MF_STRING, 4, "Show music spectrum");
-        cpm.CheckMenuItem(4, common_vars.spectrum_state == "Show");
+        cpm.CheckMenuItem(4, common_vars.spectrum_state === "Show");
     }
     if (utils.IsKeyPressed(VK_SHIFT))
     {

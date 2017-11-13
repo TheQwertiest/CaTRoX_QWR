@@ -41,7 +41,7 @@ function g_startTooltipTimerFn(id, text) {
         }, delayStep);
         g_tooltipTimerStarted = true;
     }
-};
+}
 
 function g_stopTooltipTimerInternal() {
     window.ClearInterval(g_tooltipTimer);
@@ -414,7 +414,7 @@ _.mixin({
         }
     },
     fbEscape:                  function (value) {
-        return value.replace(/'/g, "''").replace(/[\(\)\[\],$]/g, "'$&'");
+        return value.replace(/'/g, "''").replace(/[()\[\],$]/g, "'$&'");
     },
     fbSanitise:                function (value) {
         return value.replace(/[\/\\|:]/g, '-').replace(/\*/g, 'x').replace(/"/g, "''").replace(/[<>]/g, '_').replace(/\?/g, '').replace(/(?! )\s/g, '');
@@ -512,8 +512,7 @@ _.mixin({
     },
     jsonParse:                 function (value) {
         try {
-            var data = JSON.parse(value);
-            return data;
+            return JSON.parse(value);
         } catch (e) {
             return [];
         }
@@ -775,7 +774,7 @@ _.mixin({
         return tmp;
     },
     tagged:                    function (value) {
-        return value != '' && value != '?';
+        return value !== '' && value !== '?';
     },
     textWidth:                 function (value, font) {
         var temp_bmp = gdi.CreateImage(1, 1);
@@ -869,8 +868,6 @@ var MK_CONTROL = 0x0008; // The CTRL key is down.
 var MK_MBUTTON = 0x0010;
 var MK_XBUTTON1 = 0x0020;
 var MK_XBUTTON2 = 0x0040;
-var MK_SHIFT = 0x0004;
-var MK_CONTROL = 0x0008;
 
 //--->
 var VK_CONTROL = 0x11;
@@ -882,18 +879,18 @@ var VK_DELETE = 0x2E;
 var VK_PRIOR = 0x21; // PAGE UP key
 var VK_NEXT = 0x22; // PAGE DOWN key
 var VK_END = 0x23;
-var VK_HOME = 0x24
-var VK_LEFT = 0x25
+var VK_HOME = 0x24;
+var VK_LEFT = 0x25;
 var VK_UP = 0x26;
 var VK_RIGHT = 0x27;
 var VK_DOWN = 0x28;
-var VK_RETURN = 0x0D // Enter
+var VK_RETURN = 0x0D; // Enter
 var VK_LSHIFT = 0xA0; // Left SHIFT key
 var VK_RSHIFT = 0xA1; // Right SHIFT key
-var VK_LCONTROL = 0xA2 // Left CONTROL key
-var VK_RCONTROL = 0xA3 // Right CONTROL key
-var VK_LMENU = 0xA4 // Left MENU key (Left Alt)
-var VK_RMENU = 0xA5 // Right MENU key (Right Alt)
+var VK_LCONTROL = 0xA2; // Left CONTROL key
+var VK_RCONTROL = 0xA3; // Right CONTROL key
+var VK_LMENU = 0xA4; // Left MENU key (Left Alt)
+var VK_RMENU = 0xA5; // Right MENU key (Right Alt)
 
 var VK_KEY_0 = 0x30; //	0
 var VK_KEY_1 = 0x31; //	1
@@ -1017,9 +1014,6 @@ var InterpolationMode =
 
 var MF_STRING = 0x00000000;
 var MF_GRAYED = 0x00000001;
-
-var IDC_ARROW = 32512;
-var IDC_HAND = 32649;
 
 var TPM_RIGHTALIGN = 0x0008;
 var TPM_BOTTOMALIGN = 0x0020;

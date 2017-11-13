@@ -60,7 +60,7 @@ function isResizingDone(ww, wh, resizeCallbackFn) {
         resizingIsDone = false;
 
         resizeTimer = window.SetInterval(function () {
-            if (_ww == window.Width && _wh == window.Height) {
+            if (_ww === window.Width && _wh === window.Height) {
                 resizeCallbackFn();
 
                 resizingIsDone = true;
@@ -76,28 +76,34 @@ function isResizingDone(ww, wh, resizeCallbackFn) {
     _wh = wh;
 }
 
-// todo: replace with helpers.js
-function StringFormat() {
-    var h_align = 0,
-        v_align = 0,
-        trimming = 0,
-        flags = 0;
-    switch (arguments.length) {
-        // fall-thru
-        case 4:
-            flags = arguments[3];
-        case 3:
-            trimming = arguments[2];
-        case 2:
-            v_align = arguments[1];
-        case 1:
-            h_align = arguments[0];
-            break;
-        default:
-            return 0;
-    }
-    return ((h_align << 28) | (v_align << 24) | (trimming << 20) | flags);
-}
+g_string_format = {
+    h_align_near:   0x00000000,
+    h_align_center: 0x10000000,
+    h_align_far:    0x20000000,
+
+    v_align_near:   0x00000000,
+    v_align_center: 0x01000000,
+    v_align_far:    0x02000000,
+
+    align_center: 0x11000000,
+
+    trim_none:          0x00100000,
+    trim_char:          0x00100000,
+    trim_word:          0x00200000,
+    trim_ellipsis_char: 0x00300000,
+    trim_ellipsis_word: 0x00400000,
+    trim_ellipsis_path: 0x00500000,
+
+    dir_right_to_Left:       0x00000001,
+    dir_vertical:            0x00000002,
+    no_fit_black_box:        0x00000004,
+    display_format_control:  0x00000020,
+    no_font_fallback:        0x00000400,
+    measure_trailing_spaces: 0x00000800,
+    no_wrap:                 0x00001000,
+    line_limit:              0x00002000,
+    no_clip:                 0x00004000
+};
 
 //--->
 // Used in gdi.Font(), can be combined
@@ -170,7 +176,7 @@ Guifx =
         Up3: '.',
         Down3: ',',
         Left3: '<',
-        Right: '>',
+        Right3: '>',
         Guifx: 'g',
         ScreenUp: '|',
         ScreenDown: '\\',
@@ -200,7 +206,7 @@ function link(site, metadb) {
     }
 
     var meta_info = metadb.GetFileInfo();
-    var artist = meta_info.MetaValue(meta_info.MetaFind('artist'), 0).replace(/\s+/g, '+').replace(/\&/g, '%26');
+    var artist = meta_info.MetaValue(meta_info.MetaFind('artist'), 0).replace(/\s+/g, '+').replace(/&/g, '%26');
     var album = meta_info.MetaValue(meta_info.MetaFind('album'), 0).replace(/\s+/g, '+');
     var title = meta_info.MetaValue(meta_info.MetaFind('title'), 0).replace(/\s+/g, '+');
 
@@ -247,7 +253,7 @@ var qwr_utils = {
     EnableSizing: function (m) {
         if (uiHacks) {
             try {
-                if (UIHacks && UIHacks.FrameStyle == 3 && UIHacks.DisableSizing) {
+                if (UIHacks && UIHacks.FrameStyle === 3 && UIHacks.DisableSizing) {
                     UIHacks.DisableSizing = false;
                 }
             }
@@ -259,7 +265,7 @@ var qwr_utils = {
     DisableSizing: function (m) {
         if (uiHacks) {
             try {
-                if (m && UIHacks && UIHacks.FrameStyle == 3 && !UIHacks.DisableSizing) {
+                if (m && UIHacks && UIHacks.FrameStyle === 3 && !UIHacks.DisableSizing) {
                     UIHacks.DisableSizing = true;
                 }
             }

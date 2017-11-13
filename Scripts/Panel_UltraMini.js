@@ -50,7 +50,7 @@ function on_paint(gr) {
         artModule.paint(gr);
     }
     else {
-        gr.DrawString(g_theme_name + " " + g_theme_version, gdi.font("Segoe Ui Semibold", 24, 0), _.RGB(70, 70, 70), 0, 0, ww, wh, StringFormat(1, 1));
+        gr.DrawString(g_theme_name + " " + g_theme_version, gdi.font("Segoe Ui Semibold", 24, 0), _.RGB(70, 70, 70), 0, 0, ww, wh, g_string_format.align_center);
     }
 
     // Title
@@ -69,8 +69,9 @@ function on_paint(gr) {
             title = "[%album%]";
         }
 
-        var titleString = fb.TitleFormat(title).Eval();
-        gr.DrawString(titleString, gdi.font("Segoe Ui Semibold", 12, 0), _.RGB(240, 240, 240), 5, 5, ww, wh, StringFormat(0, 0, 3, 4096));
+        var title_text = fb.TitleFormat(title).Eval();
+        var title_text_format = g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
+        gr.DrawString(title_text, gdi.font("Segoe Ui Semibold", 12, 0), _.RGB(240, 240, 240), 5, 5, ww, wh, title_text_format);
     }
 
     if (panel_s.playbackPanelAlpha !== 0) {
@@ -504,7 +505,7 @@ function createButtonImages() {
             }
 
             //---> 
-            g.DrawString(item.ico, item.font, playbackIcoColor, (i === "Stop") ? 0 : 1, 0, w, h, StringFormat(1, 1));
+            g.DrawString(item.ico, item.font, playbackIcoColor, (i === "Stop") ? 0 : 1, 0, w, h, g_string_format.align_center);
             //--->     
 
             img.ReleaseGraphics(g);

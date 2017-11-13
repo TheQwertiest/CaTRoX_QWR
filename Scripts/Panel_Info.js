@@ -42,11 +42,14 @@ var moveChecker = new _.moveCheckReducer;
 function on_paint(gr) {
     gr.FillSolidRect(0, 0, ww, wh, panelsBackColor);
     gr.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
-
+    
     if (!listLength) {
-        gr.DrawString("Track Info", gdi.font("Segoe Ui Semibold", 24, 0), _.RGB(70, 70, 70), 0, 0, ww, wh, StringFormat(1, 1, 3, 0x1000));
+        var track_info_format = g_string_format.align_center | g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
+        gr.DrawString("Track Info", gdi.font("Segoe Ui Semibold", 24, 0), _.RGB(70, 70, 70), 0, 0, ww, wh, track_info_format);
         return;
     }
+
+    var info_text_format = g_string_format.v_align_center | g_string_format.trim_ellipsis_char | g_string_format.line_limit;
 
     var x = listX;
     var y = listY;
@@ -64,10 +67,10 @@ function on_paint(gr) {
     {
         var curLine = rowShift;
         var ID = list[curLine];
-        gr.DrawString(ID[0], infoNameFont, _.RGB(160, 162, 164), x + p, y + pixelShift, ID[2], h, StringFormat(0, 1, 3, 0x00002000));
-        gr.DrawString(ID[1], infoValueFont, panelsNormalTextColor, x + p + ID[2], y + pixelShift, w - ID[2] - x, h, StringFormat(0, 1, 3, 0x00002000));
+        gr.DrawString(ID[0], infoNameFont, _.RGB(160, 162, 164), x + p, y + pixelShift, ID[2], h, info_text_format);
+        gr.DrawString(ID[1], infoValueFont, panelsNormalTextColor, x + p + ID[2], y + pixelShift, w - ID[2] - x, h, info_text_format);
 
-        if (curLine != listLength - 1) {
+        if (curLine !== listLength - 1) {
             var lY = y + h;
             gr.DrawLine(x, lY + pixelShift, x + w, lY + pixelShift, 1, lineColorNormal);
         }
@@ -78,10 +81,10 @@ function on_paint(gr) {
     for (var i = 1; i < rowsToDraw - 1; i++) {
         var curLine = i + rowShift;
         var ID = list[curLine];
-        gr.DrawString(ID[0], infoNameFont, _.RGB(160, 162, 164), x + p, y + pixelShift, ID[2], h, StringFormat(0, 1, 3, 0x00002000));
-        gr.DrawString(ID[1], infoValueFont, panelsNormalTextColor, x + p + ID[2], y + pixelShift, w - ID[2] - x, h, StringFormat(0, 1, 3, 0x00002000));
+        gr.DrawString(ID[0], infoNameFont, _.RGB(160, 162, 164), x + p, y + pixelShift, ID[2], h, info_text_format);
+        gr.DrawString(ID[1], infoValueFont, panelsNormalTextColor, x + p + ID[2], y + pixelShift, w - ID[2] - x, h, info_text_format);
 
-        if (curLine != listLength - 1) {
+        if (curLine !== listLength - 1) {
             var lY = y + h;
             gr.DrawLine(x, lY + pixelShift, x + w, lY + pixelShift, 1, lineColorNormal);
         }
@@ -92,8 +95,8 @@ function on_paint(gr) {
     {
         var curLine = rowsToDraw - 1 + rowShift;
         var ID = list[curLine];
-        gr.DrawString(ID[0], infoNameFont, _.RGB(160, 162, 164), x + p, y + pixelShift, ID[2], h, StringFormat(0, 1, 3, 0x00002000));
-        gr.DrawString(ID[1], infoValueFont, panelsNormalTextColor, x + p + ID[2], y + pixelShift, w - ID[2] - x, h, StringFormat(0, 1, 3, 0x00002000));
+        gr.DrawString(ID[0], infoNameFont, _.RGB(160, 162, 164), x + p, y + pixelShift, ID[2], h, info_text_format);
+        gr.DrawString(ID[1], infoValueFont, panelsNormalTextColor, x + p + ID[2], y + pixelShift, w - ID[2] - x, h, info_text_format);
 
         curLine = rowsToDraw + rowShift;
         if (pixelShift && curLine < listLength) {
@@ -103,8 +106,8 @@ function on_paint(gr) {
             y += h;
 
             ID = list[curLine];
-            gr.DrawString(ID[0], infoNameFont, _.RGB(160, 162, 164), x + p, y + pixelShift, ID[2], h, StringFormat(0, 1, 3, 0x00002000));
-            gr.DrawString(ID[1], infoValueFont, panelsNormalTextColor, x + p + ID[2], y + pixelShift, w - ID[2] - x, h, StringFormat(0, 1, 3, 0x00002000));
+            gr.DrawString(ID[0], infoNameFont, _.RGB(160, 162, 164), x + p, y + pixelShift, ID[2], h, info_text_format);
+            gr.DrawString(ID[1], infoValueFont, panelsNormalTextColor, x + p + ID[2], y + pixelShift, w - ID[2] - x, h, info_text_format);
         }
     }
 
@@ -115,7 +118,7 @@ function on_paint(gr) {
     var partialRowShift = listPos - rowShift;
     var difference = Math.ceil(windowSizeInRows) - windowSizeInRows;
     var listIsScrolledDown = listPos >= (listLength - rowsToDraw) && Math.abs(partialRowShift - difference) < 0.0001;
-    var listIsScrolledUp = listPos == 0;
+    var listIsScrolledUp = listPos === 0;
 
     if (!listIsScrolledUp) {
         gr.FillGradRect(listX, listY, listW, 7 + 1, 270, _.RGBtoRGBA(panelsBackColor, 0), _.RGBtoRGBA(panelsBackColor, 200));
@@ -170,14 +173,14 @@ function listOnSize() {
     for (var i = 0; i < fileInfo.MetaCount; i++) {
         var metaName = fileInfo.MetaName(i);
 
-        if (metaName == "title" && (fb.IsPlaying && metadb.RawPath.indexOf("http://") == 0)) {
+        if (metaName === "title" && (fb.IsPlaying && _.startsWith(metadb.RawPath,"http://"))) {
             inf = fb.TitleFormat("%title%").Eval();
         }
         else {
             inf = fileInfo.MetaValue(fileInfo.MetaFind(metaName), 0);
         }
 
-        meta[i] = [((metaName == "www") ? metaName : metaName.toLowerCase().capitalize() + ":")];
+        meta[i] = [((metaName === "www") ? metaName : metaName.toLowerCase().capitalize() + ":")];
 
         meta[i][1] = inf;
         meta[i][2] = Math.ceil(g.MeasureString(meta[i][0], infoNameFont, 0, 0, 0, 0).Width) + 5;
@@ -287,7 +290,7 @@ function on_metadb_changed(handles, fromhook) {
 // =================================================== //
 
 function on_playback_stop(reason) {
-    if (reason == 2) return;
+    if (reason === 2) return;
     refreshList();
 }
 

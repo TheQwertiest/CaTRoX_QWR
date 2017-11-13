@@ -141,6 +141,7 @@ function Menu() {
 
         if (g_properties.show_fb2k_version || g_properties.show_theme_version || g_properties.show_cpu_usage) {
             var title_x = this.x + left_pad;
+            var title_y = this.y - 1;
             var title_w = right_pad - left_pad;
 
             var separator_text = '  \u25AA  ';
@@ -171,7 +172,8 @@ function Menu() {
                 title_text += fb.TitleFormat('%_foobar2000_version%').eval(true);
             }
 
-            gr.DrawString(title_text, gdi.font('Segoe Ui Semibold', 11, 0), _.RGBA(240, 242, 244, 120), title_x, -1, title_w, this.h, StringFormat(1, 1, 3, 4096));
+            var title_text_format = g_string_format.align_center | g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
+            gr.DrawString(title_text, gdi.font('Segoe Ui Semibold', 11, 0), _.RGBA(240, 242, 244, 120), title_x, title_y, title_w, this.h, title_text_format);
         }
 
         buttons.paint(gr);
@@ -667,7 +669,7 @@ function Menu() {
         _.forEach(btn, function (item, i) {
             if (item.id === 'menu') {
                 var img = gdi.CreateImage(100, 100);
-                g = img.GetGraphics();
+                var g = img.GetGraphics();
 
                 item.w = Math.ceil(g.MeasureString(item.ico, item.font, 0, 0, 0, 0).Width) + 17;
                 img.ReleaseGraphics(g);
@@ -683,7 +685,7 @@ function Menu() {
 
             for (var s = 0; s <= 2; ++s) {
                 var img = gdi.CreateImage(w, h);
-                g = img.GetGraphics();
+                var g = img.GetGraphics();
                 g.SetSmoothingMode(SmoothingMode.HighQuality);
                 g.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
                 g.FillSolidRect(0, 0, w, h, panelsFrontColor); // Cleartype is borked, if drawn without background
@@ -707,10 +709,10 @@ function Menu() {
                     if (s !== 0) {
                         g.DrawRect(Math.floor(lw / 2), Math.floor(lw / 2), w - lw, h - lw, 1, menuRectColor);
                     }
-                    g.DrawString(item.ico, item.font, menuTextColor, 0, 0, w, h - 1, StringFormat(1, 1));
+                    g.DrawString(item.ico, item.font, menuTextColor, 0, 0, w, h - 1, g_string_format.align_center);
                 }
                 else if (item.id === 'caption') {
-                    g.DrawString(item.ico, item.font, captionIcoColor, 0, 0, w, h, StringFormat(1, 1));
+                    g.DrawString(item.ico, item.font, captionIcoColor, 0, 0, w, h, g_string_format.align_center);
                 }
 
                 if (i === 'Unpin') {

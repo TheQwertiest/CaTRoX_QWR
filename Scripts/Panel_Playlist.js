@@ -339,7 +339,7 @@ function Playlist(x, y) {
                 text = 'Playlist: ' + plman.GetPlaylistName(cur_playlist_idx) + '\n<--- Empty --->';
             }
 
-            gr.DrawString(text, gdi.font('Segoe Ui', 16, 0), _.RGB(80, 80, 80), this.x, this.y, this.w, this.h, StringFormat(1, 1));
+            gr.DrawString(text, gdi.font('Segoe Ui', 16, 0), _.RGB(80, 80, 80), this.x, this.y, this.w, this.h, g_string_format.align_center);
         }
 
         if (is_scrollbar_available) {
@@ -1887,10 +1887,10 @@ function Playlist(x, y) {
                     if (from_item_state.visibility !== visibility_state['none']) {
                         var is_item_prev = from_item.type === to_item.type && from_item.idx - 1 === to_item.idx
                             || is_from_header && !is_to_header && from_header.idx - 1 === to_header.idx && to_item.idx === _.last(to_header.rows).idx
-                            || !is_from_header && is_to_header && from_header.idx - 1 === to_header.idx && from_item.idx === _.first(from_header.rows).idx;
+                            || !is_from_header && is_to_header && from_header.idx - 1 === to_header.idx && from_item.idx === _.head(from_header.rows).idx;
 
                         var is_item_next = from_item.type === to_item.type && from_item.idx + 1 === to_item.idx
-                            || is_from_header && !is_to_header && from_header.idx + 1 === to_header.idx && to_item.idx === _.first(to_header.rows).idx
+                            || is_from_header && !is_to_header && from_header.idx + 1 === to_header.idx && to_item.idx === _.head(to_header.rows).idx
                             || !is_from_header && is_to_header && from_header.idx + 1 === to_header.idx && from_item.idx === _.last(from_header.rows).idx;
 
 
@@ -1904,7 +1904,7 @@ function Playlist(x, y) {
                             shifted_successfully = true;
                         }
                         else if (is_item_next) {
-                            if (has_headers && !is_to_header && to_item.idx === _.first(to_header.rows).idx) {
+                            if (has_headers && !is_to_header && to_item.idx === _.head(to_header.rows).idx) {
                                 var to_header_state = get_item_visibility_state(to_header);
                                 row_shift += to_header_state.invisible_part;
                             }
@@ -1942,7 +1942,7 @@ function Playlist(x, y) {
         }
 
         if (shifted_successfully) {
-            if (has_headers && !is_to_header && to_item.idx === _.first(to_header.rows).idx) {
+            if (has_headers && !is_to_header && to_item.idx === _.head(to_header.rows).idx) {
                 var to_header_state = get_item_visibility_state(to_header);
                 scrollbar.scroll_to(scroll_pos - to_header_state.invisible_part);
             }
@@ -2265,6 +2265,7 @@ function Playlist(x, y) {
     var is_in_focus = false;
 
     // Playback state
+    /** @type {number|undefined} */
     var cur_playlist_idx = undefined;
     var playing_item = undefined;
     var focused_item = undefined;
@@ -2401,10 +2402,10 @@ function Header(x, y, w, h, idx) {
             }
             else if (!g_properties.auto_album_art) {
                 if (art === null) {
-                    grClip.DrawString('NO COVER', g_pl_fonts.cover, _.RGB(100, 100, 100), art_box_x, art_box_y, art_box_size, art_box_size, StringFormat(1, 1));
+                    grClip.DrawString('NO COVER', g_pl_fonts.cover, _.RGB(100, 100, 100), art_box_x, art_box_y, art_box_size, art_box_size, g_string_format.align_center);
                 }
                 else { // === undefined
-                    grClip.DrawString('LOADING', g_pl_fonts.cover, line_color, art_box_x, art_box_y, art_box_size, art_box_size, StringFormat(1, 1));
+                    grClip.DrawString('LOADING', g_pl_fonts.cover, line_color, art_box_x, art_box_y, art_box_size, art_box_size, g_string_format.align_center);
                 }
             }
 
@@ -2439,7 +2440,7 @@ function Header(x, y, w, h, idx) {
             var date_h = this.h;
 
             if (g_properties.group_query_id > 0 && date_x > left_pad) {
-                grClip.DrawString(date_text, date_font, date_color, date_x, date_y, date_w, date_h, StringFormat(0, 1));
+                grClip.DrawString(date_text, date_font, date_color, date_x, date_y, date_w, date_h, g_string_format.v_align_center);
             }
 
             part2_right_pad += this.w - date_x;
@@ -2459,7 +2460,8 @@ function Header(x, y, w, h, idx) {
                 artist_text = 'Radio Stream';
             }
 
-            grClip.DrawString(artist_text, artist_font, artist_color, artist_x, 0, artist_w, artist_h, StringFormat(0, 2, 3, 0x1000));
+            var artist_text_format = g_string_format.v_align_far | g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
+            grClip.DrawString(artist_text, artist_font, artist_color, artist_x, 0, artist_w, artist_h, artist_text_format);
 
             //part1_cur_x += artist_w;
         }
@@ -2483,7 +2485,12 @@ function Header(x, y, w, h, idx) {
                 album_text = '';
             }
 
-            grClip.DrawString(album_text, g_pl_fonts.album, album_color, album_x, album_y, album_w, album_h, StringFormat(0, g_properties.show_group_info ? 1 : 0, 3, 0x1000));
+            var album_text_format = g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
+            if (g_properties.show_group_info) {
+                album_text_format |= g_string_format.v_align_far;
+            }
+
+            grClip.DrawString(album_text, g_pl_fonts.album, album_color, album_x, album_y, album_w, album_h, album_text_format);
 
             var album_text_w = gr.MeasureString(album_text, g_pl_fonts.album, 0, 0, 0, 0).Width;
             if (g_properties.show_group_info) {
@@ -2530,15 +2537,16 @@ function Header(x, y, w, h, idx) {
             var track_count = this.rows.length;
             var genre = is_radio ? '' : (g_properties.group_query_id ? '[%genre% | ]' : '');
             var disc_number = (g_properties.group_query_id === 2 && _.tf('[%totaldiscs%]', metadb) !== '1') ? _.tf('[ | Disc: %discnumber%/%totaldiscs%]', metadb) : '';
-            var info = _.tf(genre + codec + disc_number + '[ | %replaygain_album_gain%]', metadb) + (is_radio ? '' : ' | ' + track_count + (track_count === 1 ? ' Track' : ' Tracks'));
+            var info_text = _.tf(genre + codec + disc_number + '[ | %replaygain_album_gain%]', metadb) + (is_radio ? '' : ' | ' + track_count + (track_count === 1 ? ' Track' : ' Tracks'));
             if (get_duration()) {
-                info += ' | Time: ' + get_duration();
+                info_text += ' | Time: ' + get_duration();
             }
 
-            grClip.DrawString(info, g_pl_fonts.info, info_color, info_x, info_y, info_w, info_h, StringFormat(0, 0, 3, 0x1000));
+            var info_text_format = g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
+            grClip.DrawString(info_text, g_pl_fonts.info, info_color, info_x, info_y, info_w, info_h, info_text_format);
 
             //---> Info line
-            var info_text_h = Math.ceil(gr.MeasureString(info, g_pl_fonts.info, 0, 0, 0, 0).Height + 5);
+            var info_text_h = Math.ceil(gr.MeasureString(info_text, g_pl_fonts.info, 0, 0, 0, 0).Height + 5);
             var line_x1 = left_pad;
             var line_x2 = this.w - this.x - 10;
             var line_y = info_y + info_text_h;
@@ -2625,7 +2633,7 @@ function Header(x, y, w, h, idx) {
             var date_h = this.h;
 
             if (g_properties.group_query_id > 0 && date_x > left_pad) {
-                grClip.DrawString(date_text, date_font, date_color, date_x, date_y, date_w, date_h, StringFormat(0, 1));
+                grClip.DrawString(date_text, date_font, date_color, date_x, date_y, date_w, date_h, g_string_format.v_align_center);
             }
 
             right_pad += this.w - date_x;
@@ -2642,7 +2650,8 @@ function Header(x, y, w, h, idx) {
                 artist_text = 'Radio Stream';
             }
 
-            grClip.DrawString(artist_text, artist_font, artist_color, artist_x, 0, artist_w, artist_h, StringFormat(0, 1, 3, 0x1000));
+            var artist_text_format = g_string_format.v_align_center | g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
+            grClip.DrawString(artist_text, artist_font, artist_color, artist_x, 0, artist_w, artist_h, artist_text_format);
 
             cur_x += gr.MeasureString(artist_text, artist_font, 0, 0, 0, 0).Width;
         }
@@ -2658,7 +2667,8 @@ function Header(x, y, w, h, idx) {
                 album_text = '';
             }
 
-            grClip.DrawString(album_text, g_pl_fonts.album, album_color, album_x, 0, album_w, album_h, StringFormat(0, 1, 3, 0x1000));
+            var album_text_format = g_string_format.v_align_center | g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
+            grClip.DrawString(album_text, g_pl_fonts.album, album_color, album_x, 0, album_w, album_h, album_text_format);
 
             //cur_x += gr.MeasureString(album_text, g_pl_fonts.album, 0, 0, 0, 0).Width;
         }
@@ -2889,7 +2899,7 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
                 var length_w = 50;
                 var length_x = this.x + this.w - length_w - right_pad;
 
-                gr.DrawString(length_text, title_font, title_color, length_x, this.y, length_w, this.h, StringFormat(1, 1));
+                gr.DrawString(length_text, title_font, title_color, length_x, this.y, length_w, this.h, g_string_format.align_center);
                 testRect && gr.DrawRect(length_x, this.y - 1, length_w, this.h, 1, _.RGBA(155, 155, 255, 250));
 
                 right_pad += Math.max(length_w, gr.MeasureString(length_text, title_font, 0, 0, 0, 0).Width + 10);
@@ -2910,7 +2920,7 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
                 var count_w = gr.MeasureString(count_text, g_pl_fonts.playcount, 0, 0, 0, 0).Width;
                 var count_x = this.x + this.w - count_w - right_pad;
 
-                gr.DrawString(count_text, g_pl_fonts.playcount, count_color, count_x, this.y, count_w, this.h, StringFormat(1, 1));
+                gr.DrawString(count_text, g_pl_fonts.playcount, count_color, count_x, this.y, count_w, this.h, g_string_format.align_center);
                 testRect && gr.DrawRect(count_x, this.y - 1, count_w, this.h, 1, _.RGBA(155, 155, 255, 250));
 
                 right_pad += count_w;
@@ -2944,11 +2954,12 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
                 title_text = ( fb.IsPlaying && _.startsWith(path, 'http') && this.is_playing ) ? _.tfe(title_query) : _.tf(title_query, metadb);
             }
 
-            gr.DrawString(title_text + (title_artist_text ? '' : queue_text), title_font, title_color, cur_x, this.y, title_w, this.h, StringFormat(0, 1, 3, 0x1000));
+            var title_text_format = g_string_format.v_align_center | g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
+            gr.DrawString(title_text + (title_artist_text ? '' : queue_text), title_font, title_color, cur_x, this.y, title_w, this.h, title_text_format);
 
             testRect && gr.DrawRect(this.x, this.y - 1, title_w, this.h, 1, _.RGBA(155, 155, 255, 250));
 
-            cur_x += gr.MeasureString(title_text, title_font, 0, 0, 0, 0, StringFormat(0, 1, 3, 0x00000800 | 0x1000)).Width
+            cur_x += gr.MeasureString(title_text, title_font, 0, 0, 0, 0, title_text_format | g_string_format.measure_trailing_spaces).Width
         }
 
         //---> TITLE ARTIST
@@ -2961,7 +2972,8 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
                 var title_artist_x = cur_x;
                 var title_artist_w = this.w - (title_artist_x - this.x) - right_pad;
 
-                gr.DrawString(title_artist_text + queue_text, title_artist_font, title_artist_color, title_artist_x, this.y, title_artist_w, this.h, StringFormat(0, 1, 3, 0x1000));
+                var title_artist_text_format = g_string_format.v_align_center | g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
+                gr.DrawString(title_artist_text + queue_text, title_artist_font, title_artist_color, title_artist_x, this.y, title_artist_w, this.h, title_artist_text_format);
             }
         }
     };
@@ -3071,10 +3083,10 @@ function Rating(x, y, w, h, metadb) {
         for (var j = 0; j < 5; j++) {
             var cur_rating_x = this.x + j * btn_w;
             if (j < this.get_rating()) {
-                gr.DrawString('\u2605', g_pl_fonts.rating_set, color, cur_rating_x, this.y - 1, btn_w, this.h, StringFormat(1, 1));
+                gr.DrawString('\u2605', g_pl_fonts.rating_set, color, cur_rating_x, this.y - 1, btn_w, this.h, g_string_format.align_center);
             }
             else {
-                gr.DrawString('\u2219', g_pl_fonts.rating_not_set, color, cur_rating_x, this.y - 1, btn_w, this.h, StringFormat(1, 1));
+                gr.DrawString('\u2219', g_pl_fonts.rating_not_set, color, cur_rating_x, this.y - 1, btn_w, this.h, g_string_format.align_center);
             }
         }
     };
@@ -3573,6 +3585,7 @@ function SelectionHandler(rows_arg, headers_arg, cur_playlist_idx_arg) {
     var headers = headers_arg;
     var cur_playlist_idx = cur_playlist_idx_arg;
     var selected_indexes = [];
+    /** @type {number|undefined} */
     var last_single_selected_index = undefined;
     var is_dragging = false;
     var is_external_drop = false;
@@ -3712,10 +3725,11 @@ function PlaylistInfo(x, y, w, h) {
             var sbar_x = this.w - g_properties.scrollbar_w - g_properties.scrollbar_right_pad;
             var lock_text = '\uF023';
             var lock_w = gr.MeasureString(lock_text, gdi.font('FontAwesome', 12, 0), 0, 0, 0, 0).Width;
-            gr.DrawString(lock_text, gdi.font('FontAwesome', 12, 0), _.RGB(150, 152, 154), sbar_x + Math.round((g_properties.scrollbar_w - lock_w) / 2), 0, 8, this.h, StringFormat(1, 1));
+            gr.DrawString(lock_text, gdi.font('FontAwesome', 12, 0), _.RGB(150, 152, 154), sbar_x + Math.round((g_properties.scrollbar_w - lock_w) / 2), 0, 8, this.h, g_string_format.align_center);
         }
 
-        gr.DrawString(info_text, g_pl_fonts.title_selected, _.RGB(150, 152, 154), 10, 0, this.w - 20, this.h - 2, StringFormat(1, 1, 3, 4096));
+        var info_text_format = g_string_format.align_center | g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
+        gr.DrawString(info_text, g_pl_fonts.title_selected, _.RGB(150, 152, 154), 10, 0, this.w - 20, this.h - 2, info_text_format);
     };
 
     this.on_playlist_modified = function () {

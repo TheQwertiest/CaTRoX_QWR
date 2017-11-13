@@ -53,7 +53,7 @@ function on_paint(gr)
             y = 0,
             w = ww - x - textMargin - rightMargin,
             h = wh,
-            stringFormat = StringFormat(0, 1, 3, 4096); // LEFT | VCENTER | END_ELLIPSIS | NO_WRAP
+            stringFormat = g_string_format.v_align_center | g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
 
         var displayFont = gdi.font("Segoe Ui Semibold", 14, 0);
         gr.DrawString(text, displayFont, _.RGB(170, 172, 174), x, y, w, h, stringFormat);
@@ -256,7 +256,7 @@ function createButtonImages()
             }
 
             g.DrawEllipse(Math.floor(lw / 2) + 1, Math.floor(lw / 2) + 1, w - lw - 2, h - lw - 2, lw, playbackEllipseColor);
-            g.DrawString(item.ico, item.font, playbackIcoColor, 1, 0, w, h, StringFormat(1, 1));
+            g.DrawString(item.ico, item.font, playbackIcoColor, 1, 0, w, h, g_string_format.align_center);
 
             img.ReleaseGraphics(g);
             stateImages[s] = img;

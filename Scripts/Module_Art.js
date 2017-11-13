@@ -16,7 +16,7 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
     /////////////////////////////////////
     // Callback methods implementation
     this.paint = function (g) {
-        var SF = StringFormat(1, 1, 3, 0x1000);
+        var SF = g_string_format.align_center | g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
         var art = artArr[curArtId];
 
         g.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
@@ -56,11 +56,11 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
                 g.DrawString("\uF0BB", gdi.font("Webdings", 130, 0), _.RGB(70, 70, 70), this.x, this.y, this.w, this.h, SF);
             }
             else {
-                g.DrawString(g_theme_name + " " + g_theme_version, gdi.font("Segoe Ui Semibold", 24, 0), _.RGB(70, 70, 70), this.x, this.y, this.w, this.h, StringFormat(1, 1));
+                g.DrawString(g_theme_name + " " + g_theme_version, gdi.font("Segoe Ui Semibold", 24, 0), _.RGB(70, 70, 70), this.x, this.y, this.w, this.h, g_string_format.align_center);
             }
         }
         else {
-            g.DrawString("LOADING", gdi.font("Segoe Ui Semibold", 24, 0), _.RGB(70, 70, 70), this.x, this.y, this.w, this.h, StringFormat(1, 1));
+            g.DrawString("LOADING", gdi.font("Segoe Ui Semibold", 24, 0), _.RGB(70, 70, 70), this.x, this.y, this.w, this.h, g_string_format.align_center);
         }
 
         if (feature_thumbs && g_properties.show_thumbs) {
@@ -110,7 +110,7 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
         }
 
         if (currentAlbum === fb.TitleFormat(g_properties.group_format_query).EvalWithMetadb(metadb)) {
-            var isEmbedded = image_path.slice(image_path.lastIndexOf(".") + 1) == fb.TitleFormat("$ext(%path%)").EvalWithMetadb(metadb);
+            var isEmbedded = image_path.slice(image_path.lastIndexOf(".") + 1) === fb.TitleFormat("$ext(%path%)").EvalWithMetadb(metadb);
 
             artArr[art_id] = [image];
             artArr[art_id][1] = image.Width;
@@ -251,7 +251,7 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
                 window.ClearInterval(albumTimer);
             }
             else {
-                artID++;
+                ++artID;
             }
         }, 200);
 
@@ -266,9 +266,9 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
     };
 
     this.nullArt = function () {
-        for (var i = 0; i < artArr.length; i++) {
+        artArr.forEach(function(item,i) {
             artArr[i] = null;
-        }
+        });
 
         oldAlbum = currentAlbum = undefined;
         recalculateArtPosition();
@@ -761,7 +761,8 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
         }
         else {
             g.FillSolidRect(2, 2, w - 4, h - 4, panelsBackColor); // Cleartype is borked, if drawn without background
-            g.DrawString(btnText, gdi.font("Segoe Ui", 14, 0), _.RGB(70, 70, 70), 0, 0, w, h, StringFormat(1, 1, 3, 0x1000));
+            var btn_text_format = g_string_format.align_center | g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
+            g.DrawString(btnText, gdi.font("Segoe Ui", 14, 0), _.RGB(70, 70, 70), 0, 0, w, h, btn_text_format);
         }
 
         switch (state) {//0=normal, 1=hover, 2=down;
