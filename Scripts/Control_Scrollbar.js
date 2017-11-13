@@ -580,11 +580,12 @@ _.mixin({
                     grClip.SetSmoothingMode(SmoothingMode.HighQuality);
                     grClip.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
 
+                    var btn_format = g_string_format.h_align_center | g_string_format.v_align_far;
                     if (i === 'lineDown') {
-                        grClip.DrawString(item.ico, item.font, icoColor, 0, 0, w, h, StringFormat(1, 2));
+                        grClip.DrawString(item.ico, item.font, icoColor, 0, 0, w, h, btn_format);
                     }
                     else if (i === 'lineUp') {
-                        grClip.DrawString(item.ico, item.font, icoColor, 0, 0, w, h - 1, StringFormat(1, 2));
+                        grClip.DrawString(item.ico, item.font, icoColor, 0, 0, w, h - 1, btn_format);
                     }
 
                     img.ReleaseGraphics(grClip);

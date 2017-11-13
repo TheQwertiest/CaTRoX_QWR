@@ -353,14 +353,14 @@ function createButtonImages() {
 
             var playbackIcoColor = _.RGB(110, 112, 114);
 
-            if (s == 1) {
+            if (s === 1) {
                 playbackIcoColor = _.RGB(190, 192, 194);
             }
-            else if (s == 2) {
+            else if (s === 2) {
                 playbackIcoColor = _.RGB(90, 90, 90);
             }
 
-            g.DrawString(item.ico, item.font, playbackIcoColor, (i == "Stop") ? 0 : 1, 0, w, h, StringFormat(1, 1));
+            g.DrawString(item.ico, item.font, playbackIcoColor, (i === "Stop") ? 0 : 1, 0, w, h, g_string_format.align_center);
 
             img.ReleaseGraphics(g);
             stateImages[s] = img;
