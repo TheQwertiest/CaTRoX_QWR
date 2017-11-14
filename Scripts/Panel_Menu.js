@@ -671,7 +671,7 @@ function Menu() {
                 var img = gdi.CreateImage(100, 100);
                 var g = img.GetGraphics();
 
-                item.w = Math.round(g.MeasureString(item.ico, item.font, 0, 0, 0, 0).Width) + 17;
+                item.w = Math.ceil(g.MeasureString(item.ico, item.font, 0, 0, 0, 0).Width) + 17;
                 img.ReleaseGraphics(g);
                 img.Dispose();
                 item.h = 21;
