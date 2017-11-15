@@ -18,7 +18,7 @@ _.mixin({
         cpm.AppendMenuItem(MF_STRING, 501, "Restart");
         cpm.AppendMenuItem(MF_STRING, 502, "Preferences...");
         cpm.AppendMenuSeparator();
-        cpm.AppendMenuItem(safeMode ? MF_GRAYED : MF_STRING, 503, "Configure script...");
+        cpm.AppendMenuItem(MF_STRING, 503, "Configure script...");
         cpm.AppendMenuItem(MF_STRING, 504, "Configure...");
         cpm.AppendMenuItem(MF_STRING, 505, "Panel Properties...");
     },
@@ -155,6 +155,10 @@ _.mixin({
         };
 
         this.lbtn_down = function (x, y) {
+            if (!this.btn) {
+                // Needed when pressing on button with context menu open
+                this.move(x, y);
+            }
             if (this.btn && !this.buttons[this.btn].hide) {
                 this.buttons[this.btn].cs("pressed");
                 return true;
