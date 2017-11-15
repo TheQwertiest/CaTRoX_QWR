@@ -170,27 +170,27 @@ function createButtonObjects(ww, wh)
 
 function createButtonImages()
 {
-    var fontGuifx = gdi.font("Guifx v2 Transports", 16, 0);
+    var fontGuifx = gdi.font(g_guifx.name, 16, 0);
 
     var btn =
     {
         SearchYT:
         {
-            ico: Guifx.Zoom,
+            ico: g_guifx.zoom,
             font: fontGuifx,
             w: 30,
             h: 30
         },
         VideoShow:
         {
-            ico: Guifx.Right,
+            ico: g_guifx.right,
             font: fontGuifx,
             w: 30,
             h: 30
         },
         VideoHide:
         {
-            ico: Guifx.Right,
+            ico: g_guifx.right,
             font: fontGuifx,
             w: 30,
             h: 30,
@@ -221,7 +221,7 @@ function createButtonImages()
             var playbackIcoColor;
             var playbackEllipseColor;
 
-            if ( "VideoHide" != i ) {
+            if ( "VideoHide" !== i ) {
                 switch (s) {
                     case 1:
                         playbackIcoColor = _.RGB(190, 192, 194);

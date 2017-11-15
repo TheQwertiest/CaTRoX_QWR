@@ -392,14 +392,14 @@ function create_buttons(wx, wy, ww, wh) {
 }
 
 function createButtonImages() {
-    var fontGuifx = gdi.font("Guifx v2 Transports", 16, 0);
-    var fontAwesome = gdi.font("FontAwesome", 14, 0);
+    var fontGuifx = gdi.font(g_guifx.name, 16);
+    var fontAwesome = gdi.font("FontAwesome", 14);
     var c = [250, 250, 250];
 
     var btn =
         {
             Stop: {
-                ico: Guifx.Stop,
+                ico: g_guifx.stop,
                 font: fontGuifx,
                 id: "playback",
                 w: 26,
@@ -408,7 +408,7 @@ function createButtonImages() {
                 cHover: _.RGBA(c[0], c[1], c[2], 155)
             },
             Previous: {
-                ico: Guifx.Previous,
+                ico: g_guifx.previous,
                 font: fontGuifx,
                 id: "playback",
                 w: 26,
@@ -417,7 +417,7 @@ function createButtonImages() {
                 cHover: _.RGBA(c[0], c[1], c[2], 155)
             },
             Play: {
-                ico: Guifx.Play,
+                ico: g_guifx.play,
                 font: fontGuifx,
                 id: "playback",
                 w: 26,
@@ -426,7 +426,7 @@ function createButtonImages() {
                 cHover: _.RGBA(c[0], c[1], c[2], 155)
             },
             Pause: {
-                ico: Guifx.Pause,
+                ico: g_guifx.pause,
                 font: fontGuifx,
                 id: "playback",
                 w: 26,
@@ -435,7 +435,7 @@ function createButtonImages() {
                 cHover: _.RGBA(c[0], c[1], c[2], 155)
             },
             Next: {
-                ico: Guifx.Next,
+                ico: g_guifx.next,
                 font: fontGuifx,
                 id: "playback",
                 w: 26,
@@ -444,7 +444,7 @@ function createButtonImages() {
                 cHover: _.RGBA(c[0], c[1], c[2], 155)
             },
             VolLoud: {
-                ico: Guifx.VolumeUp,
+                ico: g_guifx.volume_up,
                 font: gdi.font("Guifx v2 Transports", 15, 0),
                 id: "playback",
                 w: 26,
@@ -453,7 +453,7 @@ function createButtonImages() {
                 cHover: _.RGBA(c[0], c[1], c[2], 155)
             },
             VolQuiet: {
-                ico: Guifx.VolumeDown,
+                ico: g_guifx.volume_down,
                 font: gdi.font("Guifx v2 Transports", 15, 0),
                 id: "playback",
                 w: 26,
@@ -462,7 +462,7 @@ function createButtonImages() {
                 cHover: _.RGBA(c[0], c[1], c[2], 155)
             },
             VolMute: {
-                ico: Guifx.Mute,
+                ico: g_guifx.mute,
                 font: gdi.font("Guifx v2 Transports", 15, 0),
                 id: "playback",
                 w: 26,

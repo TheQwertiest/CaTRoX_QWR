@@ -226,34 +226,34 @@ function createButtonObjects(wx, wy, ww, wh) {
     var x = ww - rightMargin;
 
     var repeatImg;
-    if (plman.PlaybackOrder === playbackOrder.RepeatPlaylist)
+    if (plman.PlaybackOrder === g_playback_order.repeat_playlist)
         repeatImg = btnImg.RepeatPlaylist;
-    else if (plman.PlaybackOrder === playbackOrder.RepeatTrack)
+    else if (plman.PlaybackOrder === g_playback_order.repeat_track)
         repeatImg = btnImg.Repeat1;
     else
         repeatImg = btnImg.Repeat;
 
     var repeatFn = function () {
         var pbo = plman.PlaybackOrder;
-        if (pbo === playbackOrder.Default)
-            plman.PlaybackOrder = playbackOrder.RepeatPlaylist;
-        else if (pbo === playbackOrder.RepeatPlaylist)
-            plman.PlaybackOrder = playbackOrder.RepeatTrack;
-        else if (pbo === playbackOrder.RepeatTrack)
-            plman.PlaybackOrder = playbackOrder.Default;
+        if (pbo === g_playback_order.default)
+            plman.PlaybackOrder = g_playback_order.repeat_playlist;
+        else if (pbo === g_playback_order.repeat_playlist)
+            plman.PlaybackOrder = g_playback_order.repeat_track;
+        else if (pbo === g_playback_order.repeat_track)
+            plman.PlaybackOrder = g_playback_order.default;
         else
-            plman.PlaybackOrder = playbackOrder.RepeatPlaylist;
+            plman.PlaybackOrder = g_playback_order.repeat_playlist;
     };
     buttons.buttons.repeat = new _.button(x, y, w, h, repeatImg, repeatFn, 'Repeat');
 
     var shuffleFn = function () {
         var pbo = plman.PlaybackOrder;
-        if (pbo !== playbackOrder.ShuffleTracks)
-            plman.PlaybackOrder = playbackOrder.ShuffleTracks;
+        if (pbo !== g_playback_order.shuffle_tracks)
+            plman.PlaybackOrder = g_playback_order.shuffle_tracks;
         else
-            plman.PlaybackOrder = playbackOrder.Default;
+            plman.PlaybackOrder = g_playback_order.default;
     };
-    buttons.buttons.shuffle = new _.button(x + (w + p), y, w, h, (plman.PlaybackOrder === playbackOrder.ShuffleTracks) ? btnImg.ShuffleTracks : btnImg.Shuffle, shuffleFn, 'Shuffle');
+    buttons.buttons.shuffle = new _.button(x + (w + p), y, w, h, (plman.PlaybackOrder === g_playback_order.shuffle_tracks) ? btnImg.ShuffleTracks : btnImg.Shuffle, shuffleFn, 'Shuffle');
 
     if (common_vars.minimode_state === 'Full') {
         var volValue = _.toVolume(fb.Volume);
@@ -263,9 +263,9 @@ function createButtonObjects(wx, wy, ww, wh) {
 
     buttons.refresh_repeat_button = function () {
         var repeatImg;
-        if (plman.PlaybackOrder === playbackOrder.RepeatPlaylist)
+        if (plman.PlaybackOrder === g_playback_order.repeat_playlist)
             repeatImg = btnImg.RepeatPlaylist;
-        else if (plman.PlaybackOrder === playbackOrder.RepeatTrack)
+        else if (plman.PlaybackOrder === g_playback_order.repeat_track)
             repeatImg = btnImg.Repeat1;
         else
             repeatImg = btnImg.Repeat;
@@ -275,7 +275,7 @@ function createButtonObjects(wx, wy, ww, wh) {
     };
 
     buttons.refresh_shuffle_button = function () {
-        buttons.buttons.shuffle.set_image((plman.PlaybackOrder === playbackOrder.ShuffleTracks) ? btnImg.ShuffleTracks : btnImg.Shuffle);
+        buttons.buttons.shuffle.set_image((plman.PlaybackOrder === g_playback_order.shuffle_tracks) ? btnImg.ShuffleTracks : btnImg.Shuffle);
         buttons.buttons.shuffle.repaint();
     };
 
@@ -289,13 +289,13 @@ function createButtonObjects(wx, wy, ww, wh) {
 }
 
 function createButtonImages() {
-    var fontGuifx = gdi.font('Guifx v2 Transports', 18, 0);
+    var fontGuifx = gdi.font(g_guifx.name, 18);
     var c = [250, 250, 250];
     var btn =
         {
             Repeat:
                 {
-                    ico:     Guifx.Repeat,
+                    ico:     g_guifx.repeat,
                     font:    fontGuifx,
                     id:      'playback',
                     w:       24,
@@ -306,7 +306,7 @@ function createButtonImages() {
                 },
             Repeat1:
                 {
-                    ico:     Guifx.Repeat1,
+                    ico:     g_guifx.repeat1,
                     font:    fontGuifx,
                     id:      'playback',
                     w:       24,
@@ -317,7 +317,7 @@ function createButtonImages() {
                 },
             RepeatPlaylist:
                 {
-                    ico:     Guifx.Repeat,
+                    ico:     g_guifx.repeat,
                     font:    fontGuifx,
                     id:      'playback',
                     w:       24,
@@ -328,7 +328,7 @@ function createButtonImages() {
                 },
             Shuffle:
                 {
-                    ico:     Guifx.Shuffle,
+                    ico:     g_guifx.shuffle,
                     font:    fontGuifx,
                     id:      'playback',
                     w:       24,
@@ -339,7 +339,7 @@ function createButtonImages() {
                 },
             ShuffleTracks:
                 {
-                    ico:     Guifx.Shuffle,
+                    ico:     g_guifx.shuffle,
                     font:    fontGuifx,
                     id:      'playback',
                     w:       24,
@@ -350,7 +350,7 @@ function createButtonImages() {
                 },
             VolLoud:
                 {
-                    ico:     Guifx.VolumeUp,
+                    ico:     g_guifx.volume_up,
                     font:    fontGuifx,
                     id:      'playback',
                     w:       24,
@@ -361,7 +361,7 @@ function createButtonImages() {
                 },
             VolQuiet:
                 {
-                    ico:     Guifx.VolumeDown,
+                    ico:     g_guifx.volume_down,
                     font:    fontGuifx,
                     id:      'playback',
                     w:       24,
@@ -372,7 +372,7 @@ function createButtonImages() {
                 },
             VolMute:
                 {
-                    ico:     Guifx.Mute,
+                    ico:     g_guifx.mute,
                     font:    fontGuifx,
                     id:      'playback',
                     w:       24,

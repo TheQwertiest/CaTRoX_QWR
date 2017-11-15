@@ -79,21 +79,21 @@ var g_group_queries = {
 
 //---> Fonts
 var g_pl_fonts = {
-    title_normal:   gdi.font('Segoe Ui', 12, 0),
-    title_selected: gdi.font('Segoe Ui Semibold', 12, 0),
-    title_playing:  gdi.font('Segoe Ui Semibold', 12, 0),
+    title_normal:   gdi.font('Segoe Ui', 12),
+    title_selected: gdi.font('Segoe Ui Semibold', 12),
+    title_playing:  gdi.font('Segoe Ui Semibold', 12),
 
-    artist_normal:          gdi.font('Segoe Ui Semibold', 18, 0),
-    artist_playing:         gdi.font('Segoe Ui Semibold', 18, 0 | 4),
-    artist_normal_compact:  gdi.font('Segoe Ui Semibold', 15, 0),
-    artist_playing_compact: gdi.font('Segoe Ui Semibold', 15, 0 | 4),
+    artist_normal:          gdi.font('Segoe Ui Semibold', 18),
+    artist_playing:         gdi.font('Segoe Ui Semibold', 18, g_font_style.underline),
+    artist_normal_compact:  gdi.font('Segoe Ui Semibold', 15),
+    artist_playing_compact: gdi.font('Segoe Ui Semibold', 15, g_font_style.underline),
 
-    playcount:      gdi.font('Segoe Ui', 9, 0),
-    album:          gdi.font('Segoe Ui Semibold', 15, 0),
-    date:           gdi.font('Segoe UI Semibold', 16, 1),
-    date_compact:   gdi.font('Segoe UI Semibold', 15, 0),
-    info:           gdi.font('Segoe Ui', 11, 0),
-    cover:          gdi.font('Segoe Ui Semibold', 11, 0),
+    playcount:      gdi.font('Segoe Ui', 9),
+    album:          gdi.font('Segoe Ui Semibold', 15),
+    date:           gdi.font('Segoe UI Semibold', 16, g_font_style.bold),
+    date_compact:   gdi.font('Segoe UI Semibold', 15),
+    info:           gdi.font('Segoe Ui', 11),
+    cover:          gdi.font('Segoe Ui Semibold', 11),
     rating_not_set: gdi.font('Segoe Ui Symbol', 14),
     rating_set:     gdi.font('Segoe Ui Symbol', 16)
 };
@@ -338,7 +338,7 @@ function Playlist(x, y) {
                 text = 'Playlist: ' + plman.GetPlaylistName(cur_playlist_idx) + '\n<--- Empty --->';
             }
 
-            gr.DrawString(text, gdi.font('Segoe Ui', 16, 0), _.RGB(80, 80, 80), this.x, this.y, this.w, this.h, g_string_format.align_center);
+            gr.DrawString(text, gdi.font('Segoe Ui', 16), _.RGB(80, 80, 80), this.x, this.y, this.w, this.h, g_string_format.align_center);
         }
 
         if (is_scrollbar_available) {
@@ -738,7 +738,7 @@ function Playlist(x, y) {
             web.AppendMenuItem(MF_STRING, 84, 'YouTube');
             web.AppendMenuItem(MF_STRING, 85, 'Last FM');
             web.AppendMenuItem(MF_STRING, 86, 'Discogs');
-            web.AppendTo(cpm, safeMode ? MF_GRAYED : MF_STRING, 'Weblinks');
+            web.AppendTo(cpm, MF_STRING, 'Weblinks');
             // -------------------------------------------------------------- //
             //---> Send
 
@@ -3742,9 +3742,9 @@ function PlaylistInfo(x, y, w, h) {
             var lock_text = '\uF023';
             var lock_w = Math.ceil(
                 /** @type {!number} */
-                gr.MeasureString(lock_text, gdi.font('FontAwesome', 12, 0), 0, 0, 0, 0).Width
+                gr.MeasureString(lock_text, gdi.font('FontAwesome', 12), 0, 0, 0, 0).Width
             );
-            gr.DrawString(lock_text, gdi.font('FontAwesome', 12, 0), _.RGB(150, 152, 154), sbar_x + Math.round((g_properties.scrollbar_w - lock_w) / 2), 0, 8, this.h, g_string_format.align_center);
+            gr.DrawString(lock_text, gdi.font('FontAwesome', 12), _.RGB(150, 152, 154), sbar_x + Math.round((g_properties.scrollbar_w - lock_w) / 2), 0, 8, this.h, g_string_format.align_center);
         }
 
         var info_text_format = g_string_format.align_center | g_string_format.trim_ellipsis_char | g_string_format.no_wrap;

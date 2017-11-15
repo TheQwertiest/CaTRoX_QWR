@@ -27,7 +27,7 @@ var trace_on_move = false;
 g_properties.add_properties(
     {
         g_maximize_to_fullscreen: ['user.window.maximize_to_fullscreen', true],
-        show_window_shadow:         ['user.window.shadow.show', false],
+        show_window_shadow:       ['user.window.shadow.show', false],
         show_fb2k_version:        ['user.title_bar.fb2k_version.show', false],
         show_theme_version:       ['user.title_bar.theme_version.show', false],
         show_cpu_usage:           ['user.title_bar.cpu_usage.show', false],
@@ -184,10 +184,6 @@ function Menu() {
         this.w = w - 2*pad;
         create_buttons(this.x, this.y, this.w, this.h);
 
-        if (!uiHacks) {
-            return;
-        }
-
         // needed when double clicking on caption and UIHacks.FullScreen == true;
         if (!utils.IsKeyPressed(VK_CONTROL) && UIHacks.FullScreen && UIHacks.MainWindowState === 0) {
             UIHacks.MainWindowState = 0;
@@ -198,10 +194,6 @@ function Menu() {
         var btn = buttons.move(x, y);
         if (btn) {
             return
-        }
-        
-        if (!uiHacks) {
-            return;
         }
 
         if (mouse_down) {
@@ -238,26 +230,24 @@ function Menu() {
         var cpm = window.CreatePopupMenu();
         var frame = window.CreatePopupMenu();
 
-        if (uiHacks) {
-            frame.AppendMenuItem(MF_STRING, 1, 'Default');
-            frame.AppendMenuItem(MF_STRING, 2, 'Small caption');
-            frame.AppendMenuItem(MF_STRING, 3, 'No caption');
-            frame.AppendMenuItem(MF_STRING, 4, 'No border');
-            frame.CheckMenuRadioItem(1, 4, UIHacks.FrameStyle + 1);
-            if (UIHacks.FrameStyle === FrameStyle.NoBorder && UIHacks.Aero.Active) {
-                frame.AppendMenuSeparator();
-                frame.AppendMenuItem(MF_STRING, 5, 'Show window shadow');
-                frame.CheckMenuItem(5, (UIHacks.Aero.Left + UIHacks.Aero.Top + UIHacks.Aero.Right + UIHacks.Aero.Bottom));
-            }
-            frame.AppendTo(cpm, MF_STRING, 'Frame style');
-
-            if (UIHacks.FrameStyle > 0) {
-                cpm.AppendMenuSeparator();
-                cpm.AppendMenuItem(MF_STRING, 6, 'Maximize button -> to fullscreen');
-            }
-            cpm.CheckMenuItem(6, g_properties.g_maximize_to_fullscreen);
-            cpm.AppendMenuSeparator();
+        frame.AppendMenuItem(MF_STRING, 1, 'Default');
+        frame.AppendMenuItem(MF_STRING, 2, 'Small caption');
+        frame.AppendMenuItem(MF_STRING, 3, 'No caption');
+        frame.AppendMenuItem(MF_STRING, 4, 'No border');
+        frame.CheckMenuRadioItem(1, 4, UIHacks.FrameStyle + 1);
+        if (UIHacks.FrameStyle === FrameStyle.NoBorder && UIHacks.Aero.Active) {
+            frame.AppendMenuSeparator();
+            frame.AppendMenuItem(MF_STRING, 5, 'Show window shadow');
+            frame.CheckMenuItem(5, (UIHacks.Aero.Left + UIHacks.Aero.Top + UIHacks.Aero.Right + UIHacks.Aero.Bottom));
         }
+        frame.AppendTo(cpm, MF_STRING, 'Frame style');
+
+        if (UIHacks.FrameStyle > 0) {
+            cpm.AppendMenuSeparator();
+            cpm.AppendMenuItem(MF_STRING, 6, 'Maximize button -> to fullscreen');
+        }
+        cpm.CheckMenuItem(6, g_properties.g_maximize_to_fullscreen);
+        cpm.AppendMenuSeparator();
 
         cpm.AppendMenuItem(MF_STRING, 7, 'Show foobar version');
         cpm.CheckMenuItem(7, g_properties.show_fb2k_version);
@@ -267,10 +257,6 @@ function Menu() {
 
         cpm.AppendMenuItem(MF_STRING, 9, 'Show button tooltips');
         cpm.CheckMenuItem(9, g_properties.show_tooltips);
-
-        if (utils.CheckComponent('foo_ui_hacks') && safeMode) {
-            cpm.AppendMenuItem(MF_STRING, 102, 'Frame styles not available (disable WSH safe mode)');
-        }
 
         if (utils.IsKeyPressed(VK_SHIFT)) {
             cpm.AppendMenuSeparator();
@@ -436,10 +422,6 @@ function Menu() {
             buttons.buttons.menu = new _.button(x, y, w, h, button_images.Menu, function (xx, yy, x, y, h, w) { _.menu(x, y + h); });
 
             left_pad = x + w;
-        }
-
-        if (!uiHacks) {
-            return;
         }
 
         //---> Caption buttons
@@ -739,9 +721,6 @@ function Menu() {
     }
 
     function toggle_window_shadow(show_window_shadow) {
-        if (!uiHacks) {
-            return;
-        }
         if (show_window_shadow) {
             UIHacks.Aero.Effect = 2;
             UIHacks.Aero.Top = 1;

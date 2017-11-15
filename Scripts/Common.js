@@ -2,32 +2,14 @@
 // @name 'Common'
 // @author 'TheQwertiest'
 // ==/PREPROCESSOR==
-//---> 
-//---> Common Helpers, Flags
-//--->
+
 var g_theme_name = 'CaTRoX (QWR Edition)';
 var g_theme_folder = 'CaTRoX';
 var g_theme_version = '3.0';
 
 var scriptFolder = 'themes\\' + g_theme_folder + '\\Scripts\\';
 // ================================================================================= //
-var safeMode = uiHacks = false;
-var UIHacks;
-try {
-    WshShell = new ActiveXObject('WScript.Shell');
-} catch (e) {
-    fb.trace('----------------------------------------------------------------------');
-    fb.trace(e + '\nFix: Disable safe mode in Preferences > Tools > WSH Panel Mod');
-    fb.trace('----------------------------------------------------------------------');
-    safeMode = true;
-}
-
-if (!safeMode) {
-    uiHacks = utils.CheckComponent('foo_ui_hacks');
-    if (uiHacks) {
-        UIHacks = new ActiveXObject('UIHacks');
-    }
-}
+var UIHacks = new ActiveXObject('UIHacks');
 
 var pssBackColor = _.RGB(25, 25, 25);
 var panelsBackColor = _.RGB(30, 30, 30);
@@ -51,32 +33,8 @@ function timeFormat(s, truncate) {
 
     return weeks + days + hours + minutes + seconds;
 }
-//--->
-var _ww, _wh,
-    _resizeTimerStarted;
-function isResizingDone(ww, wh, resizeCallbackFn) {
-    if (!_resizeTimerStarted) {
-        _resizeTimerStarted = true;
-        resizingIsDone = false;
 
-        resizeTimer = window.SetInterval(function () {
-            if (_ww === window.Width && _wh === window.Height) {
-                resizeCallbackFn();
-
-                resizingIsDone = true;
-
-                _resizeTimerStarted = false;
-
-                window.ClearInterval(resizeTimer);
-            }
-
-        }, 200);
-    }
-    _ww = ww;
-    _wh = wh;
-}
-
-g_string_format = {
+var g_string_format = {
     h_align_near:   0x00000000,
     h_align_center: 0x10000000,
     h_align_far:    0x20000000,
@@ -105,100 +63,95 @@ g_string_format = {
     no_clip:                 0x00004000
 };
 
-//--->
-// Used in gdi.Font(), can be combined
-// For more information, see: http://msdn.microsoft.com/en-us/library/ms534124(VS.85).aspx
-FontStyle =
-    {
-        Regular: 0,
-        Bold: 1,
-        Italic: 2,
-        BoldItalic: 3,
-        Underline: 4,
-        Strikeout: 8
-    };
-//--->
-playbackOrder =
-    {
-        Default: 0,
-        RepeatPlaylist: 1,
-        RepeatTrack: 2,
-        Random: 3,
-        ShuffleTracks: 4,
-        ShuffleAlbums: 5,
-        ShuffleFolders: 6
-    };
+var g_font_style = {
+    regular:     0,
+    bold:        1,
+    italic:      2,
+    bold_italic: 3,
+    underline:   4,
+    strikeout:   8
+};
 
-Guifx =
-    {
-        Play: 1,
-        Pause: 2,
-        Stop: 3,
-        Record: 4,
-        Rewind: 5,
-        FastForward: 6,
-        Previous: 7,
-        Next: 8,
-        Replay: 9,
-        Refresh: 0,
-        Mute: '!',
-        Mute2: '@',
-        VolumeDown: '#',
-        VolumeUp: '$',
-        ThumbsDown: '%',
-        ThumbsUp: '^',
-        Shuffle: '\&',
-        Repeat: '*',
-        Repeat1: '(',
-        Zoom: ')',
-        ZoomOut: '_',
-        ZoomIn: '+',
-        Minus: '-',
-        Plus: '=',
-        Up: 'W',
-        Down: 'S',
-        Left: 'A',
-        Right: 'D',
-        Up2: 'w',
-        Down2: 's',
-        Left2: 'a',
-        Right2: 'd',
-        Start: '{',
-        End: '}',
-        Top: '?',
-        Bottom: '/',
-        JumpBackward: '[',
-        JumpForward: ']',
-        SlowBackward: ':',
-        SlowForward: '\'',
-        Eject: '\'',
-        Reject: ';',
-        Up3: '.',
-        Down3: ',',
-        Left3: '<',
-        Right3: '>',
-        Guifx: 'g',
-        ScreenUp: '|',
-        ScreenDown: '\\',
-        Power: 'q',
-        Checkmark: 'z',
-        Close: 'x',
-        Hourglass: 'c',
-        Heart: 'v',
-        Star: 'b',
-        Fire: 'i',
-        Medical: 'o',
-        Police: 'p'
-    };
+//--->
+var g_playback_order = {
+    default:         0,
+    repeat_playlist: 1,
+    repeat_track:    2,
+    random:          3,
+    shuffle_tracks:  4,
+    shuffle_albums:  5,
+    shuffle_folders: 6
+};
 
-var g_album_art_id =
-    {
-        front:  0,
-        back:   1,
-        disc:   2,
-        icon:   3,
-        artist: 4
-    };
+var g_guifx = {
+    name:          'Guifx v2 Transports',
+    play:          1,
+    pause:         2,
+    stop:          3,
+    record:        4,
+    rewind:        5,
+    fast_forward:  6,
+    previous:      7,
+    next:          8,
+    replay:        9,
+    refresh:       0,
+    mute:          '!',
+    mute2:         '@',
+    volume_down:   '#',
+    volume_up:     '$',
+    thumbs_down:   '%',
+    thumbs_up:     '^',
+    shuffle:       '\&',
+    repeat:        '*',
+    repeat1:       '(',
+    zoom:          ')',
+    zoom_out:      '_',
+    zoom_in:       '+',
+    minus:         '-',
+    plus:          '=',
+    up:            'W',
+    down:          'S',
+    left:          'A',
+    right:         'D',
+    up2:           'w',
+    down2:         's',
+    left2:         'a',
+    right2:        'd',
+    start:         '{',
+    end:           '}',
+    top:           '?',
+    bottom:        '/',
+    jump_backward: '[',
+    jump_forward:  ']',
+    slow_backward: ':',
+    slow_forward:  '\'',
+    eject:         '\'',
+    reject:        ';',
+    up3:           '.',
+    down3:         ',',
+    left3:         '<',
+    right3:        '>',
+    screen_up:     '|',
+    screen_down:   '\\',
+    guifx:         'g',
+    power:         'q',
+    checkmark:     'z',
+    close:         'x',
+    hourglass:     'c',
+    heart:         'v',
+    star:          'b',
+    fire:          'i',
+    medical:       'o',
+    police:        'p'
+};
+
+var g_album_art_id = {
+    front:  0,
+    back:   1,
+    disc:   2,
+    icon:   3,
+    artist: 4
+};
 
 function link(site, metadb) {
     if (!metadb) {
@@ -238,40 +191,32 @@ function link(site, metadb) {
             site = undefined;
     }
 
-    if (!site || safeMode) {
+    if (!site) {
         return;
     }
 
-    try {
-        WshShell.run(site);
-    } catch (e) {
-        fb.trace(e)
-    }
+    _.run(site);
 }
 
 var qwr_utils = {
     EnableSizing: function (m) {
-        if (uiHacks) {
-            try {
-                if (UIHacks && UIHacks.FrameStyle === 3 && UIHacks.DisableSizing) {
-                    UIHacks.DisableSizing = false;
-                }
+        try {
+            if (UIHacks.FrameStyle === 3 && UIHacks.DisableSizing) {
+                UIHacks.DisableSizing = false;
             }
-            catch (e) {
-                fb.trace(e)
-            }
+        }
+        catch (e) {
+            fb.trace(e)
         }
     },
     DisableSizing: function (m) {
-        if (uiHacks) {
-            try {
-                if (m && UIHacks && UIHacks.FrameStyle === 3 && !UIHacks.DisableSizing) {
-                    UIHacks.DisableSizing = true;
-                }
+        try {
+            if (m && UIHacks.FrameStyle === 3 && !UIHacks.DisableSizing) {
+                UIHacks.DisableSizing = true;
             }
-            catch (e) {
-                fb.trace(e)
-            }
+        }
+        catch (e) {
+            fb.trace(e)
         }
     },
     caller: function () {
@@ -293,16 +238,8 @@ var qwr_utils = {
         }
     },
     run_notepad: function (script_name) {
-        try {
-            WshShell.Run('notepad++.exe ' + scriptFolder + script_name);
-        }
-        catch (e) {
-            try {
-                WshShell.Run('notepad.exe ' + scriptFolder + script_name);
-            }
-            catch (e) {
-                fb.trace(e)
-            }
+        if (!_.run('notepad++.exe ' + scriptFolder + script_name)) {
+            _.run('notepad.exe ' + scriptFolder + script_name);
         }
     },
     check_fonts: function (fonts) {
