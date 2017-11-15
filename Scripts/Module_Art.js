@@ -595,6 +595,8 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
         return selected_metadb_list.Count > 0 ? selected_metadb_list.Item(0) : null;
     }
 
+    /** @type {undefined|number} */
+    var cycleTimer = undefined;
     function onCycleTimer(enable_cycle, artLength, restartCycle) {
         if (cycleTimerStarted && (!enable_cycle || !artArr[curArtId] || artLength <= 1 || restartCycle)) {
             cycleTimerStarted = false;
@@ -845,7 +847,7 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
     var isPhotoshopAvailable;
 
     var thumbs;
-    var thumbImages;
+    var thumbImages = [];
 
     var cycleTimerStarted = false;
 

@@ -493,7 +493,7 @@ function createButtonImages() {
             var img = gdi.CreateImage(w, h);
             var g = img.GetGraphics();
             g.SetSmoothingMode(SmoothingMode.HighQuality);
-            g.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
+            g.SetTextRenderingHint(TextRenderingHint.AntiAlias);
 
             var playbackIcoColor = _.RGB(190, 192, 194);
 
