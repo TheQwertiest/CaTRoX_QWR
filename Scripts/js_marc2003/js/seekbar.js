@@ -17,14 +17,14 @@ _.mixin({
         };
 
         this.playback_start = function () {
-            repaint_timer.start(this);
+            repaint_timer.start();
         };
 
         this.playback_pause = function (isPlaying) {
             if (isPlaying)
                 repaint_timer.stop();
             else
-                repaint_timer.start(this);
+                repaint_timer.start();
         };
 
         this.trace = function (x, y) {
@@ -164,11 +164,11 @@ _.seekbar.repaint_timer = new function()
 {
     var seekbar_timer = null;
 
-    this.start = function(caller) {
+    this.start = function() {
         if (!seekbar_timer) {
             seekbar_timer = setInterval(function () {
                 if (fb.IsPlaying && !fb.IsPaused && fb.PlaybackLength > 0)
-                    caller.repaint();
+                    on_playback_seek();
             }, 100);
         }
     };
