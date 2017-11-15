@@ -173,7 +173,7 @@ function Menu() {
             }
 
             var title_text_format = g_string_format.align_center | g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
-            gr.DrawString(title_text, gdi.font('Segoe Ui Semibold', 11, 0), _.RGBA(240, 242, 244, 120), title_x, title_y, title_w, this.h, title_text_format);
+            gr.DrawString(title_text, gdi.font('Segoe Ui Semibold', 11), _.RGBA(240, 242, 244, 120), title_x, title_y, title_w, this.h, title_text_format);
         }
 
         buttons.paint(gr);
@@ -544,9 +544,9 @@ function Menu() {
     }
 
     function create_button_images() {
-        var fontMarlett = gdi.font('Marlett', 13, 0);
-        var fontAwesome = gdi.font('FontAwesome', 12, 0);
-        var fontSegoeUi = gdi.font('Segoe Ui Semibold', 12, 0);
+        var fontMarlett = gdi.font('Marlett', 13);
+        var fontAwesome = gdi.font('FontAwesome', 12);
+        var fontSegoeUi = gdi.font('Segoe Ui Semibold', 12);
 
         var btn =
             {

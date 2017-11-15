@@ -1,10 +1,10 @@
 // ==PREPROCESSOR==
-// @name "Scrollbar Control"
-// @author "TheQwertiest"
+// @name 'Scrollbar Control'
+// @author 'TheQwertiest'
 // ==/PREPROCESSOR==
 g_properties.add_properties(
     {
-        wheel_scroll_page: ["user.scrollbar.wheel_whole_page", false]
+        wheel_scroll_page: ['user.scrollbar.wheel_whole_page', false]
     }
 );
 
@@ -58,10 +58,10 @@ function startSbarAlphaTimerFn(caller) {
         g_sbarAlphaTimer = setInterval(function () {
             _.forEach(caller.sb_parts, function (item, i) {
                 switch (item.state) {
-                    case "normal":
+                    case 'normal':
                         item.hover_alpha = Math.max(0, item.hover_alpha -= hoverOutStep);
                         item.hot_alpha = Math.max(0, item.hot_alpha -= hoverOutStep);
-                        if (i === "thumb") {
+                        if (i === 'thumb') {
                             item.pressed_alpha = Math.max(0, item.pressed_alpha -= hoverOutStep);
                         }
                         else {
@@ -69,16 +69,16 @@ function startSbarAlphaTimerFn(caller) {
                         }
 
                         break;
-                    case "hover":
+                    case 'hover':
                         item.hover_alpha = Math.min(255, item.hover_alpha += hoverInStep);
                         item.hot_alpha = Math.max(0, item.hot_alpha -= hoverOutStep);
                         item.pressed_alpha = Math.max(0, item.pressed_alpha -= downOutStep);
 
                         break;
-                    case "pressed":
+                    case 'pressed':
                         item.hover_alpha = 0;
                         item.hot_alpha = 0;
-                        if (i === "thumb") {
+                        if (i === 'thumb') {
                             item.pressed_alpha = 255;
                         }
                         else {
@@ -86,7 +86,7 @@ function startSbarAlphaTimerFn(caller) {
                         }
 
                         break;
-                    case "hot":
+                    case 'hot':
                         item.hover_alpha = Math.max(0, item.hover_alpha -= hoverOutStep);
                         item.hot_alpha = Math.min(255, item.hot_alpha += hoverInStep);
                         item.pressed_alpha = Math.max(0, item.pressed_alpha -= downOutStep);
@@ -146,15 +146,15 @@ _.mixin({
 
                 gr.DrawImage(item.img_normal, x, y, w, h, 0, 0, w, h, 0, 255);
                 switch (i) {
-                    case "lineUp":
-                    case "lineDown":
+                    case 'lineUp':
+                    case 'lineDown':
                         gr.DrawImage(item.img_hot, x, y, w, h, 0, 0, w, h, 0, item.hot_alpha);
                         gr.DrawImage(item.img_hover, x, y, w, h, 0, 0, w, h, 0, item.hover_alpha);
                         gr.DrawImage(item.img_pressed, x, y, w, h, 0, 0, w, h, 0, item.pressed_alpha);
 
                         break;
 
-                    case "thumb":
+                    case 'thumb':
                         gr.DrawImage(item.img_hover, x, y, w, h, 0, 0, w, h, 0, item.hover_alpha);
                         gr.DrawImage(item.img_pressed, x, y, w, h, 0, 0, w, h, 0, item.pressed_alpha);
 
@@ -231,7 +231,7 @@ _.mixin({
             this.part = null;
 
             _.forEach(this.sb_parts, function (item) {
-                item.cs("normal");
+                item.cs('normal');
             });
             startSbarAlphaTimerFn(this);
         };
@@ -256,13 +256,13 @@ _.mixin({
             if (changeHotStatus) {
                 this.in_sbar = !this.in_sbar;
                 if (this.in_sbar) {
-                    temp_part !== "lineUp" && this.part !== "lineUp" && this.sb_parts["lineUp"].cs("hot");
-                    temp_part !== "lineDown" && this.part !== "lineDown" && this.sb_parts["lineDown"].cs("hot");
+                    temp_part !== 'lineUp' && this.part !== 'lineUp' && this.sb_parts['lineUp'].cs('hot');
+                    temp_part !== 'lineDown' && this.part !== 'lineDown' && this.sb_parts['lineDown'].cs('hot');
                     startSbarAlphaTimerFn(this);
                 }
                 else {
-                    this.part !== "lineUp" && this.sb_parts["lineUp"].cs("normal");
-                    this.part !== "lineDown" && this.sb_parts["lineDown"].cs("normal");
+                    this.part !== 'lineUp' && this.sb_parts['lineUp'].cs('normal');
+                    this.part !== 'lineDown' && this.sb_parts['lineDown'].cs('normal');
                     startSbarAlphaTimerFn(this);
                 }
             }
@@ -272,24 +272,24 @@ _.mixin({
             }
 
             if (this.part) {
-                if (this.part === "thumb") {
-                    this.sb_parts[this.part].cs("normal");
+                if (this.part === 'thumb') {
+                    this.sb_parts[this.part].cs('normal');
                     startSbarAlphaTimerFn(this);
                 }
                 else {
-                    if (this.sb_parts[this.part].state === "pressed") {
+                    if (this.sb_parts[this.part].state === 'pressed') {
                         // Stop btn fast scroll
                         this.stop_shift_timer();
                     }
 
                     // Return prev button to normal or hot state
-                    this.sb_parts[this.part].cs(this.in_sbar ? "hot" : "normal");
+                    this.sb_parts[this.part].cs(this.in_sbar ? 'hot' : 'normal');
                     startSbarAlphaTimerFn(this);
                 }
             }
 
             if (temp_part) {// Select current button
-                this.sb_parts[temp_part].cs("hover");
+                this.sb_parts[temp_part].cs('hover');
                 startSbarAlphaTimerFn(this);
             }
 
@@ -311,7 +311,7 @@ _.mixin({
 
         this.parts_lbtn_down = function () {
             if (this.part) {
-                this.sb_parts[this.part].cs("pressed");
+                this.sb_parts[this.part].cs('pressed');
                 startSbarAlphaTimerFn(this);
             }
         };
@@ -350,13 +350,13 @@ _.mixin({
         };
 
         this.parts_lbtn_up = function (x, y) {
-            if (this.part && this.sb_parts[this.part].state === "pressed") {
+            if (this.part && this.sb_parts[this.part].state === 'pressed') {
                 if (this.sb_parts[this.part].trace(x, y)) {
-                    this.sb_parts[this.part].cs("hover");
+                    this.sb_parts[this.part].cs('hover');
                     startSbarAlphaTimerFn(this);
                 }
                 else {
-                    this.sb_parts[this.part].cs("normal");
+                    this.sb_parts[this.part].cs('normal');
                     startSbarAlphaTimerFn(this);
                 }
 
@@ -384,12 +384,12 @@ _.mixin({
             var cpm = window.CreatePopupMenu();
 
             if (utils.IsKeyPressed(VK_SHIFT)) {
-                cpm.AppendMenuItem(safeMode ? MF_GRAYED : MF_STRING, 1, "Configure script...");
+                cpm.AppendMenuItem(safeMode ? MF_GRAYED : MF_STRING, 1, 'Configure script...');
             }
 
             var id = cpm.TrackPopupMenu(x, y);
             if (id === 1) {
-                qwr_utils.run_notepad("Control_Scrollbar.js");
+                qwr_utils.run_notepad('Control_Scrollbar.js');
             }
 
             _.dispose(cpm);
@@ -483,7 +483,7 @@ _.mixin({
             }
             this.scroll = s;
             this.thumb_y = this.btn_h + this.scroll * this.scrollbar_travel / this.scrollable_lines;
-            this.sb_parts["thumb"].y = this.y + this.thumb_y;
+            this.sb_parts['thumb'].y = this.y + this.thumb_y;
 
             this.is_scrolled_up = (this.scroll === 0);
             this.is_scrolled_down = Math.abs(this.scroll - this.scrollable_lines) < 0.0001;
@@ -510,7 +510,7 @@ _.mixin({
                 return;
             }
 
-            var fontSegoeUi = gdi.font('Segoe UI Symbol', 15, 0);
+            var fontSegoeUi = gdi.font('Segoe UI Symbol', 15);
             var m = 2;
 
             var scrollTrackColor = _.RGB(37, 37, 37);
@@ -731,7 +731,7 @@ _.mixin({
         this.hover_alpha = 0;
         this.hot_alpha = 0;
         this.pressed_alpha = 0;
-        this.state = "normal";
+        this.state = 'normal';
 
         this.assign_imgs(img_src);
     }

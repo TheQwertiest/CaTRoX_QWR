@@ -1,10 +1,10 @@
 // ==PREPROCESSOR==
-// @name "UltraMini Main Panel"
-// @author "TheQwertiest"
+// @name 'UltraMini Main Panel'
+// @author 'TheQwertiest'
 // ==/PREPROCESSOR==
 g_properties.add_properties(
     {
-        art_pad: ["user.art.pad", 0]
+        art_pad: ['user.art.pad', 0]
     }
 );
 
@@ -50,7 +50,7 @@ function on_paint(gr) {
         artModule.paint(gr);
     }
     else {
-        gr.DrawString(g_theme_name + " " + g_theme_version, gdi.font("Segoe Ui Semibold", 24, 0), _.RGB(70, 70, 70), 0, 0, ww, wh, g_string_format.align_center);
+        gr.DrawString(g_theme_name + ' ' + g_theme_version, gdi.font('Segoe Ui Semibold', 24), _.RGB(70, 70, 70), 0, 0, ww, wh, g_string_format.align_center);
     }
 
     // Title
@@ -60,18 +60,18 @@ function on_paint(gr) {
     if (fb.IsPlaying) {
         var title;
         if (panel_s.curTitleType === 0) {
-            title = "[%title%]";
+            title = '[%title%]';
         }
         else if (panel_s.curTitleType === 1) {
-            title = "[%artist%]";
+            title = '[%artist%]';
         }
         else {
-            title = "[%album%]";
+            title = '[%album%]';
         }
 
         var title_text = fb.TitleFormat(title).Eval();
         var title_text_format = g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
-        gr.DrawString(title_text, gdi.font("Segoe Ui Semibold", 12, 0), _.RGB(240, 240, 240), 5, 5, ww, wh, title_text_format);
+        gr.DrawString(title_text, gdi.font('Segoe Ui Semibold', 12), _.RGB(240, 240, 240), 5, 5, ww, wh, title_text_format);
     }
 
     if (panel_s.playbackPanelAlpha !== 0) {
@@ -200,7 +200,7 @@ function on_mouse_move(x, y, m) {
 
     if (!panel_s.mouseInPanel) {
         panel_s.mouseInPanel = true;
-        animator.runAnimation("fade_in");
+        animator.runAnimation('fade_in');
     }
 
     if (panel_s.showVolumeBar) {
@@ -258,7 +258,7 @@ function on_mouse_leave() {
 
     if (panel_s.mouseInPanel) {
         panel_s.mouseInPanel = false;
-        animator.runAnimation("fade_out");
+        animator.runAnimation('fade_out');
     }
 
     if (panel_s.showVolumeBar) {
@@ -289,7 +289,7 @@ function on_key_down(vkey) {
 function on_mouse_rbtn_up(x, y) {
     var cpm = window.CreatePopupMenu();
 
-    cpm.AppendMenuItem(MF_STRING, 36, "Reload \tF5");
+    cpm.AppendMenuItem(MF_STRING, 36, 'Reload \tF5');
 
     if (utils.IsKeyPressed(VK_SHIFT)) {
         _.appendDefaultContextMenu(cpm);
@@ -302,7 +302,7 @@ function on_mouse_rbtn_up(x, y) {
             artModule.reloadArt();
             break;
         default:
-            _.executeDefaultContextMenu(id, scriptFolder + "Panel_UltraMini.js");
+            _.executeDefaultContextMenu(id, scriptFolder + 'Panel_UltraMini.js');
     }
 
     _.dispose(cpm);
@@ -312,7 +312,7 @@ function on_mouse_rbtn_up(x, y) {
 
 function on_notify_data(name, info) {
     switch (name) {
-        case "show_tooltips": {
+        case 'show_tooltips': {
             panel_s.showTooltips = info;
             seekbar.show_tt = info;
             volumeBar.show_tt = info;
@@ -342,10 +342,10 @@ function create_buttons(wx, wy, ww, wh) {
         fb.Stop();
         // Needs repaint to avoid partial art redraw
         window.Repaint();
-    }, "Stop");
+    }, 'Stop');
 
     x += w + p;
-    buttons.buttons.previous = new _.button(x, y, w, h, btnImg.Previous, function () { fb.Prev(); }, "Previous");
+    buttons.buttons.previous = new _.button(x, y, w, h, btnImg.Previous, function () { fb.Prev(); }, 'Previous');
 
     x += w + p;
     buttons.buttons.play = new _.button(x, y, w, h, (!fb.IsPlaying || fb.IsPaused) ? btnImg.Play : btnImg.Pause, function () {
@@ -354,17 +354,17 @@ function create_buttons(wx, wy, ww, wh) {
     // Needs repaint to avoid partial art redraw
     if (wasNotPlaying)
         window.Repaint();
-    }, (!fb.IsPlaying || fb.IsPaused) ? "Play" : "Pause");
+    }, (!fb.IsPlaying || fb.IsPaused) ? 'Play' : 'Pause');
 
     x += w + p;
-    buttons.buttons.next = new _.button(x, y, w, h, btnImg.Next, function () { fb.Next(); }, "Next");
+    buttons.buttons.next = new _.button(x, y, w, h, btnImg.Next, function () { fb.Next(); }, 'Next');
 
     x += w + p;
     rightBtnX = x + 3;
 
     var volValue = _.toVolume(fb.Volume);
     var volImage = ((volValue > 50) ? btnImg.VolLoud : ((volValue > 0) ? btnImg.VolQuiet : btnImg.VolMute));
-    buttons.buttons.mute = new _.button(x, y, w, h, volImage, function () { fb.VolumeMute(); }, volValue === 0 ? "Unmute" : "Mute");
+    buttons.buttons.mute = new _.button(x, y, w, h, volImage, function () { fb.VolumeMute(); }, volValue === 0 ? 'Unmute' : 'Mute');
 
     x += w - 5;
     buttons.buttons.volume = new _.button(x, y + 2, btnImg.ShowVolume.normal.Width, h, btnImg.ShowVolume, function () {
@@ -374,11 +374,11 @@ function create_buttons(wx, wy, ww, wh) {
         buttons.buttons.volume.hide = true;
         volumeBar.show_tt = panel_s.showTooltips;
         volumeBar.repaint();
-    }, "Volume");
+    }, 'Volume');
 
     buttons.refresh_play_button = function () {
         buttons.buttons.play.set_image((!fb.IsPlaying || fb.IsPaused) ? btnImg.Play : btnImg.Pause);
-        buttons.buttons.play.tiptext = (!fb.IsPlaying || fb.IsPaused) ? "Play" : "Pause";
+        buttons.buttons.play.tiptext = (!fb.IsPlaying || fb.IsPaused) ? 'Play' : 'Pause';
         buttons.buttons.play.repaint();
     };
 
@@ -386,14 +386,14 @@ function create_buttons(wx, wy, ww, wh) {
         var volValue = _.toVolume(fb.Volume);
         var volImage = (volValue > 50) ? btnImg.VolLoud : ((volValue > 0) ? btnImg.VolQuiet : btnImg.VolMute);
         buttons.buttons.mute.set_image(volImage);
-        buttons.buttons.mute.tiptext = volValue === 0 ? "Unmute" : "Mute";
+        buttons.buttons.mute.tiptext = volValue === 0 ? 'Unmute' : 'Mute';
         buttons.buttons.mute.repaint();
     };
 }
 
 function createButtonImages() {
     var fontGuifx = gdi.font(g_guifx.name, 16);
-    var fontAwesome = gdi.font("FontAwesome", 14);
+    var fontAwesome = gdi.font('FontAwesome', 14);
     var c = [250, 250, 250];
 
     var btn =
@@ -401,7 +401,7 @@ function createButtonImages() {
             Stop: {
                 ico: g_guifx.stop,
                 font: fontGuifx,
-                id: "playback",
+                id: 'playback',
                 w: 26,
                 h: 26,
                 cNormal: _.RGBA(c[0], c[1], c[2], 35),
@@ -410,7 +410,7 @@ function createButtonImages() {
             Previous: {
                 ico: g_guifx.previous,
                 font: fontGuifx,
-                id: "playback",
+                id: 'playback',
                 w: 26,
                 h: 26,
                 cNormal: _.RGBA(c[0], c[1], c[2], 35),
@@ -419,7 +419,7 @@ function createButtonImages() {
             Play: {
                 ico: g_guifx.play,
                 font: fontGuifx,
-                id: "playback",
+                id: 'playback',
                 w: 26,
                 h: 26,
                 cNormal: _.RGBA(c[0], c[1], c[2], 35),
@@ -428,7 +428,7 @@ function createButtonImages() {
             Pause: {
                 ico: g_guifx.pause,
                 font: fontGuifx,
-                id: "playback",
+                id: 'playback',
                 w: 26,
                 h: 26,
                 cNormal: _.RGBA(c[0], c[1], c[2], 35),
@@ -437,7 +437,7 @@ function createButtonImages() {
             Next: {
                 ico: g_guifx.next,
                 font: fontGuifx,
-                id: "playback",
+                id: 'playback',
                 w: 26,
                 h: 26,
                 cNormal: _.RGBA(c[0], c[1], c[2], 35),
@@ -445,8 +445,8 @@ function createButtonImages() {
             },
             VolLoud: {
                 ico: g_guifx.volume_up,
-                font: gdi.font("Guifx v2 Transports", 15, 0),
-                id: "playback",
+                font: gdi.font('Guifx v2 Transports', 15, 0),
+                id: 'playback',
                 w: 26,
                 h: 26,
                 cNormal: _.RGBA(c[0], c[1], c[2], 35),
@@ -454,8 +454,8 @@ function createButtonImages() {
             },
             VolQuiet: {
                 ico: g_guifx.volume_down,
-                font: gdi.font("Guifx v2 Transports", 15, 0),
-                id: "playback",
+                font: gdi.font('Guifx v2 Transports', 15, 0),
+                id: 'playback',
                 w: 26,
                 h: 26,
                 cNormal: _.RGBA(c[0], c[1], c[2], 35),
@@ -463,17 +463,17 @@ function createButtonImages() {
             },
             VolMute: {
                 ico: g_guifx.mute,
-                font: gdi.font("Guifx v2 Transports", 15, 0),
-                id: "playback",
+                font: gdi.font('Guifx v2 Transports', 15, 0),
+                id: 'playback',
                 w: 26,
                 h: 26,
                 cNormal: _.RGBA(c[0], c[1], c[2], 35),
                 cHover: _.RGBA(c[0], c[1], c[2], 155)
             },
             ShowVolume: {
-                ico: "\uF0d7",
+                ico: '\uF0d7',
                 font: fontAwesome,
-                id: "playback",
+                id: 'playback',
                 w: 15,
                 h: 20,
                 cNormal: _.RGBA(c[0], c[1], c[2], 35),
@@ -505,7 +505,7 @@ function createButtonImages() {
             }
 
             //---> 
-            g.DrawString(item.ico, item.font, playbackIcoColor, (i === "Stop") ? 0 : 1, 0, w, h, g_string_format.align_center);
+            g.DrawString(item.ico, item.font, playbackIcoColor, (i === 'Stop') ? 0 : 1, 0, w, h, g_string_format.align_center);
             //--->     
 
             img.ReleaseGraphics(g);
@@ -523,7 +523,7 @@ function createButtonImages() {
 
 var animator = new function () {
     this.runAnimation = function (animation_name) {
-        if (animation_name === "fade_out") {
+        if (animation_name === 'fade_out') {
             // Not stopping fade_in, because it looks borked, when stopped in the middle.
             stop_fade_out_delay();
 
@@ -532,7 +532,7 @@ var animator = new function () {
                 fade_out();
             }, 1000);
         }
-        else if (animation_name === "fade_in") {
+        else if (animation_name === 'fade_in') {
             stop_fade_out();
             stop_fade_out_delay();
             

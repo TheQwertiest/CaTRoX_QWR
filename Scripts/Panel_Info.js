@@ -1,17 +1,17 @@
 // ==PREPROCESSOR==
-// @name "Info Panel"
-// @author "eXtremeHunter & TheQwertiest"
+// @name 'Info Panel'
+// @author 'eXtremeHunter & TheQwertiest'
 // ==/PREPROCESSOR==
 g_properties.add_properties(
     {
-        list_left_pad:       ["user.list.pad.left", 4],
-        list_top_pad:        ["user.list.pad.top", 4],
-        list_right_pad:      ["user.list.pad.right", 4],
-        list_bottom_pad:     ["user.list.pad.bottom", 4],
-        row_h:               ["user.row.height", 20],
-        show_scrollbar:      ["user.scrollbar.show", true],
-        scrollbar_right_pad: ["user.scrollbar.pad.right", 0],
-        scrollbar_w:         ["user.scrollbar.width", utils.GetSystemMetrics(2)]
+        list_left_pad:       ['user.list.pad.left', 4],
+        list_top_pad:        ['user.list.pad.top', 4],
+        list_right_pad:      ['user.list.pad.right', 4],
+        list_bottom_pad:     ['user.list.pad.bottom', 4],
+        row_h:               ['user.row.height', 20],
+        show_scrollbar:      ['user.scrollbar.show', true],
+        scrollbar_right_pad: ['user.scrollbar.pad.right', 0],
+        scrollbar_w:         ['user.scrollbar.width', utils.GetSystemMetrics(2)]
     }
 );
 
@@ -26,8 +26,8 @@ var list = [];
 var listPos = 0;
 
 //--->
-var infoNameFont = gdi.font("Segoe Ui Semibold", 12, 0);
-var infoValueFont = gdi.font("Segoe Ui", 12, 0);
+var infoNameFont = gdi.font('Segoe Ui Semibold', 12);
+var infoValueFont = gdi.font('Segoe Ui', 12);
 var lineColorNormal = panelsLineColor;
 
 var btnImg = [];
@@ -45,7 +45,7 @@ function on_paint(gr) {
     
     if (!listLength) {
         var track_info_format = g_string_format.align_center | g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
-        gr.DrawString("Track Info", gdi.font("Segoe Ui Semibold", 24, 0), _.RGB(70, 70, 70), 0, 0, ww, wh, track_info_format);
+        gr.DrawString('Track Info', gdi.font('Segoe Ui Semibold', 24), _.RGB(70, 70, 70), 0, 0, ww, wh, track_info_format);
         return;
     }
 
@@ -173,14 +173,14 @@ function listOnSize() {
     for (var i = 0; i < fileInfo.MetaCount; i++) {
         var metaName = fileInfo.MetaName(i);
 
-        if (metaName === "title" && (fb.IsPlaying && _.startsWith(metadb.RawPath,"http://"))) {
-            inf = fb.TitleFormat("%title%").Eval();
+        if (metaName === 'title' && (fb.IsPlaying && _.startsWith(metadb.RawPath,'http://'))) {
+            inf = fb.TitleFormat('%title%').Eval();
         }
         else {
             inf = fileInfo.MetaValue(fileInfo.MetaFind(metaName), 0);
         }
 
-        meta[i] = [((metaName === "www") ? metaName : metaName.toLowerCase().capitalize() + ":")];
+        meta[i] = [((metaName === 'www') ? metaName : metaName.toLowerCase().capitalize() + ':')];
 
         meta[i][1] = inf;
         meta[i][2] = Math.ceil(g.MeasureString(meta[i][0], infoNameFont, 0, 0, 0, 0).Width) + 5;
@@ -189,7 +189,7 @@ function listOnSize() {
     for (var i = 0; i < fileInfo.InfoCount; i++) {
         var infoName = fileInfo.InfoName(i);
 
-        info[i] = [infoName.toLowerCase().capitalize() + ":"];
+        info[i] = [infoName.toLowerCase().capitalize() + ':'];
         info[i][1] = fileInfo.InfoValue(fileInfo.InfoFind(infoName));
         info[i][2] = Math.ceil(g.MeasureString(info[i][0], infoNameFont, 0, 0, 0, 0).Width) + 5;
     }
@@ -364,11 +364,11 @@ function on_mouse_rbtn_up(x, y) {
     var appear = window.CreatePopupMenu();
     var cpm = window.CreatePopupMenu();
 
-    appear.AppendMenuItem(MF_STRING, 2, "Show scrollbar");
+    appear.AppendMenuItem(MF_STRING, 2, 'Show scrollbar');
     appear.CheckMenuItem(2, g_properties.show_scrollbar);
-    appear.AppendTo(cpm, MF_STRING, "Appearance");
+    appear.AppendTo(cpm, MF_STRING, 'Appearance');
 
-    cpm.AppendMenuItem(fb.IsPlaying ? MF_STRING : MF_GRAYED, 1, "Properties");
+    cpm.AppendMenuItem(fb.IsPlaying ? MF_STRING : MF_GRAYED, 1, 'Properties');
 
     if (utils.IsKeyPressed(VK_SHIFT)) {
         _.appendDefaultContextMenu(cpm);
@@ -377,14 +377,14 @@ function on_mouse_rbtn_up(x, y) {
     var id = cpm.TrackPopupMenu(x, y);
     switch (id) {
         case 1:
-            fb.RunContextCommand("Properties");
+            fb.RunContextCommand('Properties');
             break;
         case 2:
             g_properties.show_scrollbar = !g_properties.show_scrollbar;
             refreshList();
             break;
         default:
-            _.executeDefaultContextMenu(id, scriptFolder + "Panel_Info.js");
+            _.executeDefaultContextMenu(id, scriptFolder + 'Panel_Info.js');
     }
 
     _.dispose(cpm);

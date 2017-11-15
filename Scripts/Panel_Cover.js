@@ -1,17 +1,17 @@
 // ==PREPROCESSOR==
-// @name "Cover Panel"
-// @author "TheQwertiest"
+// @name 'Cover Panel'
+// @author 'TheQwertiest'
 // ==/PREPROCESSOR==
 g_properties.add_properties(
     {
-        panel_pad: ["user.panel.pad",   5]
+        panel_pad: ['user.panel.pad',   5]
     }
 );
 
 var ww = 0,
     wh = 0;
 
-artModule = new ArtModule(["borders", "thumbs", "auto_cycle"]);
+artModule = new ArtModule(['borders', 'thumbs', 'auto_cycle']);
 
 /// Reduce move
 var moveChecker = new _.moveCheckReducer;
@@ -116,7 +116,7 @@ function on_mouse_rbtn_up(x, y) {
     if (!artModule.executeMenu(id)) {
         switch (id) {
             default:
-                _.executeDefaultContextMenu(id, scriptFolder + "Panel_Cover.js");
+                _.executeDefaultContextMenu(id, scriptFolder + 'Panel_Cover.js');
         }
     }
 

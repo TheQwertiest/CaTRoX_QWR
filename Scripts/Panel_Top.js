@@ -1,18 +1,18 @@
 // ==PREPROCESSOR==
-// @name "Top Panel"
-// @author "TheQwertiest"
+// @name 'Top Panel'
+// @author 'TheQwertiest'
 // ==/PREPROCESSOR==
 
 g_properties.add_properties(
     {
-        show_logo:        ["user.fb2k_logo.show", false],
-        show_btn_ellipse: ["user.buttons.eclipse.show_always", false]
+        show_logo:        ['user.fb2k_logo.show', false],
+        show_btn_ellipse: ['user.buttons.eclipse.show_always', false]
     }
 );
 
 var g_has_modded_jscript = qwr_utils.has_modded_jscript();
 
-var isYoutubeVideoDisplayed = g_has_modded_jscript ? fb.IsMainMenuCommandChecked("View/Visualizations/Video") : false;
+var isYoutubeVideoDisplayed = g_has_modded_jscript ? fb.IsMainMenuCommandChecked('View/Visualizations/Video') : false;
 
 var buttons;
 var rightMargin = 0;
@@ -37,7 +37,7 @@ function on_paint(gr)
             logoW = 16,
             logoY = Math.floor((wh - logoW) / 2);
 			
-        var fooLogo = gdi.Image(fb.FoobarPath + "themes\\" + g_theme_folder + "\\Images\\fooLogo.png");
+        var fooLogo = gdi.Image(fb.FoobarPath + 'themes\\' + g_theme_folder + '\\Images\\fooLogo.png');
         gr.SetInterpolationMode(InterpolationMode.HighQualityBicubic);
         gr.DrawImage(fooLogo, logoX, logoY, logoW, logoW, 0, 0, fooLogo.Width, fooLogo.Height, 0, 225);
     }
@@ -55,7 +55,7 @@ function on_paint(gr)
             h = wh,
             stringFormat = g_string_format.v_align_center | g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
 
-        var displayFont = gdi.font("Segoe Ui Semibold", 14, 0);
+        var displayFont = gdi.font('Segoe Ui Semibold', 14);
         gr.DrawString(text, displayFont, _.RGB(170, 172, 174), x, y, w, h, stringFormat);
     }
 
@@ -115,7 +115,7 @@ function on_notify_data(name, info)
 {
     switch (name)
     {
-        case "show_tooltips":
+        case 'show_tooltips':
             {
                 showTooltips = info;
                 buttons.show_tt = showTooltips;
@@ -136,7 +136,7 @@ function createButtonObjects(ww, wh)
     var isYoutube = false;
     if (metadb)
     {
-        var path = _.tf("%path%", metadb);
+        var path = _.tf('%path%', metadb);
         isYoutube = _.startsWith(path, 'youtube.com') || _.startsWith(path, 'www.youtube.com');
     }
 
@@ -154,17 +154,17 @@ function createButtonObjects(ww, wh)
 	rightMargin = ww - x - 5;
 
     buttons.buttons.search_yt = new _.button(x, y, w, h, btnImg.SearchYT, function ()
-    { fb.RunMainMenuCommand("View/Youtube Search"); }, "Search Youtube");
+    { fb.RunMainMenuCommand('View/Youtube Search'); }, 'Search Youtube');
     if (isYoutube)
 	{
         buttons.buttons.yt_video = new _.button(x + (w + p), y, w, h, isYoutubeVideoDisplayed ? btnImg.VideoHide : btnImg.VideoShow, function ()
         {
-            fb.RunMainMenuCommand("View/Visualizations/Video");
-            isYoutubeVideoDisplayed = g_has_modded_jscript ? fb.IsMainMenuCommandChecked("View/Visualizations/Video") : false;
+            fb.RunMainMenuCommand('View/Visualizations/Video');
+            isYoutubeVideoDisplayed = g_has_modded_jscript ? fb.IsMainMenuCommandChecked('View/Visualizations/Video') : false;
             buttons.buttons.yt_video.set_image(isYoutubeVideoDisplayed ? btnImg.VideoHide : btnImg.VideoShow);
-            buttons.buttons.yt_video.tiptext = isYoutubeVideoDisplayed ? "Hide Youtube Video" : "Show Youtube Video";
+            buttons.buttons.yt_video.tiptext = isYoutubeVideoDisplayed ? 'Hide Youtube Video' : 'Show Youtube Video';
             buttons.buttons.yt_video.repaint();
-        }, isYoutubeVideoDisplayed ? "Hide Youtube Video" : "Show Youtube Video");
+        }, isYoutubeVideoDisplayed ? 'Hide Youtube Video' : 'Show Youtube Video');
 	}
 }
 
@@ -221,7 +221,7 @@ function createButtonImages()
             var playbackIcoColor;
             var playbackEllipseColor;
 
-            if ( "VideoHide" !== i ) {
+            if ( 'VideoHide' !== i ) {
                 switch (s) {
                     case 1:
                         playbackIcoColor = _.RGB(190, 192, 194);
@@ -275,9 +275,9 @@ function on_mouse_rbtn_up(x, y)
 {
     var cpm = window.CreatePopupMenu();
 
-    cpm.AppendMenuItem(MF_STRING, 8, "Show foobar2000 logo");
+    cpm.AppendMenuItem(MF_STRING, 8, 'Show foobar2000 logo');
     cpm.CheckMenuItem(8, g_properties.show_logo);
-    cpm.AppendMenuItem(MF_STRING, 12, g_properties.show_btn_ellipse ? "Hide button ellipse" : "Show button ellipse");
+    cpm.AppendMenuItem(MF_STRING, 12, g_properties.show_btn_ellipse ? 'Hide button ellipse' : 'Show button ellipse');
 
     if (utils.IsKeyPressed(VK_SHIFT))
     {
@@ -299,7 +299,7 @@ function on_mouse_rbtn_up(x, y)
             window.Repaint();
             break;
         default:
-            _.executeDefaultContextMenu(id, scriptFolder + "Panel_Top.js");
+            _.executeDefaultContextMenu(id, scriptFolder + 'Panel_Top.js');
     }
 
     _.dispose(cpm);

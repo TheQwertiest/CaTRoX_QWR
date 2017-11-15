@@ -1,6 +1,6 @@
 // ==PREPROCESSOR==
-// @name "Playback Panel"
-// @author "TheQwertiest"
+// @name 'Playback Panel'
+// @author 'TheQwertiest'
 // ==/PREPROCESSOR==
 
 var buttons;
@@ -44,7 +44,7 @@ function on_size() {
 
     createButtonObjects(0, 1, ww, wh);
 
-    if ( common_vars.minimode_state != "Full" )
+    if ( common_vars.minimode_state != 'Full' )
     {
         var volH = 14;
         var volY = Math.floor(wh / 2 - volH / 2) + 3;
@@ -105,7 +105,7 @@ function on_mouse_lbtn_dblclk(x, y, m) {
 function on_mouse_wheel(delta) {
     var changeVolManually = true;
 
-    if ( common_vars.minimode_state == "Mini" )
+    if ( common_vars.minimode_state == 'Mini' )
     {
         if (showVolumeBar && volumeBar.wheel(delta)) {
             changeVolManually = false;
@@ -139,7 +139,7 @@ function on_mouse_leave() {
 }
 
 function on_volume_change(val) {
-    if (common_vars.minimode_state != "Full") {
+    if (common_vars.minimode_state != 'Full') {
         buttons.refresh_vol_button();
 
         if (showVolumeBar) {
@@ -177,7 +177,7 @@ function createButtonObjects(wx, wy, ww, wh) {
     var y = wy + Math.floor((wh - w) / 2);
     var x;
 
-    if (common_vars.minimode_state != "Full") {
+    if (common_vars.minimode_state != 'Full') {
         x = wx + Math.floor((ww - (w * 5 + p * 4)) / 2);
     }
     else
@@ -185,25 +185,25 @@ function createButtonObjects(wx, wy, ww, wh) {
         x = wx + 5;
     }
 
-    buttons.buttons.stop = new _.button(x, y, w, h, btnImg.Stop, function () { fb.Stop(); }, "Stop");
+    buttons.buttons.stop = new _.button(x, y, w, h, btnImg.Stop, function () { fb.Stop(); }, 'Stop');
     x += w + p;
 
-    buttons.buttons.previous = new _.button(x, y, w, h, btnImg.Previous, function () { fb.Prev(); }, "Previous");
+    buttons.buttons.previous = new _.button(x, y, w, h, btnImg.Previous, function () { fb.Prev(); }, 'Previous');
     x += w + p;
 
-    buttons.buttons.play = new _.button(x, y, w, h, !fb.IsPlaying || fb.IsPaused ? btnImg.Play : btnImg.Pause, function () { fb.PlayOrPause(); }, !fb.IsPlaying || fb.IsPaused ? "Play" : "Pause");
+    buttons.buttons.play = new _.button(x, y, w, h, !fb.IsPlaying || fb.IsPaused ? btnImg.Play : btnImg.Pause, function () { fb.PlayOrPause(); }, !fb.IsPlaying || fb.IsPaused ? 'Play' : 'Pause');
     x += w + p;
 
-    buttons.buttons.next = new _.button(x, y, w, h, btnImg.Next, function () { fb.Next(); }, "Next");
+    buttons.buttons.next = new _.button(x, y, w, h, btnImg.Next, function () { fb.Next(); }, 'Next');
     x += w + p;
 
-    if (common_vars.minimode_state != "Full") {
+    if (common_vars.minimode_state != 'Full') {
         w = btnImg.VolLoud.normal.Width;
         h = btnImg.VolLoud.normal.Height;
         y = wy + Math.floor((wh - w) / 2);
         var volValue = _.toVolume(fb.Volume);
         var volImage = ((volValue > 50) ? btnImg.VolLoud : ((volValue > 0) ? btnImg.VolQuiet : btnImg.VolMute));
-        buttons.buttons.mute = new _.button(x, y + 1, w, h, volImage, function () { fb.VolumeMute(); }, volValue == 0 ? "Unmute" : "Mute");
+        buttons.buttons.mute = new _.button(x, y + 1, w, h, volImage, function () { fb.VolumeMute(); }, volValue == 0 ? 'Unmute' : 'Mute');
         x += w - 5;
 
         w = btnImg.ShowVolume.normal.Width;
@@ -215,7 +215,7 @@ function createButtonObjects(wx, wy, ww, wh) {
             buttons.buttons.volume.hide = true;
             volumeBar.show_tt = showTooltips;
             volumeBar.repaint();
-        }, "Volume");
+        }, 'Volume');
 
         rightBtnX = x + 6;
 
@@ -223,21 +223,21 @@ function createButtonObjects(wx, wy, ww, wh) {
             var volValue = _.toVolume(fb.Volume);
             var volImage = ((volValue > 50) ? btnImg.VolLoud : ((volValue > 0) ? btnImg.VolQuiet : btnImg.VolMute));
             buttons.buttons.mute.set_image(volImage);
-            buttons.buttons.mute.tiptext = volValue == 0 ? "Unmute" : "Mute";
+            buttons.buttons.mute.tiptext = volValue == 0 ? 'Unmute' : 'Mute';
             buttons.buttons.mute.repaint();
         };
     }
 
     buttons.refresh_play_button = function () {
         buttons.buttons.play.set_image(!fb.IsPlaying || fb.IsPaused ? btnImg.Play : btnImg.Pause);
-        buttons.buttons.play.tiptext = !fb.IsPlaying || fb.IsPaused ? "Play" : "Pause";
+        buttons.buttons.play.tiptext = !fb.IsPlaying || fb.IsPaused ? 'Play' : 'Pause';
         buttons.buttons.play.repaint();
     }
 }
 
 function createButtonImages() {
     var fontGuifx = gdi.font(g_guifx.name, 16);
-    var fontAwesome = gdi.font("FontAwesome", 14);
+    var fontAwesome = gdi.font('FontAwesome', 14);
     var c = [250, 250, 250];
 
     var btn =
@@ -245,7 +245,7 @@ function createButtonImages() {
         Stop: {
             ico: g_guifx.stop,
             font: fontGuifx,
-            id: "playback",
+            id: 'playback',
             w: 30,
             h: 30,
             cNormal: _.RGBA(c[0], c[1], c[2], 35),
@@ -254,7 +254,7 @@ function createButtonImages() {
         Previous: {
             ico: g_guifx.previous,
             font: fontGuifx,
-            id: "playback",
+            id: 'playback',
             w: 30,
             h: 30,
             cNormal: _.RGBA(c[0], c[1], c[2], 35),
@@ -263,7 +263,7 @@ function createButtonImages() {
         Play: {
             ico: g_guifx.play,
             font: fontGuifx,
-            id: "playback",
+            id: 'playback',
             w: 30,
             h: 30,
             cNormal: _.RGBA(c[0], c[1], c[2], 35),
@@ -272,7 +272,7 @@ function createButtonImages() {
         Pause: {
             ico: g_guifx.pause,
             font: fontGuifx,
-            id: "playback",
+            id: 'playback',
             w: 30,
             h: 30,
             cNormal: _.RGBA(c[0], c[1], c[2], 35),
@@ -281,7 +281,7 @@ function createButtonImages() {
         Next: {
             ico: g_guifx.next,
             font: fontGuifx,
-            id: "playback",
+            id: 'playback',
             w: 30,
             h: 30,
             cNormal: _.RGBA(c[0], c[1], c[2], 35),
@@ -290,7 +290,7 @@ function createButtonImages() {
         PlaybackRandom: {
             ico: g_guifx.slow_forward,
             font: fontGuifx,
-            id: "playback",
+            id: 'playback',
             w: 30,
             h: 30,
             cNormal: _.RGBA(c[0], c[1], c[2], 35),
@@ -299,7 +299,7 @@ function createButtonImages() {
         VolLoud: {
             ico: g_guifx.volume_up,
             font: fontGuifx,
-            id: "playback",
+            id: 'playback',
             w: 26,
             h: 26,
             cNormal: _.RGBA(c[0], c[1], c[2], 35),
@@ -308,7 +308,7 @@ function createButtonImages() {
         VolQuiet: {
             ico: g_guifx.volume_down,
             font: fontGuifx,
-            id: "playback",
+            id: 'playback',
             w: 26,
             h: 26,
             cNormal: _.RGBA(c[0], c[1], c[2], 35),
@@ -317,16 +317,16 @@ function createButtonImages() {
         VolMute: {
             ico: g_guifx.mute,
             font: fontGuifx,
-            id: "playback",
+            id: 'playback',
             w: 26,
             h: 26,
             cNormal: _.RGBA(c[0], c[1], c[2], 35),
             cHover: _.RGBA(c[0], c[1], c[2], 155)
         },
         ShowVolume: {
-            ico: "\uF0d7",
+            ico: '\uF0d7',
             font: fontAwesome,
-            id: "playback",
+            id: 'playback',
             w: 15,
             h: 20,
             cNormal: _.RGBA(c[0], c[1], c[2], 35),
@@ -360,7 +360,7 @@ function createButtonImages() {
                 playbackIcoColor = _.RGB(90, 90, 90);
             }
 
-            g.DrawString(item.ico, item.font, playbackIcoColor, (i === "Stop") ? 0 : 1, 0, w, h, g_string_format.align_center);
+            g.DrawString(item.ico, item.font, playbackIcoColor, (i === 'Stop') ? 0 : 1, 0, w, h, g_string_format.align_center);
 
             img.ReleaseGraphics(g);
             stateImages[s] = img;
@@ -388,7 +388,7 @@ function on_mouse_rbtn_up(x, y) {
 
     switch (id) {
         default:
-            _.executeDefaultContextMenu(id, scriptFolder + "Panel_Playback.js");
+            _.executeDefaultContextMenu(id, scriptFolder + 'Panel_Playback.js');
     }
 
     _.dispose(cpm);
@@ -398,7 +398,7 @@ function on_mouse_rbtn_up(x, y) {
 
 function on_notify_data(name, info) {
     switch (name) {
-        case "minimode_state": {
+        case 'minimode_state': {
             common_vars.minimode_state = info;
 
             // Need additional repaint to avoid repaint glitching
@@ -407,12 +407,12 @@ function on_notify_data(name, info) {
             window.Repaint();
             break;
         }
-        case "minimode_state_size": {
+        case 'minimode_state_size': {
             on_size();
             window.Repaint();
             break;
         }
-        case "show_tooltips": {
+        case 'show_tooltips': {
             showTooltips = info;
             buttons.show_tt = showTooltips;
             break;

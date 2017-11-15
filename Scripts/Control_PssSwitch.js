@@ -1,15 +1,15 @@
 // ==PREPROCESSOR==
-// @name "PSS Switch Control"
-// @author "TheQwertiest"
+// @name 'PSS Switch Control'
+// @author 'TheQwertiest'
 // ==/PREPROCESSOR==
 
 function PssSwitchClass() {
     this.get_state = function (state_name) {
-        var states_list = state_name + "_states_list";
-        var pathToState = settings_path + "\\" + state_name.toUpperCase() + "_";
+        var states_list = state_name + '_states_list';
+        var pathToState = settings_path + '\\' + state_name.toUpperCase() + '_';
 
         if (!this[states_list]) {
-            fb.trace("No such state_name");
+            fb.trace('No such state_name');
             error;
         }
 
@@ -24,17 +24,17 @@ function PssSwitchClass() {
             return state;
         }
 
-        fso.CreateTextFile(pathToState + "0", true);
+        fso.CreateTextFile(pathToState + '0', true);
         return this[states_list][0];
     };
 
     this.set_state = function (state_name, new_state) {
-        var state = state_name + "_state";
-        var states_list = state_name + "_states_list";
-        var pathToState = settings_path + "\\" + state_name.toUpperCase() + "_";
+        var state = state_name + '_state';
+        var states_list = state_name + '_states_list';
+        var pathToState = settings_path + '\\' + state_name.toUpperCase() + '_';
 
         if (!common_vars[state]) {
-            fb.trace("No such state_name");
+            fb.trace('No such state_name');
             error;
         }
 
@@ -42,7 +42,7 @@ function PssSwitchClass() {
         var index_new = this[states_list].indexOf(new_state);
 
         if (index_new == -1) {
-            fb.trace("No such state");
+            fb.trace('No such state');
             error;
         }
 
@@ -60,24 +60,24 @@ function PssSwitchClass() {
         refresh_pss();
     };
 
-    this.minimode_states_list = ["Full", "Mini", "UltraMini"];
-    this.spectrum_states_list = ["Hide", "Show"];
-    this.incompatibility_states_list = ["NotNotified", "Notified"];
+    this.minimode_states_list = ['Full', 'Mini', 'UltraMini'];
+    this.spectrum_states_list = ['Hide', 'Show'];
+    this.incompatibility_states_list = ['NotNotified', 'Notified'];
 
 // private:
     function refresh_pss() {
         if (fb.IsPlaying || fb.IsPaused) {
-            fb.RunMainMenuCommand("Playback/Play or Pause");
-            fb.RunMainMenuCommand("Playback/Play or Pause");
+            fb.RunMainMenuCommand('Playback/Play or Pause');
+            fb.RunMainMenuCommand('Playback/Play or Pause');
         }
         else {
-            fb.RunMainMenuCommand("Playback/Play");
-            fb.RunMainMenuCommand("Playback/Stop");
+            fb.RunMainMenuCommand('Playback/Play');
+            fb.RunMainMenuCommand('Playback/Stop');
         }
     }
 
-    var settings_path = fb.FoobarPath + "themes\\" + g_theme_folder + "\\Settings";
-    var fso = new ActiveXObject("Scripting.FileSystemObject");
+    var settings_path = fb.FoobarPath + 'themes\\' + g_theme_folder + '\\Settings';
+    var fso = new ActiveXObject('Scripting.FileSystemObject');
 
     if (!fso.FolderExists(settings_path)) {
         fso.CreateFolder(settings_path);
@@ -88,9 +88,9 @@ var pss_switch = new PssSwitchClass();
 
 var common_vars =
     {
-        minimode_state: pss_switch.get_state("minimode"),
-        spectrum_state: pss_switch.get_state("spectrum"),
-        incompatibility_state: pss_switch.get_state("incompatibility")
+        minimode_state: pss_switch.get_state('minimode'),
+        spectrum_state: pss_switch.get_state('spectrum'),
+        incompatibility_state: pss_switch.get_state('incompatibility')
     };
 
 // Example of use in a PSS :

@@ -2486,7 +2486,7 @@ function Header(x, y, w, h, idx) {
 
             var album_text_format = g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
             if (g_properties.show_group_info) {
-                album_text_format |= g_string_format.v_align_far;
+                album_text_format |= g_string_format.v_align_center;
             }
 
             grClip.DrawString(album_text, g_pl_fonts.album, album_color, album_x, album_y, album_w, album_h, album_text_format);
@@ -3710,8 +3710,8 @@ function PlaylistInfo(x, y, w, h) {
             }
 
             var track_count = metadb_list.Count;
-            var tracks_text = "";
-            var duration_text = "";
+            var tracks_text = '';
+            var duration_text = '';
             if (track_count > 0) {
                 tracks_text = track_count.toString() + (track_count > 1 ? ' tracks' : ' track');
                 if (is_selected) {
@@ -3775,7 +3775,7 @@ function PlaylistInfo(x, y, w, h) {
         cpm.AppendMenuItem(MF_STRING, 3, 'Create New Playlist \tCtrl+N');
         cpm.AppendMenuSeparator();
         for (var i = 0; i < playlist_count; ++i) {
-            cpm.AppendMenuItem(MF_STRING, playlists_start_id + i, plman.GetPlaylistName(i).replace(/&/g, '&&') + ' [' + plman.PlaylistItemCount(i) + ']' + (plman.IsAutoPlaylist(i) ? ' (Auto)' : "") + (i === plman.PlayingPlaylist ? ' \t(Now Playing)' : ""));
+            cpm.AppendMenuItem(MF_STRING, playlists_start_id + i, plman.GetPlaylistName(i).replace(/&/g, '&&') + ' [' + plman.PlaylistItemCount(i) + ']' + (plman.IsAutoPlaylist(i) ? ' (Auto)' : '') + (i === plman.PlayingPlaylist ? ' \t(Now Playing)' : ''));
         }
 
         var id = cpm.TrackPopupMenu(x, y);
@@ -3787,7 +3787,7 @@ function PlaylistInfo(x, y, w, h) {
                 fb.RunMainMenuCommand('Edit/Read-only');
                 break;
             case 3:
-                plman.CreatePlaylist(playlist_count, "");
+                plman.CreatePlaylist(playlist_count, '');
                 plman.ActivePlaylist = plman.PlaylistCount - 1;
                 break;
         }
