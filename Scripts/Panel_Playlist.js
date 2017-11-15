@@ -1265,6 +1265,11 @@ function Playlist(x, y) {
             }
             case VK_DELETE: {
                 plman.UndoBackup(cur_playlist_idx);
+                if (!selection_handler.has_selected_items() && focused_item)
+                {
+                    selection_handler.update_selection(focused_item);
+                    selection_handler.sync_items_with_selection();
+                }
                 plman.RemovePlaylistSelection(cur_playlist_idx, false);
 
                 break;
@@ -1463,7 +1468,7 @@ function Playlist(x, y) {
             playing_item.is_playing = true;
 
             if (fb.CursorFollowPlayback) {
-                selection_handler.update_selection(playing_item);
+                selection_handler.clear_selection();
                 selection_handler.sync_items_with_selection();
 
                 if (g_properties.auto_colapse) {
