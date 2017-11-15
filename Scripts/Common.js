@@ -356,7 +356,8 @@ function Property(text_id, default_value) {
     this.text_id = text_id;
     var value = window.GetProperty(this.text_id, default_value);
 }
-function PropertyList() {
+
+var g_properties = new function() {
     this.add_properties = function (properties) {
         _.forEach(properties, _.bind(function (item, i) {
             if (!_.isArray(item) || item.length !== 2 || !_.isString(item[0])) {
@@ -380,7 +381,5 @@ function PropertyList() {
             });
         }, this));
     };
-}
-
-var g_properties = new PropertyList;
+};
 

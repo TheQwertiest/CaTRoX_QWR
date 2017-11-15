@@ -1,54 +1,10 @@
-var g_seekbarTimer = undefined;
-function startSeekbarTimerFn() {
-    if (_.isNil(g_seekbarTimer)) {
-        g_seekbarTimer = window.SetInterval(function () {
-            if (fb.IsPlaying && !fb.IsPaused && fb.PlaybackLength > 0)
-                on_playback_seek();
-        }, 100);
-    }
-}
-
-function stopSeekbarTimerFn() {
-    if (!_.isNil(g_seekbarTimer)) {
-        clearInterval(g_seekbarTimer);
-        g_seekbarTimer = undefined
-    }
-}
-
-//// Button hover alpha timer
-var g_seekbarAlphaTimer = undefined;
-function startSeekbarAlphaTimerFn(caller) {
-    var buttonHoverInStep = 50,
-        buttonHoverOutStep = 15;
-
-    if (_.isNil(g_seekbarAlphaTimer)) {
-        g_seekbarAlphaTimer = window.SetInterval(function () {
-            if (!caller.hover) {
-                caller.hover_alpha = Math.max(0, caller.hover_alpha -= buttonHoverOutStep);
-                caller.playback_seek();
-            }
-            else {
-                caller.hover_alpha = Math.min(255, caller.hover_alpha += buttonHoverInStep);
-                caller.playback_seek();
-            }
-
-            if (caller.hover_alpha === 0 || caller.hover_alpha === 255) {
-                stopSeekbarAlphaTimerFn();
-            }
-        }, 25);
-    }
-}
-
-function stopSeekbarAlphaTimerFn() {
-    if (!_.isNil(g_seekbarAlphaTimer)) {
-        clearInterval(g_seekbarAlphaTimer);
-        g_seekbarAlphaTimer = undefined
-    }
-}
-
 _.mixin({
     seekbar: function (x, y, w, h) {
         this.playback_seek = function () {
+            this.repaint();
+        };
+
+        this.repaint = function() {
             var expXY = 2,
                 expWH = expXY * 2;
 
@@ -56,19 +12,19 @@ _.mixin({
         };
 
         this.playback_stop = function () {
-            stopSeekbarTimerFn();
+            repaint_timer.stop();
             this.playback_seek();
         };
 
         this.playback_start = function () {
-            startSeekbarTimerFn();
+            repaint_timer.start(this);
         };
 
         this.playback_pause = function (isPlaying) {
             if (isPlaying)
-                stopSeekbarTimerFn();
+                repaint_timer.stop();
             else
-                startSeekbarTimerFn();
+                repaint_timer.start(this);
         };
 
         this.trace = function (x, y) {
@@ -94,7 +50,7 @@ _.mixin({
                     if (this.show_tt) {
                         this.tt.showDelayed("Seek");
                     }
-                    startSeekbarAlphaTimerFn(this);
+                    alpha_timer.start(this);
                 }
 
                 return true;
@@ -104,7 +60,7 @@ _.mixin({
                     this.tt.clear();
 
                     this.hover = false;
-                    startSeekbarAlphaTimerFn(this);
+                    alpha_timer.start(this);
                 }
                 this.drag = false;
 
@@ -144,7 +100,7 @@ _.mixin({
                 this.tt.clear();
 
                 this.hover = false;
-                startSeekbarAlphaTimerFn(this);
+                alpha_timer.start(this);
             }
             this.drag = false;
         };
@@ -163,5 +119,64 @@ _.mixin({
         this.drag_seek = 0;
         this.show_tt = false;
         this.tt = new _.tt_handler;
+
+        // Expose static methods
+        var alpha_timer = _.seekbar.alpha_timer;
+        var repaint_timer = _.seekbar.repaint_timer;
     }
 });
+
+_.seekbar.alpha_timer = new function()
+{
+    var alpha_timer = undefined;
+
+    this.start = function(caller) {
+        var buttonHoverInStep = 50,
+            buttonHoverOutStep = 15;
+
+        if (!alpha_timer) {
+            alpha_timer = setInterval(_.bind(function () {
+                if (!caller.hover) {
+                    caller.hover_alpha = Math.max(0, caller.hover_alpha -= buttonHoverOutStep);
+                    caller.repaint();
+                }
+                else {
+                    caller.hover_alpha = Math.min(255, caller.hover_alpha += buttonHoverInStep);
+                    caller.repaint();
+                }
+
+                if (caller.hover_alpha === 0 || caller.hover_alpha === 255) {
+                    this.stop();
+                }
+            },this), 25);
+        }
+    };
+
+    this.stop = function() {
+        if (alpha_timer) {
+            clearInterval(alpha_timer);
+            alpha_timer = null
+        }
+    };
+};
+
+_.seekbar.repaint_timer = new function()
+{
+    var seekbar_timer = null;
+
+    this.start = function(caller) {
+        if (!seekbar_timer) {
+            seekbar_timer = setInterval(function () {
+                if (fb.IsPlaying && !fb.IsPaused && fb.PlaybackLength > 0)
+                    caller.repaint();
+            }, 100);
+        }
+    };
+
+    this.stop = function() {
+        if (seekbar_timer) {
+            clearInterval(seekbar_timer);
+            seekbar_timer = null;
+        }
+    };
+};

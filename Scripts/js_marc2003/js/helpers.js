@@ -7,118 +7,6 @@ this[z]=this[z].join('');};
 function on_script_unload() {
     _.tt('');
 }
-// Global timers
-
-//// Button tooltip timer
-var g_tooltipTimer;
-var g_tooltipTimerStarted = false;
-var tt_caller = undefined;
-
-function g_startTooltipTimerFn(id, text) {
-    tt_caller = id;
-
-    if (g_tooltipTimerStarted) {
-        g_stopTooltipTimerInternal(); /// < There can be only one tooltip present at all times, so we can kill the timer w/o any worries
-    }
-
-    var turnOffTimer = false;
-    var maxDelay = 500;
-    var curDelay = 0;
-    var delayStep = 100;
-    if (!g_tooltipTimerStarted) {
-        _.tt("");
-        g_tooltipTimer = window.SetInterval(function () {
-            curDelay += delayStep;
-
-            if (curDelay >= maxDelay) {
-                _.tt(text);
-                turnOffTimer = true;
-            }
-
-            if (turnOffTimer) {
-                g_stopTooltipTimerInternal();
-            }
-        }, delayStep);
-        g_tooltipTimerStarted = true;
-    }
-}
-
-function g_stopTooltipTimerInternal() {
-    window.ClearInterval(g_tooltipTimer);
-    g_tooltipTimerStarted = false;
-}
-
-function g_clearTooltipFn(id) {
-    if (tt_caller === id) {// Do not stop other callers
-        _.tt("");
-        if (g_tooltipTimerStarted) {
-            g_stopTooltipTimerInternal();
-        }
-    }
-}
-
-//// Button hover alpha timer
-var g_btnAlphaTimerStarted = false;
-var g_btnAlphaTimer;
-
-function g_startBtnAlphaTimerFn(caller) {
-    var turnButtonTimerOff = false,
-        buttonHoverInStep = 50,
-        buttonHoverOutStep = 15,
-        buttonDownInStep = 100,
-        buttonDownOutStep = 50,
-        buttonTimerDelay = 25;
-
-    if (!g_btnAlphaTimerStarted) {
-        g_btnAlphaTimer = window.SetInterval(function () {
-            _.forEach(caller.buttons, function (item) {
-                switch (item.state) {
-                    case "normal":
-                        item.hover_alpha = Math.max(0, item.hover_alpha -= buttonHoverOutStep);
-                        item.repaint();
-                        break;
-                    case "hover":
-                    case "pressed":
-                        item.hover_alpha = Math.min(255, item.hover_alpha += buttonHoverInStep);
-                        item.repaint();
-                        break;
-                }
-            });
-
-
-            var testAlpha = 0,
-                currentAlphaIsFull = false,
-                alphaIsZero = true;
-
-            _.forEach(caller.buttons, function (item) {
-                //---> Test button alpha values and turn button timer off when it's not required;
-                if (item.hover_alpha === 255) {
-                    currentAlphaIsFull = true;
-                }
-                else {
-                    alphaIsZero = (testAlpha += item.hover_alpha) === 0;
-                }
-            });
-
-            if ((alphaIsZero && currentAlphaIsFull) || alphaIsZero) {
-                turnButtonTimerOff = true;
-            }
-
-            if (turnButtonTimerOff) {
-                window.ClearInterval(g_btnAlphaTimer);
-                g_btnAlphaTimerStarted = false;
-            }
-
-        }, buttonTimerDelay);
-
-        g_btnAlphaTimerStarted = true;
-    }
-}
-
-function stopBtnAlphaTimerFn() {
-    window.ClearInterval(g_btnAlphaTimer);
-    g_btnAlphaTimerStarted = false;
-}
 
 _.mixin({
     appendDefaultContextMenu:  function (cpm) {
@@ -207,12 +95,7 @@ _.mixin({
     },
     buttons:                   function () {
         this.reset = function () {
-            if (g_btnAlphaTimerStarted) {
-                stopBtnAlphaTimerFn();
-            }
-            if (g_tooltipTimerStarted) {
-                g_stopTooltipTimerInternal();
-            }
+            alpha_timer.stop();
         };
 
         this.paint = function (gr, alpha) {
@@ -246,7 +129,7 @@ _.mixin({
             if (this.btn) {// Return prev button to normal state
                 this.buttons[this.btn].cs("normal");
 
-                g_startBtnAlphaTimerFn(this);
+                alpha_timer.start(this);
             }
 
             if (temp_btn) {// Select current button
@@ -254,7 +137,7 @@ _.mixin({
                 if (this.show_tt) {
                     this.buttons[temp_btn].tt.showDelayed(this.buttons[temp_btn].tiptext);
                 }
-                g_startBtnAlphaTimerFn(this);
+                alpha_timer.start(this);
             }
 
             this.btn = temp_btn;
@@ -265,7 +148,7 @@ _.mixin({
             if (this.btn) {
                 this.buttons[this.btn].cs("normal");
                 if (!this.buttons[this.btn].hide) {
-                    g_startBtnAlphaTimerFn(this);
+                    alpha_timer.start(this);
                 }
             }
             this.btn = null;
@@ -300,6 +183,8 @@ _.mixin({
         this.btn = null;
 
         this.show_tt = false;
+
+        var alpha_timer = _.buttons.alpha_timer;
     },
     cc:                        function (name) {
         return utils.CheckComponent(name, true);
@@ -826,18 +711,119 @@ _.mixin({
     },
     tt_handler:                function () {
         this.showDelayed = function (text) {
-            g_startTooltipTimerFn(this.id, text);
+            tt_timer.start(this.id, text);
         };
         this.showImmediate = function (text) {
-            g_clearTooltipFn(this.id);
+            tt_timer.stop(this.id);
             _.tt(text);
         };
         this.clear = function () {
-            g_clearTooltipFn(this.id);
+            tt_timer.stop(this.id);
+        };
+        this.stop = function () {
+            tt_timer.force_stop();
         };
         this.id = Math.ceil(Math.random().toFixed(8) * 1000);
+
+        var tt_timer = _.tt_handler.tt_timer;
     }
 });
+
+_.tt_handler.tt_timer = new function() {
+    var tooltip_timer;
+    var tt_caller = undefined;
+
+    this.start = function (id, text) {
+        tt_caller = id;
+
+        this.force_stop(); /// < There can be only one tooltip present at all times, so we can kill the timer w/o any worries
+
+        var maxDelay = 500;
+        var curDelay = 0;
+        var delayStep = 100;
+        if (!tooltip_timer) {
+            _.tt("");
+            tooltip_timer = window.SetInterval(_.bind(function () {
+                curDelay += delayStep;
+
+                if (curDelay >= maxDelay) {
+                    _.tt(text);
+                    this.force_stop();
+                }
+
+            }, this), delayStep);
+        }
+    };
+
+    this.stop = function (id) {
+        if (tt_caller === id) {// Do not stop other callers
+            _.tt("");
+            this.force_stop();
+        }
+    };
+
+    this.force_stop = function () {
+        if (tooltip_timer) {
+            window.ClearInterval(tooltip_timer);
+            tooltip_timer = null;
+        }
+    };
+};
+
+_.buttons.alpha_timer = new function() {
+    var alpha_timer;
+
+    this.start = function(caller) {
+        var buttonHoverInStep = 50,
+            buttonHoverOutStep = 15,
+            buttonDownInStep = 100,
+            buttonDownOutStep = 50;
+
+        if (!alpha_timer) {
+            alpha_timer = window.SetInterval(_.bind(function () {
+                _.forEach(caller.buttons, function (item) {
+                    switch (item.state) {
+                        case "normal":
+                            item.hover_alpha = Math.max(0, item.hover_alpha -= buttonHoverOutStep);
+                            item.repaint();
+                            break;
+                        case "hover":
+                        case "pressed":
+                            item.hover_alpha = Math.min(255, item.hover_alpha += buttonHoverInStep);
+                            item.repaint();
+                            break;
+                    }
+                });
+
+                var testAlpha = 0,
+                    currentAlphaIsFull = false,
+                    alphaIsZero = true;
+
+                _.forEach(caller.buttons, function (item) {
+                    //---> Test button alpha values and turn button timer off when it's not required;
+                    if (item.hover_alpha === 255) {
+                        currentAlphaIsFull = true;
+                    }
+                    else {
+                        alphaIsZero = (testAlpha += item.hover_alpha) === 0;
+                    }
+                });
+
+                if ((alphaIsZero && currentAlphaIsFull) || alphaIsZero) {
+                    this.stop();
+                }
+
+            },this), 25);
+        }
+    };
+
+    this.stop = function() {
+        if (alpha_timer) {
+            window.ClearInterval(alpha_timer);
+            alpha_timer = null;
+        }
+    };
+};
 
 var doc = new ActiveXObject('htmlfile');
 var app = new ActiveXObject('Shell.Application');

@@ -2492,7 +2492,10 @@ function Header(x, y, w, h, idx) {
 
             grClip.DrawString(album_text, g_pl_fonts.album, album_color, album_x, album_y, album_w, album_h, album_text_format);
 
-            var album_text_w = Math.ceil(gr.MeasureString(album_text, g_pl_fonts.album, 0, 0, 0, 0).Width);
+            var album_text_w = Math.ceil(
+                /** @type {!number} */
+                gr.MeasureString(album_text, g_pl_fonts.album, 0, 0, 0, 0).Width
+            );
             if (g_properties.show_group_info) {
                 part2_cur_x += album_text_w;
             }
@@ -2653,7 +2656,10 @@ function Header(x, y, w, h, idx) {
             var artist_text_format = g_string_format.v_align_center | g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
             grClip.DrawString(artist_text, artist_font, artist_color, artist_x, 0, artist_w, artist_h, artist_text_format);
 
-            cur_x += Math.ceil(gr.MeasureString(artist_text, artist_font, 0, 0, 0, 0).Width);
+            cur_x += Math.ceil(
+                /** @type {!number} */
+                gr.MeasureString(artist_text, artist_font, 0, 0, 0, 0).Width
+            );
         }
 
         //---> ALBUM
@@ -2917,7 +2923,10 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
             }
 
             if (count_text) {
-                var count_w = Math.ceil(gr.MeasureString(count_text, g_pl_fonts.playcount, 0, 0, 0, 0).Width);
+                var count_w = Math.ceil(
+                    /** @type {!number} */
+                    gr.MeasureString(count_text, g_pl_fonts.playcount, 0, 0, 0, 0).Width
+                );
                 var count_x = this.x + this.w - count_w - right_pad;
 
                 gr.DrawString(count_text, g_pl_fonts.playcount, count_color, count_x, this.y, count_w, this.h, g_string_format.align_center);
@@ -2959,7 +2968,10 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
 
             testRect && gr.DrawRect(this.x, this.y - 1, title_w, this.h, 1, _.RGBA(155, 155, 255, 250));
 
-            cur_x += Math.ceil(gr.MeasureString(title_text, title_font, 0, 0, 0, 0, title_text_format | g_string_format.measure_trailing_spaces).Width);
+            cur_x += Math.ceil(
+                /** @type {!number} */
+                gr.MeasureString(title_text, title_font, 0, 0, 0, 0, title_text_format | g_string_format.measure_trailing_spaces).Width
+            );
         }
 
         //---> TITLE ARTIST
@@ -3024,6 +3036,7 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
 
     this.is_selected_dynamic = function () {
         if (g_properties.is_selection_dynamic) {
+            // TODO: remove if it's ever fixed in JScript
             return !!plman.IsPlaylistItemSelected(cur_playlist_idx, this.idx);
         }
         return this.is_selected_static;
@@ -3728,7 +3741,10 @@ function PlaylistInfo(x, y, w, h) {
             // Position above scrollbar for eye candy
             var sbar_x = this.w - g_properties.scrollbar_w - g_properties.scrollbar_right_pad;
             var lock_text = '\uF023';
-            var lock_w = Math.ceil(gr.MeasureString(lock_text, gdi.font('FontAwesome', 12, 0), 0, 0, 0, 0).Width);
+            var lock_w = Math.ceil(
+                /** @type {!number} */
+                gr.MeasureString(lock_text, gdi.font('FontAwesome', 12, 0), 0, 0, 0, 0).Width
+            );
             gr.DrawString(lock_text, gdi.font('FontAwesome', 12, 0), _.RGB(150, 152, 154), sbar_x + Math.round((g_properties.scrollbar_w - lock_w) / 2), 0, 8, this.h, g_string_format.align_center);
         }
 

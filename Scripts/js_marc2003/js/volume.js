@@ -1,57 +1,18 @@
-//// Button hover alpha timer
-var g_volumeBarAlphaTimerStarted = false;
-var g_volumeBarAlphaTimer;
-function startVolumeBarAlphaTimerFn(caller) {
-    var turnTimerOff = false,
-        buttonHoverInStep = 50,
-        buttonHoverOutStep = 15;
-
-    if (!g_volumeBarAlphaTimerStarted) {
-        g_volumeBarAlphaTimer = window.SetInterval(function () {
-            if (!caller.hover) {
-                caller.hover_alpha = Math.max(0, caller.hover_alpha -= buttonHoverOutStep);
-                caller.repaint();
-            }
-            else {
-                caller.hover_alpha = Math.min(255, caller.hover_alpha += buttonHoverInStep);
-                caller.repaint();
-            }
-
-            if (caller.hover_alpha == 0 || caller.hover_alpha == 255) {
-                turnTimerOff = true;
-            }
-
-            if (turnTimerOff) {
-                window.ClearInterval(g_volumeBarAlphaTimer);
-                g_volumeBarAlphaTimerStarted = false;
-            }
-
-        }, 25);
-
-        g_volumeBarAlphaTimerStarted = true;
-    }
-}
-
-function stopVolumeBarAlphaTimerFn() {
-    window.ClearInterval(g_volumeBarAlphaTimer);
-    g_volumeBarAlphaTimerStarted = false;
-}
-
 _.mixin({
     volume: function (x, y, w, h) {
         this.repaint = function () {
             var expXY = 2,
                 expWH = expXY * 2;
             window.RepaintRect(this.x - expXY, this.y - expXY, this.w + expWH, this.h + expWH);
-        }
+        };
         this.volume_change = function () {
             this.repaint();
-        }
+        };
 
         this.trace = function (x, y) {
             var m = this.drag ? 200 : 0;
             return x > this.x - m && x < this.x + this.w + m && y > this.y - m && y < this.y + this.h + m;
-        }
+        };
 
         this.wheel = function (s) {
             if (this.trace(this.mx, this.my)) {
@@ -72,7 +33,7 @@ _.mixin({
             else {
                 return false;
             }
-        }
+        };
 
         this.move = function (x, y) {
             this.mx = x;
@@ -95,7 +56,7 @@ _.mixin({
                     if (this.show_tt) {
                         this.tt.showDelayed("Volume");
                     }
-                    startVolumeBarAlphaTimerFn(this);
+                    alpha_timer.start(this);
                 }
 
                 return true;
@@ -105,13 +66,13 @@ _.mixin({
                     this.tt.clear();
 
                     this.hover = false;
-                    startVolumeBarAlphaTimerFn(this);
+                    alpha_timer.start(this);
                 }
                 this.drag = false;
 
                 return false;
             }
-        }
+        };
 
         this.lbtn_down = function (x, y) {
             if (this.trace(x, y)) {
@@ -121,7 +82,7 @@ _.mixin({
             else {
                 return false;
             }
-        }
+        };
 
         this.lbtn_up = function (x, y) {
             if (this.trace(x, y)) {
@@ -134,7 +95,7 @@ _.mixin({
             else {
                 return false;
             }
-        }
+        };
 
         this.leave = function () {
             if (this.drag) {
@@ -143,15 +104,15 @@ _.mixin({
 
             if (this.hover) {
                 this.hover = false;
-                startVolumeBarAlphaTimerFn(this);
+                alpha_timer.start(this);
             }
             this.tt.clear();
             this.drag = false;
-        }
+        };
 
         this.pos = function (type) {
-            return _.ceil((type == "h" ? this.h : this.w) * (Math.pow(10, fb.Volume / 50) - 0.01) / 0.99);
-        }
+            return _.ceil((type === "h" ? this.h : this.w) * (Math.pow(10, fb.Volume / 50) - 0.01) / 0.99);
+        };
 
         this.x = x;
         this.y = y;
@@ -165,5 +126,41 @@ _.mixin({
         this.drag_vol = 0;
         this.show_tt = false;
         this.tt = new _.tt_handler;
+
+        var alpha_timer = _.volume.alpha_timer;
     }
 });
+
+_.volume.alpha_timer = new function()
+{
+    var alpha_timer = undefined;
+
+    this.start = function(caller) {
+        var buttonHoverInStep = 50,
+            buttonHoverOutStep = 15;
+
+        if (!alpha_timer) {
+            alpha_timer = setInterval(_.bind(function () {
+                if (!caller.hover) {
+                    caller.hover_alpha = Math.max(0, caller.hover_alpha -= buttonHoverOutStep);
+                    caller.repaint();
+                }
+                else {
+                    caller.hover_alpha = Math.min(255, caller.hover_alpha += buttonHoverInStep);
+                    caller.repaint();
+                }
+
+                if (caller.hover_alpha === 0 || caller.hover_alpha === 255) {
+                    this.stop();
+                }
+            },this), 25);
+        }
+    };
+
+    this.stop = function() {
+        if (alpha_timer) {
+            clearInterval(alpha_timer);
+            alpha_timer = null
+        }
+    };
+};

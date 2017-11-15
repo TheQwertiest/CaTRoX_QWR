@@ -521,7 +521,7 @@ function createButtonImages() {
     });
 }
 
-function AnimatorClass() {
+var animator = new function () {
     this.runAnimation = function (animation_name) {
         if (animation_name === "fade_out") {
             // Not stopping fade_in, because it looks borked, when stopped in the middle.
@@ -545,23 +545,23 @@ function AnimatorClass() {
 
 // private:
     function stop_fade_out_delay(){
-        if ( !_.isNil(delayFadeOutTimer) ) {
+        if ( delayFadeOutTimer ) {
             clearTimeout(delayFadeOutTimer);
-            delayFadeOutTimer = undefined;
+            delayFadeOutTimer = null;
         }
     }
 
     function stop_fade_out(){
-        if ( !_.isNil(fadeOutTimer) ) {
+        if ( fadeOutTimer ) {
             clearInterval(fadeOutTimer);
-            fadeOutTimer = undefined;
+            fadeOutTimer = null;
         }
     }
 
     function stop_fade_in(){
-        if ( !_.isNil(fadeInTimer) ) {
+        if ( fadeInTimer ) {
             clearInterval(fadeInTimer);
-            fadeInTimer = undefined;
+            fadeInTimer = null;
         }
     }
 
@@ -573,9 +573,9 @@ function AnimatorClass() {
             return;
         }
 
-        if (_.isNil(fadeOutTimer) && panel_s.playbackPanelAlpha !== 0) {
+        if (!fadeOutTimer && panel_s.playbackPanelAlpha !== 0) {
             fadeOutTimer = setInterval(function () {
-                if ( !_.isNil(delayFadeOutTimer) ) {
+                if ( delayFadeOutTimer ) {
                     return;
                 }
 
@@ -598,7 +598,7 @@ function AnimatorClass() {
             return;
         }
 
-        if (_.isNil(fadeInTimer) && panel_s.playbackPanelAlpha !== 255) {
+        if (!fadeInTimer && panel_s.playbackPanelAlpha !== 255) {
             fadeInTimer = setInterval(function () {
                 panel_s.playbackPanelAlpha = Math.min(255, panel_s.playbackPanelAlpha += hoverInStep);
                 window.Repaint();
@@ -612,24 +612,23 @@ function AnimatorClass() {
     }
 
 // private:
-    var delayFadeOutTimer = undefined;
-    var fadeOutTimer = undefined;
-    var fadeInTimer = undefined;
+    var delayFadeOutTimer = null;
+    var fadeOutTimer = null;
+    var fadeInTimer = null;
 
     var timerRate = 25;
-}
-var animator = new AnimatorClass();
+};
 
-var title_timer = undefined;
+var title_timer = null;
 function onTitleTimer(refreshTitle) {
-    if (!_.isNil(title_timer) && (!fb.IsPlaying || fb.IsPaused || refreshTitle === true)) {
+    if (title_timer && (!fb.IsPlaying || fb.IsPaused || refreshTitle === true)) {
         stop_title_timer();
 
         if (refreshTitle) {
             panel_s.curTitleType = 0;
         }
     }
-    if (fb.IsPlaying && !fb.IsPaused && _.isNil(title_timer)) {
+    if (fb.IsPlaying && !fb.IsPaused && !title_timer) {
         window.Repaint();
 
         title_timer = setInterval(function () {
@@ -643,8 +642,8 @@ function onTitleTimer(refreshTitle) {
 }
 
 function stop_title_timer(){
-    if ( !_.isNil(title_timer) ) {
+    if ( title_timer ) {
         clearInterval(title_timer);
-        title_timer = undefined;
+        title_timer = null;
     }
 }
