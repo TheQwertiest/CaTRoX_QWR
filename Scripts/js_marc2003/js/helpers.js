@@ -39,11 +39,17 @@ _.mixin({
         this.paint = function (gr, alpha) {
             if (this.state !== "pressed") {
                 var hoverAlpha = !_.isNil(alpha) ? Math.min(this.hover_alpha, alpha) : this.hover_alpha;
-                this.img_normal && _.drawImage(gr, this.img_normal, this.x, this.y, this.w, this.h, undefined, undefined, alpha);
-                this.img_hover && _.drawImage(gr, this.img_hover, this.x, this.y, this.w, this.h, undefined, undefined, hoverAlpha);
+                if (this.img_normal) {
+                    _.drawImage(gr, this.img_normal, this.x, this.y, this.w, this.h, undefined, undefined, alpha);
+                }
+                if (this.img_hover) {
+                    _.drawImage(gr, this.img_hover, this.x, this.y, this.w, this.h, undefined, undefined, hoverAlpha);
+                }
             }
             else {
-                this.img_pressed && _.drawImage(gr, this.img_pressed, this.x, this.y, this.w, this.h, undefined, undefined, alpha);
+                if (this.img_pressed) {
+                    _.drawImage(gr, this.img_pressed, this.x, this.y, this.w, this.h, undefined, undefined, alpha);
+                }
             }
         };
 
@@ -217,28 +223,33 @@ _.mixin({
         if (!img) {
             return [];
         }
-        gr.SetInterpolationMode(7);
+        gr.SetInterpolationMode(InterpolationMode.HighQualityBicubic);
+
+        var dst_w = 0;
+        var dst_h = 0;
+        var dst_x = 0;
+        var dst_y = 0;
         switch (aspect) {
             case image.crop:
             case image.crop_top:
                 if (img.Width / img.Height < src_w / src_h) {
-                    var dst_w = img.Width;
-                    var dst_h = Math.round(src_h * img.Width / src_w);
-                    var dst_x = 0;
-                    var dst_y = Math.round((img.Height - dst_h) / (aspect === image.crop_top ? 4 : 2));
+                    dst_w = img.Width;
+                    dst_h = Math.round(src_h * img.Width / src_w);
+                    dst_x = 0;
+                    dst_y = Math.round((img.Height - dst_h) / (aspect === image.crop_top ? 4 : 2));
                 }
                 else {
-                    var dst_w = Math.round(src_w * img.Height / src_h);
-                    var dst_h = img.Height;
-                    var dst_x = Math.round((img.Width - dst_w) / 2);
-                    var dst_y = 0;
+                    dst_w = Math.round(src_w * img.Height / src_h);
+                    dst_h = img.Height;
+                    dst_x = Math.round((img.Width - dst_w) / 2);
+                    dst_y = 0;
                 }
                 break;
             case image.stretch:
-                var dst_x = 0;
-                var dst_y = 0;
-                var dst_w = img.Width;
-                var dst_h = img.Height;
+                dst_x = 0;
+                dst_y = 0;
+                dst_w = img.Width;
+                dst_h = img.Height;
                 break;
             case image.centre:
             default:
@@ -249,10 +260,11 @@ _.mixin({
                 src_y += Math.round((src_h - h) / 2);
                 src_w = w;
                 src_h = h;
-                var dst_x = 0;
-                var dst_y = 0;
-                var dst_w = img.Width;
-                var dst_h = img.Height;
+
+                dst_x = 0;
+                dst_y = 0;
+                dst_w = img.Width;
+                dst_h = img.Height;
                 break;
         }
         if (_.isNil(aspect)) {
@@ -508,7 +520,7 @@ _.mixin({
             menuManager.Init(name);
             menuManager.BuildMenu(menu, 1, 128);
 
-            var idx = menu.TrackPopupMenu(x, y);
+            var idx = menu.TrackPopupMenu(x, y, flags);
 
             if (idx > 0) {
                 menuManager.ExecuteByID(idx - 1);
@@ -594,7 +606,7 @@ _.mixin({
     },
     sb:                        function (t, x, y, w, h, v, fn) {
         this.paint = function (gr, colour) {
-            gr.SetTextRenderingHint(4);
+            gr.SetTextRenderingHint(TextRenderingHint.AntiAlias);
             if (this.v()) {
                 gr.DrawString(this.t, this.guifx_font, colour, this.x, this.y, this.w, this.h, SF_CENTRE);
             }
@@ -733,7 +745,7 @@ _.mixin({
     }
 });
 
-_.tt_handler.tt_timer = new function() {
+_.tt_handler.tt_timer = new function () {
     var tooltip_timer;
     var tt_caller = undefined;
 
@@ -774,10 +786,10 @@ _.tt_handler.tt_timer = new function() {
     };
 };
 
-_.buttons.alpha_timer = new function() {
+_.buttons.alpha_timer = new function () {
     var alpha_timer;
 
-    this.start = function(caller) {
+    this.start = function (caller) {
         var buttonHoverInStep = 50,
             buttonHoverOutStep = 15,
             buttonDownInStep = 100,
@@ -817,11 +829,11 @@ _.buttons.alpha_timer = new function() {
                     this.stop();
                 }
 
-            },this), 25);
+            }, this), 25);
         }
     };
 
-    this.stop = function() {
+    this.stop = function () {
         if (alpha_timer) {
             window.ClearInterval(alpha_timer);
             alpha_timer = null;
@@ -1016,9 +1028,9 @@ var ONE_WEEK = 604800000;
 var DEFAULT_ARTIST = '$meta(artist,0)';
 
 try {
-	var DPI = WshShell.RegRead('HKCU\\Control Panel\\Desktop\\WindowMetrics\\AppliedDPI');
+    var DPI = WshShell.RegRead('HKCU\\Control Panel\\Desktop\\WindowMetrics\\AppliedDPI');
 } catch (e) {
-	var DPI = 96;
+    var DPI = 96;
 }
 
 var LM = _.scale(5);
@@ -1038,18 +1050,18 @@ folders.lastfm = folders.data + "lastfm\\";
 folders.docs = fb.ComponentPath + "docs\\";
 
 var console = {
-    pre : '',
-    log : function (text) {
+    pre: '',
+    log: function (text) {
         fb.Trace(this.pre + text);
     }
 };
 
 var guifx = {
-    font : 'Guifx v2 Transports',
-    up : '.',
-    down : ',',
-    close : 'x',
-    star : 'b'
+    font:  'Guifx v2 Transports',
+    up:    '.',
+    down:  ',',
+    close: 'x',
+    star:  'b'
 };
 
 var popup = {
