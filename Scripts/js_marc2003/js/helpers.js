@@ -23,9 +23,18 @@ _.mixin({
         cpm.AppendMenuItem(MF_STRING, 505, "Panel Properties...");
     },
     artistFolder:              function (artist) {
-        var folder = folders.artists + _.fbSanitise(artist);
-        _.createFolder(folder);
-        return fso.GetFolder(folder) + '\\';
+        var a = _.fbSanitise(artist);
+        var folder = folders.artists + a;
+        if (_.isFolder(folder)) {
+            return fso.GetFolder(folder) + '\\';
+        }
+        else {
+            folder = folders.artists + _.truncate(a, {
+                'length': 64
+            });
+            _.createFolder(folder);
+            return fso.GetFolder(folder) + '\\';
+        }
     },
     blendColours:              function (c1, c2, f) {
         c1 = _.toRGB(c1);
@@ -311,7 +320,7 @@ _.mixin({
     },
     explorer:                  function (file) {
         if (_.isFile(file)) {
-            WshShell.Run("explorer /select," + _.q(file));
+            WshShell.Run('explorer /select,' + _.q(file));
         }
     },
     fbEscape:                  function (value) {
@@ -361,19 +370,59 @@ _.mixin({
             return files;
         }
     },
+    hacks:                     function () {
+        this.disable = function () {
+            this.uih.MainMenuState = this.MainMenuState.Show;
+            this.uih.FrameStyle = this.FrameStyle.Default;
+            this.uih.StatusBarState = true;
+        };
+
+        this.enable = function () {
+            this.uih.MainMenuState = this.MainMenuState.Hide;
+            this.uih.FrameStyle = this.FrameStyle.NoBorder;
+            this.uih.StatusBarState = false;
+        };
+
+        this.set_caption = function (x, y, w, h) {
+            this.uih.SetPseudoCaption(x, y, w, h);
+        };
+
+        this.MainMenuState = {
+            Show: 0,
+            Hide: 1,
+            Auto: 2
+        };
+        this.FrameStyle = {
+            Default:      0,
+            SmallCaption: 1,
+            NoCaption:    2,
+            NoBorder:     3
+        };
+        this.MoveStyle = {
+            Default: 0,
+            Middle:  1,
+            Left:    2,
+            Both:    3
+        };
+
+        this.uih = new ActiveXObject('UIHacks');
+        this.uih.MoveStyle = this.MoveStyle.Default;
+        this.uih.DisableSizing = false;
+        this.uih.BlockMaximize = false;
+        this.uih.MinSize = false;
+        this.uih.MaxSize = false;
+    },
     help:                      function (x, y, flags) {
-        var m1 = window.CreatePopupMenu();
-        var s1 = window.CreatePopupMenu();
-        var s2 = window.CreatePopupMenu();
+        var m = window.CreatePopupMenu();
         _.forEach(ha_links, function (item, i) {
-            m1.AppendMenuItem(MF_STRING, i + 100, item[0]);
+            m.AppendMenuItem(MF_STRING, i + 100, item[0]);
             if (i === 1) {
-                m1.AppendMenuSeparator();
+                m.AppendMenuSeparator();
             }
         });
-        m1.AppendMenuSeparator();
-        m1.AppendMenuItem(MF_STRING, 1, "Configure...");
-        var idx = m1.TrackPopupMenu(x, y, flags);
+        m.AppendMenuSeparator();
+        m.AppendMenuItem(MF_STRING, 1, 'Configure...');
+        var idx = m.TrackPopupMenu(x, y, flags);
         switch (true) {
             case idx === 0:
                 break;
@@ -384,7 +433,7 @@ _.mixin({
                 _.run(ha_links[idx - 100][1]);
                 break;
         }
-        _.dispose(m1, s1, s2);
+        _.dispose(m);
     },
     img:                       function (value) {
         if (_.isFile(value)) {
@@ -417,6 +466,9 @@ _.mixin({
         } catch (e) {
             return [];
         }
+    },
+    jsonParseFile:             function (file) {
+        return _.jsonParse(_.open(file));
     },
     lastModified:              function (file) {
         return Date.parse(fso.Getfile(file).DateLastModified);
@@ -456,14 +508,12 @@ _.mixin({
         var mm4 = fb.CreateMainMenuManager();
         var mm5 = fb.CreateMainMenuManager();
         var mm6 = fb.CreateMainMenuManager();
-
-        mm1.Init("File");
-        mm2.Init("Edit");
-        mm3.Init("View");
-        mm4.Init("Playback");
-        mm5.Init("Library");
-        mm6.Init("Help");
-
+        mm1.Init('File');
+        mm2.Init('Edit');
+        mm3.Init('View');
+        mm4.Init('Playback');
+        mm5.Init('Library');
+        mm6.Init('Help');
         mm1.BuildMenu(s1, 1000, 999);
         mm2.BuildMenu(s2, 2000, 999);
         mm3.BuildMenu(s3, 3000, 999);
@@ -471,17 +521,17 @@ _.mixin({
         mm5.BuildMenu(s5, 5000, 999);
         mm6.BuildMenu(s6, 6000, 999);
 
-        s1.AppendTo(m1, MF_STRING, "File");
-        s2.AppendTo(m1, MF_STRING, "Edit");
-        s3.AppendTo(m1, MF_STRING, "View");
-        s4.AppendTo(m1, MF_STRING, "Playback");
-        s5.AppendTo(m1, MF_STRING, "Library");
-        s6.AppendTo(m1, MF_STRING, "Help");
+        s1.AppendTo(m1, MF_STRING, 'File');
+        s2.AppendTo(m1, MF_STRING, 'Edit');
+        s3.AppendTo(m1, MF_STRING, 'View');
+        s4.AppendTo(m1, MF_STRING, 'Playback');
+        s5.AppendTo(m1, MF_STRING, 'Library');
+        s6.AppendTo(m1, MF_STRING, 'Help');
         /*
-         if (_.cc("foo_ui_hacks") && _.cc("foo_ui_columns")) {
-         m1.AppendMenuSeparator();
-         m1.AppendMenuItem(MF_STRING, 1, "Switch UI");
-         }
+         if (_.cc('foo_ui_hacks') && _.cc('foo_ui_columns')) {
+            m1.AppendMenuSeparator();
+            m1.AppendMenuItem(MF_STRING, 1, 'Switch UI');
+        }
          */
         var idx = m1.TrackPopupMenu(x, y, flags);
         switch (true) {
@@ -563,6 +613,25 @@ _.mixin({
     open:                      function (file) {
         return utils.ReadTextFile(file);
     },
+    p:                         function (a, b) {
+        Object.defineProperty(this, _.isBoolean(b) ? 'enabled' : 'value', {
+            get: function () {
+                return this.b;
+            },
+            set: function (value) {
+                this.b = value;
+                window.SetProperty(this.a, this.b);
+            }
+        });
+
+        this.toggle = function () {
+            this.b = !this.b;
+            window.SetProperty(this.a, this.b);
+        };
+
+        this.a = a;
+        this.b = window.GetProperty(a, b);
+    },
     q:                         function (value) {
         return '"' + value + '"';
     },
@@ -596,6 +665,9 @@ _.mixin({
     },
     save:                      function (value, file) {
         try {
+            if (!_.isFolder(utils.FileTest(file, 'split').toArray()[0])) {
+                return false;
+            }
             var ts = fso.OpenTextFile(file, 2, true, -1);
             ts.WriteLine(value);
             ts.Close();
@@ -706,8 +778,8 @@ _.mixin({
         return 50 * Math.log(0.99 * volume + 0.01) / Math.LN10;
     },
     toRGB:                     function (a) {
-        a = a - 0xFF000000;
-        return [a >> 16, a >> 8 & 0xFF, a & 0xFF];
+        var b = a - 0xFF000000;
+        return [b >> 16, b >> 8 & 0xFF, b & 0xFF];
     },
     toVolume:                  function (db) {
         if (db === -100) {
@@ -1027,11 +1099,7 @@ var ONE_WEEK = 604800000;
 
 var DEFAULT_ARTIST = '$meta(artist,0)';
 
-try {
-    var DPI = WshShell.RegRead('HKCU\\Control Panel\\Desktop\\WindowMetrics\\AppliedDPI');
-} catch (e) {
-    var DPI = 96;
-}
+var DPI = WshShell.RegRead('HKCU\\Control Panel\\Desktop\\WindowMetrics\\AppliedDPI');
 
 var LM = _.scale(5);
 var TM = _.scale(16);
