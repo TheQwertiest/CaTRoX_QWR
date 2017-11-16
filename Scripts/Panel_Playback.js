@@ -44,7 +44,7 @@ function on_size() {
 
     createButtonObjects(0, 1, ww, wh);
 
-    if ( common_vars.minimode_state != 'Full' )
+    if ( common_vars.minimode_state !== 'Full' )
     {
         var volH = 14;
         var volY = Math.floor(wh / 2 - volH / 2) + 3;
@@ -105,7 +105,7 @@ function on_mouse_lbtn_dblclk(x, y, m) {
 function on_mouse_wheel(delta) {
     var changeVolManually = true;
 
-    if ( common_vars.minimode_state == 'Mini' )
+    if ( common_vars.minimode_state === 'Mini' )
     {
         if (showVolumeBar && volumeBar.wheel(delta)) {
             changeVolManually = false;
@@ -139,7 +139,7 @@ function on_mouse_leave() {
 }
 
 function on_volume_change(val) {
-    if (common_vars.minimode_state != 'Full') {
+    if (common_vars.minimode_state !== 'Full') {
         buttons.refresh_vol_button();
 
         if (showVolumeBar) {
@@ -149,7 +149,7 @@ function on_volume_change(val) {
 }
 
 function on_playback_stop(reason) {
-    if (reason != 2) {
+    if (reason !== 2) {
         buttons.refresh_play_button();
     }
 }
@@ -177,7 +177,7 @@ function createButtonObjects(wx, wy, ww, wh) {
     var y = wy + Math.floor((wh - w) / 2);
     var x;
 
-    if (common_vars.minimode_state != 'Full') {
+    if (common_vars.minimode_state !== 'Full') {
         x = wx + Math.floor((ww - (w * 5 + p * 4)) / 2);
     }
     else
@@ -197,13 +197,13 @@ function createButtonObjects(wx, wy, ww, wh) {
     buttons.buttons.next = new _.button(x, y, w, h, btnImg.Next, function () { fb.Next(); }, 'Next');
     x += w + p;
 
-    if (common_vars.minimode_state != 'Full') {
+    if (common_vars.minimode_state !== 'Full') {
         w = btnImg.VolLoud.normal.Width;
         h = btnImg.VolLoud.normal.Height;
         y = wy + Math.floor((wh - w) / 2);
         var volValue = _.toVolume(fb.Volume);
         var volImage = ((volValue > 50) ? btnImg.VolLoud : ((volValue > 0) ? btnImg.VolQuiet : btnImg.VolMute));
-        buttons.buttons.mute = new _.button(x, y + 1, w, h, volImage, function () { fb.VolumeMute(); }, volValue == 0 ? 'Unmute' : 'Mute');
+        buttons.buttons.mute = new _.button(x, y + 1, w, h, volImage, function () { fb.VolumeMute(); }, volValue === 0 ? 'Unmute' : 'Mute');
         x += w - 5;
 
         w = btnImg.ShowVolume.normal.Width;
@@ -223,7 +223,7 @@ function createButtonObjects(wx, wy, ww, wh) {
             var volValue = _.toVolume(fb.Volume);
             var volImage = ((volValue > 50) ? btnImg.VolLoud : ((volValue > 0) ? btnImg.VolQuiet : btnImg.VolMute));
             buttons.buttons.mute.set_image(volImage);
-            buttons.buttons.mute.tiptext = volValue == 0 ? 'Unmute' : 'Mute';
+            buttons.buttons.mute.tiptext = volValue === 0 ? 'Unmute' : 'Mute';
             buttons.buttons.mute.repaint();
         };
     }
@@ -346,7 +346,7 @@ function createButtonImages() {
 
         for (var s = 0; s <= 2; s++) {
             var img = gdi.CreateImage(w, h);
-            g = img.GetGraphics();
+            var g = img.GetGraphics();
             g.SetSmoothingMode(SmoothingMode.HighQuality);
             g.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
             g.FillSolidRect(0, 0, w, h, pssBackColor); // Cleartype is borked, if drawn without background
