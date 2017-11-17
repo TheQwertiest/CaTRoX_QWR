@@ -11,48 +11,50 @@ g_properties.add_properties(
 );
 g_properties.track_mode = Math.max(1, Math.min(3, g_properties.track_mode));
 
+// TODO: make thumb size variable as well
+
 function ArtModule(features_arg) {//(Most of the art handling code was done by eXtremeHunter)
 //public:
     /////////////////////////////////////
     // Callback methods implementation
     this.paint = function (g) {
         var SF = g_string_format.align_center | g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
-        var art = artArr[curArtId];
+        var art = art_arr[cur_art_id];
 
         g.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
 
         if (art) {
-            var x = this.x + artX,
-                y = this.y + artY,
-                w = artW,
-                h = artH;
-            var artImgWidth = art[1],
-                artImgHeight = art[2];
+            var x = this.x + art_x,
+                y = this.y + art_y,
+                w = art_w,
+                h = art_h;
+            var art_img_w = art.width,
+                art_img_h = art.height;
 
             if (w + h > 10) {
-
-                if (curArtId === artType.cd) {
-                    g.DrawImage(art[0], x + 2, y + 2, w - 4, h - 4, 0, 0, artImgWidth, artImgHeight);
+                var p = border_size;
+                if (cur_art_id === artType.cd) {
+                    g.DrawImage(art.img, x + p, y + p, w - 2*p, h - 2*p, 0, 0, art_img_w, art_img_h);
 
                     if (g_properties.use_disc_mask) {
                         g.SetSmoothingMode(SmoothingMode.HighQuality);
-                        g.DrawEllipse(x, y, w - 1, h - 1, 1, frameColor);
+                        g.DrawEllipse(x, y, w - 1, h - 1, 1, frame_color);
                     }
                 }
                 else {
                     if (feature_border) {
-                        g.DrawImage(art[0], x + 2, y + 2, w - 4, h - 4, 0, 0, artImgWidth, artImgHeight);
-                        g.DrawRect(x, y, w - 1, h - 1, 1, frameColor);
+                        g.DrawImage(art.img, x + p, y + p, w - 2*p, h - 2*p, 0, 0, art_img_w, art_img_h);
+                        g.DrawRect(x, y, w - 1, h - 1, 1, frame_color);
                     }
                     else {
-                        g.DrawImage(art[0], x, y, w, h, 0, 0, artImgWidth, artImgHeight);
+                        g.DrawImage(art.img, x, y, w, h, 0, 0, art_img_w, art_img_h);
                     }
                 }
             }
         }
         else if (art === null) {
             var metadb = fb.IsPlaying ? fb.GetNowPlaying() : fb.GetFocusItem();
-            if (metadb && (_.startsWith(metadb.RawPath,'http://')) && utils.CheckFont('Webdings')) {
+            if (metadb && (_.startsWith(metadb.RawPath, 'http://')) && utils.CheckFont('Webdings')) {
                 g.DrawString('\uF0BB', gdi.font('Webdings', 130), _.RGB(70, 70, 70), this.x, this.y, this.w, this.h, SF);
             }
             else {
@@ -64,17 +66,19 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
         }
 
         if (feature_thumbs && g_properties.show_thumbs) {
-            fillThumbImage(thumbs.buttons.front, artArr[0]);
-            fillThumbImage(thumbs.buttons.back, artArr[1]);
-            fillThumbImage(thumbs.buttons.cd, artArr[2]);
-            fillThumbImage(thumbs.buttons.artist, artArr[3]);
+            fill_thumb_image(thumbs.buttons.front, art_arr[0]);
+            fill_thumb_image(thumbs.buttons.back, art_arr[1]);
+            fill_thumb_image(thumbs.buttons.cd, art_arr[2]);
+            fill_thumb_image(thumbs.buttons.artist, art_arr[3]);
 
             thumbs.paint(g);
         }
     };
+
     this.repaint = function () {
         window.RepaintRect(this.x, this.y, this.w, this.h);
     };
+
     this.on_size = function (x, y, w, h) {
         this.x = x;
         this.y = y;
@@ -82,44 +86,56 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
         this.h = h;
 
         if (feature_thumbs) {
-            recalculateThumbPosition();
+            reposition_thumbs();
         }
-        recalculateArtPosition();
+        reposition_art();
     };
+
     this.get_album_art_done = function (metadb, art_id, image, image_path) {
-        if (art_id === 4) {
+        if (art_id === g_album_art_id.artist) {
             art_id = artType.artist;
         }
 
         if (!image) {
-            if (!!artArr[art_id] && curArtId === art_id) {
-                artArr[art_id] = null;
+            if (!!art_arr[art_id] && cur_art_id === art_id) {
+                art_arr[art_id] = null;
                 this.repaint();
             }
             else {
-                artArr[art_id] = null;
+                art_arr[art_id] = null;
             }
             return;
         }
 
-        var artImgWidth = image.Width,
-            artImgHeight = image.Height;
+        var art_img_w = image.Width,
+            art_img_h = image.Height;
 
-        if (art_id === artType.cd && artImgWidth !== artImgHeight) {
-            image = image.Resize(artImgWidth, artImgWidth, 0);
+        if (art_id === artType.cd && art_img_w !== art_img_h) {
+            image = image.Resize(art_img_w, art_img_w, 0);
         }
 
         if (currentAlbum === fb.TitleFormat(g_properties.group_format_query).EvalWithMetadb(metadb)) {
-            var isEmbedded = image_path.slice(image_path.lastIndexOf('.') + 1) === fb.TitleFormat('$ext(%path%)').EvalWithMetadb(metadb);
+            var is_embedded = image_path.slice(image_path.lastIndexOf('.') + 1) === fb.TitleFormat('$ext(%path%)').EvalWithMetadb(metadb);
 
-            artArr[art_id] = [image];
-            artArr[art_id][1] = image.Width;
-            artArr[art_id][2] = image.Height;
+            art_arr[art_id] = {};
+            art_arr[art_id].img = image;
+            art_arr[art_id].width = image.Width;
+            art_arr[art_id].height = image.Height;
             if (feature_thumbs) {
-                artArr[art_id][3] = image.Resize(g_properties.thumb_size, g_properties.thumb_size, 0);
+                var ratio = image.Height / image.Width;
+                var art_h = g_properties.thumb_size - border_size;
+                var art_w = g_properties.thumb_size - border_size;
+                if (image.Height > image.Width) {
+                    art_w = Math.round(art_h / ratio);
+                }
+                else {
+                    art_h = Math.round(art_w * ratio);
+                }
+
+                art_arr[art_id].thumb_img = image.Resize(art_w, art_h);
             }
-            artArr[art_id][4] = image_path;
-            artArr[art_id][5] = isEmbedded;
+            art_arr[art_id].path = image_path;
+            art_arr[art_id].is_embedded = is_embedded;
         }
 
         if (g_properties.use_disc_mask && art_id === artType.cd) {
@@ -131,82 +147,83 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
             g.SetSmoothingMode(SmoothingMode.HighQuality);
             g.FillEllipse(1, 1, artWidth - 2, artHeight - 2, 0xff000000);
             discMask.ReleaseGraphics(g);
-            artArr[art_id][0].ApplyMask(discMask);
+            art_arr[art_id].img.ApplyMask(discMask);
             discMask.Dispose();
         }
 
-        if (art_id === curArtId) {
-            recalculateArtPosition(artArr[curArtId]);
+        if (art_id === cur_art_id) {
+            reposition_art(art_arr[cur_art_id]);
             this.repaint();
         }
     };
     this.playlist_switch = function () {
-        if (!fb.IsPlaying || track_mode === display.selected) {
-            this.getAlbumArt();
+        if (!fb.IsPlaying || g_properties.track_mode === track_modes.selected) {
+            this.get_album_art();
         }
     };
     this.playlist_items_selection_change = function () {
-        if (!fb.IsPlaying || track_mode === display.selected) {
-            this.getAlbumArt();
+        if (!fb.IsPlaying || g_properties.track_mode === track_modes.selected) {
+            this.get_album_art();
         }
     };
     this.item_focus_change = function () {
-        if (!fb.IsPlaying || track_mode === display.selected) {
-            this.getAlbumArt();
+        if (!fb.IsPlaying || g_properties.track_mode === track_modes.selected) {
+            this.get_album_art();
         }
     };
     this.playback_new_track = function (metadb) {
-        if (track_mode !== display.selected) {
-            this.getAlbumArt();
+        if (g_properties.track_mode !== track_modes.selected) {
+            this.get_album_art();
         }
     };
     this.playback_stop = function (reason) {
-        if (reason !== 2 && track_mode !== display.selected) {
-            this.getAlbumArt();
+        if (reason !== 2 && g_properties.track_mode !== track_modes.selected) {
+            this.get_album_art();
         }
     };
     this.mouse_move = function (x, y, m) {
-        if ( feature_thumbs ) {
+        if (feature_thumbs) {
             thumbs.move(x, y);
         }
     };
     this.mouse_lbtn_down = function (x, y, m) {
-        if ( feature_thumbs ) {
+        if (feature_thumbs) {
             thumbs.lbtn_down(x, y);
         }
     };
     this.mouse_lbtn_dblclk = function () {
-        if (!artArr[curArtId]) {
+        if (!art_arr[cur_art_id]) {
             return;
         }
 
-        _.run('\"' + artArr[curArtId][4] + '\"');
+        _.run('\"' + art_arr[cur_art_id].path + '\"');
     };
     this.mouse_lbtn_up = function (x, y, m) {
-        if ( feature_thumbs ) {
+        if (feature_thumbs) {
             thumbs.lbtn_up(x, y);
         }
     };
     this.mouse_wheel = function (delta) {
-        var oldArtID = curArtId;
+        if (feature_cycle) {
+            var prev_art_id = cur_art_id;
 
-        do
-        {
-            if (delta === -1) {
-                curArtId === artType.lastVal ? curArtId = artType.firstVal : ++curArtId;
-            }
-            else if (delta === 1) {
-                curArtId === artType.firstVal ? curArtId = artType.lastVal : --curArtId;
-            }
-        } while (oldArtID !== curArtId && !artArr[curArtId]);
+            do {
+                if (delta === -1) {
+                    cur_art_id === artType.lastVal ? cur_art_id = artType.firstVal : ++cur_art_id;
+                }
+                else if (delta === 1) {
+                    cur_art_id === artType.firstVal ? cur_art_id = artType.lastVal : --cur_art_id;
+                }
+            } while (prev_art_id !== cur_art_id && !art_arr[cur_art_id]);
 
-        if (oldArtID !== curArtId) {
-            recalculateArtPosition();
-            this.repaint();
+            if (prev_art_id !== cur_art_id) {
+                reposition_art();
+                this.repaint();
+            }
         }
     };
     this.mouse_leave = function () {
-        if ( feature_thumbs ) {
+        if (feature_thumbs) {
             thumbs.leave();
         }
     };
@@ -214,11 +231,11 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
     // End of Callback methods implementation
     /////////////////////////////////////
 
-    this.getAlbumArt = function (metadb_arg) {
-        var metadb = metadb_arg ? metadb_arg : getMetadb();
+    this.get_album_art = function (metadb_arg) {
+        var metadb = metadb_arg ? metadb_arg : get_current_metadb();
         if (!metadb) {
             if (metadb === null) {
-                this.nullArt();
+                this.clear_art();
             }
 
             return;
@@ -226,24 +243,28 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
 
         currentAlbum = fb.TitleFormat(g_properties.group_format_query).EvalWithMetadb(metadb);
         if (oldAlbum === currentAlbum) {
-            if (artArr[curArtId] === null) {
+            if (art_arr[cur_art_id] === null) {
                 this.repaint();
             }
             return;
         }
 
-        curArtId = artType.defaultVal; // think about not changing art type when using reload
-        artArr = [];
+        cur_art_id = artType.defaultVal; // think about not changing art type when using reload
+        art_arr = [];
         this.repaint();
-        window.ClearInterval(albumTimer);
+        if (albumTimer) {
+            window.ClearInterval(albumTimer);
+            albumTimer = null;
+        }
 
         var artID = artType.firstVal;
 
         albumTimer = window.setInterval(function () {
-            utils.GetAlbumArtAsync(window.ID, metadb, (artID === artType.artist) ? artID = 4 : artID);
+            utils.GetAlbumArtAsync(window.ID, metadb, (artID === artType.artist) ? artID = g_album_art_id.artist : artID);
 
             if (artID >= artType.lastVal) {
                 window.ClearInterval(albumTimer);
+                albumTimer = null;
             }
             else {
                 ++artID;
@@ -253,24 +274,24 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
         oldAlbum = currentAlbum;
     };
 
-    this.reloadArt = function (metadb_arg) {
+    this.reload_art = function (metadb_arg) {
         oldAlbum = currentAlbum = undefined;
 
         var metadb = metadb_arg ? metadb_arg : undefined;
-        this.getAlbumArt(metadb);
+        this.get_album_art(metadb);
     };
 
-    this.nullArt = function () {
-        artArr.forEach(function(item,i) {
-            artArr[i] = null;
+    this.clear_art = function () {
+        art_arr.forEach(function (item, i) {
+            art_arr[i] = null;
         });
 
         oldAlbum = currentAlbum = undefined;
-        recalculateArtPosition();
+        reposition_art();
         this.repaint();
     };
 
-    this.appendMenu = function (cpm) {
+    this.append_menu = function (cpm) {
         var thumbs;
         var track = window.CreatePopupMenu();
         var cycle;
@@ -283,15 +304,15 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
             cycle = window.CreatePopupMenu();
         }
 
-        contextMenu.push(track, web);
+        context_menu.push(track, web);
         if (feature_thumbs) {
-            contextMenu.push(thumbs);
+            context_menu.push(thumbs);
         }
         if (feature_cycle) {
-            contextMenu.push(cycle);
+            context_menu.push(cycle);
         }
 
-        var metadb = getMetadb();
+        var metadb = get_current_metadb();
 
         if (feature_thumbs) {
             thumbs.AppendMenuItem(MF_STRING, 601, 'Thumbs show');
@@ -336,10 +357,10 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
         cpm.AppendMenuSeparator();
         cpm.AppendMenuItem(MF_STRING, 632, 'Use disc mask');
         cpm.CheckMenuItem(632, g_properties.use_disc_mask);
-        if (artArr[curArtId]) {
-            cpm.AppendMenuItem(artArr[curArtId][5] ? MF_GRAYED : MF_STRING, 633, 'Open image');
-            if (isPhotoshopAvailable) {
-                cpm.AppendMenuItem(artArr[curArtId][5] ? MF_GRAYED : MF_STRING, 634, 'Open image with Photoshop');
+        if (art_arr[cur_art_id]) {
+            cpm.AppendMenuItem(art_arr[cur_art_id].is_embedded ? MF_GRAYED : MF_STRING, 633, 'Open image');
+            if (has_photoshop) {
+                cpm.AppendMenuItem(art_arr[cur_art_id].is_embedded ? MF_GRAYED : MF_STRING, 634, 'Open image with Photoshop');
             }
             cpm.AppendMenuItem(MF_STRING, 635, 'Open image folder');
         }
@@ -358,9 +379,9 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
         web.AppendTo(cpm, !metadb ? MF_GRAYED : MF_STRING, 'Weblinks');
     };
 
-    this.executeMenu = function (idx) {
-        var metadb = getMetadb();
-        var selectedItm = getSelectedItem();
+    this.execute_menu = function (idx) {
+        var metadb = get_current_metadb();
+        var selected_metadb = get_selected_metadb();
 
         var idxFound = false;
         if (feature_thumbs) {
@@ -396,49 +417,49 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
             switch (idx) {
                 case 620:
                     g_properties.enable_cycle = !g_properties.enable_cycle;
-                    onCycleTimer(g_properties.enable_cycle, artArr.length);
+                    trigger_cycle_timer(g_properties.enable_cycle, art_arr.length);
                     break;
                 case 621:
-                    setCycleInterval(5000, idx);
+                    set_cycle_interval(5000, idx);
                     break;
                 case 622:
-                    setCycleInterval(10000, idx);
+                    set_cycle_interval(10000, idx);
                     break;
                 case 623:
-                    setCycleInterval(20000, idx);
+                    set_cycle_interval(20000, idx);
                     break;
                 case 624:
-                    setCycleInterval(30000, idx);
+                    set_cycle_interval(30000, idx);
                     break;
                 case 625:
-                    setCycleInterval(40000, idx);
+                    set_cycle_interval(40000, idx);
                     break;
                 case 626:
-                    setCycleInterval(50000, idx);
+                    set_cycle_interval(50000, idx);
                     break;
                 case 627:
-                    setCycleInterval(60000, idx);
+                    set_cycle_interval(60000, idx);
                     break;
                 case 628:
-                    setCycleInterval(120000, idx);
+                    set_cycle_interval(120000, idx);
                     break;
                 case 629:
-                    setCycleInterval(180000, idx);
+                    set_cycle_interval(180000, idx);
                     break;
                 case 630:
-                    setCycleInterval(240000, idx);
+                    set_cycle_interval(240000, idx);
                     break;
                 case 631:
-                    setCycleInterval(300000, idx);
+                    set_cycle_interval(300000, idx);
                     break;
                 default:
                     idxFound = false;
             }
 
-            function setCycleInterval(iv, id) {
+            function set_cycle_interval(iv, id) {
                 g_properties.cycle_interval = JSON.stringify([iv, id]);
 
-                onCycleTimer(g_properties.enable_cycle, artArr.length, true);
+                trigger_cycle_timer(g_properties.enable_cycle, art_arr.length, true);
             }
         }
 
@@ -446,38 +467,32 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
             idxFound = true;
             switch (idx) {
                 case 606:
-                    g_properties.track_mode = display.auto;
-                    fb.IsPlaying ? this.getAlbumArt(fb.GetNowPlaying()) : (selectedItm ? this.getAlbumArt(selectedItm) : this.nullArt());
+                    g_properties.track_mode = track_modes.auto;
+                    fb.IsPlaying ? this.get_album_art(fb.GetNowPlaying()) : (selected_metadb ? this.get_album_art(selected_metadb) : this.clear_art());
                     break;
                 case 607:
-                    g_properties.track_mode = display.playing;
-                    fb.IsPlaying ? this.getAlbumArt(fb.GetNowPlaying()) : this.nullArt();
+                    g_properties.track_mode = track_modes.playing;
+                    fb.IsPlaying ? this.get_album_art(fb.GetNowPlaying()) : this.clear_art();
                     break;
                 case 608:
-                    g_properties.track_mode = display.selected;
-                    selectedItm ? this.getAlbumArt(selectedItm) : this.nullArt();
+                    g_properties.track_mode = track_modes.selected;
+                    selected_metadb ? this.get_album_art(selected_metadb) : this.clear_art();
                     break;
                 case 632:
                     g_properties.use_disc_mask = !g_properties.use_disc_mask;
-                    this.reloadArt();
+                    this.reload_art();
                     break;
                 case 633:
-                    try {
-                        _.run('\"' + artArr[curArtId][4] + '\"');
-                    } catch (e) { }
+                    _.run('\"' + art_arr[cur_art_id].path + '\"');
                     break;
                 case 634:
-                    try {
-                        _.run('Photoshop ' + '\"' + artArr[curArtId][4] + '\"');
-                    } catch (e) { }
+                    _.run('Photoshop ' + '\"' + art_arr[cur_art_id].path + '\"');
                     break;
                 case 635:
-                    try {
-                        _.run('explorer /select,' + '\"' + artArr[curArtId][4] + '\"');
-                    } catch (e) { }
+                    _.run('explorer /select,' + '\"' + art_arr[cur_art_id].path + '\"');
                     break;
                 case 636:
-                    this.reloadArt();
+                    this.reload_art();
                     break;
                 case 650:
                     link('google', metadb);
@@ -505,80 +520,80 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
             }
         }
 
-        contextMenu.forEach(function (item) {
+        context_menu.forEach(function (item) {
             item.dispose();
         });
-        contextMenu = [];
+        context_menu = [];
 
         return idxFound;
     };
 
 //private:
-    function recalculateArtPosition() {
-        var art = artArr[curArtId];
+    function reposition_art() {
+        var art = art_arr[cur_art_id];
         if (!art) {
             return;
         }
 
-        var artLeftMargin = 0;
-        var artTopMargin = 0;
-        var artRightMargin = 0;
-        var artBottomMargin = 0;
+        var art_left_margin = 0;
+        var art_top_margin = 0;
+        var art_right_margin = 0;
+        var art_bottom_margin = 0;
 
         if (feature_thumbs) {
             var thumbsMargin = g_properties.thumb_size + g_properties.thumb_margin;
 
-            artLeftMargin = (g_properties.show_thumbs && g_properties.thumb_position === pos.left) ? thumbsMargin : 0;
-            artTopMargin = (g_properties.show_thumbs && g_properties.thumb_position === pos.top) ? thumbsMargin : 0;
-            artRightMargin = (g_properties.show_thumbs && g_properties.thumb_position === pos.right) ? thumbsMargin : 0;
-            artBottomMargin = (g_properties.show_thumbs && g_properties.thumb_position === pos.bottom) ? thumbsMargin : 0;
+            art_left_margin = (g_properties.show_thumbs && g_properties.thumb_position === pos.left) ? thumbsMargin : 0;
+            art_top_margin = (g_properties.show_thumbs && g_properties.thumb_position === pos.top) ? thumbsMargin : 0;
+            art_right_margin = (g_properties.show_thumbs && g_properties.thumb_position === pos.right) ? thumbsMargin : 0;
+            art_bottom_margin = (g_properties.show_thumbs && g_properties.thumb_position === pos.bottom) ? thumbsMargin : 0;
         }
 
-        var artImgWidth = art[1],
-            artImgHeight = art[2];
+        var art_img_w = art.width,
+            art_img_h = art.height;
 
-        var scaleX = 0,
-            scaleY = 0,
-            scaleW = ( that.w - artLeftMargin - artRightMargin ) / artImgWidth,
-            scaleH = ( that.h - artTopMargin - artBottomMargin ) / artImgHeight,
-            scale = Math.min(scaleW, scaleH);
+        var scale_x = 0,
+            scale_y = 0,
+            scale_w = ( that.w - art_left_margin - art_right_margin ) / art_img_w,
+            scale_h = ( that.h - art_top_margin - art_bottom_margin ) / art_img_h,
+            scale = Math.min(scale_w, scale_h);
 
-        if (scaleW < scaleH) {
-            scaleY = Math.floor((( that.h - artTopMargin - artBottomMargin ) - (artImgHeight * scale) ) / 2);
+        if (scale_w < scale_h) {
+            scale_y = Math.floor((( that.h - art_top_margin - art_bottom_margin ) - (art_img_h * scale) ) / 2);
         }
-        else if (scaleW > scaleH) {
-            scaleX = Math.floor((( that.w - artLeftMargin - artRightMargin ) - (artImgWidth * scale) ) / 2);
+        else if (scale_w > scale_h) {
+            scale_x = Math.floor((( that.w - art_left_margin - art_right_margin ) - (art_img_w * scale) ) / 2);
         }
 
-        artX = scaleX + artLeftMargin;
-        artY = scaleY + artTopMargin;
-        artW = Math.max(0, Math.floor(artImgWidth * scale));
-        artH = Math.max(0, Math.floor(artImgHeight * scale));
+        art_x = scale_x + art_left_margin;
+        art_y = scale_y + art_top_margin;
+        art_w = Math.max(0, Math.floor(art_img_w * scale));
+        art_h = Math.max(0, Math.floor(art_img_h * scale));
     }
 
-    function getMetadb() {
+    function get_current_metadb() {
         var metadb = null;
-        switch (track_mode) {
-            case display.auto: {
+        switch (g_properties.track_mode) {
+            case track_modes.auto: {
                 if (fb.IsPlaying) {
                     metadb = fb.GetNowPlaying();
                 }
                 else {
-                    metadb = getSelectedItem();
+                    metadb = fb.GetFocusItem();
                     if (!metadb) {
-                        metadb = fb.GetFocusItem()
+                        metadb = get_selected_metadb();
                     }
                 }
                 break;
             }
-            case display.selected: {
-                metadb = getSelectedItem();
+            case track_modes.selected: {
+                metadb = fb.GetFocusItem();
                 if (!metadb) {
-                    metadb = fb.GetFocusItem()
+                    metadb = get_selected_metadb();
                 }
                 break;
             }
-            case display.playing: {
+            case track_modes.playing: {
                 if (fb.IsPlaying) {
                     metadb = fb.GetNowPlaying();
                 }
@@ -589,24 +604,20 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
         return metadb;
     }
 
-    function getSelectedItem() {
+    function get_selected_metadb() {
         var selected_metadb_list = plman.GetPlaylistSelectedItems(plman.ActivePlaylist);
 
         return selected_metadb_list.Count > 0 ? selected_metadb_list.Item(0) : null;
     }
 
-    /** @type {undefined|number} */
-    var cycleTimer = undefined;
-    function onCycleTimer(enable_cycle, artLength, restartCycle) {
-        if (cycleTimerStarted && (!enable_cycle || !artArr[curArtId] || artLength <= 1 || restartCycle)) {
-            cycleTimerStarted = false;
-            window.ClearInterval(cycleTimer);
+    function trigger_cycle_timer(enable_cycle, artLength, restartCycle) {
+        if (cycle_timer && (!enable_cycle || !art_arr[cur_art_id] || artLength <= 1 || restartCycle)) {
+            window.ClearInterval(cycle_timer);
+            cycle_timer = null;
         }
 
-        if (enable_cycle && !cycleTimerStarted && artLength > 1) {
-            cycleTimerStarted = true;
-
-            cycleTimer = window.setInterval(function () {
+        if (enable_cycle && !cycle_timer && artLength > 1) {
+            cycle_timer = window.setInterval(function () {
                 that.mouse_wheel(-1);
             }, JSON.parse(g_properties.cycle_interval)[0]);
         }
@@ -615,7 +626,7 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
     /////////////////////////////////////
     // Thumbs methods
 
-    function recalculateThumbPosition() {
+    function reposition_thumbs() {
         var tx = that.x,
             ty = that.y,
             tw = that.w,
@@ -638,21 +649,21 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
                 break;
         }
 
-        createThumbObjects(tx, ty, tw, th);
+        create_thumb_objects(tx, ty, tw, th);
     }
 
     function coverSwitch(id) {
-        if (!artArr[id]) {
+        if (!art_arr[id]) {
             return;
         }
 
-        curArtId = id;
+        cur_art_id = id;
 
-        recalculateArtPosition();
+        reposition_art();
         that.repaint();
     }
 
-    function createThumbObjects(wx, wy, ww, wh) {
+    function create_thumb_objects(wx, wy, ww, wh) {
         if (thumbs) {
             thumbs.reset();
         }
@@ -683,42 +694,42 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
         }
 
         if (g_properties.show_thumbs) {
-            thumbs.buttons.front = new _.button(x, y, w, h, thumbImages.Front, function () {coverSwitch(0);}, 'Front');
+            thumbs.buttons.front = new _.button(x, y, w, h, thumb_imgs.Front, function () {coverSwitch(0);}, 'Front');
 
             x += (vertical ? 0 : (w + p));
             y += (vertical ? (w + p) : 0);
-            thumbs.buttons.back = new _.button(x, y, w, h, thumbImages.Back, function () {coverSwitch(1);}, 'Back');
+            thumbs.buttons.back = new _.button(x, y, w, h, thumb_imgs.Back, function () {coverSwitch(1);}, 'Back');
 
             x += (vertical ? 0 : (w + p));
             y += (vertical ? (w + p) : 0);
-            thumbs.buttons.cd = new _.button(x, y, w, h, thumbImages.CD, function () {coverSwitch(2);}, 'CD');
+            thumbs.buttons.cd = new _.button(x, y, w, h, thumb_imgs.CD, function () {coverSwitch(2);}, 'CD');
 
             x += (vertical ? 0 : (w + p));
             y += (vertical ? (w + p) : 0);
-            thumbs.buttons.artist = new _.button(x, y, w, h, thumbImages.Artist, function () {coverSwitch(3);}, 'Artist');
+            thumbs.buttons.artist = new _.button(x, y, w, h, thumb_imgs.Artist, function () {coverSwitch(3);}, 'Artist');
         }
     }
 
-    function fillThumbImage(btn, art) {
+    function fill_thumb_image(btn, art) {
         var imgArr =
             {
-                normal: createThumbImage(btn.w, btn.h, art, 0, btn.tiptext),
-                hover: createThumbImage(btn.w, btn.h, art, 1, btn.tiptext),
-                pressed: createThumbImage(btn.w, btn.h, art, 2, btn.tiptext)
+                normal:  create_thumb_image(btn.w, btn.h, art, 0, btn.tiptext),
+                hover:   create_thumb_image(btn.w, btn.h, art, 1, btn.tiptext),
+                pressed: create_thumb_image(btn.w, btn.h, art, 2, btn.tiptext)
             };
         btn.set_image(imgArr);
     }
 
-    function createDefaultThumbImages() {
+    function create_default_thumb_images() {
         var btn =
             {
-                Front: {
+                Front:  {
                     text: 'Front'
                 },
-                Back: {
+                Back:   {
                     text: 'Back'
                 },
-                CD: {
+                CD:     {
                     text: 'CD'
                 },
                 Artist: {
@@ -726,24 +737,24 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
                 }
             };
 
-        thumbImages = [];
+        thumb_imgs = [];
         _.forEach(btn, function (item, i) {
             var stateImages = []; //0=normal, 1=hover, 2=down;
 
             for (var s = 0; s <= 2; s++) {
-                stateImages[s] = createThumbImage(g_properties.thumb_size, g_properties.thumb_size, 0, s, item.text);
+                stateImages[s] = create_thumb_image(g_properties.thumb_size, g_properties.thumb_size, 0, s, item.text);
             }
 
-            thumbImages[i] =
+            thumb_imgs[i] =
                 {
-                    normal: stateImages[0],
-                    hover: stateImages[1],
+                    normal:  stateImages[0],
+                    hover:   stateImages[1],
                     pressed: stateImages[2]
                 };
         });
     }
 
-    function createThumbImage(bw, bh, art, state, btnText) {
+    function create_thumb_image(bw, bh, art, state, btnText) {
         var w = bw,
             h = bh;
 
@@ -751,9 +762,9 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
         var g = img.GetGraphics();
         g.SetSmoothingMode(SmoothingMode.HighQuality);
         g.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
-        
-        if (art && art[3]) {
-            g.DrawImage(art[3], 2, 2, w - 4, h - 4, 0, 0, art[3].Width, art[3].Height, 0, 230);
+
+        if (art && art.thumb_img) {
+            g.DrawImage(art.thumb_img, 2, 2, w - 4, h - 4, 0, 0, art.thumb_img.Width, art.thumb_img.Height, 0, 230);
 
         }
         else {
@@ -764,7 +775,7 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
 
         switch (state) {//0=normal, 1=hover, 2=down;
             case 0:
-                g.DrawRect(0, 0, w - 1, h - 1, 1, frameColor);
+                g.DrawRect(0, 0, w - 1, h - 1, 1, frame_color);
                 break;
             case 1:
                 g.DrawRect(0, 0, w - 1, h - 1, 1, _.RGB(170, 172, 174));
@@ -779,8 +790,8 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
     }
 
     function on_thumb_position_change() {
-        recalculateThumbPosition();
-        recalculateArtPosition();
+        reposition_thumbs();
+        reposition_art();
         that.repaint();
     }
 
@@ -798,58 +809,60 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
 
     var artType =
         {
-            front: 0,
-            back: 1,
-            cd: 2,
+            front:  0,
+            back:   1,
+            cd:     2,
             artist: 3,
 
             defaultVal: 0,
-            firstVal: 0,
-            lastVal: 3
+            firstVal:   0,
+            lastVal:    3
         };
 
-    var display =
+    var track_modes =
         {
-            auto: 1,
-            playing: 2,
+            auto:     1,
+            playing:  2,
             selected: 3
         };
 
     var pos =
         {
-            left: 1,
-            top: 2,
-            right: 3,
+            left:   1,
+            top:    2,
+            right:  3,
             bottom: 4
         };
+
+    var border_size = 2;
 
     var features = features_arg || [];
     var feature_border = _.includes(features, 'borders');
     var feature_thumbs = _.includes(features, 'thumbs');
     var feature_cycle = _.includes(features, 'auto_cycle');
-    var frameColor = panelsLineColor;
-    var track_mode = g_properties.track_mode;
+    var frame_color = panelsLineColor;
 
     var oldAlbum;
     var currentAlbum;
-    var albumTimer;
+    var albumTimer = null;
 
-    var artX = 0;
-    var artY = 0;
-    var artW = 0;
-    var artH = 0;
+    var art_x = 0;
+    var art_y = 0;
+    var art_w = 0;
+    var art_h = 0;
 
-    var curArtId = artType.defaultVal;
-    var artArr = [];
+    var cur_art_id = artType.defaultVal;
+    var art_arr = [];
 
-    var contextMenu = [];
+    var context_menu = [];
 
-    var isPhotoshopAvailable;
+    var has_photoshop;
 
     var thumbs;
-    var thumbImages = [];
+    var thumb_imgs = [];
 
-    var cycleTimerStarted = false;
+    /** @type {null|number} */
+    var cycle_timer = null;
 
     if (feature_thumbs) {
         g_properties.add_properties(
@@ -862,13 +875,13 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
             }
         );
         g_properties.track_mode = Math.max(1, Math.min(3, g_properties.thumb_position));
-        createDefaultThumbImages();
+        create_default_thumb_images();
     }
 
     if (feature_cycle) {
         g_properties.add_properties({
                 enable_cycle:   ['user.cycle.enable', false],
-                cycle_interval: ['user.cycle.interval', JSON.stringify([10000,622])]
+                cycle_interval: ['user.cycle.interval', JSON.stringify([10000, 622])]
             }
         );
     }
@@ -876,9 +889,9 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
     (function () {
         try {
             WshShell.RegRead("HKEY_CURRENT_USER\\Software\\Adobe\\Photoshop\\");
-            isPhotoshopAvailable = true;
+            has_photoshop = true;
         } catch (e) {
-            isPhotoshopAvailable = false;
+            has_photoshop = false;
         }
     })();
 }

@@ -29,7 +29,7 @@ function on_size() {
     wh = window.Height;
 
     artModule.on_size(g_properties.panel_pad, g_properties.panel_pad, ww - 2 * g_properties.panel_pad, wh - 2 * g_properties.panel_pad);
-    artModule.getAlbumArt();
+    artModule.get_album_art();
 }
 
 function on_get_album_art_done(metadb, art_id, image, image_path) {
@@ -96,7 +96,7 @@ function on_key_down(vkey) {
             break;
         }
         case VK_F5: {
-            artModule.reloadArt();
+            artModule.reload_art();
             break;
         }
     }
@@ -105,7 +105,7 @@ function on_key_down(vkey) {
 function on_mouse_rbtn_up(x, y) {
     var cpm = window.CreatePopupMenu();
 
-    artModule.appendMenu(cpm);
+    artModule.append_menu(cpm);
 
     if (utils.IsKeyPressed(VK_SHIFT)) {
         _.appendDefaultContextMenu(cpm);
@@ -113,7 +113,7 @@ function on_mouse_rbtn_up(x, y) {
 
     var id = cpm.TrackPopupMenu(x, y);
 
-    if (!artModule.executeMenu(id)) {
+    if (!artModule.execute_menu(id)) {
         switch (id) {
             default:
                 _.executeDefaultContextMenu(id, scriptFolder + 'Panel_Cover.js');
