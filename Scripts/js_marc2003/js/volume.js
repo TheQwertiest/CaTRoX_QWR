@@ -56,7 +56,7 @@ _.mixin({
                     if (this.show_tt) {
                         this.tt.showDelayed("Volume");
                     }
-                    alpha_timer.start(this);
+                    alpha_timer.start();
                 }
 
                 return true;
@@ -66,7 +66,7 @@ _.mixin({
                     this.tt.clear();
 
                     this.hover = false;
-                    alpha_timer.start(this);
+                    alpha_timer.start();
                 }
                 this.drag = false;
 
@@ -104,7 +104,7 @@ _.mixin({
 
             if (this.hover) {
                 this.hover = false;
-                alpha_timer.start(this);
+                alpha_timer.start();
             }
             this.tt.clear();
             this.drag = false;
@@ -127,40 +127,41 @@ _.mixin({
         this.show_tt = false;
         this.tt = new _.tt_handler;
 
-        var alpha_timer = _.volume.alpha_timer;
+        var that = this;
+
+        var alpha_timer = new function()
+        {
+            var alpha_timer_internal = undefined;
+
+            this.start = function() {
+                var buttonHoverInStep = 50,
+                    buttonHoverOutStep = 15;
+
+                if (!alpha_timer_internal) {
+                    alpha_timer_internal = setInterval(_.bind(function () {
+                        if (!that.hover) {
+                            that.hover_alpha = Math.max(0, that.hover_alpha -= buttonHoverOutStep);
+                            that.repaint();
+                        }
+                        else {
+                            that.hover_alpha = Math.min(255, that.hover_alpha += buttonHoverInStep);
+                            that.repaint();
+                        }
+
+                        if (that.hover_alpha === 0 || that.hover_alpha === 255) {
+                            this.stop();
+                        }
+                    },this), 25);
+                }
+            };
+
+            this.stop = function() {
+                if (alpha_timer_internal) {
+                    clearInterval(alpha_timer_internal);
+                    alpha_timer_internal = null
+                }
+            };
+        };
     }
 });
 
-_.volume.alpha_timer = new function()
-{
-    var alpha_timer = undefined;
-
-    this.start = function(caller) {
-        var buttonHoverInStep = 50,
-            buttonHoverOutStep = 15;
-
-        if (!alpha_timer) {
-            alpha_timer = setInterval(_.bind(function () {
-                if (!caller.hover) {
-                    caller.hover_alpha = Math.max(0, caller.hover_alpha -= buttonHoverOutStep);
-                    caller.repaint();
-                }
-                else {
-                    caller.hover_alpha = Math.min(255, caller.hover_alpha += buttonHoverInStep);
-                    caller.repaint();
-                }
-
-                if (caller.hover_alpha === 0 || caller.hover_alpha === 255) {
-                    this.stop();
-                }
-            },this), 25);
-        }
-    };
-
-    this.stop = function() {
-        if (alpha_timer) {
-            clearInterval(alpha_timer);
-            alpha_timer = null
-        }
-    };
-};

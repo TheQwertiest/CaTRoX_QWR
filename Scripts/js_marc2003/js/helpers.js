@@ -144,7 +144,7 @@ _.mixin({
             if (this.btn) {// Return prev button to normal state
                 this.buttons[this.btn].cs("normal");
 
-                alpha_timer.start(this);
+                alpha_timer.start();
             }
 
             if (temp_btn) {// Select current button
@@ -152,7 +152,7 @@ _.mixin({
                 if (this.show_tt) {
                     this.buttons[temp_btn].tt.showDelayed(this.buttons[temp_btn].tiptext);
                 }
-                alpha_timer.start(this);
+                alpha_timer.start();
             }
 
             this.btn = temp_btn;
@@ -163,7 +163,7 @@ _.mixin({
             if (this.btn) {
                 this.buttons[this.btn].cs("normal");
                 if (!this.buttons[this.btn].hide) {
-                    alpha_timer.start(this);
+                    alpha_timer.start();
                 }
             }
             this.btn = null;
@@ -203,7 +203,61 @@ _.mixin({
 
         this.show_tt = false;
 
-        var alpha_timer = _.buttons.alpha_timer;
+        var that = this;
+        var alpha_timer = new function () {
+            var alpha_timer_internal;
+
+            this.start = function () {
+                var buttonHoverInStep = 50,
+                    buttonHoverOutStep = 15,
+                    buttonDownInStep = 100,
+                    buttonDownOutStep = 50;
+
+                if (!alpha_timer_internal) {
+                    alpha_timer_internal = window.SetInterval(_.bind(function () {
+                        _.forEach(that.buttons, function (item) {
+                            switch (item.state) {
+                                case "normal":
+                                    item.hover_alpha = Math.max(0, item.hover_alpha -= buttonHoverOutStep);
+                                    item.repaint();
+                                    break;
+                                case "hover":
+                                case "pressed":
+                                    item.hover_alpha = Math.min(255, item.hover_alpha += buttonHoverInStep);
+                                    item.repaint();
+                                    break;
+                            }
+                        });
+
+                        var testAlpha = 0,
+                            currentAlphaIsFull = false,
+                            alphaIsZero = true;
+
+                        _.forEach(that.buttons, function (item) {
+                            //---> Test button alpha values and turn button timer off when it's not required;
+                            if (item.hover_alpha === 255) {
+                                currentAlphaIsFull = true;
+                            }
+                            else {
+                                alphaIsZero = (testAlpha += item.hover_alpha) === 0;
+                            }
+                        });
+
+                        if ((alphaIsZero && currentAlphaIsFull) || alphaIsZero) {
+                            this.stop();
+                        }
+
+                    }, this), 25);
+                }
+            };
+
+            this.stop = function () {
+                if (alpha_timer_internal) {
+                    window.ClearInterval(alpha_timer_internal);
+                    alpha_timer_internal = null;
+                }
+            };
+        };
     },
     cc:                        function (name) {
         return utils.CheckComponent(name, true);
@@ -854,61 +908,6 @@ _.tt_handler.tt_timer = new function () {
         if (tooltip_timer) {
             window.ClearInterval(tooltip_timer);
             tooltip_timer = null;
-        }
-    };
-};
-
-_.buttons.alpha_timer = new function () {
-    var alpha_timer;
-
-    this.start = function (caller) {
-        var buttonHoverInStep = 50,
-            buttonHoverOutStep = 15,
-            buttonDownInStep = 100,
-            buttonDownOutStep = 50;
-
-        if (!alpha_timer) {
-            alpha_timer = window.SetInterval(_.bind(function () {
-                _.forEach(caller.buttons, function (item) {
-                    switch (item.state) {
-                        case "normal":
-                            item.hover_alpha = Math.max(0, item.hover_alpha -= buttonHoverOutStep);
-                            item.repaint();
-                            break;
-                        case "hover":
-                        case "pressed":
-                            item.hover_alpha = Math.min(255, item.hover_alpha += buttonHoverInStep);
-                            item.repaint();
-                            break;
-                    }
-                });
-
-                var testAlpha = 0,
-                    currentAlphaIsFull = false,
-                    alphaIsZero = true;
-
-                _.forEach(caller.buttons, function (item) {
-                    //---> Test button alpha values and turn button timer off when it's not required;
-                    if (item.hover_alpha === 255) {
-                        currentAlphaIsFull = true;
-                    }
-                    else {
-                        alphaIsZero = (testAlpha += item.hover_alpha) === 0;
-                    }
-                });
-
-                if ((alphaIsZero && currentAlphaIsFull) || alphaIsZero) {
-                    this.stop();
-                }
-
-            }, this), 25);
-        }
-    };
-
-    this.stop = function () {
-        if (alpha_timer) {
-            window.ClearInterval(alpha_timer);
-            alpha_timer = null;
         }
     };
 };
