@@ -470,12 +470,12 @@ function Playlist(x, y) {
             selection_handler.sync_items_with_selection();
         }
 
+        this.repaint();
+
         if (g_properties.show_playlist_info && playlist_info.trace(x, y)) {
             playlist_info.on_mouse_lbtn_down(x, y, m);
             mouse_down = false;
         }
-
-        this.repaint();
     };
 
     this.on_mouse_lbtn_dblclk = function (x, y, m) {
@@ -570,10 +570,9 @@ function Playlist(x, y) {
         if (!item) {
             selection_handler.clear_selection();
             selection_handler.sync_items_with_selection();
-            return;
-        }
 
-        if (!item.is_selected_dynamic()) {
+        }
+        else if (!item.is_selected_dynamic()) {
             selection_handler.update_selection(item);
             selection_handler.sync_items_with_selection();
         }
@@ -1440,7 +1439,6 @@ function Playlist(x, y) {
 
     this.on_playlists_changed = function () {
         if (plman.ActivePlaylist > plman.PlaylistCount
-            || plman.ActivePlaylist === (-1 >>> 0)
             || plman.ActivePlaylist === -1) {
             plman.ActivePlaylist = plman.PlaylistCount - 1;
         }
@@ -2309,7 +2307,7 @@ function Playlist(x, y) {
     var playlist_info = new PlaylistInfo(0, 0, 0, 24);
 
     // Workaround for bug: PlayingPlaylist is equal to -1 on startup
-    if (plman.PlayingPlaylist === (-1 >>> 0)) {
+    if (plman.PlayingPlaylist === -1) {
         plman.PlayingPlaylist = plman.ActivePlaylist;
     }
     this.initialize_list();
@@ -3129,7 +3127,7 @@ function Rating(x, y, w, h, metadb) {
                 /*
                 var file_info = this.metadb.GetFileInfo();
                 var rating_meta_idx = file_info.MetaFind('RATING');
-                if (rating_meta_idx === (-1 >>> 0)){
+                if (rating_meta_idx === -1)){
                     file_info.MetaAdd('RATING',(current_rating === new_rating) ? undefined : new_rating );
                 }
                 else {
@@ -3158,7 +3156,7 @@ function Rating(x, y, w, h, metadb) {
             if (g_properties.use_rating_from_tags) {
                 var file_info = this.metadb.GetFileInfo();
                 var rating_meta_idx = file_info.MetaFind('RATING');
-                current_rating = rating_meta_idx !== (-1 >>> 0) ? file_info.MetaValue(rating_meta_idx, 0) : 0;
+                current_rating = rating_meta_idx !== -1 ? file_info.MetaValue(rating_meta_idx, 0) : 0;
             }
             else {
                 current_rating = _.tf('%rating%', this.metadb);
