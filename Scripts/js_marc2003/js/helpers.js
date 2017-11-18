@@ -713,7 +713,7 @@ _.mixin({
     },
     runCmd:                    function (command, wait) {
         try {
-            WshShell.Run(command, 0, wait);
+            WshShell.Run(command, 0, !_.isNil(wait) ? wait : false);
         } catch (e) {
         }
     },

@@ -196,7 +196,7 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
             return;
         }
 
-        _.run('\"' + art_arr[cur_art_id].path + '\"');
+        _.run(art_arr[cur_art_id].path);
     };
     this.mouse_lbtn_up = function (x, y, m) {
         if (feature_thumbs) {
@@ -483,13 +483,13 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
                     this.reload_art();
                     break;
                 case 633:
-                    _.run('\"' + art_arr[cur_art_id].path + '\"');
+                    _.run(art_arr[cur_art_id].path);
                     break;
                 case 634:
-                    _.run('Photoshop ' + '\"' + art_arr[cur_art_id].path + '\"');
+                    _.runCmd('Photoshop ' + '\"' + art_arr[cur_art_id].path + '\"');
                     break;
                 case 635:
-                    _.run('explorer /select,' + '\"' + art_arr[cur_art_id].path + '\"');
+                    _.explorer(art_arr[cur_art_id].path);
                     break;
                 case 636:
                     this.reload_art();

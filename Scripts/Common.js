@@ -238,8 +238,8 @@ var qwr_utils = {
         }
     },
     run_notepad: function (script_name) {
-        if (!_.run('notepad++.exe ' + scriptFolder + script_name)) {
-            _.run('notepad.exe ' + scriptFolder + script_name);
+        if (!_.runCmd('notepad++.exe ' + scriptFolder + script_name)) {
+            _.runCmd('notepad.exe ' + scriptFolder + script_name);
         }
     },
     check_fonts: function (fonts) {
