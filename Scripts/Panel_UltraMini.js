@@ -128,7 +128,7 @@ function on_size() {
     volumeBar = new _.volume(rightBtnX, volumebarY, Math.min(ww - rightBtnX - 4, 60), volumebarH);
 
     artModule.on_size(g_properties.art_pad, g_properties.art_pad, ww - 2 * g_properties.art_pad, wh - 2 * g_properties.art_pad);
-    artModule.getAlbumArt();
+    artModule.get_album_art();
 }
 
 function on_get_album_art_done(metadb, art_id, image, image_path) {
@@ -282,7 +282,7 @@ function on_volume_change(val) {
 
 function on_key_down(vkey) {
     if (vkey === VK_F5) {
-        artModule.reloadArt();
+        artModule.reload_art();
     }
 }
 
@@ -299,7 +299,7 @@ function on_mouse_rbtn_up(x, y) {
 
     switch (id) {
         case 36:
-            artModule.reloadArt();
+            artModule.reload_art();
             break;
         default:
             _.executeDefaultContextMenu(id, scriptFolder + 'Panel_UltraMini.js');
