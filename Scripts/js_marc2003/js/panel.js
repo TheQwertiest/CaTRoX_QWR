@@ -87,10 +87,8 @@ _.mixin({
 			this.fonts.normal = _.gdiFont(name, this.fonts.size.value);
 			this.fonts.fixed = _.gdiFont('Lucida Console', this.fonts.size.value);
 			this.row_height = this.fonts.normal.Height;
-			_.forEach(this.list_objects, function (item) {
-				item.size();
-				item.update();
-			});
+			_.invoke(this.list_objects, 'size');
+			_.invoke(this.list_objects, 'update');
 			_.invoke(this.text_objects, 'size');
 		}
 		
@@ -126,7 +124,7 @@ _.mixin({
 			this.s11 = window.CreatePopupMenu();
 			this.s12 = window.CreatePopupMenu();
 			this.s13 = window.CreatePopupMenu();
-            this.s14 = window.CreatePopupMenu();
+			this.s14 = window.CreatePopupMenu();
 			// panel 1-999
 			// album art 2000-2999
 			// list 3000-3999
@@ -212,12 +210,6 @@ _.mixin({
                         }
 		}
 		
-		this.new_artist_folder = function (t) {
-			var folder = folders.artists + _.fbSanitise(t);
-			_.createFolder(folder);
-			return fso.GetFolder(folder) + "\\";
-		}
-		
                 window.DlgCode = DLGC_WANTALLKEYS;
 		console.pre = name + ': ';
                 this.name = name;
@@ -233,7 +225,6 @@ _.mixin({
 		if (this.metadb_func) {
 			this.selection = new _.p('2K3.PANEL.SELECTION', 0);
 		}
-		this.artist_tf = DEFAULT_ARTIST;
 		if (this.check_feature('custom_background')) {
 			this.colours.mode = new _.p('2K3.PANEL.COLOURS.MODE', 0);
 			this.colours.custom_background = new _.p('2K3.PANEL.COLOURS.CUSTOM.BACKGROUND', _.RGB(0, 0, 0));

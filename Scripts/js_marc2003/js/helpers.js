@@ -502,7 +502,7 @@ _.mixin({
         var t = title.replace(/"/g, _.q(' + Chr(34) + '));
         var v = value.replace(/"/g, _.q(' + Chr(34) + '));
         var tmp = vb.eval('InputBox(' + _.q(p) + ', ' + _.q(t) + ', ' + _.q(v) + ')');
-        return _.isUndefined(tmp) ? value : _.trim(tmp);
+        return _.isString(tmp) ? tmp.trim() : value;
     },
     isFile:                    function (file) {
         return _.isString(file) ? fso.FileExists(file) : false;
@@ -796,7 +796,7 @@ _.mixin({
         doc.open();
         var div = doc.createElement('div');
         div.innerHTML = value.toString().replace(/<[Pp][^>]*>/g, '').replace(/<\/[Pp]>/g, '<br>').replace(/\n/g, '<br>');
-        var tmp = _.trim(div.innerText);
+        var tmp = div.innerText.trim();
         doc.close();
         return tmp;
     },
