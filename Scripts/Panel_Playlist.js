@@ -1139,13 +1139,22 @@ function Playlist(x, y) {
                 var header = focused_item.header;
                 var new_focus_idx;
                 if (header.is_collapsed) {
+                    selection_handler.update_selection(header, null, shift_pressed);
                     new_focus_idx = _.last(headers[Math.max(0, focused_item.header.idx - 1)].rows).idx;
                 }
                 else {
                     new_focus_idx = Math.max(0, focused_item.idx - 1);
+
                 }
 
-                selection_handler.update_selection(rows[new_focus_idx], null, shift_pressed);
+                var new_focus_item = rows[new_focus_idx];
+                if (new_focus_item.header.is_collapsed) {
+                    selection_handler.update_selection(new_focus_item.header, null, shift_pressed);
+                }
+                else {
+                    selection_handler.update_selection(new_focus_item, null, shift_pressed);
+                }
+
                 selection_handler.sync_items_with_selection();
 
                 break;
@@ -1154,29 +1163,36 @@ function Playlist(x, y) {
                 var header = focused_item.header;
                 var new_focus_idx;
                 if (header.is_collapsed) {
+                    selection_handler.update_selection(header, null, shift_pressed);
                     new_focus_idx = _.head(headers[Math.min(headers.length - 1, focused_item.header.idx + 1)].rows).idx;
                 }
                 else {
                     new_focus_idx = Math.min(rows.length - 1, focused_item.idx + 1);
                 }
 
-                selection_handler.update_selection(rows[new_focus_idx], null, shift_pressed);
+                var new_focus_item = rows[new_focus_idx];
+                if (new_focus_item.header.is_collapsed) {
+                    selection_handler.update_selection(new_focus_item.header, null, shift_pressed);
+                }
+                else {
+                    selection_handler.update_selection(new_focus_item, null, shift_pressed);
+                }
+
                 selection_handler.sync_items_with_selection();
 
                 break;
             }
             case VK_LEFT: {
-                if ( g_properties.show_header ){
+                if ( !g_properties.show_header || !focused_item ){
                     break;
                 }
 
-                var header = focused_item.header;
-                collapse_handler.collapse(header);
+                collapse_handler.collapse(focused_item.header);
 
                 break;
             }
             case VK_RIGHT: {
-                if ( g_properties.show_header ){
+                if ( !g_properties.show_header || !focused_item ){
                     break;
                 }
 
@@ -1186,7 +1202,6 @@ function Playlist(x, y) {
                     var new_focus_item = _.head(header.rows);
                     scroll_to_row(focused_item, new_focus_item);
 
-                    plman.SetPlaylistFocusItem(cur_playlist_idx, new_focus_item.idx);
                     selection_handler.update_selection(new_focus_item, null, null);
                     selection_handler.sync_items_with_selection();
                 }
@@ -1216,7 +1231,17 @@ function Playlist(x, y) {
                     new_focus_item = _.head(items_to_draw);
                 }
 
-                selection_handler.update_selection(new_focus_item, null, shift_pressed);
+                if (focused_item.header.is_collapsed) {
+                    selection_handler.update_selection(focused_item.header, null, shift_pressed);
+                }
+
+                if (new_focus_item.header.is_collapsed) {
+                    selection_handler.update_selection(new_focus_item.header, null, shift_pressed);
+                }
+                else {
+                    selection_handler.update_selection(new_focus_item, null, shift_pressed);
+                }
+
                 selection_handler.sync_items_with_selection();
 
                 break;
@@ -1244,21 +1269,52 @@ function Playlist(x, y) {
                     new_focus_item = _.last(items_to_draw);
                 }
 
-                selection_handler.update_selection(new_focus_item, null, shift_pressed);
+                if (focused_item.header.is_collapsed) {
+                    selection_handler.update_selection(focused_item.header, null, shift_pressed);
+                }
+
+                if (new_focus_item.header.is_collapsed) {
+                    selection_handler.update_selection(new_focus_item.header, null, shift_pressed);
+                }
+                else {
+                    selection_handler.update_selection(new_focus_item, null, shift_pressed);
+                }
+
                 selection_handler.sync_items_with_selection();
 
                 break;
             }
             case VK_HOME: {
-                var new_focus_idx = 0;
-                selection_handler.update_selection(rows[new_focus_idx], null, shift_pressed);
+                // TODO: Move to selection_handler
+                if (focused_item.header.is_collapsed) {
+                    selection_handler.update_selection(focused_item.header, null, shift_pressed);
+                }
+
+                var new_focus_item = _.head(rows);
+                if (new_focus_item.is_collapsed) {
+                    selection_handler.update_selection(new_focus_item.header, null, shift_pressed);
+                }
+                else {
+                    selection_handler.update_selection(new_focus_item, null, shift_pressed);
+                }
+
                 selection_handler.sync_items_with_selection();
 
                 break;
             }
             case VK_END: {
-                var new_focus_idx = _.last(rows).idx;
-                selection_handler.update_selection(rows[new_focus_idx], null, shift_pressed);
+                if (focused_item.header.is_collapsed) {
+                    selection_handler.update_selection(focused_item.header, null, shift_pressed);
+                }
+
+                var new_focus_item = _.last(rows);
+                if (new_focus_item.is_collapsed) {
+                    selection_handler.update_selection(new_focus_item.header, null, shift_pressed);
+                }
+                else {
+                    selection_handler.update_selection(new_focus_item, null, shift_pressed);
+                }
+
                 selection_handler.sync_items_with_selection();
 
                 break;
