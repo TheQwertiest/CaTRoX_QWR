@@ -11,6 +11,7 @@ var trace_on_move = false;
 // TODO: Add item grouping per playlists
 // TODO: consider making registration for on_key handlers
 // TODO: research the source of hangs with big art image loading (JScript? fb2k?)
+// TODO: fix drop after drag scrolling: stop clears last hover item
 g_properties.add_properties(
     {
         list_left_pad:   ['user.list.pad.left', 0],
@@ -549,7 +550,7 @@ function Playlist(x, y) {
             var shift_pressed = utils.IsKeyPressed(VK_SHIFT);
             var item = get_item_under_mouse(x, y);
             if (item) {
-                selection_handler.update_selection(get_item_under_mouse(x, y), ctrl_pressed, shift_pressed);
+                selection_handler.update_selection(item, ctrl_pressed, shift_pressed);
                 selection_handler.sync_items_with_selection();
             }
         }
@@ -3040,8 +3041,7 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
 
     this.is_selected_dynamic = function () {
         if (g_properties.is_selection_dynamic) {
-            // TODO: remove if it's ever fixed in JScript
-            return !!plman.IsPlaylistItemSelected(cur_playlist_idx, this.idx);
+            return plman.IsPlaylistItemSelected(cur_playlist_idx, this.idx);
         }
         return this.is_selected_static;
     };
@@ -3224,11 +3224,10 @@ function SelectionHandler(rows_arg, headers_arg, cur_playlist_idx_arg) {
             return;
         }
 
-        selected_indexes = _.range(_.head(rows).idx, _.last(rows).idx);
+        selected_indexes = _.range(_.head(rows).idx, _.last(rows).idx + 1);
         last_single_selected_index = _.head(rows).idx;
 
         plman.SetPlaylistSelection(cur_playlist_idx, selected_indexes, true);
-        plman.SetPlaylistFocusItem(cur_playlist_idx, last_single_selected_index);
     };
 
     this.clear_selection = function () {
@@ -3403,27 +3402,27 @@ function SelectionHandler(rows_arg, headers_arg, cur_playlist_idx_arg) {
         if (is_contiguous) {
             var focus_idx = plman.GetPlaylistFocusItemIndex(cur_playlist_idx);
             var move_delta;
-            if (drop_idx > focus_idx) {
-                move_delta = drop_idx - _.last(selected_indexes) - 1;
+            if (drop_idx < focus_idx) {
+                move_delta = - (_.head(selected_indexes) - drop_idx);
             }
             else {
-                move_delta = drop_idx - _.head(selected_indexes);
+                move_delta = - (_.last(selected_indexes) - drop_idx + 1);
             }
 
             plman.MovePlaylistSelection(cur_playlist_idx, move_delta);
         }
         else {
-            // TODO: metadb is not unique, might cause problems, if playlist contains multiple copies of the same item
-            var saved_focus_metadb = rows[plman.GetPlaylistFocusItemIndex(cur_playlist_idx)].metadb;
-            // Move to end
+            var item_count_before_drop_idx = 0;
+            _.forEach(selected_indexes, function (idx) {
+                if (idx > drop_idx) {
+                    return false;
+                }
+                ++item_count_before_drop_idx;
+            });
+            move_delta = - (plman.PlaylistItemCount(cur_playlist_idx) - selected_indexes.length - (drop_idx - item_count_before_drop_idx));
+
+            // Move to the end to make it contiguous, then back to drop_idx
             plman.MovePlaylistSelection(cur_playlist_idx, plman.PlaylistItemCount(cur_playlist_idx));
-            // Get new drop position
-            plman.SetPlaylistFocusItemByHandle(cur_playlist_idx, rows[drop_idx].metadb);
-            var new_drop_idx = plman.GetPlaylistFocusItemIndex(cur_playlist_idx);
-
-            plman.SetPlaylistFocusItemByHandle(cur_playlist_idx, saved_focus_metadb);
-
-            var move_delta = new_drop_idx - ( rows.length - selected_indexes.length );
             plman.MovePlaylistSelection(cur_playlist_idx, move_delta);
         }
     };
