@@ -183,14 +183,14 @@ function createButtonImages()
         },
         VideoShow:
         {
-            ico: g_guifx.right,
+            ico: g_guifx.right3,
             font: fontGuifx,
             w: 30,
             h: 30
         },
         VideoHide:
         {
-            ico: g_guifx.right,
+            ico: g_guifx.right3,
             font: fontGuifx,
             w: 30,
             h: 30,
