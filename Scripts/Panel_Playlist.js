@@ -10,6 +10,7 @@ var trace_on_move = false;
 
 // TODO: Add item grouping per playlists
 // TODO: consider making registration for on_key handlers
+// TODO: research the source of hangs with big art image loading (JScript? fb2k?)
 g_properties.add_properties(
     {
         list_left_pad:   ['user.list.pad.left', 0],
@@ -404,7 +405,7 @@ function Playlist(x, y) {
                 var row = drop_info.row;
 
                 if (drag_scroll_in_progress) {
-                    if (!row || row === last_hover_item || (y >= (list_y + row_h * 2) && y <= (list_y + list_h - row_h * 2))) {
+                    if (!row || (y >= (list_y + row_h * 2) && y <= (list_y + list_h - row_h * 2))) {
                         stop_drag_scroll();
                     }
                 }
@@ -421,7 +422,7 @@ function Playlist(x, y) {
                             selection_handler.drag(null, null);
                             start_drag_scroll('up');
                         }
-                        if (y > (list_y + list_h - row_h) && !scrollbar.is_scrolled_down) {
+                        if (y > (list_y + list_h - row_h*2) && !scrollbar.is_scrolled_down) {
                             selection_handler.drag(null, null);
                             start_drag_scroll('down');
                         }
@@ -2147,82 +2148,83 @@ function Playlist(x, y) {
     }
 
     function start_drag_scroll(key) {
-        if (_.isNil(drag_scroll_timeout_timer)) {
+        if (!drag_scroll_timeout_timer) {
             drag_scroll_timeout_timer = setTimeout(function () {
-                drag_scroll_repeat_timer = setInterval(function () {
-                    if (!scrollbar.in_sbar && !selection_handler.is_dragging) {
-                        return;
-                    }
-
-                    drag_scroll_in_progress = true;
-
-                    if (last_marked_item) {
-                        last_marked_item.is_drop_top_selected = false;
-                        last_marked_item.is_drop_bottom_selected = false;
-                        last_marked_item.is_drop_boundary_reached = false;
-                    }
-
-                    var cur_marked_item;
-                    if (key === 'up') {
-                        scrollbar.shift_line(-1);
-
-                        cur_marked_item = _.head(items_to_draw);
-                        if (cur_marked_item.type === 'Header') {
-                            collapse_handler.expand(cur_marked_item);
-                            if (collapse_handler.changed) {
-                                scrollbar.scroll_to(scroll_pos + cur_marked_item.rows.length);
-                            }
-
-                            cur_marked_item = _.head(cur_marked_item.rows);
+                if (!drag_scroll_repeat_timer) {
+                    drag_scroll_repeat_timer = setInterval(function () {
+                        if (!scrollbar.in_sbar && !selection_handler.is_dragging || !drag_scroll_timeout_timer) {
+                            return;
                         }
 
-                        last_marked_item = cur_marked_item;
-                        last_marked_item.is_drop_top_selected = true;
-                        last_marked_item.is_drop_boundary_reached = true;
-                    }
-                    else if (key === 'down') {
-                        scrollbar.shift_line(1);
+                        drag_scroll_in_progress = true;
 
-                        cur_marked_item = _.last(items_to_draw);
-                        if (cur_marked_item.type === 'Header') {
-                            collapse_handler.expand(cur_marked_item);
-                            if (collapse_handler.changed) {
-                                that.repaint();
-                            }
-
-                            cur_marked_item = _.last(headers[cur_marked_item.idx - 1].rows);
+                        if (last_marked_item) {
+                            last_marked_item.is_drop_top_selected = false;
+                            last_marked_item.is_drop_bottom_selected = false;
+                            last_marked_item.is_drop_boundary_reached = false;
                         }
 
-                        last_marked_item = cur_marked_item;
-                        last_marked_item.is_drop_bottom_selected = true;
-                        last_marked_item.is_drop_boundary_reached = true;
-                    }
-                    else {
-                        throw Error('Argument error:\nUnknown drag scroll command: ' + key.toString());
-                    }
+                        var cur_marked_item;
+                        if (key === 'up') {
+                            scrollbar.shift_line(-1);
 
-                    if (last_marked_item) {
-                        last_marked_item.repaint();
-                    }
+                            cur_marked_item = _.head(items_to_draw);
+                            if (cur_marked_item.type === 'Header') {
+                                collapse_handler.expand(cur_marked_item);
+                                if (collapse_handler.changed) {
+                                    scrollbar.scroll_to(scroll_pos + cur_marked_item.rows.length);
+                                }
 
-                    if (scrollbar.is_scrolled_down || scrollbar.is_scrolled_up) {
-                        stop_drag_scroll();
-                    }
-                }, 50);
+                                cur_marked_item = _.head(cur_marked_item.rows);
+                            }
+
+                            last_marked_item = cur_marked_item;
+                            last_marked_item.is_drop_top_selected = true;
+                            last_marked_item.is_drop_boundary_reached = true;
+                        }
+                        else if (key === 'down') {
+                            scrollbar.shift_line(1);
+
+                            cur_marked_item = _.last(items_to_draw);
+                            if (cur_marked_item.type === 'Header') {
+                                collapse_handler.expand(cur_marked_item);
+                                if (collapse_handler.changed) {
+                                    that.repaint();
+                                }
+
+                                cur_marked_item = _.last(headers[cur_marked_item.idx - 1].rows);
+                            }
+
+                            last_marked_item = cur_marked_item;
+                            last_marked_item.is_drop_bottom_selected = true;
+                            last_marked_item.is_drop_boundary_reached = true;
+                        }
+                        else {
+                            throw Error('Argument error:\nUnknown drag scroll command: ' + key.toString());
+                        }
+
+                        if (last_marked_item) {
+                            last_marked_item.repaint();
+                        }
+
+                        if (scrollbar.is_scrolled_down || scrollbar.is_scrolled_up) {
+                            stop_drag_scroll();
+                        }
+                    }, 50);
+                }
             }, 350);
         }
     }
 
     function stop_drag_scroll() {
-        if (!_.isNil(drag_scroll_timeout_timer)) {
-            clear_last_marked_item();
-            clearTimeout(drag_scroll_timeout_timer);
-        }
-        if (!_.isNil(drag_scroll_repeat_timer)) {
-            clear_last_marked_item();
+        if (drag_scroll_repeat_timer) {
             clearInterval(drag_scroll_repeat_timer);
         }
+        if (drag_scroll_timeout_timer) {
+            clearTimeout(drag_scroll_timeout_timer);
+        }
 
+        clear_last_marked_item();
         drag_scroll_timeout_timer = undefined;
         drag_scroll_repeat_timer = undefined;
 
@@ -2230,7 +2232,7 @@ function Playlist(x, y) {
     }
 
     function clear_last_marked_item() {
-        if (!_.isNil(last_marked_item)) {
+        if (last_marked_item) {
             last_marked_item.is_drop_bottom_selected = false;
             last_marked_item.is_drop_top_selected = false;
             last_marked_item.is_drop_boundary_reached = false;
