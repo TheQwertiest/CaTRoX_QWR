@@ -11,7 +11,6 @@ var trace_on_move = false;
 // TODO: Add item grouping per playlists
 // TODO: consider making registration for on_key handlers
 // TODO: research the source of hangs with big art image loading (JScript? fb2k?)
-// TODO: fix drop after drag scrolling: stop clears last hover item
 g_properties.add_properties(
     {
         list_left_pad:   ['user.list.pad.left', 0],
@@ -1423,6 +1422,8 @@ function Playlist(x, y) {
         }
 
         this.initialize_list();
+        // Needed after drag-drop, because it might cause dropped (i.e. focused) item to be outside of drawn list
+        scroll_to_focused();
         this.repaint();
     };
 
@@ -1856,6 +1857,12 @@ function Playlist(x, y) {
         }
     }
 
+    function scroll_to_focused() {
+        if (focused_item) {
+            scroll_to_row(null, focused_item);
+        }
+    }
+
     function scroll_to_now_playing() {
         if (!playing_item) {
             return;
@@ -2159,12 +2166,6 @@ function Playlist(x, y) {
 
                         drag_scroll_in_progress = true;
 
-                        if (last_marked_item) {
-                            last_marked_item.is_drop_top_selected = false;
-                            last_marked_item.is_drop_bottom_selected = false;
-                            last_marked_item.is_drop_boundary_reached = false;
-                        }
-
                         var cur_marked_item;
                         if (key === 'up') {
                             scrollbar.shift_line(-1);
@@ -2179,9 +2180,8 @@ function Playlist(x, y) {
                                 cur_marked_item = _.head(cur_marked_item.rows);
                             }
 
-                            last_marked_item = cur_marked_item;
-                            last_marked_item.is_drop_top_selected = true;
-                            last_marked_item.is_drop_boundary_reached = true;
+                            selection_handler.drag(cur_marked_item, true);
+                            cur_marked_item.is_drop_boundary_reached = true;
                         }
                         else if (key === 'down') {
                             scrollbar.shift_line(1);
@@ -2196,16 +2196,11 @@ function Playlist(x, y) {
                                 cur_marked_item = _.last(headers[cur_marked_item.idx - 1].rows);
                             }
 
-                            last_marked_item = cur_marked_item;
-                            last_marked_item.is_drop_bottom_selected = true;
-                            last_marked_item.is_drop_boundary_reached = true;
+                            selection_handler.drag(cur_marked_item, false);
+                            cur_marked_item.is_drop_boundary_reached = true;
                         }
                         else {
                             throw Error('Argument error:\nUnknown drag scroll command: ' + key.toString());
-                        }
-
-                        if (last_marked_item) {
-                            last_marked_item.repaint();
                         }
 
                         if (scrollbar.is_scrolled_down || scrollbar.is_scrolled_up) {
@@ -2225,20 +2220,10 @@ function Playlist(x, y) {
             clearTimeout(drag_scroll_timeout_timer);
         }
 
-        clear_last_marked_item();
         drag_scroll_timeout_timer = undefined;
         drag_scroll_repeat_timer = undefined;
 
         drag_scroll_in_progress = false;
-    }
-
-    function clear_last_marked_item() {
-        if (last_marked_item) {
-            last_marked_item.is_drop_bottom_selected = false;
-            last_marked_item.is_drop_top_selected = false;
-            last_marked_item.is_drop_boundary_reached = false;
-            last_marked_item.repaint();
-        }
     }
 
     // public:
