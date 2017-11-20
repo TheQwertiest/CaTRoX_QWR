@@ -27,7 +27,7 @@ var trace_on_move = false;
 g_properties.add_properties(
     {
         g_maximize_to_fullscreen: ['user.window.maximize_to_fullscreen', true],
-        show_window_shadow:       ['user.window.shadow.show', false],
+        show_window_shadow:       ['user.window.shadow.show', true],
         show_fb2k_version:        ['user.title_bar.fb2k_version.show', false],
         show_theme_version:       ['user.title_bar.theme_version.show', false],
         show_cpu_usage:           ['user.title_bar.cpu_usage.show', false],

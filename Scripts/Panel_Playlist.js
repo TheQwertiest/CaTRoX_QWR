@@ -10,6 +10,7 @@ var trace_on_move = false;
 
 // TODO: consider making registration for on_key handlers
 // TODO: research the source of hangs with big art image loading (JScript? fb2k?)
+// TODO: measure draw vs backend performance (don't forget to disable playlist in other mode before testing)
 g_properties.add_properties(
     {
         list_left_pad:   ['user.list.pad.left', 0],
@@ -3378,7 +3379,7 @@ function SelectionHandler(rows_arg, headers_arg, cur_playlist_idx_arg) {
                 move_delta = - (_.head(selected_indexes) - drop_idx);
             }
             else {
-                move_delta = - (_.last(selected_indexes) - drop_idx + 1);
+                move_delta = drop_idx - _.last(selected_indexes) + 1;
             }
 
             plman.MovePlaylistSelection(cur_playlist_idx, move_delta);
@@ -3858,7 +3859,7 @@ function GroupQueryHandler () {
         var query_name = _.isNil(saved_query_property) ? g_properties.last_used_group_query_name : saved_query_property[0];
 
         if (query_name !== 'user_defined') {
-            this.set_query_by_name(query_name);
+            this.set_query_by_name(query_name, true);
         }
         else {
             cur_query = _.isNil(saved_query_property) ? g_properties.user_group_query : saved_query_property[1];
@@ -3879,7 +3880,7 @@ function GroupQueryHandler () {
         return queries[query_map_by_name.indexOf(cur_query_name)].idx;
     };
 
-    this.set_query_by_name = function (name) {
+    this.set_query_by_name = function (name, preserve_last_used_query ) {
         var query_item = queries[query_map_by_name.indexOf(name)];
         if (!query_item) {
             throw Error('Argument error:\nUnknown query name ' + name);
@@ -3901,7 +3902,9 @@ function GroupQueryHandler () {
             group_query_list[cur_playlist_idx][1] = cur_query;
         }
 
-        g_properties.last_used_group_query_name = cur_query_name;
+        if (!preserve_last_used_query) {
+            g_properties.last_used_group_query_name = cur_query_name;
+        }
         g_properties.group_query_list = JSON.stringify(group_query_list);
     };
 

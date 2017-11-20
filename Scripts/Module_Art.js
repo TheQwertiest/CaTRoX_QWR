@@ -11,7 +11,7 @@ g_properties.add_properties(
 );
 g_properties.track_mode = Math.max(1, Math.min(3, g_properties.track_mode));
 
-// TODO: make thumb size variable as well
+// TODO: adjust thumb button size to art size
 
 function ArtModule(features_arg) {//(Most of the art handling code was done by eXtremeHunter)
 //public:
@@ -66,17 +66,15 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
         }
 
         if (feature_thumbs && g_properties.show_thumbs) {
-            fill_thumb_image(thumbs.buttons.front, art_arr[0]);
-            fill_thumb_image(thumbs.buttons.back, art_arr[1]);
-            fill_thumb_image(thumbs.buttons.cd, art_arr[2]);
-            fill_thumb_image(thumbs.buttons.artist, art_arr[3]);
-
             thumbs.paint(g);
         }
     };
 
-    this.repaint = function () {
+    var throttled_repaint = _.throttle(_.bind(function () {
         window.RepaintRect(this.x, this.y, this.w, this.h);
+    }, this), 1000 / 60);
+    this.repaint = function () {
+        throttled_repaint();
     };
 
     this.on_size = function (x, y, w, h) {
@@ -123,8 +121,8 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
             art_arr[art_id].height = image.Height;
             if (feature_thumbs) {
                 var ratio = image.Height / image.Width;
-                var art_h = g_properties.thumb_size - border_size;
-                var art_w = g_properties.thumb_size - border_size;
+                var art_h = g_properties.thumb_size - 2*border_size;
+                var art_w = g_properties.thumb_size - 2*border_size;
                 if (image.Height > image.Width) {
                     art_w = Math.round(art_h / ratio);
                 }
@@ -153,6 +151,29 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
 
         if (art_id === cur_art_id) {
             reposition_art(art_arr[cur_art_id]);
+            this.repaint();
+        }
+
+        if (feature_thumbs && g_properties.show_thumbs) {
+            switch (art_id) {
+                case 0: {
+                    fill_thumb_image(thumbs.buttons.front, art_arr[0]);
+                    break;
+                }
+                case 1: {
+                    fill_thumb_image(thumbs.buttons.back, art_arr[1]);
+                    break;
+                }
+                case 2: {
+                    fill_thumb_image(thumbs.buttons.cd, art_arr[2]);
+                    break;
+                }
+                case 3: {
+                    fill_thumb_image(thumbs.buttons.artist, art_arr[3]);
+                    break;
+                }
+            }
+
             this.repaint();
         }
     };
@@ -232,6 +253,10 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
     /////////////////////////////////////
 
     this.get_album_art = function (metadb_arg) {
+        if (!window.IsVisible) {
+            return;
+        }
+
         var metadb = metadb_arg ? metadb_arg : get_current_metadb();
         if (!metadb) {
             if (metadb === null) {
@@ -755,33 +780,42 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
     }
 
     function create_thumb_image(bw, bh, art, state, btnText) {
-        var w = bw,
-            h = bh;
-
-        var img = gdi.CreateImage(w, h);
+        var img = gdi.CreateImage(bw, bh);
         var g = img.GetGraphics();
         g.SetSmoothingMode(SmoothingMode.HighQuality);
         g.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
 
-        if (art && art.thumb_img) {
-            g.DrawImage(art.thumb_img, 2, 2, w - 4, h - 4, 0, 0, art.thumb_img.Width, art.thumb_img.Height, 0, 230);
+        var p = border_size;
+        var x = 0;
+        var y = 0;
+        var w = bw;
+        var h = bh;
 
+        if (art && art.thumb_img) {
+            x = Math.round((bw - (art.thumb_img.Width + 2*border_size))/2);
+            y = Math.round((bh - (art.thumb_img.Height + 2*border_size))/2);
+            w = art.thumb_img.Width + 2*border_size;
+            h = art.thumb_img.Height + 2*border_size;
+        }
+
+        if (art && art.thumb_img) {
+            g.DrawImage(art.thumb_img, x + p, y + p, art.thumb_img.Width, art.thumb_img.Height, 0, 0, art.thumb_img.Width, art.thumb_img.Height, 0, 230);
         }
         else {
-            g.FillSolidRect(2, 2, w - 4, h - 4, panelsBackColor); // Cleartype is borked, if drawn without background
+            g.FillSolidRect(x + p, y + p, w - x - 2*p, h - y - 2*p, panelsBackColor); // Cleartype is borked, if drawn without background
             var btn_text_format = g_string_format.align_center | g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
             g.DrawString(btnText, gdi.font('Segoe Ui', 14), _.RGB(70, 70, 70), 0, 0, w, h, btn_text_format);
         }
 
         switch (state) {//0=normal, 1=hover, 2=down;
             case 0:
-                g.DrawRect(0, 0, w - 1, h - 1, 1, frame_color);
+                g.DrawRect(x, y, w - 1, h - 1, 1, frame_color);
                 break;
             case 1:
-                g.DrawRect(0, 0, w - 1, h - 1, 1, _.RGB(170, 172, 174));
+                g.DrawRect(x, y, w - 1, h - 1, 1, _.RGB(170, 172, 174));
                 break;
             case 2:
-                g.DrawRect(0, 0, w - 1, h - 1, 1, _.RGB(70, 70, 70));
+                g.DrawRect(x, y, w - 1, h - 1, 1, _.RGB(70, 70, 70));
                 break;
         }
 
