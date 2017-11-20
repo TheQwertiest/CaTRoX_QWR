@@ -70,12 +70,12 @@ if (g_properties.group_query_id === 5) {
 
 // Evaluators
 var g_group_queries = {
-    'artist':            '%album artist%',
-    'artist_album':      '%album artist%%album%',
-    'artist_album_disc': '%album artist%%album%%discnumber%',
-    'artist_path':       '$directory_path(%path%)',
-    'artist_date':       '%date%',
-    'user_defined':      g_properties.user_group_query
+    artist:            '%album artist%',
+    artist_album:      '%album artist%%album%',
+    artist_album_disc: '%album artist%%album%%discnumber%',
+    artist_path:       '$directory_path(%path%)',
+    artist_date:       '%date%',
+    user_defined:      g_properties.user_group_query
 };
 
 //---> Fonts
@@ -1139,7 +1139,6 @@ function Playlist(x, y) {
                 var header = focused_item.header;
                 var new_focus_idx;
                 if (header.is_collapsed) {
-                    selection_handler.update_selection(header, null, shift_pressed);
                     new_focus_idx = _.last(headers[Math.max(0, focused_item.header.idx - 1)].rows).idx;
                 }
                 else {
@@ -1147,14 +1146,7 @@ function Playlist(x, y) {
 
                 }
 
-                var new_focus_item = rows[new_focus_idx];
-                if (new_focus_item.header.is_collapsed) {
-                    selection_handler.update_selection(new_focus_item.header, null, shift_pressed);
-                }
-                else {
-                    selection_handler.update_selection(new_focus_item, null, shift_pressed);
-                }
-
+                selection_handler.update_selection(rows[new_focus_idx], null, shift_pressed);
                 selection_handler.sync_items_with_selection();
 
                 break;
@@ -1163,21 +1155,13 @@ function Playlist(x, y) {
                 var header = focused_item.header;
                 var new_focus_idx;
                 if (header.is_collapsed) {
-                    selection_handler.update_selection(header, null, shift_pressed);
                     new_focus_idx = _.head(headers[Math.min(headers.length - 1, focused_item.header.idx + 1)].rows).idx;
                 }
                 else {
                     new_focus_idx = Math.min(rows.length - 1, focused_item.idx + 1);
                 }
 
-                var new_focus_item = rows[new_focus_idx];
-                if (new_focus_item.header.is_collapsed) {
-                    selection_handler.update_selection(new_focus_item.header, null, shift_pressed);
-                }
-                else {
-                    selection_handler.update_selection(new_focus_item, null, shift_pressed);
-                }
-
+                selection_handler.update_selection(rows[new_focus_idx], null, shift_pressed);
                 selection_handler.sync_items_with_selection();
 
                 break;
@@ -1188,6 +1172,9 @@ function Playlist(x, y) {
                 }
 
                 collapse_handler.collapse(focused_item.header);
+
+                selection_handler.update_selection(focused_item.header, null, null);
+                selection_handler.sync_items_with_selection();
 
                 break;
             }
@@ -1231,17 +1218,7 @@ function Playlist(x, y) {
                     new_focus_item = _.head(items_to_draw);
                 }
 
-                if (focused_item.header.is_collapsed) {
-                    selection_handler.update_selection(focused_item.header, null, shift_pressed);
-                }
-
-                if (new_focus_item.header.is_collapsed) {
-                    selection_handler.update_selection(new_focus_item.header, null, shift_pressed);
-                }
-                else {
-                    selection_handler.update_selection(new_focus_item, null, shift_pressed);
-                }
-
+                selection_handler.update_selection(new_focus_item, null, shift_pressed);
                 selection_handler.sync_items_with_selection();
 
                 break;
@@ -1269,52 +1246,19 @@ function Playlist(x, y) {
                     new_focus_item = _.last(items_to_draw);
                 }
 
-                if (focused_item.header.is_collapsed) {
-                    selection_handler.update_selection(focused_item.header, null, shift_pressed);
-                }
-
-                if (new_focus_item.header.is_collapsed) {
-                    selection_handler.update_selection(new_focus_item.header, null, shift_pressed);
-                }
-                else {
-                    selection_handler.update_selection(new_focus_item, null, shift_pressed);
-                }
-
+                selection_handler.update_selection(new_focus_item, null, shift_pressed);
                 selection_handler.sync_items_with_selection();
 
                 break;
             }
             case VK_HOME: {
-                // TODO: Move to selection_handler
-                if (focused_item.header.is_collapsed) {
-                    selection_handler.update_selection(focused_item.header, null, shift_pressed);
-                }
-
-                var new_focus_item = _.head(rows);
-                if (new_focus_item.is_collapsed) {
-                    selection_handler.update_selection(new_focus_item.header, null, shift_pressed);
-                }
-                else {
-                    selection_handler.update_selection(new_focus_item, null, shift_pressed);
-                }
-
+                selection_handler.update_selection(_.head(rows), null, shift_pressed);
                 selection_handler.sync_items_with_selection();
 
                 break;
             }
             case VK_END: {
-                if (focused_item.header.is_collapsed) {
-                    selection_handler.update_selection(focused_item.header, null, shift_pressed);
-                }
-
-                var new_focus_item = _.last(rows);
-                if (new_focus_item.is_collapsed) {
-                    selection_handler.update_selection(new_focus_item.header, null, shift_pressed);
-                }
-                else {
-                    selection_handler.update_selection(new_focus_item, null, shift_pressed);
-                }
-
+                selection_handler.update_selection(_.last(rows), null, shift_pressed);
                 selection_handler.sync_items_with_selection();
 
                 break;
@@ -3243,7 +3187,7 @@ function SelectionHandler(rows_arg, headers_arg, cur_playlist_idx_arg) {
 
     // changes focus and selection
     this.update_selection = function (item, ctrl_pressed, shift_pressed) {
-        if (_.isNil(item)) {
+        if (!item) {
             throw Error('Logic error:\n update_selection was called with undefined item');
         }
 
@@ -3254,6 +3198,9 @@ function SelectionHandler(rows_arg, headers_arg, cur_playlist_idx_arg) {
 
         if (item.type === 'Header') {
             update_selection_with_header(item, ctrl_pressed, shift_pressed);
+        }
+        else if (item.header.is_collapsed) {
+            update_selection_with_header(item.header, ctrl_pressed, shift_pressed);
         }
         else {
             update_selection_with_row(item, ctrl_pressed, shift_pressed);
@@ -3557,13 +3504,14 @@ function SelectionHandler(rows_arg, headers_arg, cur_playlist_idx_arg) {
                 last_single_selected_index = plman.GetPlaylistFocusItemIndex(cur_playlist_idx);
             }
 
+            var last_selected_header = rows[last_single_selected_index].header;
             if (last_single_selected_index < item.idx) {
-                a = last_single_selected_index;
+                a = last_selected_header.is_collapsed ? _.head(last_selected_header.rows).idx : last_single_selected_index;
                 b = item.idx;
             }
             else {
                 a = item.idx;
-                b = last_single_selected_index;
+                b = last_selected_header.is_collapsed ? _.last(last_selected_header.rows).idx : last_single_selected_index;
             }
 
             selected_indexes = _.range(a, b + 1);
@@ -3607,16 +3555,17 @@ function SelectionHandler(rows_arg, headers_arg, cur_playlist_idx_arg) {
             selected_indexes.sort(g_numeric_ascending_sort);
 
             if (_.isNil(last_single_selected_index)) {
-                last_single_selected_index = selected_indexes[0];
+                last_single_selected_index = plman.GetPlaylistFocusItemIndex(cur_playlist_idx);
             }
 
+            var last_selected_header = rows[last_single_selected_index].header;
             if (last_single_selected_index < item.rows[0].idx) {
-                a = last_single_selected_index;
+                a = last_selected_header.is_collapsed ? _.head(last_selected_header.rows).idx : last_single_selected_index;
                 b = item.rows[0].idx;
             }
             else {
                 a = item.rows[0].idx;
-                b = last_single_selected_index;
+                b = last_selected_header.is_collapsed ? _.last(last_selected_header.rows).idx : last_single_selected_index;
             }
 
             selected_indexes = _.union(_.range(a, b + 1), row_indexes);
