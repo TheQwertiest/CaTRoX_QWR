@@ -8,7 +8,6 @@ var trace_call = false;
 var trace_on_paint = false;
 var trace_on_move = false;
 
-// TODO: Add item grouping per playlists
 // TODO: consider making registration for on_key handlers
 // TODO: research the source of hangs with big art image loading (JScript? fb2k?)
 g_properties.add_properties(
@@ -45,10 +44,9 @@ g_properties.add_properties(
         collapse_on_playlist_switch: ['user.header.collapse.on_playlist_switched', false],
         collapse_on_start:           ['user.header.collapse.on_start', false],
 
-        user_group_query: ['user.header.group.user_defined_query', ''],
-
-        group_query:    ['system.header.group.query', '%album artist%%album%%discnumber%'],
-        group_query_id: ['system.header.group.id', 3],
+        group_query_list:           ['system.header.group.list', JSON.stringify([['artist_album_disc', '']])],
+        last_used_group_query_name: ['system.header.group.last_used_name', 'artist_album_disc'],
+        user_group_query:           ['system.header.group.user_defined_query', ''],
 
         scroll_pos: ['system.scrollbar.position', 0],
 
@@ -64,19 +62,6 @@ g_properties.rows_in_compact_header = Math.max(0, g_properties.rows_in_compact_h
 g_properties.row_h = Math.max(10, g_properties.row_h);
 g_properties.show_rating = g_properties.show_rating && g_component_playcount;
 g_properties.show_playcount = g_properties.show_playcount && g_component_playcount;
-if (g_properties.group_query_id === 5) {
-    g_properties.group_query = g_properties.user_group_query;
-}
-
-// Evaluators
-var g_group_queries = {
-    artist:            '%album artist%',
-    artist_album:      '%album artist%%album%',
-    artist_album_disc: '%album artist%%album%%discnumber%',
-    artist_path:       '$directory_path(%path%)',
-    artist_date:       '%date%',
-    user_defined:      g_properties.user_group_query
-};
 
 //---> Fonts
 var g_pl_fonts = {
@@ -130,7 +115,9 @@ g_pl_colors.row_focus_normal = _.RGB(80, 80, 80);
 g_pl_colors.row_queued = _.RGBA(150, 150, 150, 0);
 
 //--->
-
+// Called in Playlist constructor
+// TODO: consider hiding in Header constructor
+Header.query_handler = new GroupQueryHandler();
 var playlist = new Playlist(0, 0);
 
 function on_paint(gr) {
@@ -704,16 +691,20 @@ function Playlist(x, y) {
             // -------------------------------------------------------------- //
             // Grouping
             group.AppendTo(cpm, MF_STRING, 'Grouping');
+
+            var group_by_text = 'by...';
+            if (Header.query_handler.get_current_name() === 'user_defined') {
+                group_by_text += ' [' + Header.query_handler.get_current_query() + ']';
+            }
+            group.AppendMenuItem(MF_STRING, 55, group_by_text);
             group.AppendMenuItem(MF_STRING, 50, 'by artist');
             group.AppendMenuItem(MF_STRING, 51, 'by artist / album');
             group.AppendMenuItem(MF_STRING, 52, 'by artist / album / disc number');
             group.AppendMenuItem(MF_STRING, 53, 'by path');
             group.AppendMenuItem(MF_STRING, 54, 'by date');
-            group.AppendMenuItem(MF_STRING, 55, 'by user defined');
 
-            if (g_properties.group_query_id !== undefined) {
-                group.CheckMenuRadioItem(50, 55, 50 + g_properties.group_query_id);
-            }
+            group.CheckMenuRadioItem(50, 55, 50 + Header.query_handler.get_current_query_idx());
+
             // -------------------------------------------------------------- //
             // Selection
 
@@ -893,38 +884,32 @@ function Playlist(x, y) {
             // -------------------------------------------------------------- //
             // Grouping
             case 50:
-                g_properties.group_query = g_group_queries.artist;
-                g_properties.group_query_id = 0;
+                Header.query_handler.set_query_by_name('artist');
                 this.initialize_list();
                 scroll_to_focused_or_now_playing();
                 break;
             case 51:
-                g_properties.group_query = g_group_queries.artist_album;
-                g_properties.group_query_id = 1;
+                Header.query_handler.set_query_by_name('artist_album');
                 this.initialize_list();
                 scroll_to_focused_or_now_playing();
                 break;
             case 52:
-                g_properties.group_query = g_group_queries.artist_album_disc;
-                g_properties.group_query_id = 2;
+                Header.query_handler.set_query_by_name('artist_album_disc');
                 this.initialize_list();
                 scroll_to_focused_or_now_playing();
                 break;
             case 53:
-                g_properties.group_query = g_group_queries.path;
-                g_properties.group_query_id = 3;
+                Header.query_handler.set_query_by_name('artist_path');
                 this.initialize_list();
                 scroll_to_focused_or_now_playing();
                 break;
             case 54:
-                g_properties.group_query = g_group_queries.date;
-                g_properties.group_query_id = 4;
+                Header.query_handler.set_query_by_name('artist_date');
                 this.initialize_list();
                 scroll_to_focused_or_now_playing();
                 break;
             case 55:
-                g_properties.group_query = g_group_queries.user_defined;
-                g_properties.group_query_id = 5;
+                Header.query_handler.set_query_by_name('user_defined');
                 this.initialize_list();
                 scroll_to_focused_or_now_playing();
                 break;
@@ -1572,6 +1557,8 @@ function Playlist(x, y) {
             focused_item = rows[focus_item_idx];
             focused_item.is_focused = true;
         }
+
+        Header.query_handler.initialize(cur_playlist_idx);
 
         create_headers();
         intialize_rows_queue();
@@ -2414,7 +2401,7 @@ function Header(x, y, w, h, idx) {
         var part2_right_pad = 0;
 
         //---> DATE
-        if (g_properties.group_query_id !== 0) {
+        if (query_handler.get_current_name() !== 'artist') {
             var date_text = _.tf('%date%', metadb);
             if (date_text === '?' && is_radio) {
                 date_text = '';
@@ -2424,7 +2411,7 @@ function Header(x, y, w, h, idx) {
             var date_y = 0;
             var date_h = this.h;
 
-            if (g_properties.group_query_id > 0 && date_x > left_pad) {
+            if (date_x > left_pad) {
                 grClip.DrawString(date_text, date_font, date_color, date_x, date_y, date_w, date_h, g_string_format.v_align_center);
             }
 
@@ -2452,7 +2439,7 @@ function Header(x, y, w, h, idx) {
         }
 
         //---> ALBUM
-        if (g_properties.group_query_id > 0) {
+        if (query_handler.get_current_name() !== 'artist') {
             var album_h = part_h;
             var album_y = part_h;
             var album_x;
@@ -2523,8 +2510,8 @@ function Header(x, y, w, h, idx) {
             }
 
             var track_count = this.rows.length;
-            var genre = is_radio ? '' : (g_properties.group_query_id ? '[%genre% | ]' : '');
-            var disc_number = (g_properties.group_query_id === 2 && _.tf('[%totaldiscs%]', metadb) !== '1') ? _.tf('[ | Disc: %discnumber%/%totaldiscs%]', metadb) : '';
+            var genre = is_radio ? '' : (query_handler.get_current_name() !== 'artist' ? '[%genre% | ]' : '');
+            var disc_number = (query_handler.get_current_name() === 'artist_album_disc' && _.tf('[%totaldiscs%]', metadb) !== '1') ? _.tf('[ | Disc: %discnumber%/%totaldiscs%]', metadb) : '';
             var info_text = _.tf(genre + codec + disc_number + '[ | %replaygain_album_gain%]', metadb) + (is_radio ? '' : ' | ' + track_count + (track_count === 1 ? ' Track' : ' Tracks'));
             if (get_duration()) {
                 info_text += ' | Time: ' + get_duration();
@@ -2546,7 +2533,7 @@ function Header(x, y, w, h, idx) {
         //---> Part 2 line
         {
             var line_x1 = part2_cur_x;
-            if (g_properties.show_group_info) {
+            if (line_x1 !== left_pad) {
                 line_x1 += 10;
             }
             var line_x2 = this.w - part2_right_pad - 10;
@@ -2610,7 +2597,7 @@ function Header(x, y, w, h, idx) {
         var cur_x = left_pad;
 
         //---> DATE
-        if (g_properties.group_query_id !== 0) {
+        if (query_handler.get_current_name() !== 'artist') {
             var date_text = _.tf('%date%', metadb);
             if (date_text === '?' && is_radio) {
                 date_text = '';
@@ -2620,7 +2607,7 @@ function Header(x, y, w, h, idx) {
             var date_y = 0;
             var date_h = this.h;
 
-            if (g_properties.group_query_id > 0 && date_x > left_pad) {
+            if (date_x > left_pad) {
                 grClip.DrawString(date_text, date_font, date_color, date_x, date_y, date_w, date_h, g_string_format.v_align_center);
             }
 
@@ -2648,7 +2635,7 @@ function Header(x, y, w, h, idx) {
         }
 
         //---> ALBUM
-        if (g_properties.group_query_id > 0) {
+        if (query_handler.get_current_name() !== 'artist') {
             var album_h = this.h;
             var album_x = cur_x;
             var album_w = this.w - album_x - (right_pad + 5);
@@ -2706,9 +2693,10 @@ function Header(x, y, w, h, idx) {
             return;
         }
 
-        var group = _.tf(g_properties.group_query, rows_to_process[0].metadb);
+        var query = query_handler.get_current_query();
+        var group = _.tf(query, rows_to_process[0].metadb);
         _.forEach(rows_to_process, _.bind(function (item, i) {
-            var cur_group = _.tf(g_properties.group_query, item.metadb);
+            var cur_group = _.tf(query, item.metadb);
             if (group !== cur_group) {
                 return false;
             }
@@ -2800,6 +2788,7 @@ function Header(x, y, w, h, idx) {
 
     var metadb;
     var art = undefined;
+    var query_handler = Header.query_handler;
 }
 
 function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
@@ -3858,4 +3847,108 @@ function PlaylistInfo(x, y, w, h) {
     //private:
     /** @type {string|undefined} */
     var info_text = undefined;
+}
+
+function GroupQueryHandler () {
+
+    this.initialize = function (cur_playlist_idx_arg) {
+        cur_playlist_idx = cur_playlist_idx_arg;
+
+        var saved_query_property = group_query_list[cur_playlist_idx];
+        var query_name = _.isNil(saved_query_property) ? g_properties.last_used_group_query_name : saved_query_property[0];
+
+        if (query_name !== 'user_defined') {
+            this.set_query_by_name(query_name);
+        }
+        else {
+            cur_query = _.isNil(saved_query_property) ? g_properties.user_group_query : saved_query_property[1];
+            cur_query_name = query_name;
+        }
+    };
+
+    this.get_current_query = function () {
+        return cur_query;
+    };
+
+    this.get_current_name = function () {
+        return cur_query_name;
+    };
+
+    // TODO: replace with rbtn handler
+    this.get_current_query_idx = function () {
+        return queries[query_map_by_name.indexOf(cur_query_name)].idx;
+    };
+
+    this.set_query_by_name = function (name) {
+        var query_item = queries[query_map_by_name.indexOf(name)];
+        if (!query_item) {
+            throw Error('Argument error:\nUnknown query name ' + name);
+        }
+
+        cur_query_name = name;
+
+        group_query_list[cur_playlist_idx] = [];
+        group_query_list[cur_playlist_idx][0] = name;
+
+        if (name !== 'user_defined') {
+            cur_query = query_item.val;
+            group_query_list[cur_playlist_idx][1] = '';
+        }
+        else {
+            var query = _.input("Enter group query", "Header group query", g_properties.user_group_query);
+            g_properties.user_group_query = query;
+            cur_query = query;
+            group_query_list[cur_playlist_idx][1] = cur_query;
+        }
+
+        g_properties.last_used_group_query_name = cur_query_name;
+        g_properties.group_query_list = JSON.stringify(group_query_list);
+    };
+
+    var queries = [
+        {
+            idx:  0,
+            name: 'artist',
+            val:  '%album artist%'
+        },
+        {
+            idx:  1,
+            name: 'artist_album',
+            val:  '%album artist%%album%'
+        },
+        {
+            idx:  2,
+            name: 'artist_album_disc',
+            val:  '%album artist%%album%%discnumber%'
+        },
+        {
+            idx:  3,
+            name: 'artist_path',
+            val:  '$directory_path(%path%)'
+        },
+        {
+            idx:  4,
+            name: 'artist_date',
+            val:  '%date%'
+        },
+        {
+            idx:  5,
+            name: 'user_defined',
+            val:  ''
+        }
+    ];
+    var query_map_by_idx = queries.map(function(item) {
+        return item.idx;
+    });
+    var query_map_by_name = queries.map(function(item) {
+        return item.name;
+    });
+
+    /** @type {number|undefined} */
+    var cur_playlist_idx = undefined;
+
+    var cur_query = '';
+    var cur_query_name = '';
+
+    var group_query_list = JSON.parse(g_properties.group_query_list);
 }
