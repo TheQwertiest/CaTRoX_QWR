@@ -50,7 +50,7 @@ g_properties.add_properties(
         group_query:    ['system.header.group.query', '%album artist%%album%%discnumber%'],
         group_query_id: ['system.header.group.id', 3],
 
-        scroll_pos_list: ['system.scrollbar.position.list', '[0]'],
+        scroll_pos: ['system.scrollbar.position', 0],
 
         is_selection_dynamic: ['system.selection.dynamic', true]
     }
@@ -1392,7 +1392,7 @@ function Playlist(x, y) {
 
     this.on_playlist_switch = function () {
         if (cur_playlist_idx !== plman.ActivePlaylist) {
-            scroll_pos = _.isNil(scroll_pos_list[plman.ActivePlaylist]) ? 0 : scroll_pos_list[plman.ActivePlaylist];
+            g_properties.scroll_pos = _.isNil(scroll_pos_list[plman.ActivePlaylist]) ? 0 : scroll_pos_list[plman.ActivePlaylist];
         }
 
         if (g_properties.show_playlist_info) {
@@ -1587,9 +1587,7 @@ function Playlist(x, y) {
                 collapse_handler.expand_all();
             }
 
-            collapse_handler.set_callback(on_list_content_h_change);
-
-            scroll_pos = _.isNil(scroll_pos_list[cur_playlist_idx]) ? 0 : scroll_pos_list[cur_playlist_idx];
+            collapse_handler.set_callback(on_list_content_h_change);;
         }
         else {
             on_list_content_h_change();
@@ -1637,14 +1635,14 @@ function Playlist(x, y) {
         if (total_height_in_rows <= Math.ceil(rows_to_draw_precise)) {
             is_scrollbar_available = false;
             is_scrollbar_visible = false;
-            scroll_pos = 0;
+            g_properties.scroll_pos = 0;
             return;
         }
 
         scrollbar.set_window_param(rows_to_draw_precise, total_height_in_rows);
-        scrollbar.scroll_to(scroll_pos, true);
+        scrollbar.scroll_to(g_properties.scroll_pos, true);
 
-        scroll_pos = scrollbar.scroll;
+        g_properties.scroll_pos = scrollbar.scroll;
 
         is_scrollbar_visible = g_properties.show_scrollbar;
         is_scrollbar_available = true;
@@ -1731,9 +1729,8 @@ function Playlist(x, y) {
     }
 
     function scrollbar_redraw_callback() {
-        scroll_pos = scrollbar.scroll;
-        scroll_pos_list[cur_playlist_idx] = Math.round(scroll_pos * 1e2) / 1e2;
-        g_properties.scroll_pos_list = JSON.stringify(scroll_pos_list);
+        g_properties.scroll_pos = scrollbar.scroll;
+        scroll_pos_list[cur_playlist_idx] = Math.round(g_properties.scroll_pos * 1e2) / 1e2;
 
         on_drawn_content_change();
 
@@ -1741,8 +1738,8 @@ function Playlist(x, y) {
     }
 
     function calculate_shift_params() {
-        row_shift = Math.floor(scroll_pos);
-        pixel_shift = -Math.round((scroll_pos - row_shift) * row_h);
+        row_shift = Math.floor(g_properties.scroll_pos);
+        pixel_shift = -Math.round((g_properties.scroll_pos - row_shift) * row_h);
     }
 
     function set_rows_boundary_status() {
@@ -1911,7 +1908,7 @@ function Playlist(x, y) {
                                 var from_header_state = get_item_visibility_state(from_header);
                                 row_shift += from_header_state.invisible_part;
                             }
-                            scrollbar.scroll_to(scroll_pos - row_shift);
+                            scrollbar.scroll_to(g_properties.scroll_pos - row_shift);
                             shifted_successfully = true;
                         }
                         else if (is_item_next) {
@@ -1920,7 +1917,7 @@ function Playlist(x, y) {
                                 row_shift += to_header_state.invisible_part;
                             }
 
-                            scrollbar.scroll_to(scroll_pos + row_shift);
+                            scrollbar.scroll_to(g_properties.scroll_pos + row_shift);
                             shifted_successfully = true;
                         }
                     }
@@ -1931,7 +1928,7 @@ function Playlist(x, y) {
                 if (to_item_state.invisible_part % 1 > 0) {
                     scrollbar.shift_line(-1);
                 }
-                scrollbar.scroll_to(scroll_pos - Math.floor(to_item_state.invisible_part));
+                scrollbar.scroll_to(g_properties.scroll_pos - Math.floor(to_item_state.invisible_part));
                 shifted_successfully = true;
                 break;
             }
@@ -1939,7 +1936,7 @@ function Playlist(x, y) {
                 if (to_item_state.invisible_part % 1 > 0) {
                     scrollbar.shift_line(1);
                 }
-                scrollbar.scroll_to(scroll_pos + Math.floor(to_item_state.invisible_part));
+                scrollbar.scroll_to(g_properties.scroll_pos + Math.floor(to_item_state.invisible_part));
                 shifted_successfully = true;
                 break;
             }
@@ -1955,7 +1952,7 @@ function Playlist(x, y) {
         if (shifted_successfully) {
             if (has_headers && !is_to_header && to_item.idx === _.head(to_header.rows).idx) {
                 var to_header_state = get_item_visibility_state(to_header);
-                scrollbar.scroll_to(scroll_pos - to_header_state.invisible_part);
+                scrollbar.scroll_to(g_properties.scroll_pos - to_header_state.invisible_part);
             }
         }
         else {
@@ -2174,7 +2171,7 @@ function Playlist(x, y) {
                             if (cur_marked_item.type === 'Header') {
                                 collapse_handler.expand(cur_marked_item);
                                 if (collapse_handler.changed) {
-                                    scrollbar.scroll_to(scroll_pos + cur_marked_item.rows.length);
+                                    scrollbar.scroll_to(g_properties.scroll_pos + cur_marked_item.rows.length);
                                 }
 
                                 cur_marked_item = _.head(cur_marked_item.rows);
@@ -2270,7 +2267,6 @@ function Playlist(x, y) {
 
     // Item events
     var last_hover_item = undefined;
-    var last_marked_item = undefined;
 
     // Timers
     var drag_scroll_in_progress = false;
@@ -2278,8 +2274,7 @@ function Playlist(x, y) {
     var drag_scroll_repeat_timer;
 
     // Scrollbar props
-    var scroll_pos_list = JSON.parse(g_properties.scroll_pos_list);
-    var scroll_pos = 0;
+    var scroll_pos_list = [];
     var row_shift = 0;
     var pixel_shift = 0;
     var is_scrollbar_visible = g_properties.show_scrollbar;
