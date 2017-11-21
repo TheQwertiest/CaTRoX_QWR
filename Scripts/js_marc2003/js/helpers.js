@@ -14,13 +14,15 @@ _.mixin({
             return;
         }
 
-        cpm.AppendMenuItem(MF_STRING, 500, "Console");
-        cpm.AppendMenuItem(MF_STRING, 501, "Restart");
-        cpm.AppendMenuItem(MF_STRING, 502, "Preferences...");
+        var start_idx = 500;
+
+        cpm.AppendMenuItem(MF_STRING, start_idx, "Console");
+        cpm.AppendMenuItem(MF_STRING, start_idx + 1, "Restart");
+        cpm.AppendMenuItem(MF_STRING, start_idx + 2, "Preferences...");
         cpm.AppendMenuSeparator();
-        cpm.AppendMenuItem(MF_STRING, 503, "Configure script...");
-        cpm.AppendMenuItem(MF_STRING, 504, "Configure...");
-        cpm.AppendMenuItem(MF_STRING, 505, "Panel Properties...");
+        cpm.AppendMenuItem(MF_STRING, start_idx + 3, "Configure script...");
+        cpm.AppendMenuItem(MF_STRING, start_idx + 4, "Configure...");
+        cpm.AppendMenuItem(MF_STRING, start_idx + 5, "Panel Properties...");
     },
     artistFolder:              function (artist) {
         var a = _.fbSanitise(artist);
@@ -262,6 +264,16 @@ _.mixin({
     cc:                        function (name) {
         return utils.CheckComponent(name, true);
     },
+    count: function(collection, predicate) {
+        var count = 0;
+        collection.forEach(function(item) {
+            if (predicate(item)) {
+                ++count;
+            }
+        });
+
+        return count;
+    },
     createFolder:              function (folder) {
         if (!_.isFolder(folder)) {
             fso.CreateFolder(folder);
@@ -345,27 +357,34 @@ _.mixin({
         gr.FillGradRect(x, y, w, h, 90, _.RGBA(0, 0, 0, 230), _.RGBA(0, 0, 0, 200));
     },
     executeDefaultContextMenu: function (idx, scriptPath) {
-        switch (idx) {
-            case 500:
+        var start_idx = 500;
+
+        var true_idx = idx - start_idx;
+        if (true_idx < 0) {
+            return false;
+        }
+
+        switch (true_idx) {
+            case 0:
                 fb.ShowConsole();
                 return true;
-            case 501:
+            case 1:
                 fb.RunMainMenuCommand("File/Restart");
                 return true;
-            case 502:
+            case 2:
                 fb.RunMainMenuCommand("File/Preferences");
                 return true;
-            case 503:
+            case 3:
                 if (scriptPath) {
                     if (!_.runCmd("notepad++.exe " + scriptPath)) {
                         _.runCmd("notepad.exe " + scriptPath);
                     }
                 }
                 return true;
-            case 504:
+            case 4:
                 window.ShowConfigure();
                 return true;
-            case 505:
+            case 5:
                 window.ShowProperties();
                 return true;
         }

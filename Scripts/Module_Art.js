@@ -21,6 +21,7 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
         var SF = g_string_format.align_center | g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
         var art = art_arr[cur_art_id];
 
+        g.FillSolidRect( this.x, this.y, this.w, this.h, panelsBackColor);
         g.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
 
         if (art) {
@@ -28,8 +29,8 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
                 y = this.y + art_y,
                 w = art_w,
                 h = art_h;
-            var art_img_w = art.width,
-                art_img_h = art.height;
+            var art_img_w = art.img.Width,
+                art_img_h = art.img.Height;
 
             if (w + h > 10) {
                 var p = border_size;
@@ -83,6 +84,8 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
         this.w = w;
         this.h = h;
 
+        was_on_size_called = true;
+
         if (feature_thumbs) {
             reposition_thumbs();
         }
@@ -117,8 +120,6 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
 
             art_arr[art_id] = {};
             art_arr[art_id].img = image;
-            art_arr[art_id].width = image.Width;
-            art_arr[art_id].height = image.Height;
             if (feature_thumbs) {
                 var ratio = image.Height / image.Width;
                 var art_h = g_properties.thumb_size - 2*border_size;
@@ -178,11 +179,6 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
         }
     };
     this.playlist_switch = function () {
-        if (!fb.IsPlaying || g_properties.track_mode === track_modes.selected) {
-            this.get_album_art();
-        }
-    };
-    this.playlist_items_selection_change = function () {
         if (!fb.IsPlaying || g_properties.track_mode === track_modes.selected) {
             this.get_album_art();
         }
@@ -253,7 +249,7 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
     /////////////////////////////////////
 
     this.get_album_art = function (metadb_arg) {
-        if (!window.IsVisible) {
+        if (!was_on_size_called) {
             return;
         }
 
@@ -274,7 +270,7 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
             return;
         }
 
-        cur_art_id = artType.defaultVal; // think about not changing art type when using reload
+        cur_art_id = artType.defaultVal; // TODO: consider not changing art type when using reload
         art_arr = [];
         this.repaint();
         if (albumTimer) {
@@ -574,8 +570,8 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
             art_bottom_margin = (g_properties.show_thumbs && g_properties.thumb_position === pos.bottom) ? thumbsMargin : 0;
         }
 
-        var art_img_w = art.width,
-            art_img_h = art.height;
+        var art_img_w = art.img.Width,
+            art_img_h = art.img.Height;
 
         var scale_x = 0,
             scale_y = 0,
@@ -833,10 +829,10 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
     /////////////////////////////////////
 
 //public:
-    this.x = undefined;
-    this.y = undefined;
-    this.w = undefined;
-    this.h = undefined;
+    this.x = 0;
+    this.y = 0;
+    this.w = 0;
+    this.h = 0;
 
 //private:
     var that = this;
@@ -891,6 +887,7 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
     var context_menu = [];
 
     var has_photoshop;
+    var was_on_size_called = false;
 
     var thumbs;
     var thumb_imgs = [];

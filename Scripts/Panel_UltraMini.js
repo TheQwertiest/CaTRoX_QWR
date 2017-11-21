@@ -139,10 +139,6 @@ function on_playlist_switch() {
     artModule.playlist_switch();
 }
 
-function on_playlist_items_selection_change() {
-    artModule.playlist_items_selection_change();
-}
-
 function on_item_focus_change() {
     artModule.item_focus_change();
 }

@@ -118,7 +118,7 @@ g_pl_colors.row_queued = _.RGBA(150, 150, 150, 0);
 //--->
 // Called in Playlist constructor
 // TODO: consider hiding in Header constructor
-Header.query_handler = new GroupQueryHandler();
+Header.group_query_handler = new GroupQueryHandler();
 var playlist = new Playlist(0, 0);
 
 function on_paint(gr) {
@@ -598,7 +598,10 @@ function Playlist(x, y) {
         var lists = window.CreatePopupMenu();
         var send = window.CreatePopupMenu();
         var art = window.CreatePopupMenu();
-        var group = window.CreatePopupMenu();
+
+        var context_menu = [
+            cpm, web, ce, ccmm, appear, appear_row, appear_header, sort, lists, send, art
+        ];
 
         var is_cur_playlist_empty = !rows.length;
 
@@ -691,20 +694,7 @@ function Playlist(x, y) {
 
             // -------------------------------------------------------------- //
             // Grouping
-            group.AppendTo(cpm, MF_STRING, 'Grouping');
-
-            var group_by_text = 'by...';
-            if (Header.query_handler.get_current_name() === 'user_defined') {
-                group_by_text += ' [' + Header.query_handler.get_current_query() + ']';
-            }
-            group.AppendMenuItem(MF_STRING, 55, group_by_text);
-            group.AppendMenuItem(MF_STRING, 50, 'by artist');
-            group.AppendMenuItem(MF_STRING, 51, 'by artist / album');
-            group.AppendMenuItem(MF_STRING, 52, 'by artist / album / disc number');
-            group.AppendMenuItem(MF_STRING, 53, 'by path');
-            group.AppendMenuItem(MF_STRING, 54, 'by date');
-
-            group.CheckMenuRadioItem(50, 55, 50 + Header.query_handler.get_current_query_idx());
+            Header.group_query_handler.append_menu(cpm);
 
             // -------------------------------------------------------------- //
             // Selection
@@ -772,258 +762,231 @@ function Playlist(x, y) {
         }
 
         // -------------------------------------------------------------- //
-        switch (id) {
-            case 5:
-                show_now_playing();
-                break;
-            case 6:
-                this.initialize_list();
-                scroll_to_focused_or_now_playing();
-                break;
-            case 8:
-                plman.RemovePlaylistSelection(cur_playlist_idx);
-                break;
-            case 9:
-                plman.FlushPlaybackQueue();
-                break;
-            case 10:
-                copy_paste_metadb_list = selection_handler.cut();
-                break;
-            case 11:
-                copy_paste_metadb_list = selection_handler.copy();
-                break;
-            case 12:
-                selection_handler.paste(copy_paste_metadb_list);
-                break;
-            // -------------------------------------------------------------- //
-            case 20:
-                //---> Collapse/Expand
-                collapse_handler.collapse_all();
-                if (collapse_handler.changed) {
+        if (Header.group_query_handler.execute_menu(id)) {
+            this.initialize_list();
+            scroll_to_focused_or_now_playing();
+        }
+        else {
+            switch (id) {
+                case 5:
+                    show_now_playing();
+                    break;
+                case 6:
+                    this.initialize_list();
                     scroll_to_focused_or_now_playing();
-                }
-                break;
-            case 21:
-                collapse_handler.collapse_all_but_now_playing();
-                if (collapse_handler.changed) {
-                    scroll_to_now_playing_or_focused();
-                }
-                break;
-            case 22:
-                collapse_handler.expand_all();
-                if (collapse_handler.changed) {
-                    scroll_to_focused_or_now_playing();
-                }
-                break;
-            case 23:
-                g_properties.auto_colapse = !g_properties.auto_colapse;
-                if (g_properties.auto_colapse) {
+                    break;
+                case 8:
+                    plman.RemovePlaylistSelection(cur_playlist_idx);
+                    break;
+                case 9:
+                    plman.FlushPlaybackQueue();
+                    break;
+                case 10:
+                    copy_paste_metadb_list = selection_handler.cut();
+                    break;
+                case 11:
+                    copy_paste_metadb_list = selection_handler.copy();
+                    break;
+                case 12:
+                    selection_handler.paste(copy_paste_metadb_list);
+                    break;
+                // -------------------------------------------------------------- //
+                case 20:
+                    //---> Collapse/Expand
+                    collapse_handler.collapse_all();
+                    if (collapse_handler.changed) {
+                        scroll_to_focused_or_now_playing();
+                    }
+                    break;
+                case 21:
                     collapse_handler.collapse_all_but_now_playing();
                     if (collapse_handler.changed) {
                         scroll_to_now_playing_or_focused();
                     }
-                }
-                break;
-            case 24:
-                g_properties.collapse_on_start = !g_properties.collapse_on_start;
-                break;
-            // -------------------------------------------------------------- //
-            //---> Appearance
-            case 31:
-                g_properties.show_group_info = !g_properties.show_group_info;
-                break;
-            case 32:
-                g_properties.show_playcount = !g_properties.show_playcount;
-                break;
-            case 33:
-                g_properties.show_rating = !g_properties.show_rating;
-                break;
-            case 34:
-                g_properties.show_focused_row = !g_properties.show_focused_row;
-                break;
-            case 35:
-                g_properties.show_queue_position = !g_properties.show_queue_position;
-                break;
-            case 36:
-                g_properties.alternate_row_color = !g_properties.alternate_row_color;
-                break;
-            case 37:
-                g_properties.show_scrollbar = !g_properties.show_scrollbar;
-                update_scrollbar();
-                on_scrollbar_visibility_change();
-                break;
-            case 39:
-                g_properties.show_playlist_info = !g_properties.show_playlist_info;
-                update_list_h_size();
-                break;
-            case 40:
-                g_properties.show_header = !g_properties.show_header;
-                if (g_properties.show_header) {
+                    break;
+                case 22:
                     collapse_handler.expand_all();
-                }
-                this.initialize_list();
-                scroll_to_focused_or_now_playing();
-                break;
-            case 41:
-                g_properties.use_compact_header = !g_properties.use_compact_header;
-                header_h_in_rows = g_properties.use_compact_header ? g_properties.rows_in_compact_header : g_properties.rows_in_header;
-                this.initialize_list();
-                scroll_to_focused_or_now_playing();
-                break;
-            case 42:
-                g_properties.show_album_art = !g_properties.show_album_art;
-                if (g_properties.show_album_art) {
-                    get_album_art(items_to_draw);
-                }
-                break;
-            case 43:
-                g_properties.auto_album_art = !g_properties.auto_album_art;
-                if (g_properties.show_album_art) {
-                    get_album_art(items_to_draw);
-                }
-                break;
-            // -------------------------------------------------------------- //
-            // Grouping
-            case 50:
-                Header.query_handler.set_query_by_name('artist');
-                this.initialize_list();
-                scroll_to_focused_or_now_playing();
-                break;
-            case 51:
-                Header.query_handler.set_query_by_name('artist_album');
-                this.initialize_list();
-                scroll_to_focused_or_now_playing();
-                break;
-            case 52:
-                Header.query_handler.set_query_by_name('artist_album_disc');
-                this.initialize_list();
-                scroll_to_focused_or_now_playing();
-                break;
-            case 53:
-                Header.query_handler.set_query_by_name('artist_path');
-                this.initialize_list();
-                scroll_to_focused_or_now_playing();
-                break;
-            case 54:
-                Header.query_handler.set_query_by_name('artist_date');
-                this.initialize_list();
-                scroll_to_focused_or_now_playing();
-                break;
-            case 55:
-                Header.query_handler.set_query_by_name('user_defined');
-                this.initialize_list();
-                scroll_to_focused_or_now_playing();
-                break;
-            // -------------------------------------------------------------- //
-            case 60:
-                //---> Sort
-                if (has_multiple_selected_items) {
-                    fb.RunMainMenuCommand('Edit/Selection/Sort/Sort by...');
-                }
-                else {
-                    fb.RunMainMenuCommand('Edit/Sort/Sort by...');
-                }
-                break;
-            case 61:
-                if (has_multiple_selected_items) {
-                    fb.RunMainMenuCommand('Edit/Selection/Sort/Randomize');
-                }
-                else {
-                    fb.RunMainMenuCommand('Edit/Sort/Randomize')
-                }
-                break;
-            case 62:
-                if (has_multiple_selected_items) {
-                    fb.RunMainMenuCommand('Edit/Selection/Sort/Reverse');
-                }
-                else {
-                    fb.RunMainMenuCommand('Edit/Sort/Reverse')
-                }
-                break;
-            case 63:
-                if (has_multiple_selected_items) {
-                    fb.RunMainMenuCommand('Edit/Selection/Sort/Sort by album');
-                }
-                else {
-                    fb.RunMainMenuCommand('Edit/Sort/Sort by album');
-                }
-                break;
-            case 64:
-                if (has_multiple_selected_items) {
-                    fb.RunMainMenuCommand('Edit/Selection/Sort/Sort by artist');
-                }
-                else {
-                    fb.RunMainMenuCommand('Edit/Sort/Sort by artist');
-                }
-                break;
-            case 65:
-                if (has_multiple_selected_items) {
-                    fb.RunMainMenuCommand('Edit/Selection/Sort/Sort by file path');
-                }
-                else {
-                    fb.RunMainMenuCommand('Edit/Sort/Sort by file path');
-                }
-                break;
-            case 66:
-                if (has_multiple_selected_items) {
-                    fb.RunMainMenuCommand('Edit/Selection/Sort/Sort by title');
-                }
-                else {
-                    fb.RunMainMenuCommand('Edit/Sort/Sort by title');
-                }
-                break;
-            case 67:
-                if (has_multiple_selected_items) {
-                    fb.RunMainMenuCommand('Edit/Selection/Sort/Sort by track number');
-                }
-                else {
-                    fb.RunMainMenuCommand('Edit/Sort/Sort by track number');
-                }
-                break;
-            case 68:
-                plman.UndoBackup(cur_playlist_idx);
-                plman.SortByFormat(cur_playlist_idx, '%date%', has_multiple_selected_items);
-                break;
-            // -------------------------------------------------------------- //
-            // Web links
-            case 80:
-                link('google', metadb);
-                break;
-            case 81:
-                link('googleImages', metadb);
-                break;
-            case 82:
-                link('eCover', metadb);
-                break;
-            case 83:
-                link('wikipedia', metadb);
-                break;
-            case 84:
-                link('youTube', metadb);
-                break;
-            case 85:
-                link('lastFM', metadb);
-                break;
-            case 86:
-                link('discogs', metadb);
-                break;
-            // -------------------------------------------------------------- //
-            // Selection
-            case 100: // Send to top
-                plman.UndoBackup(cur_playlist_idx);
-                plman.MovePlaylistSelection(cur_playlist_idx, -plman.GetPlaylistFocusItemIndex(cur_playlist_idx));
-                break;
-            case 101: // Send to bottom
-                plman.UndoBackup(cur_playlist_idx);
-                plman.MovePlaylistSelection(cur_playlist_idx, plman.PlaylistItemCount(cur_playlist_idx) - plman.GetPlaylistSelectedItems(cur_playlist_idx).Count);
-                break;
-            case 102:
-                plman.CreatePlaylist(playlist_count, '');
-                plman.InsertPlaylistItems(playlist_count, 0, plman.GetPlaylistSelectedItems(cur_playlist_idx), true);
-                break;
-            // -------------------------------------------------------------- //
-            default:
-                _.executeDefaultContextMenu(id, scriptFolder + 'Panel_Playlist.js');
+                    if (collapse_handler.changed) {
+                        scroll_to_focused_or_now_playing();
+                    }
+                    break;
+                case 23:
+                    g_properties.auto_colapse = !g_properties.auto_colapse;
+                    if (g_properties.auto_colapse) {
+                        collapse_handler.collapse_all_but_now_playing();
+                        if (collapse_handler.changed) {
+                            scroll_to_now_playing_or_focused();
+                        }
+                    }
+                    break;
+                case 24:
+                    g_properties.collapse_on_start = !g_properties.collapse_on_start;
+                    break;
+                // -------------------------------------------------------------- //
+                //---> Appearance
+                case 31:
+                    g_properties.show_group_info = !g_properties.show_group_info;
+                    break;
+                case 32:
+                    g_properties.show_playcount = !g_properties.show_playcount;
+                    break;
+                case 33:
+                    g_properties.show_rating = !g_properties.show_rating;
+                    break;
+                case 34:
+                    g_properties.show_focused_row = !g_properties.show_focused_row;
+                    break;
+                case 35:
+                    g_properties.show_queue_position = !g_properties.show_queue_position;
+                    break;
+                case 36:
+                    g_properties.alternate_row_color = !g_properties.alternate_row_color;
+                    break;
+                case 37:
+                    g_properties.show_scrollbar = !g_properties.show_scrollbar;
+                    update_scrollbar();
+                    on_scrollbar_visibility_change();
+                    break;
+                case 39:
+                    g_properties.show_playlist_info = !g_properties.show_playlist_info;
+                    update_list_h_size();
+                    break;
+                case 40:
+                    g_properties.show_header = !g_properties.show_header;
+                    if (g_properties.show_header) {
+                        collapse_handler.expand_all();
+                    }
+                    this.initialize_list();
+                    scroll_to_focused_or_now_playing();
+                    break;
+                case 41:
+                    g_properties.use_compact_header = !g_properties.use_compact_header;
+                    header_h_in_rows = g_properties.use_compact_header ? g_properties.rows_in_compact_header : g_properties.rows_in_header;
+                    this.initialize_list();
+                    scroll_to_focused_or_now_playing();
+                    break;
+                case 42:
+                    g_properties.show_album_art = !g_properties.show_album_art;
+                    if (g_properties.show_album_art) {
+                        get_album_art(items_to_draw);
+                    }
+                    break;
+                case 43:
+                    g_properties.auto_album_art = !g_properties.auto_album_art;
+                    if (g_properties.show_album_art) {
+                        get_album_art(items_to_draw);
+                    }
+                    break;
+                case 60:
+                    //---> Sort
+                    if (has_multiple_selected_items) {
+                        fb.RunMainMenuCommand('Edit/Selection/Sort/Sort by...');
+                    }
+                    else {
+                        fb.RunMainMenuCommand('Edit/Sort/Sort by...');
+                    }
+                    break;
+                case 61:
+                    if (has_multiple_selected_items) {
+                        fb.RunMainMenuCommand('Edit/Selection/Sort/Randomize');
+                    }
+                    else {
+                        fb.RunMainMenuCommand('Edit/Sort/Randomize')
+                    }
+                    break;
+                case 62:
+                    if (has_multiple_selected_items) {
+                        fb.RunMainMenuCommand('Edit/Selection/Sort/Reverse');
+                    }
+                    else {
+                        fb.RunMainMenuCommand('Edit/Sort/Reverse')
+                    }
+                    break;
+                case 63:
+                    if (has_multiple_selected_items) {
+                        fb.RunMainMenuCommand('Edit/Selection/Sort/Sort by album');
+                    }
+                    else {
+                        fb.RunMainMenuCommand('Edit/Sort/Sort by album');
+                    }
+                    break;
+                case 64:
+                    if (has_multiple_selected_items) {
+                        fb.RunMainMenuCommand('Edit/Selection/Sort/Sort by artist');
+                    }
+                    else {
+                        fb.RunMainMenuCommand('Edit/Sort/Sort by artist');
+                    }
+                    break;
+                case 65:
+                    if (has_multiple_selected_items) {
+                        fb.RunMainMenuCommand('Edit/Selection/Sort/Sort by file path');
+                    }
+                    else {
+                        fb.RunMainMenuCommand('Edit/Sort/Sort by file path');
+                    }
+                    break;
+                case 66:
+                    if (has_multiple_selected_items) {
+                        fb.RunMainMenuCommand('Edit/Selection/Sort/Sort by title');
+                    }
+                    else {
+                        fb.RunMainMenuCommand('Edit/Sort/Sort by title');
+                    }
+                    break;
+                case 67:
+                    if (has_multiple_selected_items) {
+                        fb.RunMainMenuCommand('Edit/Selection/Sort/Sort by track number');
+                    }
+                    else {
+                        fb.RunMainMenuCommand('Edit/Sort/Sort by track number');
+                    }
+                    break;
+                case 68:
+                    plman.UndoBackup(cur_playlist_idx);
+                    plman.SortByFormat(cur_playlist_idx, '%date%', has_multiple_selected_items);
+                    break;
+                // -------------------------------------------------------------- //
+                // Web links
+                case 80:
+                    link('google', metadb);
+                    break;
+                case 81:
+                    link('googleImages', metadb);
+                    break;
+                case 82:
+                    link('eCover', metadb);
+                    break;
+                case 83:
+                    link('wikipedia', metadb);
+                    break;
+                case 84:
+                    link('youTube', metadb);
+                    break;
+                case 85:
+                    link('lastFM', metadb);
+                    break;
+                case 86:
+                    link('discogs', metadb);
+                    break;
+                // -------------------------------------------------------------- //
+                // Selection
+                case 100: // Send to top
+                    plman.UndoBackup(cur_playlist_idx);
+                    plman.MovePlaylistSelection(cur_playlist_idx, -plman.GetPlaylistFocusItemIndex(cur_playlist_idx));
+                    break;
+                case 101: // Send to bottom
+                    plman.UndoBackup(cur_playlist_idx);
+                    plman.MovePlaylistSelection(cur_playlist_idx, plman.PlaylistItemCount(cur_playlist_idx) - plman.GetPlaylistSelectedItems(cur_playlist_idx).Count);
+                    break;
+                case 102:
+                    plman.CreatePlaylist(playlist_count, '');
+                    plman.InsertPlaylistItems(playlist_count, 0, plman.GetPlaylistSelectedItems(cur_playlist_idx), true);
+                    break;
+                // -------------------------------------------------------------- //
+                default:
+                    _.executeDefaultContextMenu(id, scriptFolder + 'Panel_Playlist.js');
+            }
         }
 
         for (var i = 0; i < plman.PlaylistCount; i++) {
@@ -1035,7 +998,7 @@ function Playlist(x, y) {
             }
         }
 
-        _.dispose(cpm, web, ce, ccmm, appear, appear_row, appear_header, sort, lists, send, art, group);
+        _.dispose.apply(context_menu);
 
         this.repaint();
         return true;
@@ -1559,7 +1522,7 @@ function Playlist(x, y) {
             focused_item.is_focused = true;
         }
 
-        Header.query_handler.initialize(cur_playlist_idx);
+        Header.group_query_handler.initialize(cur_playlist_idx);
 
         create_headers();
         intialize_rows_queue();
@@ -1575,7 +1538,7 @@ function Playlist(x, y) {
                 collapse_handler.expand_all();
             }
 
-            collapse_handler.set_callback(on_list_content_h_change);;
+            collapse_handler.set_callback(on_list_content_h_change);
         }
         else {
             on_list_content_h_change();
@@ -1749,7 +1712,6 @@ function Playlist(x, y) {
         var first = true;
 
         _.forEach(headers, function (header) {
-
             if (g_properties.show_header) {
                 if (cur_row + header_h_in_rows - 1 >= row_shift) {
                     if (first) {
@@ -1849,11 +1811,9 @@ function Playlist(x, y) {
     }
 
     function scroll_to_now_playing() {
-        if (!playing_item) {
-            return;
+        if (playing_item) {
+            scroll_to_row(null, playing_item);
         }
-
-        scroll_to_row(null, playing_item);
     }
 
     function scroll_to_row(from_row, to_row) {
@@ -2402,7 +2362,7 @@ function Header(x, y, w, h, idx) {
         var part2_right_pad = 0;
 
         //---> DATE
-        if (query_handler.get_current_name() !== 'artist') {
+        if (group_query_handler.get_query_name() !== 'artist') {
             var date_text = _.tf('%date%', metadb);
             if (date_text === '?' && is_radio) {
                 date_text = '';
@@ -2440,7 +2400,7 @@ function Header(x, y, w, h, idx) {
         }
 
         //---> ALBUM
-        if (query_handler.get_current_name() !== 'artist') {
+        if (group_query_handler.get_query_name() !== 'artist') {
             var album_h = part_h;
             var album_y = part_h;
             var album_x;
@@ -2511,8 +2471,8 @@ function Header(x, y, w, h, idx) {
             }
 
             var track_count = this.rows.length;
-            var genre = is_radio ? '' : (query_handler.get_current_name() !== 'artist' ? '[%genre% | ]' : '');
-            var disc_number = (query_handler.get_current_name() === 'artist_album_disc' && _.tf('[%totaldiscs%]', metadb) !== '1') ? _.tf('[ | Disc: %discnumber%/%totaldiscs%]', metadb) : '';
+            var genre = is_radio ? '' : (group_query_handler.get_query_name() !== 'artist' ? '[%genre% | ]' : '');
+            var disc_number = (group_query_handler.get_query_name() === 'artist_album_disc' && _.tf('[%totaldiscs%]', metadb) !== '1') ? _.tf('[ | Disc: %discnumber%/%totaldiscs%]', metadb) : '';
             var info_text = _.tf(genre + codec + disc_number + '[ | %replaygain_album_gain%]', metadb) + (is_radio ? '' : ' | ' + track_count + (track_count === 1 ? ' Track' : ' Tracks'));
             if (get_duration()) {
                 info_text += ' | Time: ' + get_duration();
@@ -2598,7 +2558,7 @@ function Header(x, y, w, h, idx) {
         var cur_x = left_pad;
 
         //---> DATE
-        if (query_handler.get_current_name() !== 'artist') {
+        if (group_query_handler.get_query_name() !== 'artist') {
             var date_text = _.tf('%date%', metadb);
             if (date_text === '?' && is_radio) {
                 date_text = '';
@@ -2636,7 +2596,7 @@ function Header(x, y, w, h, idx) {
         }
 
         //---> ALBUM
-        if (query_handler.get_current_name() !== 'artist') {
+        if (group_query_handler.get_query_name() !== 'artist') {
             var album_h = this.h;
             var album_x = cur_x;
             var album_w = this.w - album_x - (right_pad + 5);
@@ -2694,7 +2654,7 @@ function Header(x, y, w, h, idx) {
             return;
         }
 
-        var query = query_handler.get_current_query();
+        var query = group_query_handler.get_query();
         var group = _.tf(query, rows_to_process[0].metadb);
         _.forEach(rows_to_process, _.bind(function (item, i) {
             var cur_group = _.tf(query, item.metadb);
@@ -2714,41 +2674,26 @@ function Header(x, y, w, h, idx) {
 
     this.is_selected_dynamic = function () {
         if (g_properties.is_selection_dynamic) {
-            var is_selected = false;
-            _.forEach(that.rows, function (item) {
-                if (item.is_selected_dynamic()) {
-                    is_selected = true;
-                    return false;
-                }
+            return _.some(that.rows, function (row) {
+                return row.is_selected_dynamic();
             });
-            return is_selected;
         }
 
         return this.is_selected_static;
     };
 
     this.is_playing = function () {
-        var is_playing = false;
-        _.forEach(that.rows, function (item) {
-            if (item.is_playing) {
-                is_playing = true;
-                return false;
-            }
+        return _.some(that.rows, function (row) {
+            return row.is_playing;
         });
-        return is_playing;
     };
 
     //private:
     // TODO: consider moving this to playlist
     function is_focused() {
-        var is_focused = false;
-        _.forEach(that.rows, function (item) {
-            if (item.is_focused) {
-                is_focused = true;
-                return false;
-            }
+        return _.some(that.rows, function (row) {
+            return row.is_focused;
         });
-        return is_focused;
     }
 
     function get_duration() {
@@ -2789,7 +2734,7 @@ function Header(x, y, w, h, idx) {
 
     var metadb;
     var art = undefined;
-    var query_handler = Header.query_handler;
+    var group_query_handler = Header.group_query_handler;
 }
 
 function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
@@ -3385,13 +3330,10 @@ function SelectionHandler(rows_arg, headers_arg, cur_playlist_idx_arg) {
             plman.MovePlaylistSelection(cur_playlist_idx, move_delta);
         }
         else {
-            var item_count_before_drop_idx = 0;
-            _.forEach(selected_indexes, function (idx) {
-                if (idx > drop_idx) {
-                    return false;
-                }
-                ++item_count_before_drop_idx;
+            var item_count_before_drop_idx = _.count(selected_indexes, function(idx) {
+                return idx < drop_idx;
             });
+
             move_delta = - (plman.PlaylistItemCount(cur_playlist_idx) - selected_indexes.length - (drop_idx - item_count_before_drop_idx));
 
             // Move to the end to make it contiguous, then back to drop_idx
@@ -3518,10 +3460,9 @@ function SelectionHandler(rows_arg, headers_arg, cur_playlist_idx_arg) {
     // changes focus and selection
     function update_selection_with_header(item, ctrl_pressed, shift_pressed) {
         var row_indexes = [];
-
-        item.rows.forEach(_.bind(function (row) {
+        item.rows.forEach(function (row) {
             row_indexes.push(row.idx);
-        }, this));
+        });
 
         if (ctrl_pressed) {
             var is_selected = _.difference(row_indexes, selected_indexes).length === 0;
@@ -3851,7 +3792,6 @@ function PlaylistInfo(x, y, w, h) {
 }
 
 function GroupQueryHandler () {
-
     this.initialize = function (cur_playlist_idx_arg) {
         cur_playlist_idx = cur_playlist_idx_arg;
 
@@ -3859,7 +3799,7 @@ function GroupQueryHandler () {
         var query_name = _.isNil(saved_query_property) ? g_properties.last_used_group_query_name : saved_query_property[0];
 
         if (query_name !== 'user_defined') {
-            this.set_query_by_name(query_name, true);
+            set_query_by_name(query_name, true);
         }
         else {
             cur_query = _.isNil(saved_query_property) ? g_properties.user_group_query : saved_query_property[1];
@@ -3867,20 +3807,75 @@ function GroupQueryHandler () {
         }
     };
 
-    this.get_current_query = function () {
+    this.get_query = function () {
         return cur_query;
     };
 
-    this.get_current_name = function () {
+    this.get_query_name = function () {
         return cur_query_name;
     };
 
-    // TODO: replace with rbtn handler
-    this.get_current_query_idx = function () {
-        return queries[query_map_by_name.indexOf(cur_query_name)].idx;
+    this.append_menu = function (cpm) {
+        var group = window.CreatePopupMenu();
+
+        group.AppendTo(cpm, MF_STRING, 'Grouping');
+
+        var group_by_text = 'by...';
+        if (this.get_query_name() === 'user_defined') {
+            group_by_text += ' [' + this.get_query() + ']';
+        }
+        group.AppendMenuItem(MF_STRING, cm_start_idx, group_by_text);
+        group.AppendMenuItem(MF_STRING, cm_start_idx + 1, 'by artist');
+        group.AppendMenuItem(MF_STRING, cm_start_idx + 2, 'by artist / album');
+        group.AppendMenuItem(MF_STRING, cm_start_idx + 3, 'by artist / album / disc number');
+        group.AppendMenuItem(MF_STRING, cm_start_idx + 4, 'by path');
+        group.AppendMenuItem(MF_STRING, cm_start_idx + 5, 'by date');
+
+        var query_idx = queries[query_map_by_name.indexOf(cur_query_name)].idx;
+        group.CheckMenuRadioItem(cm_start_idx, cm_start_idx + 5, cm_start_idx + query_idx);
+
+        context_menu.push(group);
     };
 
-    this.set_query_by_name = function (name, preserve_last_used_query ) {
+    this.execute_menu = function (idx) {
+        var idx_found = false;
+
+        var true_idx = idx - cm_start_idx;
+        if (true_idx < 0) {
+            return idx_found;
+        }
+
+        idx_found = true;
+        switch (true_idx) {
+            case 0:
+                set_query_by_name('user_defined');
+                break;
+            case 1:
+                set_query_by_name('artist');
+                break;
+            case 2:
+                set_query_by_name('artist_album');
+                break;
+            case 3:
+                set_query_by_name('artist_album_disc');
+                break;
+            case 4:
+                set_query_by_name('artist_path');
+                break;
+            case 5:
+                set_query_by_name('artist_date');
+                break;
+            default:
+                idx_found = false;
+        }
+
+        _.dispose.apply(null,context_menu);
+        context_menu = [];
+
+        return idx_found;
+    };
+
+    function set_query_by_name(name, preserve_last_used_query ) {
         var query_item = queries[query_map_by_name.indexOf(name)];
         if (!query_item) {
             throw Error('Argument error:\nUnknown query name ' + name);
@@ -3906,43 +3901,40 @@ function GroupQueryHandler () {
             g_properties.last_used_group_query_name = cur_query_name;
         }
         g_properties.group_query_list = JSON.stringify(group_query_list);
-    };
+    }
 
     var queries = [
         {
             idx:  0,
+            name: 'user_defined',
+            val:  ''
+        },
+        {
+            idx:  1,
             name: 'artist',
             val:  '%album artist%'
         },
         {
-            idx:  1,
+            idx:  2,
             name: 'artist_album',
             val:  '%album artist%%album%'
         },
         {
-            idx:  2,
+            idx:  3,
             name: 'artist_album_disc',
             val:  '%album artist%%album%%discnumber%'
         },
         {
-            idx:  3,
+            idx:  4,
             name: 'artist_path',
             val:  '$directory_path(%path%)'
         },
         {
-            idx:  4,
+            idx:  5,
             name: 'artist_date',
             val:  '%date%'
-        },
-        {
-            idx:  5,
-            name: 'user_defined',
-            val:  ''
         }
     ];
-    var query_map_by_idx = queries.map(function(item) {
-        return item.idx;
-    });
     var query_map_by_name = queries.map(function(item) {
         return item.name;
     });
@@ -3954,4 +3946,7 @@ function GroupQueryHandler () {
     var cur_query_name = '';
 
     var group_query_list = JSON.parse(g_properties.group_query_list);
+
+    var cm_start_idx = 600;
+    var context_menu = [];
 }

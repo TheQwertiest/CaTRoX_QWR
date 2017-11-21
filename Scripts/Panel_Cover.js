@@ -8,17 +8,13 @@ g_properties.add_properties(
     }
 );
 
-var ww = 0,
-    wh = 0;
-
 artModule = new ArtModule(['borders', 'thumbs', 'auto_cycle']);
 
-/// Reduce move
-var moveChecker = new _.moveCheckReducer;
+var ww;
+var wh;
 
 function on_paint(gr) {
-    gr.FillSolidRect(0, 0, ww, wh, panelsBackColor);
-
+    gr.FillSolidRect( 0, 0, ww, wh, panelsBackColor);
     artModule.paint(gr);
 }
 
@@ -44,19 +40,15 @@ function on_playback_stop(reason) {
     artModule.playback_stop(reason);
 }
 
-function on_playlist_items_selection_change() {
-    artModule.playlist_items_selection_change();
-}
-
 function on_playback_new_track(metadb) {
     artModule.playback_new_track();
 }
 
-function on_mouse_move(x, y, m) {
-    if (moveChecker.isSameMove(x, y, m)) {
-        return;
-    }
+function on_item_focus_change(playlist_arg, from, to) {
+    artModule.item_focus_change();
+}
 
+function on_mouse_move(x, y, m) {
     artModule.mouse_move(x, y, m);
 }
 // ============================ //
