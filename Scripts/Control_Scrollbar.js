@@ -252,7 +252,7 @@ _.mixin({
                 }
             });
 
-            var changeHotStatus = this.trace(x, y) != this.in_sbar;
+            var changeHotStatus = this.trace(x, y) !== this.in_sbar;
             if (changeHotStatus) {
                 this.in_sbar = !this.in_sbar;
                 if (this.in_sbar) {
@@ -267,7 +267,7 @@ _.mixin({
                 }
             }
 
-            if (this.part == temp_part) {// Nothing to do: same button
+            if (this.part === temp_part) {// Nothing to do: same button
                 return this.part;
             }
 
@@ -384,7 +384,7 @@ _.mixin({
             var cpm = window.CreatePopupMenu();
 
             if (utils.IsKeyPressed(VK_SHIFT)) {
-                cpm.AppendMenuItem(safeMode ? MF_GRAYED : MF_STRING, 1, 'Configure script...');
+                cpm.AppendMenuItem(MF_STRING, 1, 'Configure script...');
             }
 
             var id = cpm.TrackPopupMenu(x, y);
@@ -420,7 +420,7 @@ _.mixin({
                         this.stop_shift_timer();
                         return;
                     }
-                    if (timer_stop_y != -1) {
+                    if (timer_stop_y !== -1) {
                         var new_thumb_y = this.btn_h + (this.scroll + shift ) * this.scrollbar_travel / this.scrollable_lines;
 
                         if ((shift > 0 && new_thumb_y >= timer_stop_y)
@@ -478,7 +478,7 @@ _.mixin({
 
         this.scroll_to = function (new_position, scroll_wo_redraw) {
             var s = Math.max(0, Math.min(new_position, this.scrollable_lines));
-            if (s == this.scroll) {
+            if (s === this.scroll) {
                 return;
             }
             this.scroll = s;
