@@ -44,7 +44,7 @@ var g_has_modded_jscript = qwr_utils.has_modded_jscript();
 var g_maximize_to_fullscreen = g_properties.g_maximize_to_fullscreen;
 var g_is_pinned = g_has_modded_jscript ? fb.IsMainMenuCommandChecked('View/Always on Top') : false;
 
-WindowState =
+var WindowState =
     {
         Normal:    0,
         Minimized: 1,
@@ -358,8 +358,7 @@ function Menu() {
             fb.RunMainMenuCommand('View/Always on Top');
         }
 
-        // Workaround for messed up settings file or properties
-        mode_handler.set_window_size_limits_for_mode(common_vars.minimode_state);
+        mode_handler.initialize();
 
         toggle_window_shadow(g_properties.show_window_shadow);
 
@@ -877,6 +876,17 @@ function WindowModeHandler() {
         }
 
         set_window_size_limits(minW, maxW, minH, maxH);
+    };
+
+    this.initialize = function() {
+        // Workaround for messed up settings file or properties
+        this.set_window_size_limits_for_mode(common_vars.minimode_state);
+
+        if (common_vars.first_launch_state === 'Is') {
+            // Workaround for window size on first theme launch
+            set_window_size(895, 650);
+            pss_switch.set_state('first_launch','IsNot');
+        }
     };
 
     function set_window_size (width, height) {

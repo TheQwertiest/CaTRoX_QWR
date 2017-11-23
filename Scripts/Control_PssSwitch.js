@@ -9,8 +9,7 @@ function PssSwitchClass() {
         var pathToState = settings_path + '\\' + state_name.toUpperCase() + '_';
 
         if (!this[states_list]) {
-            fb.trace('No such state_name');
-            error;
+            throw Error('Argument Error:\nUnknown state name ' + state_name);
         }
 
         var state;
@@ -34,19 +33,17 @@ function PssSwitchClass() {
         var pathToState = settings_path + '\\' + state_name.toUpperCase() + '_';
 
         if (!common_vars[state]) {
-            fb.trace('No such state_name');
-            error;
+            throw Error('Argument Error:\nUnknown state name ' + state_name);
         }
 
         var index = this[states_list].indexOf(common_vars[state]);
         var index_new = this[states_list].indexOf(new_state);
 
-        if (index_new == -1) {
-            fb.trace('No such state');
-            error;
+        if (index_new === -1) {
+            throw Error('Argument Error:\nUnknown state ' + new_state);
         }
 
-        if (index != -1) {
+        if (index !== -1) {
             if (fso.FileExists(pathToState + index)) {
                 fso.DeleteFile(pathToState + index);
             }
@@ -61,8 +58,9 @@ function PssSwitchClass() {
     };
 
     this.minimode_states_list = ['Full', 'Mini', 'UltraMini'];
-    this.spectrum_states_list = ['Hide', 'Show'];
+    this.spectrum_states_list = ['Show', 'Hide'];
     this.incompatibility_states_list = ['NotNotified', 'Notified'];
+    this.first_launch_states_list = ['Is', 'IsNot'];
 
 // private:
     function refresh_pss() {
@@ -77,7 +75,6 @@ function PssSwitchClass() {
     }
 
     var settings_path = fb.FoobarPath + 'themes\\' + g_theme_folder + '\\Settings';
-    var fso = new ActiveXObject('Scripting.FileSystemObject');
 
     if (!fso.FolderExists(settings_path)) {
         fso.CreateFolder(settings_path);
@@ -90,7 +87,8 @@ var common_vars =
     {
         minimode_state: pss_switch.get_state('minimode'),
         spectrum_state: pss_switch.get_state('spectrum'),
-        incompatibility_state: pss_switch.get_state('incompatibility')
+        incompatibility_state: pss_switch.get_state('incompatibility'),
+        first_launch_state: pss_switch.get_state('first_launch')
     };
 
 // Example of use in a PSS :
