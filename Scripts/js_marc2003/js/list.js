@@ -217,8 +217,7 @@ _.mixin({
 						.take(8)
 						.forEach(function (item, i) {
 							panel.s10.AppendMenuItem(MF_STRING, i + 3010, item.name);
-						})
-						.value();
+						});
 					panel.s10.AppendTo(panel.m, MF_STRING, 'Restore');
 					panel.m.AppendMenuSeparator();
 				}
@@ -392,8 +391,7 @@ _.mixin({
 					this.data = _(_.jsonParseFile(this.filename))
 						.forEach(function (item) {
 							item.width = _.textWidth(item.name, panel.fonts.normal);
-						})
-						.value();
+						});
 				}
 				break;
 			case 'lastfm_info':
@@ -402,13 +400,13 @@ _.mixin({
 					this.filename = _.artistFolder(this.artist) + 'lastfm.artist.getSimilar.json';
 					if (_.isFile(this.filename)) {
 						this.data = _(_.get(_.jsonParseFile(this.filename), 'similarartists.artist', []))
-							.map(function (item) {
+							.map(_.bind(function (item) {
 								return {
 									name : item.name,
 									width : _.textWidth(item.name, panel.fonts.normal),
 									url : this.properties.link.value == 0 ? item.url : 'artist HAS ' + item.name
 								};
-							}, this)
+							}, this))
 							.value();
 						if (_.fileExpired(this.filename, ONE_DAY)) {
 							this.get();

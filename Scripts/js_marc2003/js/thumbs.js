@@ -592,7 +592,7 @@ _.mixin({
         this.modes = ['grid', 'left', 'right', 'top', 'bottom', 'off'];
         this.pxs = [75, 100, 150, 200, 250, 300];
         this.ini_file = folders.settings + 'thumbs.ini';
-        this.vbs_file = fb.ComponentPath + 'samples\\complete\\vbs\\download.vbs';
+        this.vbs_file = folders.home + 'download.vbs';
         this.exts = 'jpg|jpeg|png|gif';
         this.folder = '';
         this.default_file = '';
