@@ -3,7 +3,7 @@
 // @author 'TheQwertiest'
 // ==/PREPROCESSOR==
 
-function PssSwitchClass() {
+var pss_switch = new function() {
     this.get_state = function (state_name) {
         var states_list = state_name + '_states_list';
         var pathToState = settings_path + '\\' + state_name.toUpperCase() + '_';
@@ -23,7 +23,8 @@ function PssSwitchClass() {
             return state;
         }
 
-        fso.CreateTextFile(pathToState + '0', true);
+        fb.trace(state_name, this[state_name + '_default_idx'])
+        fso.CreateTextFile(pathToState + this[state_name + '_default_idx'], true);
         return this[states_list][0];
     };
 
@@ -44,9 +45,7 @@ function PssSwitchClass() {
         }
 
         if (index !== -1) {
-            if (fso.FileExists(pathToState + index)) {
-                fso.DeleteFile(pathToState + index);
-            }
+            _.deleteFile(pathToState + index);
         }
         if (!fso.FileExists(pathToState + index_new)) {
             fso.CreateTextFile(pathToState + index_new, true);
@@ -58,9 +57,16 @@ function PssSwitchClass() {
     };
 
     this.minimode_states_list = ['Full', 'Mini', 'UltraMini'];
-    this.spectrum_states_list = ['Show', 'Hide'];
+    this.minimode_default_idx = this.minimode_states_list.indexOf('Full');
+
+    this.spectrum_states_list = ['Hide', 'Show'];
+    this.spectrum_default_idx = this.spectrum_states_list.indexOf('Show');
+
     this.incompatibility_states_list = ['NotNotified', 'Notified'];
-    this.first_launch_states_list = ['Is', 'IsNot'];
+    this.incompatibility_default_idx = this.incompatibility_states_list.indexOf('NotNotified');
+
+    this.first_launch_states_list = ['IsNot', 'Is'];
+    this.first_launch_default_idx = this.first_launch_states_list.indexOf('Is');
 
 // private:
     function refresh_pss() {
@@ -76,12 +82,8 @@ function PssSwitchClass() {
 
     var settings_path = fb.FoobarPath + 'themes\\' + g_theme_folder + '\\Settings';
 
-    if (!fso.FolderExists(settings_path)) {
-        fso.CreateFolder(settings_path);
-    }
-}
-
-var pss_switch = new PssSwitchClass();
+    _.createFolder(settings_path);
+};
 
 var common_vars =
     {
