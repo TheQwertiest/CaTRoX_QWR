@@ -1,7 +1,7 @@
 ﻿// ==PREPROCESSOR==
 // @name "Library Tree"
 // @author "WilB"
-// @version "1.3.9"
+// @version "1.3.9.1"
 // ==/PREPROCESSOR==
 
 String.prototype.strip = function() {return this.replace(/[\.,\!\?\:;'\u2019"\-_\u2010\s+]/g, "").toLowerCase();}
@@ -989,7 +989,7 @@ function searchLibrary() {
         var text = String.fromCharCode(code); if (force) p.s_search = true;
         if (!p.s_search) return; p.s_cursor = false; p.pos = -1;
         switch (code) {
-            case v.enter: if (p.s_txt.length < 3) break; var items = fb.GetQueryItems(lib.list, p.s_txt); pop.load(items, false, false, false, pop.gen_pl, false); items.Dispose(); break;
+            case v.enter: if (p.s_txt.length < 3) break; var items = p.items(); try {items = fb.GetQueryItems(lib.list, p.s_txt)} catch (e) {} pop.load(items, false, false, false, pop.gen_pl, false); items.Dispose(); break;
             case v.redo: lg.push(p.s_txt); if (lg.length > 30) lg.shift(); if (log.length > 0) {p.s_txt = log.pop() + ""; cx++} break;
             case v.undo: log.push(p.s_txt); if (log.length > 30) lg.shift(); if (lg.length > 0) p.s_txt = lg.pop() + ""; break;
             case v.selAll: s = 0; e = p.s_txt.length; break;
@@ -1112,7 +1112,7 @@ function button_manager() {
     if (custom_col) {if (cust_icon_font.length) {cust_icon_font = cust_icon_font.split(","); try {var st = Math.round(parseFloat(cust_icon_font[1])), font_test = gdi.Font(cust_icon_font[0], 16, st); icon_f_name = cust_icon_font[0]; icon_f_style = st;} catch(e) {ui.trace("JScript Panel is unable to use your scroll icon font. Using Segoe UI instead");}}}
     var b_x, but_tt = window.CreateTooltip("Segoe UI", 15 * ui.scale * window.GetProperty(" Zoom Tooltip [Button] (%)", 100) / 100, 0), bx, by, bh, byDn, byUp, fw, i, qx, qy, qh, s_img = [], scr = [], scrollBut_x, scrollDn_y, scrollUp_y;
     this.btns = []; this.b = null;
-    var browser = function(c) {if (!this.run(c)) fb.ShowPopupMessage("Unable to launch your default browser.", "Library Tree");}
+    var browser = function(c) {if (!but.run(c)) fb.ShowPopupMessage("Unable to launch your default browser.", "Library Tree");}
     var tooltip = function(n) {if (but_tt.text == n) return; but_tt.text = n; but_tt.activate();}
     this.lbtn_dn = function(x, y) {if (!this.b) return false; if (ui.scrollbar_show && (this.b == "scrollUp" || this.b == "scrollDn")) {if (this.btns[this.b].trace(x, y)) this.btns[this.b].down = true; this.btns[this.b].changestate("down");} this.btns[this.b].lbtn_dn(x, y); return true;}
     this.lbtn_up = function(x, y) {if (!this.b) return false; if (ui.scrollbar_show) {this.btns["scrollUp"].down = false; this.btns["scrollDn"].down = false; if (this.b == "scrollUp" || this.b == "scrollDn") this.btns[this.b].changestate(this.btns[this.b].trace(x, y) ? "hover" : "normal");} this.move(x, y); if (!this.b) return false; this.btns[this.b].lbtn_up(x, y); return true;}

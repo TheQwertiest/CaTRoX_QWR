@@ -4,7 +4,7 @@
 // ==/PREPROCESSOR==
 g_properties.add_properties(
     {
-        show_remaining_time: ['user.seekbar.show_ramaining_time', true]
+        show_remaining_time: ['user.seekbar.show_remaining_time', true]
     }
 );
 
