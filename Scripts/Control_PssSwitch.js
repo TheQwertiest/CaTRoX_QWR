@@ -23,9 +23,9 @@ var pss_switch = new function() {
             return state;
         }
 
-        fb.trace(state_name, this[state_name + '_default_idx'])
-        fso.CreateTextFile(pathToState + this[state_name + '_default_idx'], true);
-        return this[states_list][0];
+        var default_idx = this[state_name + '_default_idx'];
+        fso.CreateTextFile(pathToState + default_idx, true);
+        return this[states_list][default_idx];
     };
 
     this.set_state = function (state_name, new_state) {

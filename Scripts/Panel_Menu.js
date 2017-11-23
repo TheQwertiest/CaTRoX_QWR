@@ -66,7 +66,9 @@ var MoveStyle =
         Both:    3
     };
 
+Menu.mode_handler = new WindowModeHandler();
 var menu = new Menu();
+Menu.mode_handler.fix_window_size();
 
 function on_paint(gr) {
     trace_call && trace_on_paint && fb.trace(qwr_utils.function_name());
@@ -357,8 +359,6 @@ function Menu() {
             fb.RunMainMenuCommand('View/Always on Top');
             fb.RunMainMenuCommand('View/Always on Top');
         }
-
-        mode_handler.initialize();
 
         toggle_window_shadow(g_properties.show_window_shadow);
 
@@ -743,7 +743,7 @@ function Menu() {
     var mouse_down = false;
 
     // Objects
-    var mode_handler = new WindowModeHandler();
+    var mode_handler = Menu.mode_handler;
     var cpu_usage_tracker = new CpuUsageTracker(_.bind(this.repaint, this));
     var buttons = undefined;
     var button_images = [];
@@ -878,7 +878,7 @@ function WindowModeHandler() {
         set_window_size_limits(minW, maxW, minH, maxH);
     };
 
-    this.initialize = function() {
+    this.fix_window_size = function() {
         // Workaround for messed up settings file or properties
         this.set_window_size_limits_for_mode(common_vars.minimode_state);
 
