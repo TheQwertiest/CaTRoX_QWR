@@ -12,6 +12,8 @@ Theme for foobar2000 based on the design and color scheme of eXtremeHunter1972's
 
 See [Installation Guide](https://github.com/TheQwertiest/CaTRoX_QWR/wiki/Installation) to get started!
 
+Use [Support thread](https://hydrogenaud.io/index.php/topic,114991.new.html) to report issues, if you encounter any =)
+
 #### Included 3rd party scripts
  - YouTube Track Manager (Panel_YT.js): https://hydrogenaud.io/index.php/topic,105522.0.html by WilB.
  - Library Tree (Panel_Library.js): https://hydrogenaud.io/index.php/topic,110938.0.html by WilB.
