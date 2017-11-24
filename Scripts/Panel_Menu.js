@@ -127,15 +127,19 @@ function Menu() {
     this.on_paint = function (gr) {
         if (!has_notified) {
             // When on_paint is called all other panels are loaded and can receive notifications
-            mode_handler.fix_window_size();
             window.NotifyOthers('show_tooltips', g_properties.show_tooltips);
             window.NotifyOthers('minimode_state', common_vars.minimode_state);
 
             has_notified = true;
-            on_size();
 
-            // on_paint will be called after on_size
-            return;
+            // Dirty, dirty hack to adjust window size
+            var saved_w = window.Width;
+            var saved_h = window.Height;
+            mode_handler.fix_window_size();
+            if (saved_w != window.Width || saved_h != window.Height) {
+                window.Repaint();
+                return;
+            }
         }
 
         gr.FillSolidRect(this.x - pad, this.y - pad, this.w + 2*pad, this.h + pad, pssBackColor);
