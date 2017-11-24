@@ -1,6 +1,6 @@
 # CaTRoX (QWR Edition) 
 
-Theme for foobar2000 based on the design and color scheme of eXtremeHunter1972's infamous CaTRoX theme!
+Theme for [foobar2000](https://www.foobar2000.org) based on the design and color scheme of eXtremeHunter1972's infamous CaTRoX theme!
 
 [Features](https://github.com/TheQwertiest/CaTRoX_QWR/wiki):
  - Three player modes: Full, Playlist and Art.
