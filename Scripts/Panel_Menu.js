@@ -68,9 +68,8 @@ var MoveStyle =
         Both:    3
     };
 
-Menu.mode_handler = new WindowModeHandler();
 var menu = new Menu();
-Menu.mode_handler.fix_window_size();
+menu.post_ctor_initialize();
 
 function on_paint(gr) {
     trace_call && trace_on_paint && fb.trace(qwr_utils.function_name());
@@ -352,6 +351,10 @@ function Menu() {
     }, this), 1000 / 60);
     this.repaint = function () {
         throttled_repaint();
+    };
+
+    this.post_ctor_initialize = function() {
+        mode_handler.fix_window_size();
     };
 
     // private:
@@ -654,7 +657,10 @@ function Menu() {
                 var img = gdi.CreateImage(100, 100);
                 var g = img.GetGraphics();
 
-                item.w = Math.ceil(g.MeasureString(item.ico, item.font, 0, 0, 0, 0).Width) + 17;
+                item.w = Math.ceil(
+                    /** @type {!number} */
+                    g.MeasureString(item.ico, item.font, 0, 0, 0, 0).Width
+                ) + 17;
                 img.ReleaseGraphics(g);
                 img.Dispose();
                 item.h = 21;
@@ -745,7 +751,7 @@ function Menu() {
     var mouse_down = false;
 
     // Objects
-    var mode_handler = Menu.mode_handler;
+    var mode_handler = new WindowModeHandler();
     var cpu_usage_tracker = new CpuUsageTracker(_.bind(this.repaint, this));
     var buttons = undefined;
     var button_images = [];
