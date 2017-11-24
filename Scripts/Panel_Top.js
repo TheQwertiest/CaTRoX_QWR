@@ -212,9 +212,9 @@ function create_button_images() {
                 font:      font_awesome,
                 w:         30,
                 h:         30,
-                cNormal:   _.RGBA(255, 220, 55, 155),
-                cHover:    _.RGBA(255, 220, 55, 225),
-                cDown:     _.RGBA(255, 220, 55, 105),
+                cNormal:   _.RGB(165, 144, 43), // _.RGBA(255, 220, 55, 155) + pssBackColor
+                cHover:    _.RGB(228, 197, 52), // _.RGBA(255, 220, 55, 225) + pssBackColor
+                cDown:     _.RGB(120, 106, 38), // _.RGBA(255, 220, 55, 105) + pssBackColor
                 add_cross: true
             }
     };
@@ -257,9 +257,9 @@ function create_button_images() {
 
             g.DrawString(item.ico, item.font, playbackIcoColor, 1, 0, w, h, g_string_format.align_center);
             if (item.add_cross) {
-                var font_ariel = gdi.font('Ariel', 18, g_font_style.bold);
-                g.DrawString('/', font_ariel, playbackIcoColor, 1, 0, w, h, g_string_format.align_center);
-                g.DrawString('/', font_ariel, pssBackColor, 3, 0, w, h, g_string_format.align_center);
+                var slash_font = gdi.font('Arial', 22, g_font_style.bold);
+                g.DrawString('\u2215', slash_font, playbackIcoColor, 1, 1, w, h, g_string_format.align_center);
+                g.DrawString('\u2215', slash_font, pssBackColor, 3, 1, w, h, g_string_format.align_center);
             }
 
             img.ReleaseGraphics(g);
