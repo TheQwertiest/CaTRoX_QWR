@@ -1,4 +1,4 @@
-// ==PREPROCESSOR==
+﻿// ==PREPROCESSOR==
 // @name 'Scrollbar Control'
 // @author 'TheQwertiest'
 // ==/PREPROCESSOR==

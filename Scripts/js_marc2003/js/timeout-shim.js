@@ -1,4 +1,4 @@
-var g_trace_timer = false;
+﻿var g_trace_timer = false;
 function setInterval(func, wait){
     var id = window.SetInterval(func, wait);
     g_trace_timer && fb.trace("setInterval",id);

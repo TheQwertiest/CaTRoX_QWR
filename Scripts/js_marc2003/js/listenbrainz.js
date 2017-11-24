@@ -1,4 +1,4 @@
-_.mixin({
+﻿_.mixin({
 	listenbrainz : function (x, y, size) {
 		this.playback_new_track = function () {
 			this.metadb = fb.GetNowPlaying();

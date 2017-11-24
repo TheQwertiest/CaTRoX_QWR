@@ -1,4 +1,4 @@
-function on_colors_changed() {
+﻿function on_colors_changed() {
 	panel.colours_changed();
 	window.Repaint();
 }

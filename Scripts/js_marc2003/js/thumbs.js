@@ -1,4 +1,4 @@
-_.mixin({
+﻿_.mixin({
     thumbs: function () {
         this.size = function (f) {
             this.nc = f || this.nc;

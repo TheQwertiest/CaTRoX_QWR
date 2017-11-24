@@ -1,4 +1,4 @@
-// ==PREPROCESSOR==
+﻿// ==PREPROCESSOR==
 // @name "YouTube Track Manager"
 // @author "WilB"
 // @version "3.9.3.2"

@@ -1,4 +1,4 @@
-_.mixin({
+﻿_.mixin({
 	list : function (mode, x, y, w, h) {
 		this.size = function () {
 			this.index = 0;
