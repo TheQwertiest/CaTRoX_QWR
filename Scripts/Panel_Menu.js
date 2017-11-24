@@ -10,23 +10,13 @@
     }
 })();
 
-(function check_modded_jscript_availability() {
-    if (common_vars.incompatibility_state === 'Notified')
-        return;
-
-    if (!qwr_utils.has_modded_jscript())
-        fb.ShowPopupMessage('Warning: Vanilla JScript component detected!\nThis theme relies on modded JScript component, so some features will be unavailable!\n\nSources for modded JScript are available at https://github.com/TheQwertiest/foo-jscript-panel\n\nTo hide this warning rename file INCOMPATIBILITY_0 to INCOMPATIBILITY_1 in \\themes\\CaTRoX\\Settings\\', 'CaTRoX (QWR Edition)');
-})();
-
-qwr_utils.check_fonts(['Segoe Ui', 'Segoe Ui Semibold', 'Segoe Ui Symbol', 'Consolas', 'Marlett', 'Guifx v2 Transports', 'FontAwesome']);
-
 var trace_call = false;
 var trace_on_paint = false;
 var trace_on_move = false;
 
 g_properties.add_properties(
     {
-        g_maximize_to_fullscreen: ['user.window.maximize_to_fullscreen', true],
+        maximize_to_fullscreen:   ['user.window.maximize_to_fullscreen', true],
         show_window_shadow:       ['user.window.shadow.show', true],
         show_fb2k_version:        ['user.title_bar.fb2k_version.show', false],
         show_theme_version:       ['user.title_bar.theme_version.show', false],
@@ -36,12 +26,24 @@ g_properties.add_properties(
         full_mode_saved_width:    ['system.window.full.saved_width', 895],
         full_mode_saved_height:   ['system.window.full.saved_height', 650],
         mini_mode_saved_width:    ['system.window.mini.saved_width', 250],
-        mini_mode_saved_height:   ['system.window.mini.saved_height', 600]
+        mini_mode_saved_height:   ['system.window.mini.saved_height', 600],
+        is_first_launch:          ['system.first_launch', true],
+        incompatibility_notified: ['system.jscript_incompatibility_notified', false]
     }
 );
 
+(function check_modded_jscript_availability() {
+    if (g_properties.incompatibility_notified)
+        return;
+
+    if (!qwr_utils.has_modded_jscript())
+        fb.ShowPopupMessage('Warning: Vanilla JScript component detected!\nThis theme relies on modded JScript component, so some features will be unavailable!\n\nSources for modded JScript are available at https://github.com/TheQwertiest/foo-jscript-panel\n\nTo hide this warning change \'system.jscript_incompatibility_notified\' to \'true\' in Panel Properties (SHIFT-right-click).', 'CaTRoX (QWR Edition)');
+})();
+
+qwr_utils.check_fonts(['Segoe Ui', 'Segoe Ui Semibold', 'Segoe Ui Symbol', 'Consolas', 'Marlett', 'Guifx v2 Transports', 'FontAwesome']);
+
 var g_has_modded_jscript = qwr_utils.has_modded_jscript();
-var g_maximize_to_fullscreen = g_properties.g_maximize_to_fullscreen;
+var maximize_to_fullscreen = g_properties.maximize_to_fullscreen;
 var g_is_pinned = g_has_modded_jscript ? fb.IsMainMenuCommandChecked('View/Always on Top') : false;
 
 var WindowState =
@@ -248,7 +250,7 @@ function Menu() {
             cpm.AppendMenuSeparator();
             cpm.AppendMenuItem(MF_STRING, 6, 'Maximize button -> to fullscreen');
         }
-        cpm.CheckMenuItem(6, g_properties.g_maximize_to_fullscreen);
+        cpm.CheckMenuItem(6, g_properties.maximize_to_fullscreen);
         cpm.AppendMenuSeparator();
 
         cpm.AppendMenuItem(MF_STRING, 7, 'Show foobar version');
@@ -299,7 +301,7 @@ function Menu() {
                 toggle_window_shadow(g_properties.show_window_shadow);
                 break;
             case 6:
-                g_properties.g_maximize_to_fullscreen = !g_properties.g_maximize_to_fullscreen;
+                g_properties.maximize_to_fullscreen = !g_properties.maximize_to_fullscreen;
                 break;
             case 7:
                 g_properties.show_fb2k_version = !g_properties.show_fb2k_version;
@@ -519,7 +521,7 @@ function Menu() {
                 x += w + p;
                 buttons.buttons.maximize = new _.button(x, y, w, h, button_images.Maximize, function () {
                     try {
-                        if (g_maximize_to_fullscreen ? !utils.IsKeyPressed(VK_CONTROL) : utils.IsKeyPressed(VK_CONTROL)) {
+                        if (maximize_to_fullscreen ? !utils.IsKeyPressed(VK_CONTROL) : utils.IsKeyPressed(VK_CONTROL)) {
                             UIHacks.FullScreen = !UIHacks.FullScreen;
                         }
                         else if (UIHacks.MainWindowState === WindowState.Maximized) {
@@ -882,10 +884,12 @@ function WindowModeHandler() {
         // Workaround for messed up settings file or properties
         this.set_window_size_limits_for_mode(common_vars.minimode_state);
 
-        if (common_vars.first_launch_state === 'Is') {
-            // Workaround for window size on first theme launch
-            set_window_size(895, 650);
-            pss_switch.set_state('first_launch','IsNot');
+        if (g_properties.is_first_launch) {
+            if (common_vars.minimode_state === 'Full') {
+                // Workaround for window size on first theme launch
+                set_window_size(895, 650);
+            }
+            g_properties.is_first_launch = false;
         }
     };
 

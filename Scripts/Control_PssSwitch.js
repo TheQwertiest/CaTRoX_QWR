@@ -62,12 +62,6 @@ var pss_switch = new function() {
     this.spectrum_states_list = ['Hide', 'Show'];
     this.spectrum_default_idx = this.spectrum_states_list.indexOf('Show');
 
-    this.incompatibility_states_list = ['NotNotified', 'Notified'];
-    this.incompatibility_default_idx = this.incompatibility_states_list.indexOf('NotNotified');
-
-    this.first_launch_states_list = ['IsNot', 'Is'];
-    this.first_launch_default_idx = this.first_launch_states_list.indexOf('Is');
-
 // private:
     function refresh_pss() {
         if (fb.IsPlaying || fb.IsPaused) {
@@ -89,8 +83,6 @@ var common_vars =
     {
         minimode_state: pss_switch.get_state('minimode'),
         spectrum_state: pss_switch.get_state('spectrum'),
-        incompatibility_state: pss_switch.get_state('incompatibility'),
-        first_launch_state: pss_switch.get_state('first_launch')
     };
 
 // Example of use in a PSS :
