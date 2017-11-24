@@ -1,4 +1,4 @@
-﻿_.mixin({
+_.mixin({
     text: function (mode, x, y, w, h) {
         this.size = function () {
             this.rows = Math.floor((this.h - _.scale(24)) / panel.row_height);

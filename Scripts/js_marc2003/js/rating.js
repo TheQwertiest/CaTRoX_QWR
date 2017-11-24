@@ -1,4 +1,4 @@
-﻿_.mixin({
+_.mixin({
 	rating : function (x, y, h, off, on) {
 		this.paint = function (gr) {
 			if (panel.metadb) {

@@ -1,4 +1,4 @@
-﻿// ==PREPROCESSOR==
+// ==PREPROCESSOR==
 // @name 'Cover Panel'
 // @author 'TheQwertiest'
 // ==/PREPROCESSOR==

@@ -1,4 +1,4 @@
-﻿// ==PREPROCESSOR==
+// ==PREPROCESSOR==
 // @name "WSH Splitter"
 // @version "1.2"
 // @author "Jensen"

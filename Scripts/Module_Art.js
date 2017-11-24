@@ -1,4 +1,4 @@
-﻿// ==PREPROCESSOR==
+// ==PREPROCESSOR==
 // @name 'Art Module'
 // @author 'TheQwertiest & eXtremeHunter'
 // ==/PREPROCESSOR==

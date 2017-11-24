@@ -1,4 +1,4 @@
-﻿_.mixin({
+_.mixin({
     seekbar: function (x, y, w, h) {
         this.playback_seek = function () {
             this.repaint();

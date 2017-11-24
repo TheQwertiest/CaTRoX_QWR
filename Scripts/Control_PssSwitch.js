@@ -1,4 +1,4 @@
-﻿// ==PREPROCESSOR==
+// ==PREPROCESSOR==
 // @name 'PSS Switch Control'
 // @author 'TheQwertiest'
 // ==/PREPROCESSOR==

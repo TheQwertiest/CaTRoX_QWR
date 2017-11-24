@@ -1,4 +1,4 @@
-﻿// ==PREPROCESSOR==
+// ==PREPROCESSOR==
 // @name 'Playlist Panel'
 // @author 'design: eXtremeHunter'
 // @author 'everything else: TheQwertiest'

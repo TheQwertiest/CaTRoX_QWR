@@ -1,4 +1,4 @@
-﻿_.mixin({
+_.mixin({
 	albumart : function (x, y, w, h) {
 		this.paint = function (gr) {
 			if (this.properties.cd.enabled) {

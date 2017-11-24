@@ -1,4 +1,4 @@
-﻿_.mixin({
+_.mixin({
 	lastfm : function () {
 		this.notify_data = function (name, data) {
 			if (name == '2K3.NOTIFY.LASTFM') {
