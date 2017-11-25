@@ -43,97 +43,6 @@ ABS_DOWNHOVER = 18;
 ABS_LEFTHOVER = 19;
 ABS_RIGHTHOVER = 20;
 
-//// Button hover alpha timer
-var g_sbarAlphaTimer;
-
-function startSbarAlphaTimerFn(caller) {
-    var turnTimerOff = false,
-        hoverInStep = 50,
-        hoverOutStep = 15,
-        downInStep = 100,
-        downOutStep = 50,
-        timerDelay = 25;
-
-    if (_.isNil(g_sbarAlphaTimer)) {
-        g_sbarAlphaTimer = setInterval(function () {
-            _.forEach(caller.sb_parts, function (item, i) {
-                switch (item.state) {
-                    case 'normal':
-                        item.hover_alpha = Math.max(0, item.hover_alpha -= hoverOutStep);
-                        item.hot_alpha = Math.max(0, item.hot_alpha -= hoverOutStep);
-                        if (i === 'thumb') {
-                            item.pressed_alpha = Math.max(0, item.pressed_alpha -= hoverOutStep);
-                        }
-                        else {
-                            item.pressed_alpha = Math.max(0, item.pressed_alpha -= downOutStep);
-                        }
-
-                        break;
-                    case 'hover':
-                        item.hover_alpha = Math.min(255, item.hover_alpha += hoverInStep);
-                        item.hot_alpha = Math.max(0, item.hot_alpha -= hoverOutStep);
-                        item.pressed_alpha = Math.max(0, item.pressed_alpha -= downOutStep);
-
-                        break;
-                    case 'pressed':
-                        item.hover_alpha = 0;
-                        item.hot_alpha = 0;
-                        if (i === 'thumb') {
-                            item.pressed_alpha = 255;
-                        }
-                        else {
-                            item.pressed_alpha = Math.min(255, item.pressed_alpha += downInStep);
-                        }
-
-                        break;
-                    case 'hot':
-                        item.hover_alpha = Math.max(0, item.hover_alpha -= hoverOutStep);
-                        item.hot_alpha = Math.min(255, item.hot_alpha += hoverInStep);
-                        item.pressed_alpha = Math.max(0, item.pressed_alpha -= downOutStep);
-
-                        break;
-                }
-                //fb.trace(i, item.state, item.hover_alpha , item.pressed_alpha , item.hot_alpha);
-                item.repaint();
-            });
-
-            //caller.repaint();
-
-            var ready = true;
-
-            _.forEach(caller.sb_parts, function (item) {
-                var alphaIsFull = false,
-                    alphaIsZero = true;
-                //---> Test button alpha values and turn button timer off when it's not required;
-                if (item.pressed_alpha === 255 || (item.hover_alpha === 255 && item.hot_alpha === 255) || (item.hover_alpha === 0 && item.hot_alpha === 255) || (item.hover_alpha === 255 && item.hot_alpha === 0)) {
-                    alphaIsFull = true;
-                }
-                else {
-                    alphaIsZero = (item.hover_alpha + item.pressed_alpha + item.hot_alpha ) === 0;
-                }
-
-                ready &= (alphaIsZero || alphaIsFull);
-            });
-
-            if (ready) {
-                turnTimerOff = true;
-            }
-
-            if (turnTimerOff) {
-                stopSbarAlphaTimerFn();
-            }
-
-        }, timerDelay);
-    }
-}
-
-function stopSbarAlphaTimerFn() {
-    if (!_.isNil(g_sbarAlphaTimer)) {
-        clearInterval(g_sbarAlphaTimer);
-        g_sbarAlphaTimer = undefined;
-    }
-}
-
 _.mixin({
     scrollbar:      function (x, y, w, h, row_h, fn_redraw) {
         this.paint = function (gr) {
@@ -169,7 +78,7 @@ _.mixin({
 
         this.reset = function () {
             throttled_scroll_to.flush();
-            stopSbarAlphaTimerFn();
+            alpha_timer.stop();
             this.stop_shift_timer();
 
             this.scroll = 0;
@@ -233,7 +142,7 @@ _.mixin({
             _.forEach(this.sb_parts, function (item) {
                 item.cs('normal');
             });
-            startSbarAlphaTimerFn(this);
+            alpha_timer.start();
         };
 
         this.leave = function () {
@@ -258,12 +167,12 @@ _.mixin({
                 if (this.in_sbar) {
                     temp_part !== 'lineUp' && this.part !== 'lineUp' && this.sb_parts['lineUp'].cs('hot');
                     temp_part !== 'lineDown' && this.part !== 'lineDown' && this.sb_parts['lineDown'].cs('hot');
-                    startSbarAlphaTimerFn(this);
+                    alpha_timer.start();
                 }
                 else {
                     this.part !== 'lineUp' && this.sb_parts['lineUp'].cs('normal');
                     this.part !== 'lineDown' && this.sb_parts['lineDown'].cs('normal');
-                    startSbarAlphaTimerFn(this);
+                    alpha_timer.start();
                 }
             }
 
@@ -274,7 +183,7 @@ _.mixin({
             if (this.part) {
                 if (this.part === 'thumb') {
                     this.sb_parts[this.part].cs('normal');
-                    startSbarAlphaTimerFn(this);
+                    alpha_timer.start();
                 }
                 else {
                     if (this.sb_parts[this.part].state === 'pressed') {
@@ -284,13 +193,13 @@ _.mixin({
 
                     // Return prev button to normal or hot state
                     this.sb_parts[this.part].cs(this.in_sbar ? 'hot' : 'normal');
-                    startSbarAlphaTimerFn(this);
+                    alpha_timer.start();
                 }
             }
 
             if (temp_part) {// Select current button
                 this.sb_parts[temp_part].cs('hover');
-                startSbarAlphaTimerFn(this);
+                alpha_timer.start();
             }
 
             this.part = temp_part;
@@ -312,7 +221,7 @@ _.mixin({
         this.parts_lbtn_down = function () {
             if (this.part) {
                 this.sb_parts[this.part].cs('pressed');
-                startSbarAlphaTimerFn(this);
+                alpha_timer.start();
             }
         };
 
@@ -353,11 +262,11 @@ _.mixin({
             if (this.part && this.sb_parts[this.part].state === 'pressed') {
                 if (this.sb_parts[this.part].trace(x, y)) {
                     this.sb_parts[this.part].cs('hover');
-                    startSbarAlphaTimerFn(this);
+                    alpha_timer.start();
                 }
                 else {
                     this.sb_parts[this.part].cs('normal');
-                    startSbarAlphaTimerFn(this);
+                    alpha_timer.start();
                 }
 
                 return true;
@@ -690,6 +599,75 @@ _.mixin({
         var timer_shift;
         var timer_shift_count;
         var timer_stop_y = -1;
+
+        var alpha_timer = new function () {
+            this.start = function () {
+                var hoverInStep = 50;
+                var hoverOutStep = 15;
+                var downOutStep = 50;
+
+                if (!alpha_timer_internal) {
+                    alpha_timer_internal = window.SetInterval(_.bind(function () {
+                        _.forEach(that.sb_parts, function (item, i) {
+                            switch (item.state) {
+                                case 'normal':
+                                    item.hover_alpha = Math.max(0, item.hover_alpha -= hoverOutStep);
+                                    item.hot_alpha = Math.max(0, item.hot_alpha -= hoverOutStep);
+                                    if (i === 'thumb') {
+                                        item.pressed_alpha = Math.max(0, item.pressed_alpha -= hoverOutStep);
+                                    }
+                                    else {
+                                        item.pressed_alpha = Math.max(0, item.pressed_alpha -= downOutStep);
+                                    }
+
+                                    break;
+                                case 'hover':
+                                    item.hover_alpha = Math.min(255, item.hover_alpha += hoverInStep);
+                                    item.hot_alpha = Math.max(0, item.hot_alpha -= hoverOutStep);
+                                    item.pressed_alpha = Math.max(0, item.pressed_alpha -= downOutStep);
+
+                                    break;
+                                case 'pressed':
+                                    item.hover_alpha = 0;
+                                    item.hot_alpha = 0;
+                                    item.pressed_alpha = 255;
+
+                                    break;
+                                case 'hot':
+                                    item.hover_alpha = Math.max(0, item.hover_alpha -= hoverOutStep);
+                                    item.hot_alpha = Math.min(255, item.hot_alpha += hoverInStep);
+                                    item.pressed_alpha = Math.max(0, item.pressed_alpha -= downOutStep);
+
+                                    break;
+                            }
+                            //fb.trace(i, item.state, item.hover_alpha , item.pressed_alpha , item.hot_alpha);
+                            //item.repaint();
+                        });
+
+                        that.repaint();
+
+                        var alpha_in_progress = _.some(that.sb_parts, function (item) {
+                            return (item.hover_alpha > 0 && item.hover_alpha < 255)
+                                || (item.pressed_alpha > 0 && item.pressed_alpha < 255)
+                                || (item.hot_alpha > 0 && item.hot_alpha < 255);
+                        });
+
+                        if (!alpha_in_progress) {
+                            this.stop();
+                        }
+                    }, this), 25);
+                }
+            };
+
+            this.stop = function () {
+                if (alpha_timer_internal) {
+                    window.ClearInterval(alpha_timer_internal);
+                    alpha_timer_internal = null;
+                }
+            };
+
+            var alpha_timer_internal = null;
+        };
 
         create_scrollbar_images();
     },

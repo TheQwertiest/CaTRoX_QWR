@@ -122,39 +122,9 @@ _.mixin({
 
         var that = this;
 
-        var alpha_timer = new function()
-        {
-            var alpha_timer_internal = undefined;
-
-            this.start = function() {
-                var buttonHoverInStep = 50,
-                    buttonHoverOutStep = 15;
-
-                if (!alpha_timer_internal) {
-                    alpha_timer_internal = setInterval(_.bind(function () {
-                        if (!that.hover) {
-                            that.hover_alpha = Math.max(0, that.hover_alpha -= buttonHoverOutStep);
-                            that.repaint();
-                        }
-                        else {
-                            that.hover_alpha = Math.min(255, that.hover_alpha += buttonHoverInStep);
-                            that.repaint();
-                        }
-
-                        if (that.hover_alpha === 0 || that.hover_alpha === 255) {
-                            this.stop();
-                        }
-                    },this), 25);
-                }
-            };
-
-            this.stop = function() {
-                if (alpha_timer_internal) {
-                    clearInterval(alpha_timer_internal);
-                    alpha_timer_internal = null
-                }
-            };
-        };
+        var alpha_timer = new _.alpha_timer([that], function(item) {
+            return item.hover;
+        });
 
         // Expose static methods
         var repaint_timer = _.seekbar.repaint_timer;

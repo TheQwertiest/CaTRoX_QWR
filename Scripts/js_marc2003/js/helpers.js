@@ -9,6 +9,49 @@ function on_script_unload() {
 }
 
 _.mixin({
+    alpha_timer: function (items_arg,hover_predicate_arg){
+        this.start = function () {
+            var buttonHoverInStep = 50;
+            var buttonHoverOutStep = 15;
+
+            if (!alpha_timer_internal) {
+                alpha_timer_internal = window.SetInterval(_.bind(function () {
+                    _.forEach(items, function (item) {
+                        var saved_alpha = item.hover_alpha;
+                        if (hover_predicate(item)) {
+                            item.hover_alpha = Math.min(255, item.hover_alpha += buttonHoverInStep);
+                        }
+                        else {
+                            item.hover_alpha = Math.max(0, item.hover_alpha -= buttonHoverOutStep);
+                        }
+
+                        if (saved_alpha !== item.hover_alpha) {
+                            item.repaint();
+                        }
+                    });
+
+                    var alpha_in_progress = _.some(items, function (item) {
+                        return item.hover_alpha > 0 && item.hover_alpha < 255;
+                    });
+
+                    if (!alpha_in_progress) {
+                        this.stop();
+                    }
+                }, this), 25);
+            }
+        };
+
+        this.stop = function () {
+            if (alpha_timer_internal) {
+                window.ClearInterval(alpha_timer_internal);
+                alpha_timer_internal = null;
+            }
+        };
+
+        var alpha_timer_internal = null;
+        var items = items_arg;
+        var hover_predicate = hover_predicate_arg;
+    },
     appendDefaultContextMenu:  function (cpm) {
         if (!cpm) {
             return;
@@ -206,60 +249,9 @@ _.mixin({
         this.show_tt = false;
 
         var that = this;
-        var alpha_timer = new function () {
-            var alpha_timer_internal;
-
-            this.start = function () {
-                var buttonHoverInStep = 50,
-                    buttonHoverOutStep = 15,
-                    buttonDownInStep = 100,
-                    buttonDownOutStep = 50;
-
-                if (!alpha_timer_internal) {
-                    alpha_timer_internal = window.SetInterval(_.bind(function () {
-                        _.forEach(that.buttons, function (item) {
-                            switch (item.state) {
-                                case "normal":
-                                    item.hover_alpha = Math.max(0, item.hover_alpha -= buttonHoverOutStep);
-                                    item.repaint();
-                                    break;
-                                case "hover":
-                                case "pressed":
-                                    item.hover_alpha = Math.min(255, item.hover_alpha += buttonHoverInStep);
-                                    item.repaint();
-                                    break;
-                            }
-                        });
-
-                        var testAlpha = 0,
-                            currentAlphaIsFull = false,
-                            alphaIsZero = true;
-
-                        _.forEach(that.buttons, function (item) {
-                            //---> Test button alpha values and turn button timer off when it's not required;
-                            if (item.hover_alpha === 255) {
-                                currentAlphaIsFull = true;
-                            }
-                            else {
-                                alphaIsZero = (testAlpha += item.hover_alpha) === 0;
-                            }
-                        });
-
-                        if ((alphaIsZero && currentAlphaIsFull) || alphaIsZero) {
-                            this.stop();
-                        }
-
-                    }, this), 25);
-                }
-            };
-
-            this.stop = function () {
-                if (alpha_timer_internal) {
-                    window.ClearInterval(alpha_timer_internal);
-                    alpha_timer_internal = null;
-                }
-            };
-        };
+        var alpha_timer = new _.alpha_timer(that.buttons, function(item){
+            return item.state !== 'normal';
+        });
     },
     cc:                        function (name) {
         return utils.CheckComponent(name, true);
