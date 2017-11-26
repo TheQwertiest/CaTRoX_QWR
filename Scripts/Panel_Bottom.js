@@ -432,6 +432,7 @@ function on_mouse_rbtn_up(x, y) {
         cpm.CheckMenuItem(4, common_vars.spectrum_state === 'Show');
     }
     if (utils.IsKeyPressed(VK_SHIFT)) {
+        cpm.AppendMenuSeparator();
         _.appendDefaultContextMenu(cpm);
     }
 

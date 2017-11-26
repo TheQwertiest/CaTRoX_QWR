@@ -283,6 +283,7 @@ function on_mouse_rbtn_up(x, y) {
     cpm.AppendMenuItem(MF_STRING, 12, g_properties.show_btn_ellipse ? 'Hide button ellipse' : 'Show button ellipse');
 
     if (utils.IsKeyPressed(VK_SHIFT)) {
+        cpm.AppendMenuSeparator();
         _.appendDefaultContextMenu(cpm);
     }
 

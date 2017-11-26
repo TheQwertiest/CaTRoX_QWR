@@ -100,6 +100,7 @@ function on_mouse_rbtn_up(x, y) {
     artModule.append_menu(cpm);
 
     if (utils.IsKeyPressed(VK_SHIFT)) {
+        cpm.AppendMenuSeparator();
         _.appendDefaultContextMenu(cpm);
     }
 

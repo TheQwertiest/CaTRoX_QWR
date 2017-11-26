@@ -8,6 +8,27 @@ function on_script_unload() {
     _.tt('');
 }
 
+// timeout and interval shims
+var g_trace_timer = false;
+function setInterval(func, wait){
+    var id = window.SetInterval(func, wait);
+    g_trace_timer && fb.trace("setInterval",id);
+    return id;
+}
+function clearInterval(id) {
+    g_trace_timer && fb.trace("clearInterval",id);
+    window.ClearInterval(id);
+}
+function setTimeout(func, wait){
+    var id = window.SetTimeout(func, wait);
+    g_trace_timer && fb.trace("setTimeout",id);
+    return id;
+}
+function clearTimeout(id) {
+    g_trace_timer && fb.trace("clearTimeout",id);
+    window.ClearTimeout(id);
+}
+
 _.mixin({
     alpha_timer: function (items_arg,hover_predicate_arg){
         this.start = function () {
@@ -119,8 +140,9 @@ _.mixin({
         };
 
         this.lbtn_up = function (x, y) {
-            if (this.fn)
+            if (this.fn) {
                 this.fn(x, y, this.x, this.y, this.h, this.w);
+            }
         };
 
         this.cs = function (s) {
@@ -216,28 +238,26 @@ _.mixin({
                 // Needed when pressing on button with context menu open
                 this.move(x, y);
             }
-            if (cur_btn && !cur_btn.hide) {
-                cur_btn.cs("pressed");
-                return true;
-            }
-            else {
+
+            if (!cur_btn || cur_btn.hide) {
                 return false;
             }
+
+            cur_btn.cs("pressed");
+            return true;
         };
 
         this.lbtn_up = function (x, y) {
-            if (cur_btn && !cur_btn.hide && cur_btn.state === "pressed") {
-                if (cur_btn.trace(x, y)) {
-                    cur_btn.cs("hover");
-                }
-                //cur_btn.cs("hover");
-                cur_btn.lbtn_up(x, y);
-
-                return true;
-            }
-            else {
+            if (!cur_btn || cur_btn.hide || cur_btn.state !== "pressed") {
                 return false;
             }
+
+            if (cur_btn.trace(x, y)) {
+                cur_btn.cs("hover");
+            }
+            cur_btn.lbtn_up(x, y);
+
+            return true;
         };
 
         this.buttons = {};
@@ -888,33 +908,24 @@ _.tt_handler.tt_timer = new function () {
 
         this.force_stop(); /// < There can be only one tooltip present at all times, so we can kill the timer w/o any worries
 
-        var maxDelay = 500;
-        var curDelay = 0;
-        var delayStep = 100;
         if (!tooltip_timer) {
-            _.tt("");
-            tooltip_timer = window.SetInterval(_.bind(function () {
-                curDelay += delayStep;
-
-                if (curDelay >= maxDelay) {
-                    _.tt(text);
-                    this.force_stop();
-                }
-
-            }, this), delayStep);
+            tooltip_timer = window.SetTimeout(_.bind(function () {
+                _.tt(text);
+                tooltip_timer = null;
+            }, this), 500);
         }
     };
 
     this.stop = function (id) {
         if (tt_caller === id) {// Do not stop other callers
-            _.tt("");
             this.force_stop();
         }
     };
 
     this.force_stop = function () {
+        _.tt("");
         if (tooltip_timer) {
-            window.ClearInterval(tooltip_timer);
+            window.ClearTimeout(tooltip_timer);
             tooltip_timer = null;
         }
     };

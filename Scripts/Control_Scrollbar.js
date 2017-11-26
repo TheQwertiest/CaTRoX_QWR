@@ -264,21 +264,16 @@ _.mixin({
         };
 
         this.parts_lbtn_up = function (x, y) {
-            if (cur_part_key && this.sb_parts[cur_part_key].state === 'pressed') {
-                if (this.sb_parts[cur_part_key].trace(x, y)) {
-                    this.sb_parts[cur_part_key].cs('hover');
-                    alpha_timer.start();
-                }
-                else {
-                    this.sb_parts[cur_part_key].cs('normal');
-                    alpha_timer.start();
-                }
-
-                return true;
-            }
-            else {
+            if (!cur_part_key || this.sb_parts[cur_part_key].state !== 'pressed') {
                 return false;
             }
+
+            var new_state = this.sb_parts[cur_part_key].trace(x, y) ? 'hover' : 'normal';
+
+            this.sb_parts[cur_part_key].cs(new_state);
+            alpha_timer.start();
+
+            return true;
         };
 
         this.lbtn_up = function (x, y) {

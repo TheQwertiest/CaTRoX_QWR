@@ -30,6 +30,7 @@ var seekbar;
 var buttons;
 var volumeBar;
 var rightBtnX = 0;
+var button_images = [];
 
 var ww = 0,
     wh = 0;
@@ -39,7 +40,7 @@ var artModule = new ArtModule();
 /// Reduce move
 var moveChecker = new _.moveCheckReducer;
 
-createButtonImages();
+create_button_images();
 
 function on_paint(gr) {
     gr.FillSolidRect(0, 0, ww, wh, panelsBackColor);
@@ -200,7 +201,8 @@ function on_mouse_move(x, y, m) {
     }
 
     if (panel_s.showVolumeBar) {
-        if ((volumeBar.x - 4 <= x) && (x <= volumeBar.x + volumeBar.w + 2) && (volumeBar.y - 2 <= y) && (y <= volumeBar.y + volumeBar.h + 2)) {
+        var trace_pad = 2;
+        if ((volumeBar.x - 2*trace_pad <= x) && (x <= volumeBar.x + volumeBar.w + trace_pad) && (volumeBar.y - trace_pad <= y) && (y <= volumeBar.y + volumeBar.h + trace_pad)) {
             volumeBar.move(x, y);
         }
         else {
@@ -288,6 +290,7 @@ function on_mouse_rbtn_up(x, y) {
     cpm.AppendMenuItem(MF_STRING, 36, 'Reload \tF5');
 
     if (utils.IsKeyPressed(VK_SHIFT)) {
+        cpm.AppendMenuSeparator();
         _.appendDefaultContextMenu(cpm);
     }
 
@@ -327,43 +330,44 @@ function create_buttons(wx, wy, ww, wh) {
     buttons.show_tt = panel_s.showTooltips;
 
     //---> Playback buttons
-    var w = btnImg.Next.normal.Width;
+    var w = button_images.Next.normal.Width;
     var h = w;
     var p = 4;
 
     var x = wx + Math.floor(ww / 2 - (w * 5 + p * 4) / 2);
     var y = wy + Math.floor(wh / 2 - w / 2) + 1;
 
-    buttons.buttons.stop = new _.button(x, y, w, h, btnImg.Stop, function () { 
+    buttons.buttons.stop = new _.button(x, y, w, h, button_images.Stop, function () { 
         fb.Stop();
         // Needs repaint to avoid partial art redraw
         window.Repaint();
     }, 'Stop');
 
     x += w + p;
-    buttons.buttons.previous = new _.button(x, y, w, h, btnImg.Previous, function () { fb.Prev(); }, 'Previous');
+    buttons.buttons.previous = new _.button(x, y, w, h, button_images.Previous, function () { fb.Prev(); }, 'Previous');
 
     x += w + p;
-    buttons.buttons.play = new _.button(x, y, w, h, (!fb.IsPlaying || fb.IsPaused) ? btnImg.Play : btnImg.Pause, function () {
-    var wasNotPlaying = !fb.IsPlaying;
-    fb.PlayOrPause(); 
-    // Needs repaint to avoid partial art redraw
-    if (wasNotPlaying)
-        window.Repaint();
+    buttons.buttons.play = new _.button(x, y, w, h, (!fb.IsPlaying || fb.IsPaused) ? button_images.Play : button_images.Pause, function () {
+        var wasNotPlaying = !fb.IsPlaying;
+        fb.PlayOrPause();
+        // Needs repaint to avoid partial art redraw
+        if (wasNotPlaying) {
+            window.Repaint();
+        }
     }, (!fb.IsPlaying || fb.IsPaused) ? 'Play' : 'Pause');
 
     x += w + p;
-    buttons.buttons.next = new _.button(x, y, w, h, btnImg.Next, function () { fb.Next(); }, 'Next');
+    buttons.buttons.next = new _.button(x, y, w, h, button_images.Next, function () { fb.Next(); }, 'Next');
 
     x += w + p;
     rightBtnX = x + 3;
 
     var volValue = _.toVolume(fb.Volume);
-    var volImage = ((volValue > 50) ? btnImg.VolLoud : ((volValue > 0) ? btnImg.VolQuiet : btnImg.VolMute));
+    var volImage = ((volValue > 50) ? button_images.VolLoud : ((volValue > 0) ? button_images.VolQuiet : button_images.VolMute));
     buttons.buttons.mute = new _.button(x, y, w, h, volImage, function () { fb.VolumeMute(); }, volValue === 0 ? 'Unmute' : 'Mute');
 
     x += w - 5;
-    buttons.buttons.volume = new _.button(x, y + 2, btnImg.ShowVolume.normal.Width, h, btnImg.ShowVolume, function () {
+    buttons.buttons.volume = new _.button(x, y + 2, button_images.ShowVolume.normal.Width, h, button_images.ShowVolume, function () {
         panel_s.showVolumeBar = 1;
         buttons.leave(); // for state reset
         buttons.buttons.mute.hide = true;
@@ -373,21 +377,21 @@ function create_buttons(wx, wy, ww, wh) {
     }, 'Volume');
 
     buttons.refresh_play_button = function () {
-        buttons.buttons.play.set_image((!fb.IsPlaying || fb.IsPaused) ? btnImg.Play : btnImg.Pause);
+        buttons.buttons.play.set_image((!fb.IsPlaying || fb.IsPaused) ? button_images.Play : button_images.Pause);
         buttons.buttons.play.tiptext = (!fb.IsPlaying || fb.IsPaused) ? 'Play' : 'Pause';
         buttons.buttons.play.repaint();
     };
 
     buttons.refresh_vol_button = function () {
         var volValue = _.toVolume(fb.Volume);
-        var volImage = (volValue > 50) ? btnImg.VolLoud : ((volValue > 0) ? btnImg.VolQuiet : btnImg.VolMute);
+        var volImage = (volValue > 50) ? button_images.VolLoud : ((volValue > 0) ? button_images.VolQuiet : button_images.VolMute);
         buttons.buttons.mute.set_image(volImage);
         buttons.buttons.mute.tiptext = volValue === 0 ? 'Unmute' : 'Mute';
         buttons.buttons.mute.repaint();
     };
 }
 
-function createButtonImages() {
+function create_button_images() {
     var fontGuifx = gdi.font(g_guifx.name, 16);
     var fontAwesome = gdi.font('FontAwesome', 14);
     var c = [250, 250, 250];
@@ -477,7 +481,7 @@ function createButtonImages() {
             }
         };
 
-    btnImg = [];
+    button_images = [];
 
     _.forEach(btn, function (item, i) {
         var w = item.w,
@@ -489,7 +493,13 @@ function createButtonImages() {
             var img = gdi.CreateImage(w, h);
             var g = img.GetGraphics();
             g.SetSmoothingMode(SmoothingMode.HighQuality);
-            g.SetTextRenderingHint(TextRenderingHint.AntiAlias);
+            if (i === 'VolMute') {
+                // TextRenderingHint.AntiAlias crops image :\
+                g.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
+            }
+            else {
+                g.SetTextRenderingHint(TextRenderingHint.AntiAlias);
+            }
 
             var playbackIcoColor = _.RGB(190, 192, 194);
 
@@ -508,7 +518,7 @@ function createButtonImages() {
             stateImages[s] = img;
         }
 
-        btnImg[i] =
+        button_images[i] =
             {
                 normal: stateImages[0],
                 hover: stateImages[1],

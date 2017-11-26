@@ -371,6 +371,7 @@ function on_mouse_rbtn_up(x, y) {
     cpm.AppendMenuItem(fb.IsPlaying ? MF_STRING : MF_GRAYED, 1, 'Properties');
 
     if (utils.IsKeyPressed(VK_SHIFT)) {
+        cpm.AppendMenuSeparator();
         _.appendDefaultContextMenu(cpm);
     }
 
