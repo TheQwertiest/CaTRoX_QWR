@@ -167,60 +167,57 @@ _.mixin({
         };
 
         this.move = function (x, y) {
-            var temp_btn = null;
-            _.forEach(this.buttons, function (item, i) {
-                if (item.trace(x, y)) {
-                    temp_btn = i;
-                }
+            var hover_btn = _.find(this.buttons, function(item) {
+                return item.trace(x, y);
             });
 
-            if (temp_btn && this.buttons[temp_btn].hide) {// Button is hidden, ignore
-                if (this.btn) {
-                    this.buttons[this.btn].cs("normal");
+            if (hover_btn && hover_btn.hide) {// Button is hidden, ignore
+                if (cur_btn) {
+                    cur_btn.cs("normal");
+                    alpha_timer.start();
                 }
-                this.btn = null;
+                cur_btn = null;
                 return null;
             }
 
-            if (this.btn === temp_btn) {// Same button
-                return this.btn;
+            if (cur_btn === hover_btn) {// Same button
+                return cur_btn;
             }
 
-            if (this.btn) {// Return prev button to normal state
-                this.buttons[this.btn].cs("normal");
-
+            if (cur_btn) {// Return prev button to normal state
+                cur_btn.cs("normal");
                 alpha_timer.start();
             }
 
-            if (temp_btn) {// Select current button
-                this.buttons[temp_btn].cs("hover");
+            if (hover_btn) {// Select current button
+                hover_btn.cs("hover");
                 if (this.show_tt) {
-                    this.buttons[temp_btn].tt.showDelayed(this.buttons[temp_btn].tiptext);
+                    hover_btn.tt.showDelayed(hover_btn.tiptext);
                 }
                 alpha_timer.start();
             }
 
-            this.btn = temp_btn;
-            return this.btn;
+            cur_btn = hover_btn;
+            return cur_btn;
         };
 
         this.leave = function () {
-            if (this.btn) {
-                this.buttons[this.btn].cs("normal");
-                if (!this.buttons[this.btn].hide) {
+            if (cur_btn) {
+                cur_btn.cs("normal");
+                if (!cur_btn.hide) {
                     alpha_timer.start();
                 }
             }
-            this.btn = null;
+            cur_btn = null;
         };
 
         this.lbtn_down = function (x, y) {
-            if (!this.btn) {
+            if (!cur_btn) {
                 // Needed when pressing on button with context menu open
                 this.move(x, y);
             }
-            if (this.btn && !this.buttons[this.btn].hide) {
-                this.buttons[this.btn].cs("pressed");
+            if (cur_btn && !cur_btn.hide) {
+                cur_btn.cs("pressed");
                 return true;
             }
             else {
@@ -229,12 +226,12 @@ _.mixin({
         };
 
         this.lbtn_up = function (x, y) {
-            if (this.btn && !this.buttons[this.btn].hide && this.buttons[this.btn].state === "pressed") {
-                if (this.buttons[this.btn].trace(x, y)) {
-                    this.buttons[this.btn].cs("hover");
+            if (cur_btn && !cur_btn.hide && cur_btn.state === "pressed") {
+                if (cur_btn.trace(x, y)) {
+                    cur_btn.cs("hover");
                 }
-                //this.buttons[this.btn].cs("hover");
-                this.buttons[this.btn].lbtn_up(x, y);
+                //cur_btn.cs("hover");
+                cur_btn.lbtn_up(x, y);
 
                 return true;
             }
@@ -244,11 +241,11 @@ _.mixin({
         };
 
         this.buttons = {};
-        this.btn = null;
-
         this.show_tt = false;
 
         var that = this;
+
+        var cur_btn = null;
         var alpha_timer = new _.alpha_timer(that.buttons, function(item){
             return item.state !== 'normal';
         });

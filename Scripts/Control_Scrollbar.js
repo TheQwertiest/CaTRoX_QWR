@@ -137,7 +137,7 @@ _.mixin({
 
         this.parts_leave = function () {
             this.in_sbar = false;
-            this.part = null;
+            cur_part_key = null;
 
             _.forEach(this.sb_parts, function (item) {
                 item.cs('normal');
@@ -154,56 +154,61 @@ _.mixin({
         };
 
         this.parts_move = function (x, y) {
-            var temp_part = null;
-            _.forEach(this.sb_parts, function (item, i) {
-                if (item.trace(x, y)) {
-                    temp_part = i;
-                }
+            var hover_part_key = _.findKey(this.sb_parts, function(item) {
+                return item.trace(x, y);
             });
 
             var changeHotStatus = this.trace(x, y) !== this.in_sbar;
             if (changeHotStatus) {
                 this.in_sbar = !this.in_sbar;
                 if (this.in_sbar) {
-                    temp_part !== 'lineUp' && this.part !== 'lineUp' && this.sb_parts['lineUp'].cs('hot');
-                    temp_part !== 'lineDown' && this.part !== 'lineDown' && this.sb_parts['lineDown'].cs('hot');
+                    if (hover_part_key !== 'lineUp' && cur_part_key !== 'lineUp') {
+                        this.sb_parts['lineUp'].cs('hot');
+                    }
+                    if (hover_part_key !== 'lineDown' && cur_part_key !== 'lineDown') {
+                        this.sb_parts['lineDown'].cs('hot');
+                    }
                     alpha_timer.start();
                 }
                 else {
-                    this.part !== 'lineUp' && this.sb_parts['lineUp'].cs('normal');
-                    this.part !== 'lineDown' && this.sb_parts['lineDown'].cs('normal');
+                    if (cur_part_key !== 'lineUp') {
+                        this.sb_parts['lineUp'].cs('normal');
+                    }
+                    if (cur_part_key !== 'lineDown') {
+                        this.sb_parts['lineDown'].cs('normal');
+                    }
                     alpha_timer.start();
                 }
             }
 
-            if (this.part === temp_part) {// Nothing to do: same button
-                return this.part;
+            if (cur_part_key === hover_part_key) {// Nothing to do: same button
+                return cur_part_key;
             }
 
-            if (this.part) {
-                if (this.part === 'thumb') {
-                    this.sb_parts[this.part].cs('normal');
+            if (cur_part_key) {
+                if (cur_part_key === 'thumb') {
+                    this.sb_parts[cur_part_key].cs('normal');
                     alpha_timer.start();
                 }
                 else {
-                    if (this.sb_parts[this.part].state === 'pressed') {
+                    if (this.sb_parts[cur_part_key].state === 'pressed') {
                         // Stop btn fast scroll
                         this.stop_shift_timer();
                     }
 
                     // Return prev button to normal or hot state
-                    this.sb_parts[this.part].cs(this.in_sbar ? 'hot' : 'normal');
+                    this.sb_parts[cur_part_key].cs(this.in_sbar ? 'hot' : 'normal');
                     alpha_timer.start();
                 }
             }
 
-            if (temp_part) {// Select current button
-                this.sb_parts[temp_part].cs('hover');
+            if (hover_part_key) {// Select current button
+                this.sb_parts[hover_part_key].cs('hover');
                 alpha_timer.start();
             }
 
-            this.part = temp_part;
-            return this.part;
+            cur_part_key = hover_part_key;
+            return cur_part_key;
         };
 
         this.move = function (p_x, p_y) {
@@ -219,8 +224,8 @@ _.mixin({
         };
 
         this.parts_lbtn_down = function () {
-            if (this.part) {
-                this.sb_parts[this.part].cs('pressed');
+            if (cur_part_key) {
+                this.sb_parts[cur_part_key].cs('pressed');
                 alpha_timer.start();
             }
         };
@@ -259,13 +264,13 @@ _.mixin({
         };
 
         this.parts_lbtn_up = function (x, y) {
-            if (this.part && this.sb_parts[this.part].state === 'pressed') {
-                if (this.sb_parts[this.part].trace(x, y)) {
-                    this.sb_parts[this.part].cs('hover');
+            if (cur_part_key && this.sb_parts[cur_part_key].state === 'pressed') {
+                if (this.sb_parts[cur_part_key].trace(x, y)) {
+                    this.sb_parts[cur_part_key].cs('hover');
                     alpha_timer.start();
                 }
                 else {
-                    this.sb_parts[this.part].cs('normal');
+                    this.sb_parts[cur_part_key].cs('normal');
                     alpha_timer.start();
                 }
 
@@ -562,8 +567,7 @@ _.mixin({
         this.fn_redraw = fn_redraw; // callback for list redraw
 
         this.draw_timer = false;
-
-        this.part = null;
+        
         this.sb_parts = [];
 
         // Btns
@@ -591,9 +595,11 @@ _.mixin({
 
         // private:
         var that = this;
-
+        
         var scrollbar_images = [];
 
+        var cur_part_key = null;
+        
         // Timers
         var throttled_scroll_y = 0;
         var timer_shift;
