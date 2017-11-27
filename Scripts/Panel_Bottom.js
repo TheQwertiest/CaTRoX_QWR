@@ -291,95 +291,90 @@ function createButtonObjects(wx, wy, ww, wh) {
 function createButtonImages() {
     var fontGuifx = gdi.font(g_guifx.name, 18);
     var c = [250, 250, 250];
+
+    var default_ico_colors =
+        [
+            _.RGBA(c[0], c[1], c[2], 35),
+            _.RGBA(c[0], c[1], c[2], 155),
+            _.RGBA(c[0], c[1], c[2], 105)
+        ];
+
+    var accent_ico_colors =
+        [
+            _.RGBA(255, 220, 55, 155),
+            _.RGBA(255, 220, 55, 225),
+            _.RGBA(255, 220, 55, 105)
+        ];
+
     var btn =
         {
             Repeat:
                 {
-                    ico:     g_guifx.repeat,
-                    font:    fontGuifx,
-                    id:      'playback',
-                    w:       24,
-                    h:       24,
-                    cNormal: _.RGBA(c[0], c[1], c[2], 35),
-                    cHover:  _.RGBA(c[0], c[1], c[2], 155),
-                    cDown:   _.RGBA(c[0], c[1], c[2], 105)
+                    ico:  g_guifx.repeat,
+                    font: fontGuifx,
+                    id:   'playback',
+                    w:    24,
+                    h:    24
                 },
             Repeat1:
                 {
-                    ico:     g_guifx.repeat1,
-                    font:    fontGuifx,
-                    id:      'playback',
-                    w:       24,
-                    h:       24,
-                    cNormal: _.RGBA(255, 220, 55, 155),
-                    cHover:  _.RGBA(255, 220, 55, 225),
-                    cDown:   _.RGBA(255, 220, 55, 105)
+                    ico:         g_guifx.repeat1,
+                    font:        fontGuifx,
+                    id:          'playback',
+                    w:           24,
+                    h:           24,
+                    is_accented: true
                 },
             RepeatPlaylist:
                 {
-                    ico:     g_guifx.repeat,
-                    font:    fontGuifx,
-                    id:      'playback',
-                    w:       24,
-                    h:       24,
-                    cNormal: _.RGBA(255, 220, 55, 155),
-                    cHover:  _.RGBA(255, 220, 55, 225),
-                    cDown:   _.RGBA(255, 220, 55, 105)
+                    ico:         g_guifx.repeat,
+                    font:        fontGuifx,
+                    id:          'playback',
+                    w:           24,
+                    h:           24,
+                    is_accented: true
                 },
             Shuffle:
                 {
-                    ico:     g_guifx.shuffle,
-                    font:    fontGuifx,
-                    id:      'playback',
-                    w:       24,
-                    h:       24,
-                    cNormal: _.RGBA(c[0], c[1], c[2], 35),
-                    cHover:  _.RGBA(c[0], c[1], c[2], 155),
-                    cDown:   _.RGBA(c[0], c[1], c[2], 105)
+                    ico:  g_guifx.shuffle,
+                    font: fontGuifx,
+                    id:   'playback',
+                    w:    24,
+                    h:    24
                 },
             ShuffleTracks:
                 {
-                    ico:     g_guifx.shuffle,
-                    font:    fontGuifx,
-                    id:      'playback',
-                    w:       24,
-                    h:       24,
-                    cNormal: _.RGBA(255, 220, 55, 155),
-                    cHover:  _.RGBA(255, 220, 55, 225),
-                    cDown:   _.RGBA(255, 220, 55, 105)
+                    ico:         g_guifx.shuffle,
+                    font:        fontGuifx,
+                    id:          'playback',
+                    w:           24,
+                    h:           24,
+                    is_accented: true
                 },
             VolLoud:
                 {
-                    ico:     g_guifx.volume_up,
-                    font:    fontGuifx,
-                    id:      'playback',
-                    w:       24,
-                    h:       24,
-                    cNormal: _.RGBA(c[0], c[1], c[2], 35),
-                    cHover:  _.RGBA(c[0], c[1], c[2], 155),
-                    cDown:   _.RGBA(c[0], c[1], c[2], 105)
+                    ico:  g_guifx.volume_up,
+                    font: fontGuifx,
+                    id:   'playback',
+                    w:    24,
+                    h:    24
                 },
             VolQuiet:
                 {
-                    ico:     g_guifx.volume_down,
-                    font:    fontGuifx,
-                    id:      'playback',
-                    w:       24,
-                    h:       24,
-                    cNormal: _.RGBA(c[0], c[1], c[2], 35),
-                    cHover:  _.RGBA(c[0], c[1], c[2], 155),
-                    cDown:   _.RGBA(c[0], c[1], c[2], 105)
+                    ico:  g_guifx.volume_down,
+                    font: fontGuifx,
+                    id:   'playback',
+                    w:    24,
+                    h:    24
                 },
             VolMute:
                 {
-                    ico:     g_guifx.mute,
-                    font:    fontGuifx,
-                    id:      'playback',
-                    w:       24,
-                    h:       24,
-                    cNormal: _.RGBA(255, 220, 55, 155),
-                    cHover:  _.RGBA(255, 220, 55, 225),
-                    cDown:   _.RGBA(255, 220, 55, 105)
+                    ico:         g_guifx.mute,
+                    font:        fontGuifx,
+                    id:          'playback',
+                    w:           24,
+                    h:           24,
+                    is_accented: true
                 }
         };
 
@@ -392,14 +387,7 @@ function createButtonImages() {
         var stateImages = []; //0=normal, 1=hover, 2=down;
 
         for (var s = 0; s <= 2; s++) {
-            var color = item.cNormal;
-
-            if (s === 1) {
-                color = item.cHover;
-            }
-            else if (s === 2) {
-                color = item.cDown;
-            }
+            var ico_color = item.is_accented ? accent_ico_colors[s] : default_ico_colors[s];
 
             var img = gdi.CreateImage(w, h);
             g = img.GetGraphics();
@@ -407,7 +395,7 @@ function createButtonImages() {
             g.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
             g.FillSolidRect(0, 0, w, h, pssBackColor); // Cleartype is borked, if drawn without background
 
-            g.DrawString(item.ico, item.font, color, 0, 0, w, h, g_string_format.align_center);
+            g.DrawString(item.ico, item.font, ico_color, 0, 0, w, h, g_string_format.align_center);
 
             img.ReleaseGraphics(g);
             stateImages[s] = img;

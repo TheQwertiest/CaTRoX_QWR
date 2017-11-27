@@ -238,8 +238,13 @@ function createButtonObjects(wx, wy, ww, wh) {
 function createButtonImages() {
     var fontGuifx = gdi.font(g_guifx.name, 16);
     var fontAwesome = gdi.font('FontAwesome', 14);
-    var c = [250, 250, 250];
-
+    var default_ico_colors = 
+    [
+        _.RGB(110, 112, 114),
+        _.RGB(190, 192, 194),
+        _.RGB(90, 90, 90)
+    ];
+    
     var btn =
     {
         Stop: {
@@ -247,90 +252,70 @@ function createButtonImages() {
             font: fontGuifx,
             id: 'playback',
             w: 30,
-            h: 30,
-            cNormal: _.RGBA(c[0], c[1], c[2], 35),
-            cHover: _.RGBA(c[0], c[1], c[2], 155)
+            h: 30
         },
         Previous: {
             ico: g_guifx.previous,
             font: fontGuifx,
             id: 'playback',
             w: 30,
-            h: 30,
-            cNormal: _.RGBA(c[0], c[1], c[2], 35),
-            cHover: _.RGBA(c[0], c[1], c[2], 155)
+            h: 30
         },
         Play: {
             ico: g_guifx.play,
             font: fontGuifx,
             id: 'playback',
             w: 30,
-            h: 30,
-            cNormal: _.RGBA(c[0], c[1], c[2], 35),
-            cHover: _.RGBA(c[0], c[1], c[2], 155)
+            h: 30
         },
         Pause: {
             ico: g_guifx.pause,
             font: fontGuifx,
             id: 'playback',
             w: 30,
-            h: 30,
-            cNormal: _.RGBA(c[0], c[1], c[2], 35),
-            cHover: _.RGBA(c[0], c[1], c[2], 155)
+            h: 30
         },
         Next: {
             ico: g_guifx.next,
             font: fontGuifx,
             id: 'playback',
             w: 30,
-            h: 30,
-            cNormal: _.RGBA(c[0], c[1], c[2], 35),
-            cHover: _.RGBA(c[0], c[1], c[2], 155)
+            h: 30
         },
         PlaybackRandom: {
             ico: g_guifx.slow_forward,
             font: fontGuifx,
             id: 'playback',
             w: 30,
-            h: 30,
-            cNormal: _.RGBA(c[0], c[1], c[2], 35),
-            cHover: _.RGBA(c[0], c[1], c[2], 155)
+            h: 30
         },
         VolLoud: {
             ico: g_guifx.volume_up,
             font: fontGuifx,
             id: 'playback',
             w: 26,
-            h: 26,
-            cNormal: _.RGBA(c[0], c[1], c[2], 35),
-            cHover: _.RGBA(c[0], c[1], c[2], 155)
+            h: 26
         },
         VolQuiet: {
             ico: g_guifx.volume_down,
             font: fontGuifx,
             id: 'playback',
             w: 26,
-            h: 26,
-            cNormal: _.RGBA(c[0], c[1], c[2], 35),
-            cHover: _.RGBA(c[0], c[1], c[2], 155)
+            h: 26
         },
         VolMute: {
             ico: g_guifx.mute,
             font: fontGuifx,
             id: 'playback',
             w: 26,
-            h: 26,
-            cNormal: _.RGBA(c[0], c[1], c[2], 35),
-            cHover: _.RGBA(c[0], c[1], c[2], 155)
+            h: 26
         },
         ShowVolume: {
             ico: '\uF0d7',
             font: fontAwesome,
             id: 'playback',
             w: 15,
-            h: 20,
-            cNormal: _.RGBA(c[0], c[1], c[2], 35),
-            cHover: _.RGBA(c[0], c[1], c[2], 155)
+            h: 20
         }
     };
 
@@ -339,8 +324,7 @@ function createButtonImages() {
     _.forEach(btn, function(item,i)
     {
         var w = item.w,
-            h = item.h,
-            lw = 2;
+            h = item.h;
 
         var stateImages = []; //0=normal, 1=hover, 2=down;
 
@@ -351,16 +335,7 @@ function createButtonImages() {
             g.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
             g.FillSolidRect(0, 0, w, h, pssBackColor); // Cleartype is borked, if drawn without background
 
-            var playbackIcoColor = _.RGB(110, 112, 114);
-
-            if (s === 1) {
-                playbackIcoColor = _.RGB(190, 192, 194);
-            }
-            else if (s === 2) {
-                playbackIcoColor = _.RGB(90, 90, 90);
-            }
-
-            g.DrawString(item.ico, item.font, playbackIcoColor, (i === 'Stop') ? 0 : 1, 0, w, h, g_string_format.align_center);
+            g.DrawString(item.ico, item.font, default_ico_colors[s], (i === 'Stop') ? 0 : 1, 0, w, h, g_string_format.align_center);
 
             img.ReleaseGraphics(g);
             stateImages[s] = img;

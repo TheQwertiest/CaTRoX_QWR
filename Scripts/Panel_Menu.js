@@ -557,6 +557,27 @@ function Menu() {
         var fontAwesome = gdi.font('FontAwesome', 12);
         var fontSegoeUi = gdi.font('Segoe Ui Semibold', 12);
 
+        var default_menu_text_colors =
+            [
+                _.RGB(140, 142, 144),
+                _.RGB(180, 182, 184),
+                _.RGB(120, 122, 124)
+            ];
+
+        var default_menu_rect_colors =
+            [
+                _.RGB(120, 122, 124),
+                _.RGB(170, 172, 174),
+                _.RGB(110, 112, 114)
+            ];
+
+        var default_ico_colors =
+            [
+                _.RGB(140, 142, 144),
+                _.RGB(190, 192, 194),
+                _.RGB(100, 102, 104)
+            ];
+
         var btn =
             {
                 Pin:                   {
@@ -684,28 +705,18 @@ function Menu() {
                 g.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
                 g.FillSolidRect(0, 0, w, h, panelsFrontColor); // Cleartype is borked, if drawn without background
 
-                var menuTextColor = _.RGB(140, 142, 144);
-                var menuRectColor = _.RGB(120, 122, 124);
-                var captionIcoColor = _.RGB(140, 142, 144);
-
-                if (s === 1) {
-                    menuTextColor = _.RGB(180, 182, 184);
-                    menuRectColor = _.RGB(170, 172, 174);
-                    captionIcoColor = _.RGB(190, 192, 194);
-                }
-                else if (s === 2) {
-                    menuTextColor = _.RGB(120, 122, 124);
-                    menuRectColor = _.RGB(110, 112, 114);
-                    captionIcoColor = _.RGB(100, 102, 104);
-                }
-
                 if (item.id === 'menu') {
+                    var menuTextColor = default_menu_text_colors[s];
+                    var menuRectColor = default_menu_rect_colors[s];
+
                     if (s !== 0) {
                         g.DrawRect(Math.floor(lw / 2), Math.floor(lw / 2), w - lw, h - lw, 1, menuRectColor);
                     }
                     g.DrawString(item.ico, item.font, menuTextColor, 0, 0, w, h - 1, g_string_format.align_center);
                 }
                 else if (item.id === 'caption') {
+                    var captionIcoColor = default_ico_colors[s];
+
                     g.DrawString(item.ico, item.font, captionIcoColor, 0, 0, w, h, g_string_format.align_center);
                 }
 

@@ -415,21 +415,26 @@ _.mixin({
         }, this), 1000 / 60);
 
         function create_scrollbar_images() {
-            if (scrollbar_images.length > 0){
+            if (scrollbar_images.length > 0) {
                 return;
             }
 
             var fontSegoeUi = gdi.font('Segoe UI Symbol', 15);
-            var m = 2;
 
-            var scrollTrackColor = _.RGB(37, 37, 37);
-            var scrollColorHot = _.RGB(140, 142, 144);
-            var scrollColorHover = _.RGB(170, 172, 174);
-            var scrollColorPressed = _.RGB(90, 92, 94);
-            var scrollSymbolColorNormal = _.RGB(140, 142, 144);
-            var scrollSymbolColorHot = _.RGB(30, 32, 34);
-            var scrollSymbolColorHover = _.RGB(40, 42, 44);
-            var scrollSymbolColorPressed = _.RGB(30, 32, 34);
+            var ico_back_colors =
+                [
+                    _.RGB(37, 37, 37),
+                    _.RGB(170, 172, 174),
+                    _.RGB(90, 92, 94),
+                    _.RGB(140, 142, 144)
+                ];
+            var ico_fore_colors =
+                [
+                    _.RGB(140, 142, 144),
+                    _.RGB(40, 42, 44),
+                    _.RGB(30, 32, 34),
+                    _.RGB(30, 32, 34)
+                ];
 
             var btn =
                 {
@@ -453,31 +458,16 @@ _.mixin({
                 var w = item.w,
                     h = item.h;
 
+                var m = 2;
+
                 var stateImages = []; //0=normal, 1=hover, 2=down, 3=hot;
 
                 for (var s = 0; s < 4; s++) {
                     var img = gdi.CreateImage(w, h);
                     var grClip = img.GetGraphics();
 
-                    var icoColor;
-                    var backColor;
-
-                    if (s === 0) {
-                        icoColor = scrollSymbolColorNormal;
-                        backColor = scrollTrackColor;
-                    }
-                    else if (s === 1) {
-                        icoColor = scrollSymbolColorHover;
-                        backColor = scrollColorHover;
-                    }
-                    else if (s === 2) {
-                        icoColor = scrollSymbolColorPressed;
-                        backColor = scrollColorPressed;
-                    }
-                    else if (s === 3) {
-                        icoColor = scrollSymbolColorHot;
-                        backColor = scrollColorHot;
-                    }
+                    var icoColor = ico_fore_colors[s];
+                    var backColor = ico_back_colors[s];
 
                     if (i === 'lineUp') {
                         grClip.FillSolidRect(m, 0, w - m * 2, h - 1, backColor);
@@ -512,14 +502,16 @@ _.mixin({
         }
 
         function create_dynamic_scrollbar_images(thumb_w, thumb_h) {
-            var m = 2;
-
-            var scrollColorNormal = _.RGB(110, 112, 114);
-            var scrollColorHover = _.RGB(170, 172, 174);
-            var scrollColorPressed = _.RGB(90, 92, 94);
+            var thumb_colors =
+                [
+                    _.RGB(110, 112, 114),
+                    _.RGB(170, 172, 174),
+                    _.RGB(90, 92, 94)
+                ];
 
             var w = thumb_w,
                 h = thumb_h;
+            var m = 2;
 
             var stateImages = []; //0=normal, 1=hover, 2=down;
 
@@ -527,14 +519,7 @@ _.mixin({
                 var img = gdi.CreateImage(w, h);
                 var grClip = img.GetGraphics();
 
-                var color = scrollColorNormal;
-                if (s === 1) {
-                    color = scrollColorHover;
-                }
-                else if (s === 2) {
-                    color = scrollColorPressed;
-                }
-
+                var color = thumb_colors[s];
                 grClip.FillSolidRect(m, 0, w - m * 2, h, color);
 
                 img.ReleaseGraphics(grClip);

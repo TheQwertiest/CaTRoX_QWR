@@ -17,7 +17,7 @@ var isYoutubeVideoDisplayed = g_has_modded_jscript ? fb.IsMainMenuCommandChecked
 var isScrobblingEnabled = (g_has_modded_jscript && g_component_scrobble) ? fb.IsMainMenuCommandChecked('Playback/Scrobble Tracks') : false;
 
 var buttons;
-var btnImg = [];
+var button_images = [];
 var rightMargin = 0;
 var showTooltips = false;
 
@@ -146,24 +146,24 @@ function createButtonObjects(ww, wh) {
 
 
     if (g_component_scrobble) {
-        buttons.buttons.scrobble = new _.button(x, y, w, h, isScrobblingEnabled ? btnImg.LastFM_Disable : btnImg.LastFM_Enable, function () {
+        buttons.buttons.scrobble = new _.button(x, y, w, h, isScrobblingEnabled ? button_images.LastFM_Disable : button_images.LastFM_Enable, function () {
             fb.RunMainMenuCommand('Playback/Scrobble Tracks');
             isScrobblingEnabled = g_has_modded_jscript ? fb.IsMainMenuCommandChecked('Playback/Scrobble Tracks') : false;
-            buttons.buttons.scrobble.set_image(isScrobblingEnabled ? btnImg.LastFM_Disable : btnImg.LastFM_Enable);
+            buttons.buttons.scrobble.set_image(isScrobblingEnabled ? button_images.LastFM_Disable : button_images.LastFM_Enable);
             buttons.buttons.scrobble.tiptext = isScrobblingEnabled ? 'Disable Last.FM Scrobbling' : 'Enable Last.FM Scrobbling';
             buttons.buttons.scrobble.repaint();
         }, isScrobblingEnabled ? 'Disable Last.FM Scrobbling' : 'Enable Last.FM Scrobbling');
         x += w + p;
     }
 
-    buttons.buttons.search_yt = new _.button(x, y, w, h, btnImg.SearchYT, function () { fb.RunMainMenuCommand('View/Youtube Search'); }, 'Search Youtube');
+    buttons.buttons.search_yt = new _.button(x, y, w, h, button_images.SearchYT, function () { fb.RunMainMenuCommand('View/Youtube Search'); }, 'Search Youtube');
     x += w + p;
 
     if (isYoutube) {
-        buttons.buttons.yt_video = new _.button(x, y, w, h, isYoutubeVideoDisplayed ? btnImg.VideoHide : btnImg.VideoShow, function () {
+        buttons.buttons.yt_video = new _.button(x, y, w, h, isYoutubeVideoDisplayed ? button_images.VideoHide : button_images.VideoShow, function () {
             fb.RunMainMenuCommand('View/Visualizations/Video');
             isYoutubeVideoDisplayed = g_has_modded_jscript ? fb.IsMainMenuCommandChecked('View/Visualizations/Video') : false;
-            buttons.buttons.yt_video.set_image(isYoutubeVideoDisplayed ? btnImg.VideoHide : btnImg.VideoShow);
+            buttons.buttons.yt_video.set_image(isYoutubeVideoDisplayed ? button_images.VideoHide : button_images.VideoShow);
             buttons.buttons.yt_video.tiptext = isYoutubeVideoDisplayed ? 'Hide Youtube Video' : 'Show Youtube Video';
             buttons.buttons.yt_video.repaint();
         }, isYoutubeVideoDisplayed ? 'Hide Youtube Video' : 'Show Youtube Video');
@@ -173,6 +173,27 @@ function createButtonObjects(ww, wh) {
 function create_button_images() {
     var font_guifx = gdi.font(g_guifx.name, 16);
     var font_awesome = gdi.font('FontAwesome', 16);
+
+    var default_ico_colors =
+        [
+            _.RGB(150, 152, 154),
+            _.RGB(190, 192, 194),
+            _.RGB(90, 90, 90)
+        ];
+
+    var accented_ico_colors =
+        [
+            _.RGB(182, 158, 44), // _.RGBA(255, 220, 55, 155) + pssBackColor
+            _.RGB(234, 202, 53), // _.RGBA(255, 220, 55, 225) + pssBackColor
+            _.RGB(141, 122, 38)  // _.RGBA(255, 220, 55, 105) + pssBackColor
+        ];
+
+    var default_ellipse_colors =
+        [
+            _.RGB(70, 70, 70),
+            _.RGB(190, 195, 200),
+            _.RGB(80, 80, 80)
+        ];
 
     var btn = {
         SearchYT:
@@ -195,9 +216,7 @@ function create_button_images() {
                 font:    font_guifx,
                 w:       30,
                 h:       30,
-                cNormal: _.RGBA(255, 220, 55, 155),
-                cHover:  _.RGBA(255, 220, 55, 225),
-                cDown:   _.RGBA(255, 220, 55, 105)
+                is_accented : true
             },
         LastFM_Disable:
             {
@@ -212,14 +231,12 @@ function create_button_images() {
                 font:      font_awesome,
                 w:         30,
                 h:         30,
-                cNormal:   _.RGB(165, 144, 43), // _.RGBA(255, 220, 55, 155) + pssBackColor
-                cHover:    _.RGB(228, 197, 52), // _.RGBA(255, 220, 55, 225) + pssBackColor
-                cDown:     _.RGB(120, 106, 38), // _.RGBA(255, 220, 55, 105) + pssBackColor
+                is_accented : true,
                 add_cross: true
             }
     };
 
-    btnImg = [];
+    button_images = [];
 
     _.forEach(btn, function (item, i) {
         var w = item.w,
@@ -235,30 +252,18 @@ function create_button_images() {
             g.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
             g.FillSolidRect(0, 0, w, h, pssBackColor); // Cleartype is borked, if drawn without background
 
-            var playbackIcoColor;
-            var playbackEllipseColor;
-
-            switch (s) {
-                case 1:
-                    playbackIcoColor = _.isNil(item.cHover) ? _.RGB(190, 192, 194) : item.cHover;
-                    playbackEllipseColor = _.RGB(190, 195, 200);
-                    break;
-                case 2:
-                    playbackIcoColor = _.isNil(item.cDown) ? _.RGB(90, 90, 90) : item.cDown;
-                    playbackEllipseColor = _.RGB(80, 80, 80);
-                    break;
-                default:
-                    playbackIcoColor = _.isNil(item.cNormal) ? _.RGB(150, 152, 154) : item.cNormal;
-                    playbackEllipseColor = _.RGBA(70, 70, 70, (g_properties.show_btn_ellipse ? 255 : 0));
-                    break;
+            var ico_color = item.is_accented ? accented_ico_colors[s] : default_ico_colors[s];
+            var ellipse_color = default_ellipse_colors[s];
+            if ( s === 0 && !g_properties.show_btn_ellipse ) {
+                ellipse_color = _.RGBA(0, 0, 0, 0);
             }
 
-            g.DrawEllipse(Math.floor(lw / 2) + 1, Math.floor(lw / 2) + 1, w - lw - 2, h - lw - 2, lw, playbackEllipseColor);
+            g.DrawEllipse(Math.floor(lw / 2) + 1, Math.floor(lw / 2) + 1, w - lw - 2, h - lw - 2, lw, ellipse_color);
 
-            g.DrawString(item.ico, item.font, playbackIcoColor, 1, 0, w, h, g_string_format.align_center);
+            g.DrawString(item.ico, item.font, ico_color, 1, 0, w, h, g_string_format.align_center);
             if (item.add_cross) {
                 var slash_font = gdi.font('Arial', 22, g_font_style.bold);
-                g.DrawString('\u2215', slash_font, playbackIcoColor, 1, 1, w, h, g_string_format.align_center);
+                g.DrawString('\u2215', slash_font, ico_color, 1, 1, w, h, g_string_format.align_center);
                 g.DrawString('\u2215', slash_font, pssBackColor, 3, 1, w, h, g_string_format.align_center);
             }
 
@@ -266,7 +271,7 @@ function create_button_images() {
             stateImages[s] = img;
         }
 
-        btnImg[i] =
+        button_images[i] =
             {
                 normal:  stateImages[0],
                 hover:   stateImages[1],
