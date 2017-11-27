@@ -307,6 +307,12 @@ function on_get_album_art_done(metadb, art_id, image, image_path) {
     playlist.on_get_album_art_done(metadb, art_id, image, image_path);
 }
 
+function on_notify_data(name, info) {
+    trace_call && fb.trace(qwr_utils.function_name());
+
+    playlist.on_notify_data(name, info);
+}
+
 function Playlist(x, y) {
     // public:
 
@@ -1482,6 +1488,14 @@ function Playlist(x, y) {
                 item.repaint();
             }
         });
+    };
+
+    this.on_notify_data = function (name, info) {
+        if ( name === 'sync_group_query_state') {
+            Header.group_query_handler.sync_state(info);
+            this.initialize_list();
+            scroll_to_focused_or_now_playing();
+        }
     };
 
     /// EOF callbacks
@@ -3914,13 +3928,30 @@ function GroupQueryHandler () {
                 idx_found = false;
         }
 
+        if (idx_found) {
+            // Sync with other playlists
+            window.NotifyOthers('sync_group_query_state', {
+                name:                         queries[query_map_by_idx.indexOf(true_idx)].name,
+                g_user_group_query:           g_properties.user_group_query,
+                g_last_used_group_query_name: g_properties.last_used_group_query_name
+            });
+        }
+
         _.dispose.apply(null,context_menu);
         context_menu = [];
 
         return idx_found;
     };
 
-    function set_query_by_name(name, preserve_last_used_query ) {
+    this.sync_state = function(value) {
+        fb.trace(2);
+        g_properties.user_group_query = value.g_user_group_query;
+        g_properties.last_used_group_query_name = value.g_last_used_group_query_name;
+
+        set_query_by_name(value.name);
+    };
+
+    function set_query_by_name(name, preserve_last_used_query) {
         var query_item = queries[query_map_by_name.indexOf(name)];
         if (!query_item) {
             throw Error('Argument error:\nUnknown query name ' + name);
@@ -3945,6 +3976,7 @@ function GroupQueryHandler () {
         if (!preserve_last_used_query) {
             g_properties.last_used_group_query_name = cur_query_name;
         }
+
         g_properties.group_query_list = JSON.stringify(group_query_list);
     }
 
@@ -3982,6 +4014,9 @@ function GroupQueryHandler () {
     ];
     var query_map_by_name = queries.map(function(item) {
         return item.name;
+    });
+    var query_map_by_idx = queries.map(function(item) {
+        return item.idx;
     });
 
     /** @type {number|undefined} */
