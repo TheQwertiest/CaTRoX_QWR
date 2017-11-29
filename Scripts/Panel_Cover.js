@@ -24,6 +24,10 @@ function on_size() {
     ww = window.Width;
     wh = window.Height;
 
+    if (ww <= 0 || wh <= 0 ) {
+        return;
+    }
+
     artModule.on_size(g_properties.panel_pad, g_properties.panel_pad, ww - 2 * g_properties.panel_pad, wh - 2 * g_properties.panel_pad);
     artModule.get_album_art();
 }
