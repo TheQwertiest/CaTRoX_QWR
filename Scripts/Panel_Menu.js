@@ -133,10 +133,10 @@ function Menu() {
             has_notified = true;
 
             // Dirty, dirty hack to adjust window size
-            var saved_w = window.Width;
-            var saved_h = window.Height;
+            var old_w = window.Width;
+            var old_h = window.Height;
             mode_handler.fix_window_size();
-            if (saved_w != window.Width || saved_h != window.Height) {
+            if (old_w !== window.Width || old_h !== window.Height) {
                 window.Repaint();
                 return;
             }

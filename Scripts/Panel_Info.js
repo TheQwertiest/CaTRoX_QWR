@@ -9,13 +9,23 @@ g_properties.add_properties(
         list_right_pad:      ['user.list.pad.right', 4],
         list_bottom_pad:     ['user.list.pad.bottom', 4],
         row_h:               ['user.row.height', 20],
+
+        track_mode:          ['user.track_mode', 1],
+
         show_scrollbar:      ['user.scrollbar.show', true],
         scrollbar_right_pad: ['user.scrollbar.pad.right', 0],
         scrollbar_w:         ['user.scrollbar.width', utils.GetSystemMetrics(2)]
     }
 );
-
+g_properties.track_mode = Math.max(1, Math.min(3, g_properties.track_mode));
 g_properties.row_h = Math.max(10, g_properties.row_h);
+
+var g_track_modes =
+    {
+        auto:     1,
+        playing:  2,
+        selected: 3
+    };
 
 //--->
 var listLength = 0;
@@ -160,9 +170,10 @@ function listOnSize() {
     var info = [];
     listLength = 0;
 
-    var metadb = fb.IsPlaying ? fb.GetNowPlaying() : fb.GetFocusItem();
-    if (!metadb)
+    var metadb = get_current_metadb();
+    if (!metadb) {
         return;
+    }
 
     var fileInfo = metadb.GetFileInfo();
 
@@ -242,43 +253,22 @@ function listOnSize() {
     }
 }
 
-// =================================================== //
-
-function on_playlist_items_selection_change() {
-    if (fb.IsPlaying) return;
-    refreshList();
+function on_item_focus_change() {
+    if (!fb.IsPlaying || g_properties.track_mode === g_track_modes.selected) {
+        refreshList();
+    }
 }
-
-// =================================================== //
-
-function on_playlists_changed() {
-    if (fb.IsPlaying) return;
-    refreshList();
-}
-
-// =================================================== //
 
 function on_playlist_switch() {
-    if (fb.IsPlaying) return;
-    refreshList();
+    if (!fb.IsPlaying || g_properties.track_mode === g_track_modes.selected) {
+        refreshList();
+    }
 }
-
-// =================================================== //
-
-function on_playlist_items_added() {
-    refreshList();
-}
-
-// =================================================== //
-
-function on_playlist_items_removed() {
-    refreshList();
-}
-
-// =================================================== //
 
 function on_playback_new_track(metadb) {
-    refreshList();
+    if (g_properties.track_mode !== g_track_modes.selected) {
+        refreshList();
+    }
 }
 
 // =================================================== //
@@ -290,8 +280,9 @@ function on_metadb_changed(handles, fromhook) {
 // =================================================== //
 
 function on_playback_stop(reason) {
-    if (reason === 2) return;
-    refreshList();
+    if (reason !== 2 && g_properties.track_mode !== g_track_modes.selected) {
+        refreshList();
+    }
 }
 
 // =================================================== //
@@ -363,10 +354,21 @@ function on_mouse_rbtn_up(x, y) {
 
     var appear = window.CreatePopupMenu();
     var cpm = window.CreatePopupMenu();
+    var track = window.CreatePopupMenu();
+
+    var context_menu = [
+        cpm, appear, track
+    ];
 
     appear.AppendMenuItem(MF_STRING, 2, 'Show scrollbar');
     appear.CheckMenuItem(2, g_properties.show_scrollbar);
     appear.AppendTo(cpm, MF_STRING, 'Appearance');
+
+    track.AppendMenuItem(MF_STRING, 3, 'Automatic (current selection/playing item)');
+    track.AppendMenuItem(MF_STRING, 4, 'Playing item');
+    track.AppendMenuItem(MF_STRING, 5, 'Current selection');
+    track.CheckMenuRadioItem(3, 5, g_properties.track_mode + 2);
+    track.AppendTo(cpm, MF_STRING, 'Displayed track');
 
     cpm.AppendMenuItem(fb.IsPlaying ? MF_STRING : MF_GRAYED, 1, 'Properties');
 
@@ -384,11 +386,23 @@ function on_mouse_rbtn_up(x, y) {
             g_properties.show_scrollbar = !g_properties.show_scrollbar;
             refreshList();
             break;
+        case 3:
+            g_properties.track_mode = g_track_modes.auto;
+            refreshList();
+            break;
+        case 4:
+            g_properties.track_mode = g_track_modes.playing;
+            refreshList();
+            break;
+        case 5:
+            g_properties.track_mode = g_track_modes.selected;
+            refreshList();
+            break;
         default:
             _.executeDefaultContextMenu(id, scriptFolder + 'Panel_Info.js');
     }
 
-    _.dispose(cpm);
+    _.dispose.apply(null,context_menu);
     return true;
 }
 
@@ -396,7 +410,32 @@ String.prototype.capitalize = function () {
     return this.charAt(0).toUpperCase() + this.slice(1);
 };
 
-// =================================================== //
+function get_current_metadb() {
+    var metadb = null;
+    switch (g_properties.track_mode) {
+        case g_track_modes.auto: {
+            if (fb.IsPlaying) {
+                metadb = fb.GetNowPlaying();
+            }
+            else {
+                metadb = fb.GetFocusItem();
+            }
+            break;
+        }
+        case g_track_modes.selected: {
+            metadb = fb.GetFocusItem();
+            break;
+        }
+        case g_track_modes.playing: {
+            if (fb.IsPlaying) {
+                metadb = fb.GetNowPlaying();
+            }
+            break;
+        }
+    }
+
+    return metadb;
+}
 
 function refreshList() {
     listOnSize();

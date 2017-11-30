@@ -19,7 +19,7 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
         var SF = g_string_format.align_center | g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
         var art = art_arr[cur_art_id];
 
-        g.FillSolidRect( this.x, this.y, this.w, this.h, panelsBackColor);
+        g.FillSolidRect(this.x, this.y, this.w, this.h, panelsBackColor);
         g.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
 
         if (art) {
@@ -33,7 +33,7 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
             if (w + h > 10) {
                 var p = border_size;
                 if (cur_art_id === artType.cd) {
-                    g.DrawImage(art.img, x + p, y + p, w - 2*p, h - 2*p, 0, 0, art_img_w, art_img_h);
+                    g.DrawImage(art.img, x + p, y + p, w - 2 * p, h - 2 * p, 0, 0, art_img_w, art_img_h);
 
                     if (g_properties.use_disc_mask) {
                         g.SetSmoothingMode(SmoothingMode.HighQuality);
@@ -42,7 +42,7 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
                 }
                 else {
                     if (feature_border) {
-                        g.DrawImage(art.img, x + p, y + p, w - 2*p, h - 2*p, 0, 0, art_img_w, art_img_h);
+                        g.DrawImage(art.img, x + p, y + p, w - 2 * p, h - 2 * p, 0, 0, art_img_w, art_img_h);
                         g.DrawRect(x, y, w - 1, h - 1, 1, frame_color);
                     }
                     else {
@@ -56,7 +56,7 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
             if (metadb && (_.startsWith(metadb.RawPath, 'http://')) && utils.CheckFont('Webdings')) {
                 g.DrawString('\uF0BB', gdi.font('Webdings', 130), _.RGB(70, 70, 70), this.x, this.y, this.w, this.h, SF);
             }
-            else if (!fb.IsPlaying){
+            else if (!fb.IsPlaying) {
                 g.DrawString(g_theme_name + ' ' + g_theme_version, gdi.font('Segoe Ui Semibold', 24), _.RGB(70, 70, 70), this.x, this.y, this.w, this.h, g_string_format.align_center);
             }
             else {
@@ -88,7 +88,7 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
         was_on_size_called = true;
 
         if (thumbs) {
-            thumbs.reposition(this.x,this.y,this.w,this.h);
+            thumbs.reposition(this.x, this.y, this.w, this.h);
         }
         reposition_art();
     };
@@ -730,22 +730,22 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
 }
 
 function Thumbs(cover_switch_callback_arg) {
-    this.on_paint = function(gr) {
+    this.on_paint = function (gr) {
         this.btns.paint(gr);
     };
 
-    this.reposition = function(wx,wy,ww,wh) {
+    this.reposition = function (wx, wy, ww, wh) {
         var old_w = this.w;
         var old_h = this.h;
 
-        this.size = Math.min(g_properties.thumb_size, Math.floor(((is_vertical ? wh : ww) - g_properties.thumb_padding*3) / 4));
+        this.size = Math.min(g_properties.thumb_size, Math.floor(((is_vertical ? wh : ww) - g_properties.thumb_padding * 3) / 4));
 
         if (is_vertical) {
             this.w = this.size;
-            this.h = Math.min(this.size * 4 + g_properties.thumb_padding*3,wh);
+            this.h = Math.min(this.size * 4 + g_properties.thumb_padding * 3, wh);
         }
         else {
-            this.w = Math.min(this.size * 4 + g_properties.thumb_padding*3,ww);
+            this.w = Math.min(this.size * 4 + g_properties.thumb_padding * 3, ww);
             this.h = this.size;
         }
 
@@ -758,17 +758,17 @@ function Thumbs(cover_switch_callback_arg) {
         this.y = wy;
         switch (g_properties.thumb_position) {
             case pos.left:
-                this.y += Math.round((wh - this.h)/2);
+                this.y += Math.round((wh - this.h) / 2);
                 break;
             case pos.right:
                 this.x += ww - this.w;
-                this.y += Math.round((wh - this.h)/2);
+                this.y += Math.round((wh - this.h) / 2);
                 break;
             case pos.top:
-                this.x += Math.round((ww - this.w)/2);
+                this.x += Math.round((ww - this.w) / 2);
                 break;
             case pos.bottom:
-                this.x += Math.round((ww - this.w)/2);
+                this.x += Math.round((ww - this.w) / 2);
                 this.y += wh - this.h;
                 break;
         }
@@ -784,7 +784,7 @@ function Thumbs(cover_switch_callback_arg) {
         throttled_repaint();
     };
 
-    this.create_thumb_objects = function() {
+    this.create_thumb_objects = function () {
         if (this.btns) {
             this.btns.reset();
         }
@@ -795,7 +795,7 @@ function Thumbs(cover_switch_callback_arg) {
 
         var x = this.x,
             y = this.y;
-        var w = Math.min(g_properties.thumb_size, Math.max(Math.floor(((is_vertical ? this.h : this.w) - 3 * p) / 4),0));
+        var w = Math.min(g_properties.thumb_size, Math.max(Math.floor(((is_vertical ? this.h : this.w) - 3 * p) / 4), 0));
         var h = w;
 
         this.btns.buttons.front = new _.button(x, y, w, h, default_thumb_imgs.front, function () {cover_switch_callback(0);}, 'Front');
@@ -813,19 +813,19 @@ function Thumbs(cover_switch_callback_arg) {
         this.btns.buttons.artist = new _.button(x, y, w, h, default_thumb_imgs.artist, function () {cover_switch_callback(3);}, 'Artist');
     };
 
-    this.on_art_get = function(art_id, original_art_img) {
+    this.on_art_get = function (art_id, original_art_img) {
         original_art_imgs[art_id] = original_art_img;
         thumb_imgs[art_id] = this.create_thumb_from_img(original_art_img);
         this.fill_thumb_image_by_id(0, thumb_imgs[art_id]);
     };
 
-    this.create_thumbs_from_imgs = function() {
-        original_art_imgs.forEach(_.bind(function(item,i) {
+    this.create_thumbs_from_imgs = function () {
+        original_art_imgs.forEach(_.bind(function (item, i) {
             thumb_imgs[i] = this.create_thumb_from_img(item);
-        },this));
+        }, this));
     };
 
-    this.create_thumb_from_img = function(image) {
+    this.create_thumb_from_img = function (image) {
         var ratio = image.Height / image.Width;
         var art_h = this.size - 2 * border_size;
         var art_w = this.size - 2 * border_size;
@@ -839,7 +839,7 @@ function Thumbs(cover_switch_callback_arg) {
         return image.Resize(art_w, art_h);
     };
 
-    this.clear_thumb_images = function() {
+    this.clear_thumb_images = function () {
         if (!this.btns) {
             return;
         }
@@ -849,14 +849,14 @@ function Thumbs(cover_switch_callback_arg) {
         this.refill_thumb_images();
     };
 
-    this.refill_thumb_images = function() {
+    this.refill_thumb_images = function () {
         this.fill_thumb_image_by_id(0, thumb_imgs[0]);
         this.fill_thumb_image_by_id(1, thumb_imgs[1]);
         this.fill_thumb_image_by_id(2, thumb_imgs[2]);
         this.fill_thumb_image_by_id(3, thumb_imgs[3]);
     };
 
-    this.fill_thumb_image_by_id = function(art_id, art_img) {
+    this.fill_thumb_image_by_id = function (art_id, art_img) {
         var btnName;
         switch (art_id) {
             case 0: {
@@ -890,7 +890,7 @@ function Thumbs(cover_switch_callback_arg) {
         btn.set_image(img_arr);
     };
 
-    this.create_default_thumb_images = function() {
+    this.create_default_thumb_images = function () {
         var btn =
             {
                 front:  {
@@ -921,10 +921,10 @@ function Thumbs(cover_switch_callback_arg) {
                     hover:   stateImages[1],
                     pressed: stateImages[2]
                 };
-        },this));
+        }, this));
     };
 
-    this.create_thumb_image = function(bw, bh, art_img, state, btnText) {
+    this.create_thumb_image = function (bw, bh, art_img, state, btnText) {
         var img = gdi.CreateImage(bw, bh);
         var g = img.GetGraphics();
         g.SetSmoothingMode(SmoothingMode.HighQuality);
@@ -937,17 +937,17 @@ function Thumbs(cover_switch_callback_arg) {
         var h = bh;
 
         if (art_img) {
-            x = Math.round((bw - (art_img.Width + 2*border_size))/2);
-            y = Math.round((bh - (art_img.Height + 2*border_size))/2);
-            w = art_img.Width + 2*border_size;
-            h = art_img.Height + 2*border_size;
+            x = Math.round((bw - (art_img.Width + 2 * border_size)) / 2);
+            y = Math.round((bh - (art_img.Height + 2 * border_size)) / 2);
+            w = art_img.Width + 2 * border_size;
+            h = art_img.Height + 2 * border_size;
         }
 
         if (art_img) {
             g.DrawImage(art_img, x + p, y + p, art_img.Width, art_img.Height, 0, 0, art_img.Width, art_img.Height, 0, 230);
         }
         else {
-            g.FillSolidRect(x + p, y + p, w - x - 2*p, h - y - 2*p, panelsBackColor); // Cleartype is borked, if drawn without background
+            g.FillSolidRect(x + p, y + p, w - x - 2 * p, h - y - 2 * p, panelsBackColor); // Cleartype is borked, if drawn without background
             var btn_text_format = g_string_format.align_center | g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
             g.DrawString(btnText, gdi.font('Segoe Ui', 14), _.RGB(70, 70, 70), 0, 0, w, h, btn_text_format);
         }
@@ -968,11 +968,11 @@ function Thumbs(cover_switch_callback_arg) {
         return img;
     };
 
-    this.change_position = function(wx,wy,ww,wh,new_pos) {
+    this.change_position = function (wx, wy, ww, wh, new_pos) {
         is_vertical = (new_pos === pos.left || new_pos === pos.right);
         g_properties.thumb_position = new_pos;
 
-        this.reposition(wx,wy,ww,wh);
+        this.reposition(wx, wy, ww, wh);
     };
 
     this.x = 0;
@@ -1000,10 +1000,9 @@ function Thumbs(cover_switch_callback_arg) {
     this.create_default_thumb_images();
 }
 
-Thumbs.pos =
-    {
-        left:   1,
-        top:    2,
-        right:  3,
-        bottom: 4
-    };
+Thumbs.pos = {
+    left:   1,
+    top:    2,
+    right:  3,
+    bottom: 4
+};
