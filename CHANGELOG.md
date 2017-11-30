@@ -1,17 +1,27 @@
 # Changelog
 
 ## [Unreleased]
+### Added
+- Track Info Panel: added ability to change tracking mode (auto/playing/selected).
+- Playlist Panel: header grouping type is now synced between Playlist Mode and Full Mode.
+
 ### Changed 
-- Made 'Last.FM Scrobbling Disabled' icon a bit prettier ^^.
+- Top Panel: Made 'Last.FM Scrobbling Disabled' icon a bit prettier ^^.
 - Updated theme.fcl: moved timeout shim to helpers.js.
 
 ### Fixed
 - Art Mode: fixed cropped 'mute' button.
-- Playlist Panel: fixed text overlapping with lock image.
-- Playlist Panel: fixed lock image not appearing after locking playlist.
-- Playlist Panel: fixed list width not adjusting when scrollbar
-disappears\appears.
-- Playlist Panel: fixed inconsitencies with queue position display.
+- Playlist Panel: 
+  - Fixed text overlapping with lock image.
+  - Fixed lock image not appearing after locking playlist.
+  - Fixed list width not adjusting when scrollbar disappears\appears.
+  - Fixed inconsistencies with queue position display.
+- Cover Panel:
+  - Fixed panel being stuck with "Loading" text.
+  - Fixed thumb images not clearing on track change.
+  - Fixed crash on resize.
+  - Fixed small text in thumb placeholders.
+  - Fixed thumb placeholder placement.
 - Added missing menu separators to context menus.
 - Fixed theme not adjusting window size correctly after import.
 
