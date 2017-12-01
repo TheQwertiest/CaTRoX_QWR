@@ -5,6 +5,7 @@
 g_properties.add_properties(
     {
         track_mode:         ['user.track_mode', 1],
+        // Replace '???' if query is changed
         group_format_query: ['user.group_format', '%album artist%%album%%discnumber%'],
         use_disc_mask:      ['user.use_disc_mask', true]
     }
@@ -112,7 +113,7 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
                 image = image.Resize(art_img_w, art_img_w, 0);
             }
 
-            if (currentAlbum === fb.TitleFormat(g_properties.group_format_query).EvalWithMetadb(metadb)) {
+            if (currentAlbum === '???' || currentAlbum === fb.TitleFormat(g_properties.group_format_query).EvalWithMetadb(metadb)) {
                 var is_embedded = image_path.slice(image_path.lastIndexOf('.') + 1) === fb.TitleFormat('$ext(%path%)').EvalWithMetadb(metadb);
 
                 art_arr[art_id] = {};
@@ -229,7 +230,7 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
         }
 
         currentAlbum = fb.TitleFormat(g_properties.group_format_query).EvalWithMetadb(metadb);
-        if (oldAlbum === currentAlbum) {
+        if (currentAlbum !== '???' && oldAlbum === currentAlbum) {
             if (art_arr[cur_art_id] === null) {
                 this.repaint();
             }

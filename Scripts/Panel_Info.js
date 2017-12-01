@@ -380,7 +380,7 @@ function on_mouse_rbtn_up(x, y) {
     var id = cpm.TrackPopupMenu(x, y);
     switch (id) {
         case 1:
-            fb.RunContextCommand('Properties');
+            fb.RunContextCommandWithMetadb('Properties', get_current_metadb());
             break;
         case 2:
             g_properties.show_scrollbar = !g_properties.show_scrollbar;
