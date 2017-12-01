@@ -5,7 +5,7 @@
 
 var g_theme_name = 'CaTRoX (QWR Edition)';
 var g_theme_folder = 'CaTRoX';
-var g_theme_version = '4.0.2b';
+var g_theme_version = '4.0.3';
 
 var scriptFolder = 'themes\\' + g_theme_folder + '\\Scripts\\';
 // ================================================================================= //
