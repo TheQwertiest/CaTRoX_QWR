@@ -44,7 +44,6 @@ qwr_utils.check_fonts(['Segoe Ui', 'Segoe Ui Semibold', 'Segoe Ui Symbol', 'Cons
 
 var g_has_modded_jscript = qwr_utils.has_modded_jscript();
 var maximize_to_fullscreen = g_properties.maximize_to_fullscreen;
-var g_is_pinned = g_has_modded_jscript ? fb.IsMainMenuCommandChecked('View/Always on Top') : false;
 
 var WindowState =
     {
@@ -116,6 +115,11 @@ function on_mouse_leave() {
 function on_mouse_rbtn_up(x, y) {
     trace_call && fb.trace(qwr_utils.function_name());
     return menu.on_mouse_rbtn_up(x, y);
+}
+
+function on_always_on_top_changed(state) {
+    trace_call && fb.trace(qwr_utils.function_name());
+    menu.on_always_on_top_changed(state);
 }
 
 function on_notify_data(name, info) {
@@ -346,6 +350,10 @@ function Menu() {
         buttons.leave();
     };
 
+    this.on_always_on_top_changed = function(state) {
+        buttons.refresh_pin_button();
+    };
+
     this.on_notify_data = function (name, info) {
         if (name === 'minimode_state') {
             common_vars.minimode_state = info;
@@ -365,7 +373,7 @@ function Menu() {
     // private:
     function initialize() {
         // Workaround for fb2k bug, when always on top is not working on startup, even if set
-        if (g_is_pinned) {
+        if (fb.AlwaysOnTop) {
             fb.RunMainMenuCommand('View/Always on Top');
             fb.RunMainMenuCommand('View/Always on Top');
         }
@@ -469,13 +477,15 @@ function Menu() {
 
         right_pad = x;
 
-        buttons.buttons.pin = new _.button(x, y, w, h, g_is_pinned ? button_images.Unpin : button_images.Pin, function () {
+        buttons.buttons.pin = new _.button(x, y, w, h, fb.AlwaysOnTop ? button_images.Unpin : button_images.Pin, function () {
             fb.RunMainMenuCommand('View/Always on Top');
-            g_is_pinned = g_has_modded_jscript ? fb.IsMainMenuCommandChecked('View/Always on Top') : false;
-            buttons.buttons.pin.set_image(g_is_pinned ? button_images.Unpin : button_images.Pin);
-            buttons.buttons.pin.tiptext = g_is_pinned ? 'Unpin window' : 'Pin window on Top';
+        }, fb.AlwaysOnTop ? 'Unpin window' : 'Pin window on Top');
+
+        buttons.refresh_pin_button = function () {
+            buttons.buttons.pin.set_image(fb.AlwaysOnTop ? button_images.Unpin : button_images.Pin);
+            buttons.buttons.pin.tiptext = fb.AlwaysOnTop ? 'Unpin window' : 'Pin window on Top';
             buttons.buttons.pin.repaint();
-        }, g_is_pinned ? 'Unpin window' : 'Pin window on Top');
+        };
 
         var ultraMiniModeBtnArr =
             {

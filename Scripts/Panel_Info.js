@@ -34,6 +34,10 @@ var windowSizeInRows = 0;
 
 var list = [];
 var listPos = 0;
+var listX;
+var listY;
+var listH;
+var listW;
 
 //--->
 var infoNameFont = gdi.font('Segoe Ui Semibold', 12);
@@ -166,8 +170,6 @@ function listOnSize() {
     }
 
     list = [];
-    var meta = [];
-    var info = [];
     listLength = 0;
 
     var metadb = get_current_metadb();
@@ -175,6 +177,8 @@ function listOnSize() {
         return;
     }
 
+    var meta = [];
+    var info = [];
     var fileInfo = metadb.GetFileInfo();
 
     var inf;
@@ -238,9 +242,9 @@ function listOnSize() {
             listW -= g_properties.scrollbar_w - g_properties.scrollbar_right_pad;
         }
 
-        var scrollbarX = window.Width - g_properties.scrollbar_w - g_properties.scrollbar_right_pad;
+        var scrollbarX = ww - g_properties.scrollbar_w - g_properties.scrollbar_right_pad;
         var scrollbarY = g_properties.list_top_pad;
-        var scrollbarH = window.Height - scrollbarY - g_properties.list_bottom_pad;
+        var scrollbarH = wh - scrollbarY - g_properties.list_bottom_pad;
 
         if (scrollbar) {
             scrollbar.reset();
