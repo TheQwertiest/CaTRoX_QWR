@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+
+## [4.0.3] - 2017-12-04
 ### Added
 - Track Info Panel: added ability to change tracking mode (auto/playing/selected).
 - Playlist Panel: header grouping type is now synced between Playlist Mode and Full Mode.
@@ -8,6 +10,7 @@
 ### Changed 
 - Top Panel: Made 'Last.FM Scrobbling Disabled' icon a bit prettier ^^.
 - Updated theme.fcl: moved timeout shim to helpers.js.
+- Compiled latest foo_jscript_panel with extensions (v1.3.2.1).
 
 ### Fixed
 - Art Mode: fixed cropped 'mute' button.
