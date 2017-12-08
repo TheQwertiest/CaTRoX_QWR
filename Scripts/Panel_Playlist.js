@@ -2339,19 +2339,22 @@ function Header(x, y, w, h, idx) {
         //---> DATE
         if (group_query_handler.get_query_name() !== 'artist') {
             var date_text = _.tf('%date%', metadb);
-            if (date_text === '?' && is_radio) {
+            if (date_text === '?') {
                 date_text = '';
             }
-            var date_w = Math.ceil(gr.MeasureString(date_text, date_font, 0, 0, 0, 0).Width + 5);
-            var date_x = this.w - date_w - 5;
-            var date_y = 0;
-            var date_h = this.h;
 
-            if (date_x > left_pad) {
-                grClip.DrawString(date_text, date_font, date_color, date_x, date_y, date_w, date_h, g_string_format.v_align_center);
+            if ( date_text ) {
+                var date_w = Math.ceil(gr.MeasureString(date_text, date_font, 0, 0, 0, 0).Width + 5);
+                var date_x = this.w - date_w - 5;
+                var date_y = 0;
+                var date_h = this.h;
+
+                if (date_x > left_pad) {
+                    grClip.DrawString(date_text, date_font, date_color, date_x, date_y, date_w, date_h, g_string_format.v_align_center);
+                }
+
+                part2_right_pad += this.w - date_x;
             }
-
-            part2_right_pad += this.w - date_x;
         }
 
         //---> ARTIST
@@ -2376,39 +2379,42 @@ function Header(x, y, w, h, idx) {
 
         //---> ALBUM
         if (group_query_handler.get_query_name() !== 'artist') {
-            var album_h = part_h;
-            var album_y = part_h;
-            var album_x;
-            if (g_properties.show_group_info) {
-                album_x = part2_cur_x
-            }
-            else {
-                album_y += 5;
-                album_x = part3_cur_x
-            }
-            var album_w = this.w - album_x - (part2_right_pad + 5);
 
             var album_text = _.tf('%album%[ - %ALBUMSUBTITLE%]', metadb);
-            if (album_text === '?' && is_radio) {
+            if (album_text === '?') {
                 album_text = '';
             }
 
-            var album_text_format = g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
-            if (g_properties.show_group_info) {
-                album_text_format |= g_string_format.v_align_center;
-            }
+            if (album_text) {
+                var album_h = part_h;
+                var album_y = part_h;
+                var album_x;
+                if (g_properties.show_group_info) {
+                    album_x = part2_cur_x
+                }
+                else {
+                    album_y += 5;
+                    album_x = part3_cur_x
+                }
+                var album_w = this.w - album_x - (part2_right_pad + 5);
 
-            grClip.DrawString(album_text, g_pl_fonts.album, album_color, album_x, album_y, album_w, album_h, album_text_format);
+                var album_text_format = g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
+                if (g_properties.show_group_info) {
+                    album_text_format |= g_string_format.v_align_center;
+                }
 
-            var album_text_w = Math.ceil(
-                /** @type {!number} */
-                gr.MeasureString(album_text, g_pl_fonts.album, 0, 0, 0, 0).Width
-            );
-            if (g_properties.show_group_info) {
-                part2_cur_x += album_text_w;
-            }
-            else {
-                part3_cur_x += album_text_w;
+                grClip.DrawString(album_text, g_pl_fonts.album, album_color, album_x, album_y, album_w, album_h, album_text_format);
+
+                var album_text_w = Math.ceil(
+                    /** @type {!number} */
+                    gr.MeasureString(album_text, g_pl_fonts.album, 0, 0, 0, 0).Width
+                );
+                if (g_properties.show_group_info) {
+                    part2_cur_x += album_text_w;
+                }
+                else {
+                    part3_cur_x += album_text_w;
+                }
             }
         }
 
