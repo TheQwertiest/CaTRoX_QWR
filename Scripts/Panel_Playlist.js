@@ -3950,7 +3950,6 @@ function GroupQueryHandler () {
     };
 
     this.sync_state = function(value) {
-        fb.trace(2);
         g_properties.user_group_query = value.g_user_group_query;
         g_properties.last_used_group_query_name = value.g_last_used_group_query_name;
 

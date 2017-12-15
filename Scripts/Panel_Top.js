@@ -156,7 +156,7 @@ function createButtonObjects(ww, wh) {
         x += w + p;
     }
 
-    buttons.buttons.search_yt = new _.button(x, y, w, h, button_images.SearchYT, function () { fb.RunMainMenuCommand('View/Youtube Search'); }, 'Search Youtube');
+    buttons.buttons.search_yt = new _.button(x, y, w, h, button_images.SearchYT, function () { fb.RunMainMenuCommand('View/Youtube Source/Search on Youtube'); }, 'Search Youtube');
     x += w + p;
 
     if (isYoutube) {
