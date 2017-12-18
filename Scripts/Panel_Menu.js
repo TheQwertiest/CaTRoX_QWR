@@ -132,15 +132,13 @@ function Menu() {
         if (!has_notified) {
             // When on_paint is called all other panels are loaded and can receive notifications
             window.NotifyOthers('show_tooltips', g_properties.show_tooltips);
-            window.NotifyOthers('minimode_state', common_vars.minimode_state);
+            window.NotifyOthers('minimode_state', pss_switch.minimode.state);
 
             has_notified = true;
 
             // Dirty, dirty hack to adjust window size
-            var old_w = window.Width;
-            var old_h = window.Height;
-            mode_handler.fix_window_size();
-            if (old_w !== window.Width || old_h !== window.Height) {
+            if (mode_handler.fix_window_size()) {
+                // Size has changed, waiting for on_size
                 window.Repaint();
                 return;
             }
@@ -165,7 +163,7 @@ function Menu() {
 
             if (g_properties.show_cpu_usage) {
                 var cpu_usage_text;
-                if (common_vars.minimode_state !== 'Full') {
+                if (pss_switch.minimode.state !== 'Full') {
                     cpu_usage_text = cpu_usage_tracker.get_cpu_usage() + '% (' + cpu_usage_tracker.get_gui_cpu_usage() + '%)';
                 }
                 else {
@@ -356,7 +354,6 @@ function Menu() {
 
     this.on_notify_data = function (name, info) {
         if (name === 'minimode_state') {
-            common_vars.minimode_state = info;
             this.repaint();
         }
     };
@@ -395,7 +392,7 @@ function Menu() {
         buttons.show_tt = g_properties.show_tooltips;
 
         //---> Menu buttons
-        if (common_vars.minimode_state === 'Full') {
+        if (pss_switch.minimode.state === 'Full') {
             var img = button_images.File;
             var x = x_arg + 1;
             var y = y_arg + 1;
@@ -450,7 +447,7 @@ function Menu() {
         // UltraMiniMode switch
         ++button_count;
 
-        if (common_vars.minimode_state !== 'UltraMini') {// Minimode
+        if (pss_switch.minimode.state !== 'UltraMini') {// Minimode
             ++button_count;
         }
 
@@ -459,7 +456,7 @@ function Menu() {
             ++button_count;
 
             // Max
-            if (common_vars.minimode_state === 'Full') {
+            if (pss_switch.minimode.state === 'Full') {
                 ++button_count;
             }
 
@@ -503,7 +500,7 @@ function Menu() {
                 }
             };
 
-        var ultraMiniModeBtn = (common_vars.minimode_state === 'Mini' || common_vars.minimode_state === 'Full')
+        var ultraMiniModeBtn = (pss_switch.minimode.state === 'Mini' || pss_switch.minimode.state === 'Full')
             ? ultraMiniModeBtnArr.MiniModeCompress
             : ((g_properties.saved_mode === 'Full')
                 ? ultraMiniModeBtnArr.MiniModeExpandToFull
@@ -512,7 +509,7 @@ function Menu() {
         x += w + p;
         buttons.buttons.ultraminimode = new _.button(x, y, w, h, ultraMiniModeBtn.ico, _.bind(mode_handler.toggle_ultra_mini_mode, mode_handler), ultraMiniModeBtn.txt);
 
-        if (common_vars.minimode_state !== 'UltraMini') {
+        if (pss_switch.minimode.state !== 'UltraMini') {
             var miniModeBtnArr =
                 {
                     MiniModeExpand:   {
@@ -525,7 +522,7 @@ function Menu() {
                     }
                 };
 
-            var miniModeBtn = (common_vars.minimode_state === 'Mini') ? miniModeBtnArr.MiniModeExpand : miniModeBtnArr.MiniModeCompress;
+            var miniModeBtn = (pss_switch.minimode.state === 'Mini') ? miniModeBtnArr.MiniModeExpand : miniModeBtnArr.MiniModeCompress;
 
             x += w + p;
             buttons.buttons.minimode = new _.button(x, y, w, h, miniModeBtn.ico, _.bind(mode_handler.toggle_mini_mode, mode_handler), miniModeBtn.txt);
@@ -535,7 +532,7 @@ function Menu() {
             x += w + p;
             buttons.buttons.minimize = new _.button(x, y, w, h, button_images.Minimize, function () { fb.RunMainMenuCommand('View/Hide'); }, 'Minimize');
 
-            if (common_vars.minimode_state === 'Full') {
+            if (pss_switch.minimode.state === 'Full') {
                 x += w + p;
                 buttons.buttons.maximize = new _.button(x, y, w, h, button_images.Maximize, function () {
                     try {
@@ -796,13 +793,13 @@ function Menu() {
 function WindowModeHandler() {
 
     this.toggle_ultra_mini_mode = function () {
-        if (common_vars.minimode_state !== 'UltraMini') {
-            g_properties.saved_mode = common_vars.minimode_state;
+        if (pss_switch.minimode.state !== 'UltraMini') {
+            g_properties.saved_mode = pss_switch.minimode.state;
         }
-        var new_minimode_state = (common_vars.minimode_state !== 'UltraMini') ? 'UltraMini' : g_properties.saved_mode;
+        var new_minimode_state = (pss_switch.minimode.state !== 'UltraMini') ? 'UltraMini' : g_properties.saved_mode;
 
         if (new_minimode_state === 'Mini') {
-            pss_switch.set_state('minimode', new_minimode_state);
+            pss_switch.minimode.state = new_minimode_state;
 
             set_window_size(g_properties.mini_mode_saved_width, g_properties.mini_mode_saved_height);
 
@@ -811,7 +808,7 @@ function WindowModeHandler() {
             UIHacks.MinSize.Height = 250;
         }
         else if (new_minimode_state === 'Full') {
-            pss_switch.set_state('minimode', new_minimode_state);
+            pss_switch.minimode.state = new_minimode_state;
 
             set_window_size(g_properties.full_mode_saved_width, g_properties.full_mode_saved_height);
 
@@ -821,7 +818,7 @@ function WindowModeHandler() {
         }
         else {
             if (!UIHacks.FullScreen) {
-                if (common_vars.minimode_state === 'Full') {
+                if (pss_switch.minimode.state === 'Full') {
                     if (g_has_modded_jscript) {
                         g_properties.full_mode_saved_width = fb_handle.Width;
                         g_properties.full_mode_saved_height = fb_handle.Height;
@@ -838,7 +835,7 @@ function WindowModeHandler() {
                 UIHacks.FullScreen = false;
             }
 
-            pss_switch.set_state('minimode', new_minimode_state);
+            pss_switch.minimode.state = new_minimode_state;
 
             set_window_size(250, 250 + 28);
 
@@ -849,7 +846,7 @@ function WindowModeHandler() {
     };
 
     this.toggle_mini_mode = function () {
-        var new_minimode_state = ((common_vars.minimode_state === 'Mini') ? 'Full' : 'Mini');
+        var new_minimode_state = ((pss_switch.minimode.state === 'Mini') ? 'Full' : 'Mini');
 
         if (new_minimode_state === 'Mini') {
             if (!UIHacks.FullScreen) {
@@ -862,7 +859,7 @@ function WindowModeHandler() {
                 UIHacks.FullScreen = false;
             }
 
-            pss_switch.set_state('minimode', new_minimode_state);
+            pss_switch.minimode.state = new_minimode_state;
 
             set_window_size(g_properties.mini_mode_saved_width, g_properties.mini_mode_saved_height);
 
@@ -881,7 +878,7 @@ function WindowModeHandler() {
                 UIHacks.FullScreen = false;
             }
 
-            pss_switch.set_state('minimode', new_minimode_state);
+            pss_switch.minimode.state = new_minimode_state;
 
             set_window_size(g_properties.full_mode_saved_width, g_properties.full_mode_saved_height);
 
@@ -909,20 +906,23 @@ function WindowModeHandler() {
             minH = 600;
         }
 
-        set_window_size_limits(minW, maxW, minH, maxH);
+        return set_window_size_limits(minW, maxW, minH, maxH);
     };
 
     this.fix_window_size = function() {
-        // Workaround for messed up settings file or properties
-        this.set_window_size_limits_for_mode(common_vars.minimode_state);
-
         if (g_properties.is_first_launch) {
-            if (common_vars.minimode_state === 'Full') {
+            if (pss_switch.minimode.state === 'Full'
+                && (window.Width !== 895 || window.Height !== 650) ) {
                 // Workaround for window size on first theme launch
                 set_window_size(895, 650);
             }
             g_properties.is_first_launch = false;
+
+            return true;
         }
+
+        // Workaround for messed up settings file or properties
+        return this.set_window_size_limits_for_mode(pss_switch.minimode.state);
     };
 
     function set_window_size (width, height) {
@@ -939,10 +939,15 @@ function WindowModeHandler() {
         UIHacks.MinSize = true;
         UIHacks.MinSize = false;
 
-        window.NotifyOthers('minimode_state_size', common_vars.minimode_state);
+        window.NotifyOthers('minimode_state_size', pss_switch.minimode.state);
     }
 
     function set_window_size_limits(minW, maxW, minH, maxH) {
+
+        var hasChanged = UIHacks.MinSize.Width !== minW
+            || UIHacks.MinSize.Height !== minH
+            || UIHacks.MaxSize.Width !== maxW
+            || UIHacks.MaxSize.Height !== maxH;
 
         UIHacks.MinSize = !!minW;
         UIHacks.MinSize.Width = minW;
@@ -955,6 +960,8 @@ function WindowModeHandler() {
 
         UIHacks.MaxSize = !!maxH;
         UIHacks.MaxSize.Height = maxH;
+
+        return hasChanged;
     }
 
     var fb_handle = g_has_modded_jscript ? wsh_utils.GetWndByHandle(window.ID).GetAncestor(2) : undefined;

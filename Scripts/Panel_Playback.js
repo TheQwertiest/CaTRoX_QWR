@@ -5,6 +5,7 @@
 
 var buttons;
 var showTooltips = false;
+var cur_minimode = pss_switch.minimode.state;
 
 /// Reduce move
 var moveChecker = new _.moveCheckReducer;
@@ -44,7 +45,7 @@ function on_size() {
 
     createButtonObjects(0, 1, ww, wh);
 
-    if ( common_vars.minimode_state !== 'Full' )
+    if ( cur_minimode !== 'Full' )
     {
         var volH = 14;
         var volY = Math.floor(wh / 2 - volH / 2) + 3;
@@ -105,7 +106,7 @@ function on_mouse_lbtn_dblclk(x, y, m) {
 function on_mouse_wheel(delta) {
     var changeVolManually = true;
 
-    if ( common_vars.minimode_state === 'Mini' )
+    if ( cur_minimode === 'Mini' )
     {
         if (showVolumeBar && volumeBar.wheel(delta)) {
             changeVolManually = false;
@@ -139,7 +140,7 @@ function on_mouse_leave() {
 }
 
 function on_volume_change(val) {
-    if (common_vars.minimode_state !== 'Full') {
+    if (cur_minimode !== 'Full') {
         buttons.refresh_vol_button();
 
         if (showVolumeBar) {
@@ -177,7 +178,7 @@ function createButtonObjects(wx, wy, ww, wh) {
     var y = wy + Math.floor((wh - w) / 2);
     var x;
 
-    if (common_vars.minimode_state !== 'Full') {
+    if (cur_minimode !== 'Full') {
         x = wx + Math.floor((ww - (w * 5 + p * 4)) / 2);
     }
     else
@@ -197,7 +198,7 @@ function createButtonObjects(wx, wy, ww, wh) {
     buttons.buttons.next = new _.button(x, y, w, h, btnImg.Next, function () { fb.Next(); }, 'Next');
     x += w + p;
 
-    if (common_vars.minimode_state !== 'Full') {
+    if (cur_minimode !== 'Full') {
         w = btnImg.VolLoud.normal.Width;
         h = btnImg.VolLoud.normal.Height;
         y = wy + Math.floor((wh - w) / 2);
@@ -374,7 +375,7 @@ function on_mouse_rbtn_up(x, y) {
 function on_notify_data(name, info) {
     switch (name) {
         case 'minimode_state': {
-            common_vars.minimode_state = info;
+            cur_minimode = info;
 
             // Need additional repaint to avoid repaint glitching
             // (i.e. when changing mode, you could see panel from previous minimode state)

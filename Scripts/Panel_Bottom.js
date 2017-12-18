@@ -22,6 +22,9 @@ var seekbar;
 var seekbarTime1 = '0:00';
 var seekbarTime2 = '0:00';
 
+var cur_minimode = pss_switch.minimode.state;
+var show_spectrum = pss_switch.spectrum.state === 'Show';
+
 /// Reduce move
 var moveChecker = new _.moveCheckReducer;
 
@@ -67,7 +70,7 @@ function on_paint(gr) {
     gr.DrawString(seekbarTime2, seekbarTextFont, sliderTextColor, x + w, y - 1, seekbarTextW, h, g_string_format.align_center);
 
     // VolBar
-    if (common_vars.minimode_state === 'Full') {
+    if (cur_minimode === 'Full') {
         var x = volumeBar.x,
             y = volumeBar.y,
             w = volumeBar.w,
@@ -94,7 +97,7 @@ function on_size() {
     volumeBar = new _.volume(volumeBarX, volumeBarY, volumeBarW, volumeBarH);
     volumeBar.show_tt = showTooltips;
 
-    if (common_vars.minimode_state === 'Full') {
+    if (cur_minimode === 'Full') {
         var textW = seekbarTextW;
         var gap = 80;
         var seekbarW = volumeBarX - textW * 2 - gap;
@@ -144,14 +147,14 @@ function on_mouse_move(x, y, m) {
 
     buttons.move(x, y);
 
-    if (common_vars.minimode_state === 'Full')
+    if (cur_minimode === 'Full')
         volumeBar.move(x, y);
 }
 
 function on_mouse_lbtn_down(x, y, m) {
     buttons.lbtn_down(x, y);
     seekbar.lbtn_down(x, y);
-    if (common_vars.minimode_state === 'Full')
+    if (cur_minimode === 'Full')
         volumeBar.lbtn_down(x, y);
 }
 
@@ -160,7 +163,7 @@ function on_mouse_lbtn_up(x, y, m) {
 
     buttons.lbtn_up(x, y);
     seekbar.lbtn_up(x, y);
-    if (common_vars.minimode_state === 'Full')
+    if (cur_minimode === 'Full')
         volumeBar.lbtn_up(x, y);
 }
 
@@ -199,7 +202,7 @@ function on_playback_seek() {
 }
 
 function on_volume_change(val) {
-    if (common_vars.minimode_state === 'Full') {
+    if (cur_minimode === 'Full') {
         buttons.refresh_vol_button();
         volumeBar.volume_change();
     }
@@ -222,7 +225,7 @@ function createButtonObjects(wx, wy, ww, wh) {
     var h = w;
     var p = 9;
 
-    var rightMargin = (common_vars.minimode_state !== 'Full') ? ((w + p) * 2 + 2) : (6 + (w + p) * 2 + 6 + (volumeBarW + 35));
+    var rightMargin = (cur_minimode !== 'Full') ? ((w + p) * 2 + 2) : (6 + (w + p) * 2 + 6 + (volumeBarW + 35));
     var x = ww - rightMargin;
 
     var repeatImg;
@@ -255,7 +258,7 @@ function createButtonObjects(wx, wy, ww, wh) {
     };
     buttons.buttons.shuffle = new _.button(x + (w + p), y, w, h, (plman.PlaybackOrder === g_playback_order.shuffle_tracks) ? btnImg.ShuffleTracks : btnImg.Shuffle, shuffleFn, 'Shuffle');
 
-    if (common_vars.minimode_state === 'Full') {
+    if (cur_minimode === 'Full') {
         var volValue = _.toVolume(fb.Volume);
         var volImage = ((volValue > 50) ? btnImg.VolLoud : ((volValue > 0) ? btnImg.VolQuiet : btnImg.VolMute));
         buttons.buttons.mute = new _.button(ww - 30, y, w, h, volImage, function () { fb.VolumeMute(); }, volValue === 0 ? 'Unmute' : 'Mute');
@@ -415,9 +418,9 @@ function on_mouse_rbtn_up(x, y) {
 
     cpm.AppendMenuItem(MF_STRING, 3, 'Show time remaining');
     cpm.CheckMenuItem(3, g_properties.show_remaining_time);
-    if (common_vars.minimode_state === 'Full') {
+    if (cur_minimode === 'Full') {
         cpm.AppendMenuItem(MF_STRING, 4, 'Show music spectrum');
-        cpm.CheckMenuItem(4, common_vars.spectrum_state === 'Show');
+        cpm.CheckMenuItem(4, pss_switch.spectrum.state === 'Show');
     }
     if (utils.IsKeyPressed(VK_SHIFT)) {
         cpm.AppendMenuSeparator();
@@ -431,7 +434,7 @@ function on_mouse_rbtn_up(x, y) {
             window.Repaint();
             break;
         case 4:
-            pss_switch.set_state('spectrum', common_vars.spectrum_state === 'Show' ? 'Hide' : 'Show');
+            pss_switch.spectrum.state = pss_switch.spectrum.state === 'Show' ? 'Hide' : 'Show';
             break;
         default:
             _.executeDefaultContextMenu(id, scriptFolder + 'Panel_Bottom.js');
@@ -444,7 +447,7 @@ function on_mouse_rbtn_up(x, y) {
 function on_notify_data(name, info) {
     switch (name) {
         case 'minimode_state': {
-            common_vars.minimode_state = info;
+            cur_minimode = info;
             break;
         }
         case 'show_tooltips': {
@@ -456,3 +459,5 @@ function on_notify_data(name, info) {
         }
     }
 }
+
+pss_switch.spectrum.refresh();

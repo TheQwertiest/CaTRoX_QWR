@@ -4,65 +4,90 @@
 // ==/PREPROCESSOR==
 
 var pss_switch = new function() {
-    this.get_state = function (state_name) {
-        var states_list = state_name + '_states_list';
-        var pathToState = settings_path + '\\' + state_name.toUpperCase() + '_';
 
-        if (!this[states_list]) {
-            throw Error('Argument Error:\nUnknown state name ' + state_name);
+    /**
+     * @constructor
+     */
+    function StateObject(name_arg, states_list_arg, default_state_arg) {
+
+        // public:
+        this.refresh = function() {
+            write_state(cur_state);
+        };
+
+        // private:
+        function initialize() {
+            cur_state = read_state(name);
         }
 
-        var state;
-        _.forEach(this[states_list], function (item, i) {
-            if (fso.FileExists(pathToState + i)) {
-                state = item;
-                return false;
+        function read_state() {
+            var pathToState = settings_path + '\\' + name.toUpperCase() + '_';
+
+            var state = null;
+            _.forEach(states_list, function (item, i) {
+                if (fso.FileExists(pathToState + i)) {
+                    state = item;
+                    return false;
+                }
+            });
+            if (state !== null) {
+                return state;
+            }
+
+            var default_idx = states_list.indexOf(default_state);
+            fso.CreateTextFile(pathToState + default_idx, true);
+            return default_state;
+        }
+
+        function write_state(new_state) {
+            var pathToState = settings_path + '\\' + name.toUpperCase() + '_';
+
+            var index_new = states_list.indexOf(new_state);
+
+            if (index_new === -1) {
+                throw Error('Argument Error:\nUnknown state ' + new_state);
+            }
+
+            states_list.forEach(function(item,i) {
+                _.deleteFile(pathToState + i);
+            });
+            if (!fso.FileExists(pathToState + index_new)) {
+                fso.CreateTextFile(pathToState + index_new, true);
+            }
+
+            window.NotifyOthers(name + '_state', new_state);
+            refresh_pss();
+        }
+
+        // private:
+        var name = name_arg;
+        var default_state = default_state_arg;
+        var states_list = states_list_arg;
+
+        var cur_state;
+
+        // public defines:
+        Object.defineProperty(this, "state", {
+
+            /**
+             * @return {string}
+             */
+            get : function () {
+                return cur_state;
+            },
+
+            /**
+             * @param {string} val
+             */
+            set : function (val) {
+                cur_state = val;
+                write_state(val);
             }
         });
-        if (state) {
-            return state;
-        }
 
-        var default_idx = this[state_name + '_default_idx'];
-        fso.CreateTextFile(pathToState + default_idx, true);
-        return this[states_list][default_idx];
-    };
+        initialize();
+    }
 
-    this.set_state = function (state_name, new_state) {
-        var state = state_name + '_state';
-        var states_list = state_name + '_states_list';
-        var pathToState = settings_path + '\\' + state_name.toUpperCase() + '_';
-
-        if (!common_vars[state]) {
-            throw Error('Argument Error:\nUnknown state name ' + state_name);
-        }
-
-        var index = this[states_list].indexOf(common_vars[state]);
-        var index_new = this[states_list].indexOf(new_state);
-
-        if (index_new === -1) {
-            throw Error('Argument Error:\nUnknown state ' + new_state);
-        }
-
-        if (index !== -1) {
-            _.deleteFile(pathToState + index);
-        }
-        if (!fso.FileExists(pathToState + index_new)) {
-            fso.CreateTextFile(pathToState + index_new, true);
-        }
-
-        common_vars[state] = new_state;
-        window.NotifyOthers(state, new_state);
-        refresh_pss();
-    };
-
-    this.minimode_states_list = ['Full', 'Mini', 'UltraMini'];
-    this.minimode_default_idx = this.minimode_states_list.indexOf('Full');
-
-    this.spectrum_states_list = ['Hide', 'Show'];
-    this.spectrum_default_idx = this.spectrum_states_list.indexOf('Show');
-
-// private:
     function refresh_pss() {
         if (fb.IsPlaying || fb.IsPaused) {
             fb.RunMainMenuCommand('Playback/Play or Pause');
@@ -74,16 +99,16 @@ var pss_switch = new function() {
         }
     }
 
+    // private:
     var settings_path = fb.FoobarPath + 'themes\\' + g_theme_folder + '\\Settings';
-
     _.createFolder(settings_path);
-};
 
-var common_vars =
-    {
-        minimode_state: pss_switch.get_state('minimode'),
-        spectrum_state: pss_switch.get_state('spectrum'),
-    };
+    /** @type {StateObject} */
+    this.minimode = new StateObject('minimode', ['Full', 'Mini', 'UltraMini'], 'Full');
+
+    /** @type {StateObject} */
+    this.spectrum = new StateObject('spectrum', ['Hide', 'Show'], 'Show');
+};
 
 // Example of use in a PSS :
 // The first line set a panel stack global variable according to the panel current state, the second line switch the visibility of a panel named library, it show the panel when the current state is 3
