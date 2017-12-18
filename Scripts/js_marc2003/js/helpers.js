@@ -1126,7 +1126,7 @@ var tooltip = window.CreateTooltip('Segoe UI', _.scale(9));
 tooltip.SetMaxWidth(1200);
 
 var folders = {};
-folders.home = fb.ProfilePath + "themes\\CaTRoX\\Scripts\\js_marc2003\\";
+folders.home = fb.FoobarPath + "themes\\CaTRoX\\Scripts\\js_marc2003\\";
 folders.js = folders.home + "js\\";
 folders.images = folders.home + "images\\";
 folders.settings = fb.ProfilePath + "js_settings\\";
