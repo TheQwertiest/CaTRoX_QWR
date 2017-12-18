@@ -116,7 +116,8 @@
 ### Fixed
 - Fixed various crashes caused by incompatibility with JScript.
 
-[Unreleased]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.0.2b...HEAD
+[Unreleased]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.0.3...HEAD
+[4.0.3]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.0.2b...v4.0.3
 [4.0.2b]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.0.2a...v4.0.2b
 [4.0.2a]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.0.2...v4.0.2a
 [4.0.2]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.0.1...v4.0.2
