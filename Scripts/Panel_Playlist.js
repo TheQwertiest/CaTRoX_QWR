@@ -2178,7 +2178,7 @@ function Playlist(x, y) {
     var is_in_focus = false;
 
     // Playback state
-    /** @type {number|undefined} */
+    /** @type {?number} */
     var cur_playlist_idx = undefined;
     var playing_item = undefined;
     var focused_item = undefined;
@@ -2984,13 +2984,13 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
     var rating_right_pad = 10;
     var rating = undefined;
 
-    /** @type {string|undefined} */
+    /** @type {?string} */
     var title_text = undefined;
-    /** @type {string|undefined} */
+    /** @type {?string} */
     var title_artist_text = undefined;
-    /** @type {string|undefined} */
+    /** @type {?string} */
     var count_text = undefined;
-    /** @type {string|undefined} */
+    /** @type {?string} */
     var length_text = undefined;
 
     initialize_rating();
@@ -3050,7 +3050,7 @@ function Rating(x, y, w, h, metadb) {
     };
 
     this.get_rating = function () {
-        if (_.isUndefined(rating)) {
+        if (_.isNil(rating)) {
             var current_rating;
             if (g_properties.use_rating_from_tags) {
                 var file_info = this.metadb.GetFileInfo();
@@ -3152,9 +3152,6 @@ function SelectionHandler(rows_arg, headers_arg, cur_playlist_idx_arg) {
         });
         rows.forEach(function (item) {
             item.is_selected_static = false;
-            //item.is_drop_top_selected = false;
-            //item.is_drop_bottom_selected = false;
-            //item.is_drop_selected = false;
         });
 
         if (selected_indexes.length !== 0) {
@@ -3512,7 +3509,7 @@ function SelectionHandler(rows_arg, headers_arg, cur_playlist_idx_arg) {
     var headers = headers_arg;
     var cur_playlist_idx = cur_playlist_idx_arg;
     var selected_indexes = [];
-    /** @type {number|undefined} */
+    /** @type {?number} */
     var last_single_selected_index = undefined;
     var is_dragging = false;
     var is_external_drop = false;
@@ -3859,7 +3856,7 @@ function PlaylistInfo(x, y, w, h) {
     this.h = h;
 
     //private:
-    /** @type {string|undefined} */
+    /** @type {?string} */
     var info_text = undefined;
 }
 
@@ -4031,7 +4028,7 @@ function GroupQueryHandler () {
         return item.idx;
     });
 
-    /** @type {number|undefined} */
+    /** @type {?number} */
     var cur_playlist_idx = undefined;
 
     var cur_query = '';
