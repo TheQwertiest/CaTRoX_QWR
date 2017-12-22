@@ -6,7 +6,8 @@
 (function check_es5_availability() {
     var test = !!Date.now && !!Array.isArray && !!Array.prototype.forEach;
     if (!test) {
-        fb.ShowPopupMessage('Error: ES5 is not supported by your system! Cannot use this theme!', 'CaTRoX (QWR Edition)');
+        var error_msg = 'ES5 is not supported by your system! Cannot use this theme!';
+        throw new ThemeError(error_msg);
     }
 })();
 

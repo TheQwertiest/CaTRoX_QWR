@@ -198,6 +198,85 @@ function link(site, metadb) {
     _.run(site);
 }
 
+/**
+ * @constructor
+ * @param {string} msg
+ */
+function ThemeError(msg) {
+    Error.call(this, '') ;
+
+    this.name = 'ThemeError';
+
+    var err_msg = '\n';
+    err_msg += msg;
+    err_msg += '\n';
+
+    this.message = err_msg;
+}
+ThemeError.prototype = Object.create(Error.prototype);
+
+/**
+ * @constructor
+ * @param {string} msg
+ */
+function LogicError(msg) {
+    Error.call(this, '') ;
+
+    this.name = 'LogicError';
+
+    var err_msg = '\n';
+    err_msg += msg;
+    err_msg += '\n';
+
+    this.message = err_msg;
+}
+LogicError.prototype = Object.create(Error.prototype);
+
+/**
+ * @constructor
+ * @param {string} arg_name
+ * @param {string} arg_type
+ * @param {string} valid_type
+ * @param {string=} additional_msg
+ */
+function TypeError(arg_name, arg_type, valid_type, additional_msg) {
+    Error.call(this, '') ;
+
+    this.name = 'TypeError';
+
+    var err_msg = '\n';
+    err_msg += '\'' + arg_name + '\' is not a ' + valid_type + ', it\'s a ' + arg_type;
+    if (additional_msg) {
+        err_msg += '\n' + additional_msg;
+    }
+    err_msg += '\n';
+
+    this.message = err_msg;
+}
+TypeError.prototype = Object.create(Error.prototype);
+
+/**
+ * @constructor
+ * @param {string} arg_name
+ * @param {*} arg_value
+ * @param {string=} additional_msg
+ */
+function ArgumentError(arg_name, arg_value, additional_msg) {
+    Error.call(this, '') ;
+
+    this.name = 'ArgumentError';
+
+    var err_msg = '\n';
+    err_msg += '\'' + arg_name + '\' has invalid value: ' + arg_value.toString();
+    if (additional_msg) {
+        err_msg += '\n' + additional_msg;
+    }
+    err_msg += '\n';
+
+    this.message = err_msg;
+}
+ArgumentError.prototype = Object.create(Error.prototype);
+
 var qwr_utils = {
     EnableSizing: function (m) {
         try {
@@ -298,13 +377,13 @@ var g_properties = new function() {
     this.add_properties = function (properties) {
         _.forEach(properties, _.bind(function (item, i) {
             if (!_.isArray(item) || item.length !== 2 || !_.isString(item[0])) {
-                throw Error('Type Error:\nUsage: add_properties({\n  property_name, [property.string.description, property_default_value]\n})');
+                throw new TypeError('property', typeof item, '{ string, [string, any] }' , 'Usage: add_properties({\n  property_name, [property.string.description, property_default_value]\n})' );
             }
             if (i === 'add_properties') {
-                throw Error('Argument Error:\n"add_properties" name is reserved');
+                throw new ArgumentError('property_name', i, 'This name is reserved');
             }
             if (!_.isNil(this[i]) || !_.isNil(this[i + 'internal'])) {
-                throw Error('Argument Error:\n' + '"' + i + '"' + ' name is already occupied');
+                throw new ArgumentError('property_name', i, 'This name is already occupied');
             }
 
             this[i + 'internal'] = new Property(item[0], item[1]);

@@ -1922,7 +1922,7 @@ function Playlist(x, y) {
                 break;
             }
             default: {
-                throw Error('Argument error:\nUnknown visibility state: ' + to_item_state.visibility);
+                throw new ArgumentError('visibility_state', to_item_state.visibility);
             }
         }
 
@@ -2016,7 +2016,7 @@ function Playlist(x, y) {
             });
         }
         if (draw_row_idx === -1) {
-            throw Error('Logic error:\nCould not find item in drawn item list');
+            throw new LogicError('Could not find item in drawn item list');
         }
         return draw_row_idx;
     }
@@ -2123,7 +2123,7 @@ function Playlist(x, y) {
                             cur_marked_item.is_drop_boundary_reached = true;
                         }
                         else {
-                            throw Error('Argument error:\nUnknown drag scroll command: ' + key.toString());
+                            throw new ArgumentError('drag_scroll_command', key);
                         }
 
                         if (scrollbar.is_scrolled_down || scrollbar.is_scrolled_up) {
@@ -2931,7 +2931,7 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
 
     this.rating_click = function (x, y) {
         if (!g_properties.show_rating) {
-            throw Error('Logic error:\n Rating_click was called, when there wass no rating object.\nShould use trace before calling click');
+            throw new LogicError('Rating_click was called, when there was no rating object.\nShould use trace before calling click');
         }
         rating.click(x, y);
     };
@@ -3100,7 +3100,7 @@ function SelectionHandler(rows_arg, headers_arg, cur_playlist_idx_arg) {
     // changes focus and selection
     this.update_selection = function (item, ctrl_pressed, shift_pressed) {
         if (!item) {
-            throw Error('Logic error:\n update_selection was called with undefined item');
+            throw new LogicError('update_selection was called with undefined item');
         }
 
         if (!ctrl_pressed && !shift_pressed) {
@@ -3963,7 +3963,7 @@ function GroupQueryHandler () {
     function set_query_by_name(name, preserve_last_used_query) {
         var query_item = queries[query_map_by_name.indexOf(name)];
         if (!query_item) {
-            throw Error('Argument error:\nUnknown query name ' + name);
+            throw new ArgumentError('query_name', name);
         }
 
         cur_query_name = name;
