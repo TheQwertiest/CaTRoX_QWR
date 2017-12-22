@@ -11,6 +11,25 @@ var pss_switch = new function() {
     function StateObject(name_arg, states_list_arg, default_state_arg) {
 
         // public:
+
+        Object.defineProperty(this, "state", {
+
+            /**
+             * @return {string}
+             */
+            get : function () {
+                return cur_state;
+            },
+
+            /**
+             * @param {string} val
+             */
+            set : function (val) {
+                cur_state = val;
+                write_state(val);
+            }
+        });
+
         this.refresh = function() {
             write_state(cur_state);
         };
@@ -65,25 +84,6 @@ var pss_switch = new function() {
         var states_list = states_list_arg;
 
         var cur_state;
-
-        // public defines:
-        Object.defineProperty(this, "state", {
-
-            /**
-             * @return {string}
-             */
-            get : function () {
-                return cur_state;
-            },
-
-            /**
-             * @param {string} val
-             */
-            set : function (val) {
-                cur_state = val;
-                write_state(val);
-            }
-        });
 
         initialize();
     }
