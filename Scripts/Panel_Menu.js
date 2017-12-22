@@ -819,13 +819,13 @@ function WindowModeHandler() {
         else {
             if (!UIHacks.FullScreen) {
                 if (pss_switch.minimode.state === 'Full') {
-                    if (g_has_modded_jscript) {
+                    if (fb_handle) {
                         g_properties.full_mode_saved_width = fb_handle.Width;
                         g_properties.full_mode_saved_height = fb_handle.Height;
                     }
                 }
                 else {
-                    if (g_has_modded_jscript) {
+                    if (fb_handle) {
                         g_properties.mini_mode_saved_width = fb_handle.Width;
                         g_properties.mini_mode_saved_height = fb_handle.Height;
                     }
@@ -850,7 +850,7 @@ function WindowModeHandler() {
 
         if (new_minimode_state === 'Mini') {
             if (!UIHacks.FullScreen) {
-                if (g_has_modded_jscript) {
+                if (fb_handle) {
                     g_properties.full_mode_saved_width = fb_handle.Width;
                     g_properties.full_mode_saved_height = fb_handle.Height;
                 }
@@ -869,7 +869,7 @@ function WindowModeHandler() {
         }
         else {
             if (!UIHacks.FullScreen) {
-                if (g_has_modded_jscript) {
+                if (fb_handle) {
                     g_properties.mini_mode_saved_width = fb_handle.Width;
                     g_properties.mini_mode_saved_height = fb_handle.Height;
                 }
@@ -906,23 +906,35 @@ function WindowModeHandler() {
             minH = 600;
         }
 
-        return set_window_size_limits(minW, maxW, minH, maxH);
+        set_window_size_limits(minW, maxW, minH, maxH);
     };
 
     this.fix_window_size = function() {
+        if (fb_handle) {
+            var last_w = fb_handle.Width;
+            var last_h = fb_handle.Height;
+        }
+        else {
+            var was_first_launch = g_properties.is_first_launch;
+        }
+
         if (g_properties.is_first_launch) {
-            if (pss_switch.minimode.state === 'Full'
-                && (window.Width !== 895 || window.Height !== 650) ) {
+            if (pss_switch.minimode.state === 'Full') {
                 // Workaround for window size on first theme launch
                 set_window_size(895, 650);
             }
             g_properties.is_first_launch = false;
-
-            return true;
         }
 
         // Workaround for messed up settings file or properties
-        return this.set_window_size_limits_for_mode(pss_switch.minimode.state);
+        this.set_window_size_limits_for_mode(pss_switch.minimode.state);
+
+        if (fb_handle) {
+            return last_w !== fb_handle.Width || last_h !== fb_handle.Height;
+        }
+        else {
+            return was_first_launch;
+        }
     };
 
     function set_window_size (width, height) {
@@ -943,12 +955,6 @@ function WindowModeHandler() {
     }
 
     function set_window_size_limits(minW, maxW, minH, maxH) {
-
-        var hasChanged = UIHacks.MinSize.Width !== minW
-            || UIHacks.MinSize.Height !== minH
-            || UIHacks.MaxSize.Width !== maxW
-            || UIHacks.MaxSize.Height !== maxH;
-
         UIHacks.MinSize = !!minW;
         UIHacks.MinSize.Width = minW;
 
@@ -960,8 +966,6 @@ function WindowModeHandler() {
 
         UIHacks.MaxSize = !!maxH;
         UIHacks.MaxSize.Height = maxH;
-
-        return hasChanged;
     }
 
     var fb_handle = g_has_modded_jscript ? wsh_utils.GetWndByHandle(window.ID).GetAncestor(2) : undefined;
