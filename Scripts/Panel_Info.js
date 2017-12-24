@@ -10,7 +10,7 @@ g_properties.add_properties(
         list_bottom_pad:     ['user.list.pad.bottom', 4],
         row_h:               ['user.row.height', 20],
 
-        track_mode:          ['user.track_mode', 1],
+        track_mode:          ['user.track_mode', 3],
 
         show_scrollbar:      ['user.scrollbar.show', true],
         scrollbar_right_pad: ['user.scrollbar.pad.right', 0],

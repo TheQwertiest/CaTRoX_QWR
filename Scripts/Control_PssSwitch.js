@@ -100,7 +100,8 @@ var pss_switch = new function() {
     }
 
     // private:
-    var settings_path = fb.FoobarPath + 'themes\\' + g_theme_folder + '\\Settings';
+    var settings_path = fb.ProfilePath + 'theme_settings\\' + g_theme_folder;
+    _.createFolder(fb.ProfilePath + 'theme_settings');
     _.createFolder(settings_path);
 
     /** @type {StateObject} */
