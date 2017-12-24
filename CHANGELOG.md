@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+## [4.0.4] - 2017-12-24
+
+### Changed 
+- Playlist: date and album now won't be displayed if unavailable (previously was displayed as '?').
+
+### Fixed
+- Updated theme.fcl: fixed inability to use theme with standard fb2k installation.
+- Playlist Panel: clicking on Header now always selects all it's rows.
+- Top Panel: compatability fixes for foo_youtube v2.2.
+
 ## [4.0.3] - 2017-12-04
 ### Added
 - Track Info Panel: added ability to change tracking mode (auto/playing/selected).
@@ -116,7 +126,8 @@
 ### Fixed
 - Fixed various crashes caused by incompatibility with JScript.
 
-[Unreleased]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.0.3...HEAD
+[Unreleased]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.0.4...HEAD
+[4.0.4]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.0.3...v4.0.4
 [4.0.3]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.0.2b...v4.0.3
 [4.0.2b]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.0.2a...v4.0.2b
 [4.0.2a]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.0.2...v4.0.2a
