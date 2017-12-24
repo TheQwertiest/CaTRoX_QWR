@@ -3,6 +3,8 @@
 // @author 'TheQwertiest'
 // ==/PREPROCESSOR==
 
+// TODO: make better pseudo-caption handling
+
 (function check_es5_availability() {
     var test = !!Date.now && !!Array.isArray && !!Array.prototype.forEach;
     if (!test) {
@@ -221,16 +223,18 @@ function Menu() {
             return
         }
 
-        if (mouse_down) {
-            UIHacks.SetPseudoCaption(0, 0, 0, 0);
-            qwr_utils.DisableSizing(m);
-            pseudo_caption_enabled = false;
-        }
-        else if (!pseudo_caption_enabled || pseudo_caption_w !== this.w) {
-            UIHacks.SetPseudoCaption(left_pad, this.y, right_pad - left_pad, this.h);
-            qwr_utils.EnableSizing(m);
-            pseudo_caption_enabled = true;
-            pseudo_caption_w = this.w;
+        if (UIHacks.FrameStyle == FrameStyle.NoCaption || UIHacks.FrameStyle == FrameStyle.NoBorder) {
+            if (mouse_down) {
+                UIHacks.SetPseudoCaption(0, 0, 0, 0);
+                qwr_utils.DisableSizing(m);
+                pseudo_caption_enabled = false;
+            }
+            else if (!pseudo_caption_enabled || pseudo_caption_w !== this.w) {
+                UIHacks.SetPseudoCaption(left_pad, this.y, right_pad - left_pad, this.h);
+                qwr_utils.EnableSizing(m);
+                pseudo_caption_enabled = true;
+                pseudo_caption_w = this.w;
+            }
         }
     };
 
@@ -297,24 +301,28 @@ function Menu() {
                 UIHacks.FrameStyle = FrameStyle.Default;
                 UIHacks.MoveStyle = MoveStyle.Default;
                 UIHacks.Aero.Effect = 0;
+                UIHacks.SetPseudoCaption(0, 0, 0, 0);
                 create_buttons(this.x, this.y, this.w, this.h);
                 break;
             case 2:
                 UIHacks.FrameStyle = FrameStyle.SmallCaption;
                 UIHacks.MoveStyle = MoveStyle.Default;
                 UIHacks.Aero.Effect = 0;
+                UIHacks.SetPseudoCaption(0, 0, 0, 0);
                 create_buttons(this.x, this.y, this.w, this.h);
                 break;
             case 3:
                 UIHacks.FrameStyle = FrameStyle.NoCaption;
                 UIHacks.MoveStyle = MoveStyle.Both;
                 UIHacks.Aero.Effect = 0;
+                pseudo_caption_w = 0;
                 create_buttons(this.x, this.y, this.w, this.h);
                 break;
             case 4:
                 UIHacks.FrameStyle = FrameStyle.NoBorder;
                 UIHacks.MoveStyle = MoveStyle.Both;
                 UIHacks.Aero.Effect = 2;
+                pseudo_caption_w = 0;
                 create_buttons(this.x, this.y, this.w, this.h);
                 break;
             case 5:
