@@ -11,7 +11,7 @@
 ### Fixed
 - Updated theme.fcl: fixed inability to use theme with standard fb2k installation.
 - Playlist Panel: clicking on Header now always selects all it's rows.
-- Top Panel: compatability fixes for foo_youtube v2.2.
+- Top Panel: compatibility fixes for foo_youtube v2.2.
 - Menu Panel: fixed some buttons not responding after changing border mode.
 
 ## [4.0.3] - 2017-12-04
