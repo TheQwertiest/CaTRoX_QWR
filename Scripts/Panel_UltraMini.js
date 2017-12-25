@@ -2,501 +2,627 @@
 // @name 'UltraMini Main Panel'
 // @author 'TheQwertiest'
 // ==/PREPROCESSOR==
+var trace_call = false;
+var trace_on_paint = false;
+var trace_on_move = false;
+
+// TODO: make cycle queries and interval panel params
+
 g_properties.add_properties(
     {
         art_pad: ['user.art.pad', 0]
     }
 );
 
-var panel_s =
-    {
-        // Common
-        showTooltips: false,
-        // Control
-        mouseInPanel: false,
-        showVolumeBar: 0,
-        // Animation
-        playbackPanelAlpha: 255,
-        curTitleType: 0,
-        curTitleTypeText: ''
-    };
-
-// Tunable const vars
-var seekbarH = 8;
-var volumebarH = 14;
-var playbackH = 30;
-
-// Internal vars
-var seekbar;
-var buttons;
-var volumeBar;
-var rightBtnX = 0;
-var button_images = [];
-
-var ww = 0,
-    wh = 0;
-
-var artModule = new ArtModule();
-
-/// Reduce move
-var moveChecker = new _.moveCheckReducer;
-
-create_button_images();
+var ultra_mini = new UltraMini();
 
 function on_paint(gr) {
-    gr.FillSolidRect(0, 0, ww, wh, panelsBackColor);
-    gr.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
-
-    // Art
-    if (fb.IsPlaying || fb.IsPaused) {
-        artModule.paint(gr);
-    }
-    else {
-        gr.DrawString(g_theme_name + ' ' + g_theme_version, gdi.font('Segoe Ui Semibold', 24), _.RGB(70, 70, 70), 0, 0, ww, wh, g_string_format.align_center);
-    }
-
-    // Title
-    gr.FillGradRect(0, -1, ww, 40, 270, _.RGBA(0, 0, 0, 0), _.RGBA(0, 0, 0, 255));
-    gr.FillGradRect(0, -1, ww, 40, 270, _.RGBA(0, 0, 0, 0), _.RGBA(0, 0, 0, 255));
-
-    if (fb.IsPlaying) {
-        var title_text_format = g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
-        gr.DrawString(panel_s.curTitleTypeText, gdi.font('Segoe Ui Semibold', 12), _.RGB(240, 240, 240), 5, 5, ww, wh, title_text_format);
-    }
-
-    if (panel_s.playbackPanelAlpha !== 0) {
-        // Controls
-        gr.FillGradRect(0, wh - playbackH - seekbarH, ww, playbackH + seekbarH + 1, 90, _.RGBA(0, 0, 0, 0), _.RGBA(0, 0, 0, panel_s.playbackPanelAlpha));
-
-        // SeekBar
-        var p = 2;
-        var x = seekbar.x,
-            y = seekbar.y,
-            w = seekbar.w,
-            h = seekbar.h;
-
-        var sliderBackColor = _.RGBA(37, 37, 37, panel_s.playbackPanelAlpha);
-        var sliderBarColor = _.RGBA(190, 192, 194, panel_s.playbackPanelAlpha);
-        var sliderBarHoverColor = _.RGBA(231, 233, 235, Math.min(panel_s.playbackPanelAlpha, seekbar.hover_alpha));
-        gr.FillSolidRect(x, y + p, w, h - p * 2, sliderBackColor);
-        if (fb.IsPlaying && fb.PlaybackLength > 0) {
-            gr.FillSolidRect(x, y + p, seekbar.pos(), h - p * 2, sliderBarColor);
-            gr.FillSolidRect(x, y + p, seekbar.pos(), h - p * 2, sliderBarHoverColor);
-            gr.FillSolidRect(x + seekbar.pos() - 2, y + p - 1, 4, h - p * 2 + 2, _.RGBA(255, 255, 255, panel_s.playbackPanelAlpha));
-        }
-
-        // VolBar
-        if (panel_s.showVolumeBar) {
-            var p = 3;
-            var x = volumeBar.x,
-                y = volumeBar.y,
-                w = volumeBar.w,
-                h = volumeBar.h;
-
-            var volFrameColor = _.RGBA(255, 255, 255, panel_s.playbackPanelAlpha);
-            gr.DrawRect(x - 2, y + p - 2, w + 3, h - p * 2 + 3, 1.0, volFrameColor);
-            gr.FillSolidRect(x, y + p, w, h - p * 2, sliderBackColor);
-            gr.FillSolidRect(x, y + p, volumeBar.pos(), h - p * 2, sliderBarColor);
-        }
-
-        buttons.paint(gr, panel_s.playbackPanelAlpha);
-    }
+    trace_on_paint && fb.trace(qwr_utils.function_name());
+    ultra_mini.on_paint(gr);
 }
 
 function on_size() {
-    ww = window.Width;
-    wh = window.Height;
+    trace_call && fb.trace(qwr_utils.function_name());
+    var ww = window.Width;
+    var wh = window.Height;
 
-    var playbackY = wh - playbackH;
-    create_buttons(0, playbackY, ww, playbackH);
+    if (ww <= 0 || wh <= 0) {
+        // on_paint won't be called with such dimensions anyway
+        return;
+    }
 
-    var seekbarY = playbackY - seekbarH + Math.floor(seekbarH / 2);
-    seekbar = new _.seekbar(5, seekbarY, ww - 10, seekbarH);
-    seekbar.show_tt = panel_s.showTooltips;
-
-    var volumebarY = playbackY + Math.floor(playbackH / 2 - volumebarH / 2) + 2;
-    volumeBar = new _.volume(rightBtnX, volumebarY, Math.min(ww - rightBtnX - 4, 60), volumebarH);
-
-    artModule.on_size(g_properties.art_pad, g_properties.art_pad, ww - 2 * g_properties.art_pad, wh - 2 * g_properties.art_pad);
-    artModule.get_album_art();
+    ultra_mini.on_size(this.w, this.h);
 }
 
 function on_get_album_art_done(metadb, art_id, image, image_path) {
-    artModule.get_album_art_done(metadb, art_id, image, image_path);
+    trace_call && fb.trace(qwr_utils.function_name());
+    ultra_mini.on_get_album_art_done(metadb, art_id, image, image_path);
 }
 
 function on_playlist_switch() {
-    artModule.playlist_switch();
+    trace_call && fb.trace(qwr_utils.function_name());
+    ultra_mini.on_playlist_switch();
 }
 
 function on_item_focus_change() {
-    artModule.item_focus_change();
+    trace_call && fb.trace(qwr_utils.function_name());
+    ultra_mini.on_item_focus_change();
 }
 
 function on_playback_starting(cmd, is_paused) {
-    seekbar.playback_start();
-    buttons.refresh_play_button();
+    trace_call && fb.trace(qwr_utils.function_name());
+    ultra_mini.on_playback_starting(cmd, is_paused);
 }
 
 function on_playback_new_track(metadb) {
-    onTitleTimer(true);
-    artModule.playback_new_track();
+    trace_call && fb.trace(qwr_utils.function_name());
+    ultra_mini.on_playback_new_track(metadb);
 }
 
 function on_playback_pause(isPlaying) {
-    onTitleTimer();
-    seekbar.playback_pause(isPlaying);
-    buttons.refresh_play_button();
+    trace_call && fb.trace(qwr_utils.function_name());
+    ultra_mini.on_playback_pause(isPlaying);
 }
 
 function on_playback_dynamic_info_track() {
-    window.Repaint();
+    trace_call && fb.trace(qwr_utils.function_name());
+    ultra_mini.on_playback_dynamic_info_track();
 }
 
 function on_playback_stop(reason) {
-    if (reason !== 2) {
-        onTitleTimer();
-    }
-
-    artModule.playback_stop();
-    seekbar.playback_stop();
-    buttons.refresh_play_button();
+    trace_call && fb.trace(qwr_utils.function_name());
+    ultra_mini.on_playback_stop(reason);
 }
 
 function on_playback_seek() {
-    seekbar.playback_seek();
+    trace_call && fb.trace(qwr_utils.function_name());
+    ultra_mini.on_playback_seek();
 }
 
 function on_mouse_move(x, y, m) {
-    if (moveChecker.isSameMove(x, y, m)) {
-        return;
-    }
-
-    qwr_utils.DisableSizing(m);
-
-    if (volumeBar.drag) {
-        volumeBar.move(x, y);
-        return;
-    }
-
-    if (seekbar.drag) {
-        seekbar.move(x, y);
-        return;
-    }
-
-    if (!panel_s.mouseInPanel) {
-        panel_s.mouseInPanel = true;
-        animator.runAnimation('fade_in');
-    }
-
-    if (panel_s.showVolumeBar) {
-        var trace_pad = 2;
-        if ((volumeBar.x - 2*trace_pad <= x) && (x <= volumeBar.x + volumeBar.w + trace_pad) && (volumeBar.y - trace_pad <= y) && (y <= volumeBar.y + volumeBar.h + trace_pad)) {
-            volumeBar.move(x, y);
-        }
-        else {
-            panel_s.showVolumeBar = 0;
-            volumeBar.show_tt = false;
-            buttons.buttons.mute.hide = false;
-            buttons.buttons.volume.hide = false;
-            buttons.refresh_vol_button();
-            volumeBar.repaint();
-        }
-    }
-    seekbar.move(x, y);
-    buttons.move(x, y);
+    trace_on_move && fb.trace(qwr_utils.function_name());
+    ultra_mini.on_mouse_move(x, y, m);
 }
 
 function on_mouse_lbtn_down(x, y, m) {
-    buttons.lbtn_down(x, y);
-    seekbar.lbtn_down(x, y);
-    if (panel_s.showVolumeBar) {
-        volumeBar.lbtn_down(x, y);
-    }
+    trace_call && fb.trace(qwr_utils.function_name());
+    ultra_mini.on_mouse_lbtn_down(x, y, m);
 }
 
 function on_mouse_lbtn_up(x, y, m) {
-    qwr_utils.EnableSizing(m);
-
-    buttons.lbtn_up(x, y);
-    seekbar.lbtn_up(x, y);
-    if (panel_s.showVolumeBar) {
-        volumeBar.lbtn_up(x, y);
-    }
-}
-
-function on_mouse_wheel(delta) {
-    if (panel_s.mouseInPanel) {
-        if (!panel_s.showVolumeBar || !volumeBar.wheel(delta)) {
-            if (delta > 0) {
-                fb.VolumeUp();
-            }
-            else {
-                fb.VolumeDown();
-            }
-        }
-    }
-}
-
-function on_mouse_leave() {
-    if (volumeBar.drag || seekbar.drag) {
-        return;
-    }
-
-    if (panel_s.mouseInPanel) {
-        panel_s.mouseInPanel = false;
-        animator.runAnimation('fade_out');
-    }
-
-    if (panel_s.showVolumeBar) {
-        panel_s.showVolumeBar = 0;
-        buttons.buttons.mute.hide = false;
-        buttons.buttons.volume.hide = false;
-        volumeBar.repaint();
-    }
-
-    buttons.leave();
-}
-
-function on_volume_change(val) {
-    if (!panel_s.showVolumeBar) {
-        buttons.refresh_vol_button();
-    }
-    else {
-        volumeBar.volume_change();
-    }
-}
-
-function on_key_down(vkey) {
-    if (vkey === VK_F5) {
-        artModule.reload_art();
-    }
+    trace_call && fb.trace(qwr_utils.function_name());
+    ultra_mini.on_mouse_lbtn_up(x, y, m);
 }
 
 function on_mouse_rbtn_up(x, y) {
-    var cpm = window.CreatePopupMenu();
+    trace_call && fb.trace(qwr_utils.function_name());
+    ultra_mini.on_mouse_rbtn_up(x, y);
+}
 
-    cpm.AppendMenuItem(MF_STRING, 36, 'Reload \tF5');
+function on_mouse_wheel(delta) {
+    trace_call && fb.trace(qwr_utils.function_name());
+    ultra_mini.on_mouse_wheel(delta);
+}
 
-    if (utils.IsKeyPressed(VK_SHIFT)) {
-        cpm.AppendMenuSeparator();
-        _.appendDefaultContextMenu(cpm);
-    }
+function on_mouse_leave() {
+    trace_call && fb.trace(qwr_utils.function_name());
+    ultra_mini.on_mouse_leave();
+}
 
-    var id = cpm.TrackPopupMenu(x, y);
+function on_key_down(vkey) {
+    trace_call && fb.trace(qwr_utils.function_name());
+    ultra_mini.on_key_down(vkey);
+}
 
-    switch (id) {
-        case 36:
-            artModule.reload_art();
-            break;
-        default:
-            _.executeDefaultContextMenu(id, scriptFolder + 'Panel_UltraMini.js');
-    }
-
-    _.dispose(cpm);
-
-    return true;
+function on_volume_change(val) {
+    trace_call && fb.trace(qwr_utils.function_name());
+    ultra_mini.on_volume_change(val);
 }
 
 function on_notify_data(name, info) {
-    switch (name) {
-        case 'show_tooltips': {
-            panel_s.showTooltips = info;
-            seekbar.show_tt = info;
-            volumeBar.show_tt = info;
-            buttons.show_tt = info;
-            break;
-        }
-    }
+    trace_call && fb.trace(qwr_utils.function_name());
+    ultra_mini.on_notify_data(name, info);
 }
 
-function create_buttons(wx, wy, ww, wh) {
-    if (buttons) {
-        buttons.reset();
-    }
+/**
+ * @constructor
+ */
+function UltraMini() {
+    this.on_paint = function (gr) {
+        gr.FillSolidRect(0, 0, this.w, this.h, panelsBackColor);
+        gr.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
 
-    buttons = new _.buttons;
-    buttons.show_tt = panel_s.showTooltips;
-
-    //---> Playback buttons
-    var w = button_images.Next.normal.Width;
-    var h = w;
-    var p = 4;
-
-    var x = wx + Math.floor(ww / 2 - (w * 5 + p * 4) / 2);
-    var y = wy + Math.floor(wh / 2 - w / 2) + 1;
-
-    buttons.buttons.stop = new _.button(x, y, w, h, button_images.Stop, function () { 
-        fb.Stop();
-        // Needs repaint to avoid partial art redraw
-        window.Repaint();
-    }, 'Stop');
-
-    x += w + p;
-    buttons.buttons.previous = new _.button(x, y, w, h, button_images.Previous, function () { fb.Prev(); }, 'Previous');
-
-    x += w + p;
-    buttons.buttons.play = new _.button(x, y, w, h, (!fb.IsPlaying || fb.IsPaused) ? button_images.Play : button_images.Pause, function () {
-        var wasNotPlaying = !fb.IsPlaying;
-        fb.PlayOrPause();
-        // Needs repaint to avoid partial art redraw
-        if (wasNotPlaying) {
-            window.Repaint();
+        // Art
+        if (fb.IsPlaying || fb.IsPaused) {
+            art_module.paint(gr);
         }
-    }, (!fb.IsPlaying || fb.IsPaused) ? 'Play' : 'Pause');
+        else {
+            gr.DrawString(g_theme_name + ' ' + g_theme_version, gdi.font('Segoe Ui Semibold', 24), _.RGB(70, 70, 70), 0, 0, this.w, this.h, g_string_format.align_center);
+        }
 
-    x += w + p;
-    buttons.buttons.next = new _.button(x, y, w, h, button_images.Next, function () { fb.Next(); }, 'Next');
+        // Title
+        gr.FillGradRect(0, -1, this.w, 40, 270, _.RGBA(0, 0, 0, 0), _.RGBA(0, 0, 0, 255));
+        gr.FillGradRect(0, -1, this.w, 40, 270, _.RGBA(0, 0, 0, 0), _.RGBA(0, 0, 0, 255));
 
-    x += w + p;
-    rightBtnX = x + 3;
+        if (fb.IsPlaying) {
+            var title_text_format = g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
+            gr.DrawString(title_cycler.title_text(), gdi.font('Segoe Ui Semibold', 12), _.RGB(240, 240, 240), 5, 5, this.w, this.h, title_text_format);
+        }
 
-    var volValue = _.toVolume(fb.Volume);
-    var volImage = ((volValue > 50) ? button_images.VolLoud : ((volValue > 0) ? button_images.VolQuiet : button_images.VolMute));
-    buttons.buttons.mute = new _.button(x, y, w, h, volImage, function () { fb.VolumeMute(); }, volValue === 0 ? 'Unmute' : 'Mute');
+        if (panel_alpha !== 0) {
+            // Controls
+            gr.FillGradRect(0, this.h - playback_h - seekbar_h, this.w, playback_h + seekbar_h + 1, 90, _.RGBA(0, 0, 0, 0), _.RGBA(0, 0, 0, panel_alpha));
 
-    x += w - 5;
-    buttons.buttons.volume = new _.button(x, y + 2, button_images.ShowVolume.normal.Width, h, button_images.ShowVolume, function () {
-        panel_s.showVolumeBar = 1;
-        buttons.leave(); // for state reset
-        buttons.buttons.mute.hide = true;
-        buttons.buttons.volume.hide = true;
-        volumeBar.show_tt = panel_s.showTooltips;
-        volumeBar.repaint();
-    }, 'Volume');
+            // SeekBar
+            var p = 2;
+            var x = seekbar.x,
+                y = seekbar.y,
+                w = seekbar.w,
+                h = seekbar.h;
 
-    buttons.refresh_play_button = function () {
-        buttons.buttons.play.set_image((!fb.IsPlaying || fb.IsPaused) ? button_images.Play : button_images.Pause);
-        buttons.buttons.play.tiptext = (!fb.IsPlaying || fb.IsPaused) ? 'Play' : 'Pause';
-        buttons.buttons.play.repaint();
-    };
-
-    buttons.refresh_vol_button = function () {
-        var volValue = _.toVolume(fb.Volume);
-        var volImage = (volValue > 50) ? button_images.VolLoud : ((volValue > 0) ? button_images.VolQuiet : button_images.VolMute);
-        buttons.buttons.mute.set_image(volImage);
-        buttons.buttons.mute.tiptext = volValue === 0 ? 'Unmute' : 'Mute';
-        buttons.buttons.mute.repaint();
-    };
-}
-
-function create_button_images() {
-    var fontGuifx = gdi.font(g_guifx.name, 16);
-    var fontGuifx_15 = gdi.font(g_guifx.name, 15);
-    var fontAwesome = gdi.font('FontAwesome', 14);
-
-    var default_ico_colors =
-        [
-            _.RGB(190, 192, 194),
-            _.RGB(251, 253, 255),
-            _.RGB(90, 90, 90)
-        ];
-
-    var btn =
-        {
-            Stop: {
-                ico: g_guifx.stop,
-                font: fontGuifx,
-                id: 'playback',
-                w: 26,
-                h: 26
-            },
-            Previous: {
-                ico: g_guifx.previous,
-                font: fontGuifx,
-                id: 'playback',
-                w: 26,
-                h: 26
-            },
-            Play: {
-                ico: g_guifx.play,
-                font: fontGuifx,
-                id: 'playback',
-                w: 26,
-                h: 26
-            },
-            Pause: {
-                ico: g_guifx.pause,
-                font: fontGuifx,
-                id: 'playback',
-                w: 26,
-                h: 26
-            },
-            Next: {
-                ico: g_guifx.next,
-                font: fontGuifx,
-                id: 'playback',
-                w: 26,
-                h: 26
-            },
-            VolLoud: {
-                ico: g_guifx.volume_up,
-                font: fontGuifx_15,
-                id: 'playback',
-                w: 26,
-                h: 26
-            },
-            VolQuiet: {
-                ico: g_guifx.volume_down,
-                font: fontGuifx_15,
-                id: 'playback',
-                w: 26,
-                h: 26
-            },
-            VolMute: {
-                ico: g_guifx.mute,
-                font: fontGuifx_15,
-                id: 'playback',
-                w: 26,
-                h: 26
-            },
-            ShowVolume: {
-                ico: '\uF0d7',
-                font: fontAwesome,
-                id: 'playback',
-                w: 15,
-                h: 20
+            var sliderBackColor = _.RGBA(37, 37, 37, panel_alpha);
+            var sliderBarColor = _.RGBA(190, 192, 194, panel_alpha);
+            var sliderBarHoverColor = _.RGBA(231, 233, 235, Math.min(panel_alpha, seekbar.hover_alpha));
+            gr.FillSolidRect(x, y + p, w, h - p * 2, sliderBackColor);
+            if (fb.IsPlaying && fb.PlaybackLength > 0) {
+                gr.FillSolidRect(x, y + p, seekbar.pos(), h - p * 2, sliderBarColor);
+                gr.FillSolidRect(x, y + p, seekbar.pos(), h - p * 2, sliderBarHoverColor);
+                gr.FillSolidRect(x + seekbar.pos() - 2, y + p - 1, 4, h - p * 2 + 2, _.RGBA(255, 255, 255, panel_alpha));
             }
-        };
 
-    button_images = [];
+            // VolBar
+            if (show_volume_bar) {
+                var p = 3;
+                var x = volume_bar.x,
+                    y = volume_bar.y,
+                    w = volume_bar.w,
+                    h = volume_bar.h;
 
-    _.forEach(btn, function (item, i) {
-        var w = item.w,
-            h = item.h;
+                var volFrameColor = _.RGBA(255, 255, 255, panel_alpha);
+                gr.DrawRect(x - 2, y + p - 2, w + 3, h - p * 2 + 3, 1.0, volFrameColor);
+                gr.FillSolidRect(x, y + p, w, h - p * 2, sliderBackColor);
+                gr.FillSolidRect(x, y + p, volume_bar.pos(), h - p * 2, sliderBarColor);
+            }
 
-        var stateImages = []; //0=normal, 1=hover, 2=down;
+            buttons.paint(gr, panel_alpha);
+        }
+    };
 
-        for (var s = 0; s <= 2; s++) {
-            var img = gdi.CreateImage(w, h);
-            var g = img.GetGraphics();
-            g.SetSmoothingMode(SmoothingMode.HighQuality);
-            if (i === 'VolMute') {
-                // TextRenderingHint.AntiAlias crops image :\
-                g.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
+    this.on_size = function () {
+        this.w = window.Width;
+        this.h = window.Height;
+
+        var playback_y = this.h - playback_h;
+        create_buttons(0, playback_y, this.w, playback_h);
+
+        var seekbar_y = playback_y - seekbar_h + Math.floor(seekbar_h / 2);
+        seekbar = new _.seekbar(5, seekbar_y, this.w - 10, seekbar_h);
+        seekbar.show_tt = show_tooltips;
+
+        var volume_bar_y = playback_y + Math.floor(playback_h / 2 - volume_bar_h / 2) + 2;
+        volume_bar = new _.volume(volume_bar_x, volume_bar_y, Math.min(this.w - volume_bar_x - 4, 60), volume_bar_h);
+
+        art_module.on_size(g_properties.art_pad, g_properties.art_pad, this.w - 2 * g_properties.art_pad, this.h - 2 * g_properties.art_pad);
+        art_module.get_album_art();
+    };
+
+    this.on_get_album_art_done = function (metadb, art_id, image, image_path) {
+        art_module.get_album_art_done(metadb, art_id, image, image_path);
+    };
+
+    this.on_playlist_switch = function () {
+        art_module.playlist_switch();
+    };
+
+    this.on_item_focus_change = function () {
+        art_module.item_focus_change();
+    };
+
+    this.on_playback_starting = function (cmd, is_paused) {
+        seekbar.playback_start();
+        buttons.refresh_play_button();
+    };
+
+    this.on_playback_new_track = function (metadb) {
+        title_cycler.on_playback_new_track(metadb);
+        art_module.playback_new_track();
+    };
+
+    this.on_playback_pause = function (isPlaying) {
+        title_cycler.on_playback_pause(isPlaying);
+        seekbar.playback_pause(isPlaying);
+        buttons.refresh_play_button();
+    };
+
+    this.on_playback_dynamic_info_track = function () {
+        this.repaint();
+    };
+
+    this.on_playback_stop = function (reason) {
+        title_cycler.on_playback_stop(reason);
+        art_module.playback_stop();
+        seekbar.playback_stop();
+        buttons.refresh_play_button();
+    };
+
+    this.on_playback_seek = function () {
+        seekbar.playback_seek();
+    };
+
+    this.on_mouse_move = function (x, y, m) {
+        qwr_utils.DisableSizing(m);
+
+        if (volume_bar.drag) {
+            volume_bar.move(x, y);
+            return;
+        }
+
+        if (seekbar.drag) {
+            seekbar.move(x, y);
+            return;
+        }
+
+        if (!mouse_in_panel) {
+            mouse_in_panel = true;
+            animator.run_animation('fade_in');
+        }
+
+        if (show_volume_bar) {
+            var trace_pad = 2;
+            if ((volume_bar.x - 2 * trace_pad <= x) && (x <= volume_bar.x + volume_bar.w + trace_pad) && (volume_bar.y - trace_pad <= y) && (y <= volume_bar.y + volume_bar.h + trace_pad)) {
+                volume_bar.move(x, y);
             }
             else {
-                g.SetTextRenderingHint(TextRenderingHint.AntiAlias);
+                show_volume_bar = false;
+                volume_bar.show_tt = false;
+                buttons.buttons.mute.hide = false;
+                buttons.buttons.volume.hide = false;
+                buttons.refresh_vol_button();
+                volume_bar.repaint();
             }
+        }
+        seekbar.move(x, y);
+        buttons.move(x, y);
+    };
 
-            var ico_color = default_ico_colors[s];
-            g.DrawString(item.ico, item.font, ico_color, (i === 'Stop') ? 0 : 1, 0, w, h, g_string_format.align_center);
+    this.on_mouse_lbtn_down = function (x, y, m) {
+        buttons.lbtn_down(x, y);
+        seekbar.lbtn_down(x, y);
+        if (show_volume_bar) {
+            volume_bar.lbtn_down(x, y);
+        }
+    };
 
-            img.ReleaseGraphics(g);
-            stateImages[s] = img;
+    this.on_mouse_lbtn_up = function (x, y, m) {
+        qwr_utils.EnableSizing(m);
+
+        buttons.lbtn_up(x, y);
+        seekbar.lbtn_up(x, y);
+        if (show_volume_bar) {
+            volume_bar.lbtn_up(x, y);
+        }
+    };
+
+    this.on_mouse_wheel = function (delta) {
+        if (mouse_in_panel) {
+            if (!show_volume_bar || !volume_bar.wheel(delta)) {
+                if (delta > 0) {
+                    fb.VolumeUp();
+                }
+                else {
+                    fb.VolumeDown();
+                }
+            }
+        }
+    };
+
+    this.on_mouse_leave = function () {
+        if (volume_bar.drag || seekbar.drag) {
+            return;
         }
 
-        button_images[i] =
+        if (mouse_in_panel) {
+            mouse_in_panel = false;
+            animator.run_animation('fade_out');
+        }
+
+        if (show_volume_bar) {
+            show_volume_bar = false;
+            buttons.buttons.mute.hide = false;
+            buttons.buttons.volume.hide = false;
+            volume_bar.repaint();
+        }
+
+        buttons.leave();
+    };
+
+    this.on_volume_change = function (val) {
+        if (!show_volume_bar) {
+            buttons.refresh_vol_button();
+        }
+        else {
+            volume_bar.volume_change();
+        }
+    };
+
+    this.on_key_down = function (vkey) {
+        if (vkey === VK_F5) {
+            art_module.reload_art();
+        }
+    };
+
+    this.on_mouse_rbtn_up = function (x, y) {
+        var cpm = window.CreatePopupMenu();
+
+        cpm.AppendMenuItem(MF_STRING, 36, 'Reload \tF5');
+
+        if (utils.IsKeyPressed(VK_SHIFT)) {
+            cpm.AppendMenuSeparator();
+            _.appendDefaultContextMenu(cpm);
+        }
+
+        var id = cpm.TrackPopupMenu(x, y);
+
+        switch (id) {
+            case 36:
+                art_module.reload_art();
+                break;
+            default:
+                _.executeDefaultContextMenu(id, scriptFolder + 'Panel_UltraMini.js');
+        }
+
+        _.dispose(cpm);
+
+        return true;
+    };
+
+    this.on_notify_data = function (name, info) {
+        switch (name) {
+            case 'show_tooltips': {
+                show_tooltips = info;
+                seekbar.show_tt = info;
+                volume_bar.show_tt = info;
+                buttons.show_tt = info;
+                break;
+            }
+        }
+    };
+
+    ///// EOF callbacks
+
+    var throttled_repaint = _.throttle(_.bind(function () {
+        window.RepaintRect(this.x, this.y, this.w, this.h);
+    }, this), 1000 / 60);
+    this.repaint = function () {
+        throttled_repaint();
+    };
+
+    function create_buttons(wx, wy, ww, wh) {
+        if (buttons) {
+            buttons.reset();
+        }
+
+        buttons = new _.buttons;
+        buttons.show_tt = show_tooltips;
+
+        //---> Playback buttons
+        var w = button_images.Next.normal.Width;
+        var h = w;
+        var p = 4;
+
+        var x = wx + Math.floor(ww / 2 - (w * 5 + p * 4) / 2);
+        var y = wy + Math.floor(wh / 2 - w / 2) + 1;
+
+        buttons.buttons.stop = new _.button(x, y, w, h, button_images.Stop, function () {
+            fb.Stop();
+            // Needs repaint to avoid partial art redraw
+            that.repaint();
+        }, 'Stop');
+
+        x += w + p;
+        buttons.buttons.previous = new _.button(x, y, w, h, button_images.Previous, function () { fb.Prev(); }, 'Previous');
+
+        x += w + p;
+        buttons.buttons.play = new _.button(x, y, w, h, (!fb.IsPlaying || fb.IsPaused) ? button_images.Play : button_images.Pause, function () {
+            var wasNotPlaying = !fb.IsPlaying;
+            fb.PlayOrPause();
+            // Needs repaint to avoid partial art redraw
+            if (wasNotPlaying) {
+                that.repaint();
+            }
+        }, (!fb.IsPlaying || fb.IsPaused) ? 'Play' : 'Pause');
+
+        x += w + p;
+        buttons.buttons.next = new _.button(x, y, w, h, button_images.Next, function () { fb.Next(); }, 'Next');
+
+        x += w + p;
+        volume_bar_x = x + 3;
+
+        var volValue = _.toVolume(fb.Volume);
+        var volImage = ((volValue > 50) ? button_images.VolLoud : ((volValue > 0) ? button_images.VolQuiet : button_images.VolMute));
+        buttons.buttons.mute = new _.button(x, y, w, h, volImage, function () { fb.VolumeMute(); }, volValue === 0 ? 'Unmute' : 'Mute');
+
+        x += w - 5;
+        buttons.buttons.volume = new _.button(x, y + 2, button_images.ShowVolume.normal.Width, h, button_images.ShowVolume, function () {
+            show_volume_bar = true;
+            buttons.leave(); // for state reset
+            buttons.buttons.mute.hide = true;
+            buttons.buttons.volume.hide = true;
+            volume_bar.show_tt = show_tooltips;
+            volume_bar.repaint();
+        }, 'Volume');
+
+        buttons.refresh_play_button = function () {
+            buttons.buttons.play.set_image((!fb.IsPlaying || fb.IsPaused) ? button_images.Play : button_images.Pause);
+            buttons.buttons.play.tiptext = (!fb.IsPlaying || fb.IsPaused) ? 'Play' : 'Pause';
+            buttons.buttons.play.repaint();
+        };
+
+        buttons.refresh_vol_button = function () {
+            var volValue = _.toVolume(fb.Volume);
+            var volImage = (volValue > 50) ? button_images.VolLoud : ((volValue > 0) ? button_images.VolQuiet : button_images.VolMute);
+            buttons.buttons.mute.set_image(volImage);
+            buttons.buttons.mute.tiptext = volValue === 0 ? 'Unmute' : 'Mute';
+            buttons.buttons.mute.repaint();
+        };
+    }
+
+    function create_button_images() {
+        var fontGuifx = gdi.font(g_guifx.name, 16);
+        var fontGuifx_15 = gdi.font(g_guifx.name, 15);
+        var fontAwesome = gdi.font('FontAwesome', 14);
+
+        var default_ico_colors =
+            [
+                _.RGB(190, 192, 194),
+                _.RGB(251, 253, 255),
+                _.RGB(90, 90, 90)
+            ];
+
+        var btn =
             {
-                normal: stateImages[0],
-                hover: stateImages[1],
-                pressed: stateImages[2]
+                Stop:       {
+                    ico:  g_guifx.stop,
+                    font: fontGuifx,
+                    id:   'playback',
+                    w:    26,
+                    h:    26
+                },
+                Previous:   {
+                    ico:  g_guifx.previous,
+                    font: fontGuifx,
+                    id:   'playback',
+                    w:    26,
+                    h:    26
+                },
+                Play:       {
+                    ico:  g_guifx.play,
+                    font: fontGuifx,
+                    id:   'playback',
+                    w:    26,
+                    h:    26
+                },
+                Pause:      {
+                    ico:  g_guifx.pause,
+                    font: fontGuifx,
+                    id:   'playback',
+                    w:    26,
+                    h:    26
+                },
+                Next:       {
+                    ico:  g_guifx.next,
+                    font: fontGuifx,
+                    id:   'playback',
+                    w:    26,
+                    h:    26
+                },
+                VolLoud:    {
+                    ico:  g_guifx.volume_up,
+                    font: fontGuifx_15,
+                    id:   'playback',
+                    w:    26,
+                    h:    26
+                },
+                VolQuiet:   {
+                    ico:  g_guifx.volume_down,
+                    font: fontGuifx_15,
+                    id:   'playback',
+                    w:    26,
+                    h:    26
+                },
+                VolMute:    {
+                    ico:  g_guifx.mute,
+                    font: fontGuifx_15,
+                    id:   'playback',
+                    w:    26,
+                    h:    26
+                },
+                ShowVolume: {
+                    ico:  '\uF0d7',
+                    font: fontAwesome,
+                    id:   'playback',
+                    w:    15,
+                    h:    20
+                }
             };
-    });
+
+        button_images = [];
+
+        _.forEach(btn, function (item, i) {
+            var w = item.w,
+                h = item.h;
+
+            var stateImages = []; //0=normal, 1=hover, 2=down;
+
+            for (var s = 0; s <= 2; s++) {
+                var img = gdi.CreateImage(w, h);
+                var g = img.GetGraphics();
+                g.SetSmoothingMode(SmoothingMode.HighQuality);
+                if (i === 'VolMute') {
+                    // TextRenderingHint.AntiAlias crops image :\
+                    g.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
+                }
+                else {
+                    g.SetTextRenderingHint(TextRenderingHint.AntiAlias);
+                }
+
+                var ico_color = default_ico_colors[s];
+                g.DrawString(item.ico, item.font, ico_color, (i === 'Stop') ? 0 : 1, 0, w, h, g_string_format.align_center);
+
+                img.ReleaseGraphics(g);
+                stateImages[s] = img;
+            }
+
+            button_images[i] =
+                {
+                    normal:  stateImages[0],
+                    hover:   stateImages[1],
+                    pressed: stateImages[2]
+                };
+        });
+    }
+
+    this.x = 0;
+    this.y = 0;
+    this.w = 0;
+    this.h = 0;
+
+    var that = this;
+
+    // Consts
+    var seekbar_h = 8;
+    var volume_bar_h = 14;
+    var playback_h = 30;
+
+    var mouse_in_panel = false;
+    var panel_alpha = 255;
+
+    var show_tooltips = false;
+    var show_volume_bar = false;
+
+    var volume_bar_x = 0;
+    var button_images = [];
+
+    // Objects
+    var art_module = new ArtModule();
+    var title_cycler = new TitleCycler(this.repaint);
+    var animator = new Animator(_.bind(function (alpha) {
+        panel_alpha = alpha;
+        this.repaint();
+    }, this));
+    var buttons = undefined;
+    var volume_bar = undefined;
+    var seekbar = undefined;
+
+    create_button_images();
 }
 
-var animator = new function () {
-    this.runAnimation = function (animation_name) {
+/**
+ * @constructor
+ * @param {Function} on_alpha_change_fn_arg
+ */
+function Animator(on_alpha_change_fn_arg) {
+    this.run_animation = function (animation_name) {
         if (animation_name === 'fade_out') {
             // Not stopping fade_in, because it looks borked, when stopped in the middle.
             stop_fade_out_delay();
@@ -509,7 +635,7 @@ var animator = new function () {
         else if (animation_name === 'fade_in') {
             stop_fade_out();
             stop_fade_out_delay();
-            
+
             fade_in();
         }
         else {
@@ -541,23 +667,17 @@ var animator = new function () {
 
     function fade_out() {
         var hoverOutStep = 15;
-
-        if (panel_s.mouseInPanel) {
-            stop_fade_out();
-            return;
-        }
-
-        if (!fadeOutTimer && panel_s.playbackPanelAlpha !== 0) {
+        
+        if (!fadeOutTimer && alpha !== 0) {
             fadeOutTimer = setInterval(function () {
                 if ( delayFadeOutTimer ) {
                     return;
                 }
 
-                panel_s.playbackPanelAlpha = Math.max(0, panel_s.playbackPanelAlpha - hoverOutStep);
-                window.Repaint();
+                alpha = Math.max(0, alpha - hoverOutStep);
+                on_alpha_change_fn(alpha);
 
-                var alphaIsZero = (panel_s.playbackPanelAlpha === 0);
-                if (alphaIsZero) {
+                if (!alpha) {
                     stop_fade_out();
                 }
             }, timerRate);
@@ -566,19 +686,13 @@ var animator = new function () {
 
     function fade_in() {
         var hoverInStep = 60;
-
-        if (!panel_s.mouseInPanel) {
-            stop_fade_in();
-            return;
-        }
-
-        if (!fadeInTimer && panel_s.playbackPanelAlpha !== 255) {
+        
+        if (!fadeInTimer && alpha !== 255) {
             fadeInTimer = setInterval(function () {
-                panel_s.playbackPanelAlpha = Math.min(255, panel_s.playbackPanelAlpha += hoverInStep);
-                window.Repaint();
+                alpha = Math.min(255, alpha += hoverInStep);
+                on_alpha_change_fn(alpha);
 
-                var alphaIsFull = (panel_s.playbackPanelAlpha === 255);
-                if (alphaIsFull) {
+                if (alpha === 255) {
                     stop_fade_in();
                 }
             }, timerRate);
@@ -586,71 +700,117 @@ var animator = new function () {
     }
 
 // private:
+    var on_alpha_change_fn = on_alpha_change_fn_arg;
+
     var delayFadeOutTimer = null;
     var fadeOutTimer = null;
     var fadeInTimer = null;
 
     var timerRate = 25;
-};
-
-var title_timer = null;
-function onTitleTimer(refreshTitle) {
-    if (title_timer && (!fb.IsPlaying || fb.IsPaused || refreshTitle === true)) {
-        stop_title_timer();
-
-        if (refreshTitle) {
-            panel_s.curTitleType = 0;
-        }
-    }
-    if (fb.IsPlaying && !fb.IsPaused && !title_timer) {
-        window.Repaint();
-
-        title_timer_fn();
-        title_timer = setInterval(function () {
-            title_timer_fn();
-        }, 6000);
-    }
+    
+    var alpha = 255;
 }
 
-function title_timer_fn() {
-    var lastState = panel_s.curTitleType;
+/**
+ * @constructor
+ * @param {Function} on_change_fn_arg
+ */
+function TitleCycler(on_change_fn_arg) {
 
-    do {
-        var titleQuery;
-        switch (panel_s.curTitleType) {
-            case 0: {
-                titleQuery = '[%title%]';
-                break;
-            }
-            case 1: {
-                titleQuery = '[%artist%]';
-                break;
-            }
-            case 2: {
-                titleQuery = '[%album%]';
-                break;
-            }
+    this.on_playback_new_track = function (metadb) {
+        reset_timer();
+    };
+
+    this.on_playback_pause = function (pause) {
+        if (pause) {
+            stop_timer();
         }
-
-        panel_s.curTitleType = Math.max(2, panel_s.curTitleType + 1);
-
-        var titleText = fb.TitleFormat(titleQuery).Eval();
-        if (titleText !== '') {
-            panel_s.curTitleTypeText = titleText;
-            break;
+        else {
+            start_timer();
         }
+    };
 
-    } while (panel_s.curTitleType !== lastState);
-    if (panel_s.curTitleType === lastState) {
-        stop_title_timer();
+    this.on_playback_stop = function (reason) {
+        if (reason !== 2) {
+            stop_timer();
+        }
+    };
+
+    this.title_text = function () {
+        return cur_title_text;
+    };
+
+    function initialize() {
+        if (fb.IsPlaying) {
+            cycle_title(true);
+        }
     }
 
-    window.Repaint();
-}
-
-function stop_title_timer(){
-    if ( title_timer ) {
-        clearInterval(title_timer);
-        title_timer = null;
+    function reset_timer() {
+        stop_timer();
+        cur_title_type = 0;
+        cycle_title();
+        start_timer();
     }
+
+    function start_timer() {
+        if (!title_timer) {
+            title_timer = setInterval(function(){cycle_title()}, 6000);
+        }
+    }
+
+    function stop_timer() {
+        if (title_timer) {
+            clearInterval(title_timer);
+            title_timer = null;
+        }
+    }
+
+    function cycle_title(skip_callback) {
+        var last_type = cur_title_type;
+
+        do {
+            var titleQuery;
+            switch (cur_title_type) {
+                case 0: {
+                    titleQuery = '[%title%]';
+                    break;
+                }
+                case 1: {
+                    titleQuery = '[%artist%]';
+                    break;
+                }
+                case 2: {
+                    titleQuery = '[%album%]';
+                    break;
+                }
+            }
+
+            ++cur_title_type;
+            if (cur_title_type > 2) {
+                cur_title_type = 0;
+            }
+
+            var titleText = _.tfe(titleQuery);
+            if (titleText !== '') {
+                cur_title_text = titleText;
+                break;
+            }
+
+        } while (cur_title_type !== last_type);
+        if (cur_title_type === last_type) {
+            stop_timer();
+        }
+
+        if (!skip_callback) {
+            on_change_fn();
+        }
+    }
+
+    var title_timer = null;
+    var cur_title_text;
+    var cur_title_type = 0;
+    var on_change_fn = on_change_fn_arg;
+
+    initialize();
 }
