@@ -17,7 +17,8 @@ var panel_s =
         showVolumeBar: 0,
         // Animation
         playbackPanelAlpha: 255,
-        curTitleType: 0
+        curTitleType: 0,
+        curTitleTypeText: ''
     };
 
 // Tunable const vars
@@ -59,20 +60,8 @@ function on_paint(gr) {
     gr.FillGradRect(0, -1, ww, 40, 270, _.RGBA(0, 0, 0, 0), _.RGBA(0, 0, 0, 255));
 
     if (fb.IsPlaying) {
-        var title;
-        if (panel_s.curTitleType === 0) {
-            title = '[%title%]';
-        }
-        else if (panel_s.curTitleType === 1) {
-            title = '[%artist%]';
-        }
-        else {
-            title = '[%album%]';
-        }
-
-        var title_text = fb.TitleFormat(title).Eval();
         var title_text_format = g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
-        gr.DrawString(title_text, gdi.font('Segoe Ui Semibold', 12), _.RGB(240, 240, 240), 5, 5, ww, wh, title_text_format);
+        gr.DrawString(panel_s.curTitleTypeText, gdi.font('Segoe Ui Semibold', 12), _.RGB(240, 240, 240), 5, 5, ww, wh, title_text_format);
     }
 
     if (panel_s.playbackPanelAlpha !== 0) {
@@ -616,14 +605,47 @@ function onTitleTimer(refreshTitle) {
     if (fb.IsPlaying && !fb.IsPaused && !title_timer) {
         window.Repaint();
 
+        title_timer_fn();
         title_timer = setInterval(function () {
-            panel_s.curTitleType++;
-            if (panel_s.curTitleType > 2) {
-                panel_s.curTitleType = 0;
-            }
-            window.Repaint();
+            title_timer_fn();
         }, 6000);
     }
+}
+
+function title_timer_fn() {
+    var lastState = panel_s.curTitleType;
+
+    do {
+        var titleQuery;
+        switch (panel_s.curTitleType) {
+            case 0: {
+                titleQuery = '[%title%]';
+                break;
+            }
+            case 1: {
+                titleQuery = '[%artist%]';
+                break;
+            }
+            case 2: {
+                titleQuery = '[%album%]';
+                break;
+            }
+        }
+
+        panel_s.curTitleType = Math.max(2, panel_s.curTitleType + 1);
+
+        var titleText = fb.TitleFormat(titleQuery).Eval();
+        if (titleText !== '') {
+            panel_s.curTitleTypeText = titleText;
+            break;
+        }
+
+    } while (panel_s.curTitleType !== lastState);
+    if (panel_s.curTitleType === lastState) {
+        stop_title_timer();
+    }
+
+    window.Repaint();
 }
 
 function stop_title_timer(){
