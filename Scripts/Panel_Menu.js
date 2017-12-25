@@ -3,8 +3,6 @@
 // @author 'TheQwertiest'
 // ==/PREPROCESSOR==
 
-// TODO: make better pseudo-caption handling
-
 (function check_es5_availability() {
     var test = !!Date.now && !!Array.isArray && !!Array.prototype.forEach;
     if (!test) {
@@ -56,7 +54,6 @@ g_properties.add_properties(
 qwr_utils.check_fonts(['Segoe Ui', 'Segoe Ui Semibold', 'Segoe Ui Symbol', 'Consolas', 'Marlett', 'Guifx v2 Transports', 'FontAwesome']);
 
 var g_has_modded_jscript = qwr_utils.has_modded_jscript();
-var maximize_to_fullscreen = g_properties.maximize_to_fullscreen;
 
 var WindowState =
     {
@@ -140,6 +137,9 @@ function on_notify_data(name, info) {
     menu.on_notify_data(name, info);
 }
 
+/**
+ * @constructor
+ */
 function Menu() {
     this.on_paint = function (gr) {
         if (!has_notified) {
@@ -209,31 +209,26 @@ function Menu() {
     this.on_size = function (w, h) {
         this.h = h - pad;
         this.w = w - 2*pad;
+
         create_buttons(this.x, this.y, this.w, this.h);
 
-        // needed when double clicking on caption and UIHacks.FullScreen == true;
-        if (!utils.IsKeyPressed(VK_CONTROL) && UIHacks.FullScreen && UIHacks.MainWindowState === 0) {
-            UIHacks.MainWindowState = 0;
+        if (!frame_handler.has_true_caption) {
+            frame_handler.set_caption(left_pad, this.y, right_pad - left_pad, this.h);
         }
     };
 
     this.on_mouse_move = function (x, y, m) {
         var btn = buttons.move(x, y);
         if (btn) {
-            return
+            return;
         }
 
-        if (UIHacks.FrameStyle == FrameStyle.NoCaption || UIHacks.FrameStyle == FrameStyle.NoBorder) {
+        if (!frame_handler.has_true_caption) {
             if (mouse_down) {
-                UIHacks.SetPseudoCaption(0, 0, 0, 0);
                 qwr_utils.DisableSizing(m);
-                pseudo_caption_enabled = false;
             }
-            else if (!pseudo_caption_enabled || pseudo_caption_w !== this.w) {
-                UIHacks.SetPseudoCaption(left_pad, this.y, right_pad - left_pad, this.h);
+            else {
                 qwr_utils.EnableSizing(m);
-                pseudo_caption_enabled = true;
-                pseudo_caption_w = this.w;
             }
         }
     };
@@ -245,7 +240,6 @@ function Menu() {
 
     this.on_mouse_lbtn_dblclk = function (x, y, m) {
         this.on_mouse_lbtn_down(x, y, m);
-        pseudo_caption_enabled = false;
     };
 
     this.on_mouse_lbtn_up = function (x, y, m) {
@@ -267,11 +261,11 @@ function Menu() {
         if (UIHacks.FrameStyle === FrameStyle.NoBorder && UIHacks.Aero.Active) {
             frame.AppendMenuSeparator();
             frame.AppendMenuItem(MF_STRING, 5, 'Show window shadow');
-            frame.CheckMenuItem(5, (UIHacks.Aero.Left + UIHacks.Aero.Top + UIHacks.Aero.Right + UIHacks.Aero.Bottom));
+            frame.CheckMenuItem(5, g_properties.show_window_shadow);
         }
         frame.AppendTo(cpm, MF_STRING, 'Frame style');
 
-        if (UIHacks.FrameStyle > 0) {
+        if (UIHacks.FrameStyle !== FrameStyle.Default) {
             cpm.AppendMenuSeparator();
             cpm.AppendMenuItem(MF_STRING, 6, 'Maximize button -> to fullscreen');
         }
@@ -298,36 +292,26 @@ function Menu() {
 
         switch (id) {
             case 1:
-                UIHacks.FrameStyle = FrameStyle.Default;
-                UIHacks.MoveStyle = MoveStyle.Default;
-                UIHacks.Aero.Effect = 0;
-                UIHacks.SetPseudoCaption(0, 0, 0, 0);
+                frame_handler.change_style(FrameStyle.Default);
                 create_buttons(this.x, this.y, this.w, this.h);
                 break;
             case 2:
-                UIHacks.FrameStyle = FrameStyle.SmallCaption;
-                UIHacks.MoveStyle = MoveStyle.Default;
-                UIHacks.Aero.Effect = 0;
-                UIHacks.SetPseudoCaption(0, 0, 0, 0);
+                frame_handler.change_style(FrameStyle.SmallCaption);
                 create_buttons(this.x, this.y, this.w, this.h);
                 break;
             case 3:
-                UIHacks.FrameStyle = FrameStyle.NoCaption;
-                UIHacks.MoveStyle = MoveStyle.Both;
-                UIHacks.Aero.Effect = 0;
-                pseudo_caption_w = 0;
+                frame_handler.change_style(FrameStyle.NoCaption);
                 create_buttons(this.x, this.y, this.w, this.h);
+                frame_handler.set_caption(left_pad, this.y, right_pad - left_pad, this.h);
                 break;
             case 4:
-                UIHacks.FrameStyle = FrameStyle.NoBorder;
-                UIHacks.MoveStyle = MoveStyle.Both;
-                UIHacks.Aero.Effect = 2;
-                pseudo_caption_w = 0;
+                frame_handler.change_style(FrameStyle.NoBorder);
                 create_buttons(this.x, this.y, this.w, this.h);
+                frame_handler.set_caption(left_pad, this.y, right_pad - left_pad, this.h);
                 break;
             case 5:
                 g_properties.show_window_shadow = !g_properties.show_window_shadow;
-                toggle_window_shadow(g_properties.show_window_shadow);
+                frame_handler.toggle_shadow(g_properties.show_window_shadow);
                 break;
             case 6:
                 g_properties.maximize_to_fullscreen = !g_properties.maximize_to_fullscreen;
@@ -394,7 +378,7 @@ function Menu() {
             fb.RunMainMenuCommand('View/Always on Top');
         }
 
-        toggle_window_shadow(g_properties.show_window_shadow);
+        frame_handler.toggle_shadow(g_properties.show_window_shadow);
 
         create_button_images();
 
@@ -470,7 +454,7 @@ function Menu() {
             ++button_count;
         }
 
-        if (UIHacks.FrameStyle) {
+        if (UIHacks.FrameStyle !== FrameStyle.Default) {
             // Min
             ++button_count;
 
@@ -547,7 +531,7 @@ function Menu() {
             buttons.buttons.minimode = new _.button(x, y, w, h, miniModeBtn.ico, _.bind(mode_handler.toggle_mini_mode, mode_handler), miniModeBtn.txt);
         }
 
-        if (UIHacks.FrameStyle) {
+        if (UIHacks.FrameStyle !== FrameStyle.Default) {
             x += w + p;
             buttons.buttons.minimize = new _.button(x, y, w, h, button_images.Minimize, function () { fb.RunMainMenuCommand('View/Hide'); }, 'Minimize');
 
@@ -555,7 +539,7 @@ function Menu() {
                 x += w + p;
                 buttons.buttons.maximize = new _.button(x, y, w, h, button_images.Maximize, function () {
                     try {
-                        if (maximize_to_fullscreen ? !utils.IsKeyPressed(VK_CONTROL) : utils.IsKeyPressed(VK_CONTROL)) {
+                        if (g_properties.maximize_to_fullscreen ? !utils.IsKeyPressed(VK_CONTROL) : utils.IsKeyPressed(VK_CONTROL)) {
                             UIHacks.FullScreen = !UIHacks.FullScreen;
                         }
                         else if (UIHacks.MainWindowState === WindowState.Maximized) {
@@ -568,7 +552,11 @@ function Menu() {
                     catch (e) {
                         fb.trace(e + ' Disable WSH safe mode');
                     }
-                }, 'Maximize');
+
+                    buttons.buttons.maximize.tiptext = (UIHacks.FullScreen || UIHacks.MainWindowState === WindowState.Maximized)
+                        ? 'Restore' : 'Maximize'
+
+                }, (UIHacks.FullScreen || UIHacks.MainWindowState === WindowState.Maximized) ? 'Restore' : 'Maximize');
             }
 
             if (UIHacks.FrameStyle !== FrameStyle.SmallCaption || UIHacks.FullScreen) {
@@ -769,17 +757,6 @@ function Menu() {
         });
     }
 
-    function toggle_window_shadow(show_window_shadow) {
-        if (show_window_shadow) {
-            UIHacks.Aero.Effect = 2;
-            UIHacks.Aero.Top = 1;
-        }
-        else {
-            UIHacks.Aero.Effect = 0;
-            UIHacks.Aero.Left = UIHacks.Aero.Top = UIHacks.Aero.Right = UIHacks.Aero.Bottom = 0;
-        }
-    }
-
     // public:
     var pad = 4;
     this.x = pad;
@@ -793,13 +770,11 @@ function Menu() {
     var mouse_down = false;
 
     // Objects
+    var frame_handler = new FrameStyleHandler();
     var mode_handler = new WindowModeHandler();
     var cpu_usage_tracker = new CpuUsageTracker(_.bind(this.repaint, this));
     var buttons = undefined;
     var button_images = [];
-
-    var pseudo_caption_enabled;
-    var pseudo_caption_w;
 
     var left_pad = 0;
     var right_pad = 0;
@@ -809,6 +784,9 @@ function Menu() {
     initialize();
 }
 
+/**
+ * @constructor
+ */
 function WindowModeHandler() {
 
     this.toggle_ultra_mini_mode = function () {
@@ -822,18 +800,18 @@ function WindowModeHandler() {
 
             set_window_size(g_properties.mini_mode_saved_width, g_properties.mini_mode_saved_height);
 
-            UIHacks.MinSize = true;
             UIHacks.MinSize.Width = 300;
             UIHacks.MinSize.Height = 250;
+            UIHacks.MinSize = true;
         }
         else if (new_minimode_state === 'Full') {
             pss_switch.minimode.state = new_minimode_state;
 
             set_window_size(g_properties.full_mode_saved_width, g_properties.full_mode_saved_height);
 
-            UIHacks.MinSize = true;
             UIHacks.MinSize.Width = 650;
             UIHacks.MinSize.Height = 600;
+            UIHacks.MinSize = true;
         }
         else {
             if (!UIHacks.FullScreen) {
@@ -858,9 +836,9 @@ function WindowModeHandler() {
 
             set_window_size(250, 250 + 28);
 
-            UIHacks.MinSize = true;
             UIHacks.MinSize.Width = 200;
             UIHacks.MinSize.Height = 200 + 28;
+            UIHacks.MinSize = true;
         }
     };
 
@@ -882,9 +860,9 @@ function WindowModeHandler() {
 
             set_window_size(g_properties.mini_mode_saved_width, g_properties.mini_mode_saved_height);
 
-            UIHacks.MinSize = true;
             UIHacks.MinSize.Width = 300;
             UIHacks.MinSize.Height = 250;
+            UIHacks.MinSize = true;
         }
         else {
             if (!UIHacks.FullScreen) {
@@ -901,9 +879,9 @@ function WindowModeHandler() {
 
             set_window_size(g_properties.full_mode_saved_width, g_properties.full_mode_saved_height);
 
-            UIHacks.MinSize = true;
             UIHacks.MinSize.Width = 650;
             UIHacks.MinSize.Height = 600;
+            UIHacks.MinSize = true;
         }
     };
 
@@ -987,9 +965,88 @@ function WindowModeHandler() {
         UIHacks.MaxSize.Height = maxH;
     }
 
-    var fb_handle = g_has_modded_jscript ? wsh_utils.GetWndByHandle(window.ID).GetAncestor(2) : undefined;
+    var fb_handle = g_has_modded_jscript ? wsh_utils.GetWndByHandle(window.ID).GetAncestor(1) : undefined;
 }
 
+/**
+ * @constructor
+ */
+function FrameStyleHandler() {
+    this.change_style = function(style) {
+        switch (style) {
+            case FrameStyle.Default:
+                UIHacks.FrameStyle = FrameStyle.Default;
+                UIHacks.MoveStyle = MoveStyle.Default;
+                UIHacks.Aero.Effect = 0;
+                this.disable_caption();
+                break;
+            case FrameStyle.SmallCaption:
+                UIHacks.FrameStyle = FrameStyle.SmallCaption;
+                UIHacks.MoveStyle = MoveStyle.Default;
+                UIHacks.Aero.Effect = 0;
+                this.disable_caption();
+                break;
+            case FrameStyle.NoCaption:
+                UIHacks.FrameStyle = FrameStyle.NoCaption;
+                UIHacks.MoveStyle = MoveStyle.Both;
+                UIHacks.Aero.Effect = 0;
+                break;
+            case FrameStyle.NoBorder:
+                UIHacks.FrameStyle = FrameStyle.NoBorder;
+                UIHacks.MoveStyle = MoveStyle.Both;
+                UIHacks.Aero.Effect = 2;
+                break;
+            default:
+                throw new ArgumentError('frame_style', style);
+        }
+
+        update_caption_state();
+    };
+
+    this.disable_caption = function() {
+        this.set_caption(0,0,0,0);
+    };
+
+    this.set_caption = function(x_arg,y_arg,w_arg,h_arg) {
+        if (x_arg !== x || y_arg !== y || w_arg !== w || h_arg !== h) {
+            x = x_arg;
+            y = y_arg;
+            w = w_arg;
+            h = h_arg;
+            UIHacks.SetPseudoCaption(x, y, w, h);
+        }
+    };
+
+    this.toggle_shadow = function(show_window_shadow) {
+        if (show_window_shadow && UIHacks.FrameStyle === FrameStyle.NoBorder) {
+            UIHacks.Aero.Effect = 2;
+            UIHacks.Aero.Top = 1;
+        }
+        else {
+            UIHacks.Aero.Effect = 0;
+            UIHacks.Aero.Left = UIHacks.Aero.Top = UIHacks.Aero.Right = UIHacks.Aero.Bottom = 0;
+        }
+    };
+
+    function update_caption_state(){
+        that.has_true_caption = (UIHacks.FrameStyle === FrameStyle.Default || UIHacks.FrameStyle === FrameStyle.SmallCaption) && !UIHacks.FullScreen;
+    }
+
+    this.has_true_caption = undefined;
+
+    var that = this;
+
+    var x;
+    var y;
+    var w;
+    var h;
+
+    update_caption_state();
+}
+
+/**
+ * @constructor
+ */
 function CpuUsageTracker(on_change_callback_arg) {
     this.start = function () {
         start_cpu_usage_timer();
@@ -1053,6 +1110,9 @@ function CpuUsageTracker(on_change_callback_arg) {
     var on_change_callback = on_change_callback_arg;
 }
 
+/**
+ * @constructor
+ */
 function AverageUsageFunc() {
     this.update = function (current_usage) {
         if (current_sample_count) {
