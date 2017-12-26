@@ -6,11 +6,11 @@ var trace_call = false;
 var trace_on_paint = false;
 var trace_on_move = false;
 
-// TODO: make cycle queries and interval panel params
-
 g_properties.add_properties(
     {
-        art_pad: ['user.art.pad', 0]
+        art_pad:          ['user.art.pad', 0],
+        title_queries:    ['user.title.queries', JSON.stringify(['[%title%]', '[%artist%]', '[%album%]'])],
+        title_cycle_time: ['user.title.cycle_time', 6000]
     }
 );
 
@@ -594,14 +594,15 @@ function UltraMini() {
     var volume_bar_h = 14;
     var playback_h = 30;
 
-    var mouse_in_panel = false;
-    var panel_alpha = 255;
-
+    // Const after init
     var show_tooltips = false;
-    var show_volume_bar = false;
-
-    var volume_bar_x = 0;
     var button_images = [];
+    var volume_bar_x = 0;
+
+    // Runtime state
+    var panel_alpha = 255;
+    var mouse_in_panel = false;
+    var show_volume_bar = false;
 
     // Objects
     var art_module = new ArtModule();
@@ -615,6 +616,8 @@ function UltraMini() {
     var seekbar = undefined;
 
     create_button_images();
+    // Set tracking mode in ArtModule to NowPlaying
+    art_module.set_track_mode(1);
 }
 
 /**
@@ -755,7 +758,7 @@ function TitleCycler(on_change_fn_arg) {
 
     function start_timer() {
         if (!title_timer) {
-            title_timer = setInterval(function(){cycle_title()}, 6000);
+            title_timer = setInterval(function(){cycle_title()}, cycle_time);
         }
     }
 
@@ -767,28 +770,19 @@ function TitleCycler(on_change_fn_arg) {
     }
 
     function cycle_title(skip_callback) {
-        var last_type = cur_title_type;
+        if (!queries.length) {
+            stop_timer();
+            return;
+        }
+
+        var last_idx = cur_query_idx;
 
         do {
-            var titleQuery;
-            switch (cur_title_type) {
-                case 0: {
-                    titleQuery = '[%title%]';
-                    break;
-                }
-                case 1: {
-                    titleQuery = '[%artist%]';
-                    break;
-                }
-                case 2: {
-                    titleQuery = '[%album%]';
-                    break;
-                }
-            }
+            var titleQuery = queries[cur_query_idx];
 
-            ++cur_title_type;
-            if (cur_title_type > 2) {
-                cur_title_type = 0;
+            ++cur_query_idx;
+            if (cur_query_idx >= queries.length) {
+                cur_query_idx = 0;
             }
 
             var titleText = _.tfe(titleQuery);
@@ -796,9 +790,9 @@ function TitleCycler(on_change_fn_arg) {
                 cur_title_text = titleText;
                 break;
             }
+        } while (cur_query_idx !== last_idx);
 
-        } while (cur_title_type !== last_type);
-        if (cur_title_type === last_type) {
+        if (cur_query_idx === last_idx) {
             stop_timer();
         }
 
@@ -807,10 +801,15 @@ function TitleCycler(on_change_fn_arg) {
         }
     }
 
-    var title_timer = null;
-    var cur_title_text;
-    var cur_title_type = 0;
+    // const
+    var queries = JSON.parse(g_properties.title_queries);
+    var cycle_time = g_properties.title_cycle_time;
+
     var on_change_fn = on_change_fn_arg;
+
+    var title_timer = null;
+    var cur_title_text = '';
+    var cur_query_idx = 0;
 
     initialize();
 }

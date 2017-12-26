@@ -4,9 +4,9 @@
 // ==/PREPROCESSOR==
 g_properties.add_properties(
     {
-        track_mode:         ['user.track_mode', 1],
-        group_format_query: ['user.group_format', '%album artist%%album%%discnumber%'],
-        use_disc_mask:      ['user.use_disc_mask', true]
+        track_mode:         ['user.art.track_mode', 2],
+        group_format_query: ['user.art.group_format', '%album artist%%album%%discnumber%'],
+        use_disc_mask:      ['user.art.use_disc_mask', true]
     }
 );
 g_properties.track_mode = Math.max(1, Math.min(3, g_properties.track_mode));
@@ -291,6 +291,10 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
         reposition_art();
 
         this.repaint();
+    };
+
+    this.set_track_mode = function(mode) {
+        g_properties.track_mode = mode;
     };
 
     this.append_menu = function (cpm) {
@@ -702,11 +706,11 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
     if (feature_thumbs) {
         g_properties.add_properties(
             {
-                show_thumbs:    ['user.thumbs.show', false],
-                thumb_margin:   ['user.thumbs.margin', 15],
-                thumb_size:     ['user.thumbs.size', 50],
-                thumb_padding:  ['user.thumbs.padding', 10],
-                thumb_position: ['user.thumbs.position', 4]
+                show_thumbs:    ['user.art.thumbs.show', false],
+                thumb_margin:   ['user.art.thumbs.margin', 15],
+                thumb_size:     ['user.art.thumbs.size', 50],
+                thumb_padding:  ['user.art.thumbs.padding', 10],
+                thumb_position: ['user.art.thumbs.position', 4]
             }
         );
         g_properties.thumb_position = Math.max(1, Math.min(4, g_properties.thumb_position));
@@ -717,8 +721,8 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
 
     if (feature_cycle) {
         g_properties.add_properties({
-                enable_cycle:   ['user.cycle.enable', false],
-                cycle_interval: ['user.cycle.interval', JSON.stringify([10000, 622])]
+                enable_cycle:   ['user.art.cycle.enable', false],
+                cycle_interval: ['user.art.cycle.interval', JSON.stringify([10000, 622])]
             }
         );
     }
