@@ -40,7 +40,7 @@ function on_paint(gr) {
 
         var fooLogo = gdi.Image(fb.FoobarPath + 'themes\\' + g_theme_folder + '\\Images\\fooLogo.png');
         gr.SetInterpolationMode(InterpolationMode.HighQualityBicubic);
-        gr.DrawImage(fooLogo, logoX, logoY, logoW, logoW, 0, 0, fooLogo.Width, fooLogo.Height, 0, 225);
+        gr.DrawImage(fooLogo, logoX, logoY, logoW, logoW, 0, 0, fooLogo.Width, fooLogo.Height, 0, 175);
     }
 
     // Info
