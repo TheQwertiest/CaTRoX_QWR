@@ -21,6 +21,8 @@
     }
 })();
 
+// TODO: Handle full-screen maximize properly: pseudo-caption should be available regardless of border mode
+
 var trace_call = false;
 var trace_on_paint = false;
 var trace_on_move = false;
