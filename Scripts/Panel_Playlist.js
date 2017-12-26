@@ -335,9 +335,11 @@ function Playlist(x, y) {
             });
         }
         else {
-            var text = 'Drag some tracks here';
-
-            if (plman.PlaylistCount) {
+            var text;
+            if (!plman.PlaylistCount) {
+                text = 'Drag some tracks here';
+            }
+            else {
                 text = 'Playlist: ' + plman.GetPlaylistName(cur_playlist_idx) + '\n<--- Empty --->';
             }
 
@@ -461,8 +463,8 @@ function Playlist(x, y) {
                 mouse_down = false;
             }
             else if (!ctrl_pressed && !shift_pressed
-                     && (item.type === "Row" && item.is_selected_dynamic()
-                         || item.type === "Header" && item.is_completely_selected())) {
+                     && (item.type === 'Row' && item.is_selected_dynamic()
+                         || item.type === 'Header' && item.is_completely_selected())) {
                 mouse_on_item = true;
             }
             else {
@@ -577,8 +579,8 @@ function Playlist(x, y) {
             selection_handler.sync_items_with_selection();
 
         }
-        else if (item.type === "Row" && !item.is_selected_dynamic()
-                 || item.type === "Header" && !item.is_completely_selected() ) {
+        else if (item.type === 'Row' && !item.is_selected_dynamic()
+                 || item.type === 'Header' && !item.is_completely_selected() ) {
             selection_handler.update_selection(item);
             selection_handler.sync_items_with_selection();
         }
@@ -603,6 +605,7 @@ function Playlist(x, y) {
         var is_auto_playlist = plman.IsAutoPlaylist(cur_playlist_idx);
         var playlist_count = plman.PlaylistCount;
         var send_to_playlist_start_idx = 0;
+        var is_cur_playlist_empty = !rows.length;
 
         var cpm = window.CreatePopupMenu();
         var web = window.CreatePopupMenu();
@@ -619,8 +622,6 @@ function Playlist(x, y) {
         var context_menu = [
             cpm, web, ce, ccmm, appear, appear_row, appear_header, sort, lists, send, art
         ];
-
-        var is_cur_playlist_empty = !rows.length;
 
         plman.SetActivePlaylistContext();
 
@@ -2230,6 +2231,9 @@ function Playlist(x, y) {
     this.initialize_list();
 }
 
+/**
+ * @constructor
+ */
 function Header(x, y, w, h, idx) {
     //public:
     this.draw = function (gr) {
@@ -2731,6 +2735,9 @@ function Header(x, y, w, h, idx) {
     var group_query_handler = Header.group_query_handler;
 }
 
+/**
+ * @constructor
+ */
 function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
     //public:
     this.draw = function (gr) {
@@ -3004,6 +3011,9 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
     initialize_rating();
 }
 
+/**
+ * @constructor
+ */
 function Rating(x, y, w, h, metadb) {
     this.draw = function (gr, color) {
         for (var j = 0; j < 5; j++) {
@@ -3092,6 +3102,9 @@ function Rating(x, y, w, h, metadb) {
     var rating = undefined;
 }
 
+/**
+ * @constructor
+ */
 function SelectionHandler(rows_arg, headers_arg, cur_playlist_idx_arg) {
     this.initialize_selection = function () {
         selected_indexes = [];
@@ -3526,6 +3539,9 @@ function SelectionHandler(rows_arg, headers_arg, cur_playlist_idx_arg) {
     this.initialize_selection();
 }
 
+/**
+ * @constructor
+ */
 function CollapseHandler() {
     this.initialize = function (headers_arg) {
         headers = headers_arg;
@@ -3613,6 +3629,9 @@ function CollapseHandler() {
     var on_collapse_change_callback = undefined;
 }
 
+/**
+ * @constructor
+ */
 function QueueHandler(rows_arg, cur_playlist_idx_arg) {
     this.initialize_queue = function() {
         if (queued_rows.length) {
@@ -3868,6 +3887,9 @@ function PlaylistInfo(x, y, w, h) {
     var info_text = undefined;
 }
 
+/**
+ * @constructor
+ */
 function GroupQueryHandler () {
     this.initialize = function (cur_playlist_idx_arg) {
         cur_playlist_idx = cur_playlist_idx_arg;
@@ -3915,17 +3937,22 @@ function GroupQueryHandler () {
     };
 
     this.execute_menu = function (idx) {
-        var idx_found = false;
-
         var true_idx = idx - cm_start_idx;
         if (true_idx < 0) {
-            return idx_found;
+            return false;
         }
 
-        idx_found = true;
+        var idx_found = true;
+        var need_notify = true;
+
         switch (true_idx) {
             case 0:
-                set_query_by_name('user_defined');
+                if (request_user_query()) {
+                    set_query_by_name('user_defined');
+                }
+                else {
+                    need_notify = false;
+                }
                 break;
             case 1:
                 set_query_by_name('artist');
@@ -3943,16 +3970,19 @@ function GroupQueryHandler () {
                 set_query_by_name('artist_date');
                 break;
             default:
+                need_notify = false;
                 idx_found = false;
         }
 
-        if (idx_found) {
+        if (need_notify) {
             // Sync with other playlists
-            window.NotifyOthers('sync_group_query_state', {
-                name:                         queries[query_map_by_idx.indexOf(true_idx)].name,
+            var syncData = {
+                name:                         cur_query_name,
                 g_user_group_query:           g_properties.user_group_query,
                 g_last_used_group_query_name: g_properties.last_used_group_query_name
-            });
+            };
+
+            window.NotifyOthers('sync_group_query_state', syncData);
         }
 
         _.dispose.apply(null,context_menu);
@@ -3968,6 +3998,18 @@ function GroupQueryHandler () {
         set_query_by_name(value.name);
     };
 
+    /**
+     * @return {boolean}
+     */
+    function request_user_query() {
+        var query = _.input2('Enter group query', 'Header group query', g_properties.user_group_query);
+        if (!_.isNil(query)) {
+            g_properties.user_group_query = query;
+        }
+
+        return !_.isNil(query);
+    }
+
     function set_query_by_name(name, preserve_last_used_query) {
         var query_item = queries[query_map_by_name.indexOf(name)];
         if (!query_item) {
@@ -3979,15 +4021,13 @@ function GroupQueryHandler () {
         group_query_list[cur_playlist_idx] = [];
         group_query_list[cur_playlist_idx][0] = name;
 
-        if (name !== 'user_defined') {
-            cur_query = query_item.val;
-            group_query_list[cur_playlist_idx][1] = '';
+        if (name === 'user_defined') {
+            cur_query = g_properties.user_group_query;
+            group_query_list[cur_playlist_idx][1] = cur_query;
         }
         else {
-            var query = _.input("Enter group query", "Header group query", g_properties.user_group_query);
-            g_properties.user_group_query = query;
-            cur_query = query;
-            group_query_list[cur_playlist_idx][1] = cur_query;
+            cur_query = query_item.val;
+            group_query_list[cur_playlist_idx][1] = '';
         }
 
         if (!preserve_last_used_query) {
