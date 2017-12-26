@@ -9,7 +9,11 @@ g_properties.add_properties(
         use_disc_mask:      ['user.art.use_disc_mask', true]
     }
 );
-g_properties.track_mode = Math.max(1, Math.min(3, g_properties.track_mode));
+
+// Fixup properties
+(function() {
+    g_properties.track_mode = Math.max(1, Math.min(3, g_properties.track_mode));
+})();
 
 function ArtModule(features_arg) {//(Most of the art handling code was done by eXtremeHunter)
 //public:

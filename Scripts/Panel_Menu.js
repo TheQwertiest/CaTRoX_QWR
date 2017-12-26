@@ -57,6 +57,14 @@ qwr_utils.check_fonts(['Segoe Ui', 'Segoe Ui Semibold', 'Segoe Ui Symbol', 'Cons
 
 var g_has_modded_jscript = qwr_utils.has_modded_jscript();
 
+// Fixup properties
+(function() {
+    var saved_mode = g_properties.saved_mode;
+    if (saved_mode !== 'Full' || saved_mode !== 'Mini' || saved_mode !== 'UltraMini') {
+        g_properties.saved_mode = 'Full';
+    }
+})();
+
 var WindowState =
     {
         Normal:    0,

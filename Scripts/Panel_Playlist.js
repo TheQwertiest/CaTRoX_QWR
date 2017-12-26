@@ -58,11 +58,19 @@ g_properties.add_properties(
 var g_component_playcount = _.cc('foo_playcount');
 var g_component_utils = _.cc('foo_utils');
 
-g_properties.rows_in_header = Math.max(0, g_properties.rows_in_header);
-g_properties.rows_in_compact_header = Math.max(0, g_properties.rows_in_compact_header);
-g_properties.row_h = Math.max(10, g_properties.row_h);
-g_properties.show_rating = g_properties.show_rating && g_component_playcount;
-g_properties.show_playcount = g_properties.show_playcount && g_component_playcount;
+// Fixup properties
+(function() {
+    g_properties.rows_in_header = Math.max(0, g_properties.rows_in_header);
+    g_properties.rows_in_compact_header = Math.max(0, g_properties.rows_in_compact_header);
+    g_properties.row_h = Math.max(10, g_properties.row_h);
+    g_properties.show_rating = g_properties.show_rating && g_component_playcount;
+    g_properties.show_playcount = g_properties.show_playcount && g_component_playcount;
+
+    var group_query_list = _.jsonParse(g_properties.group_query_list);
+    if (!_.isArray(group_query_list) || !_.isArray(group_query_list[0])) {
+        g_properties.group_query_list = JSON.stringify([[]]);
+    }
+})();
 
 //---> Fonts
 var g_pl_fonts = {
