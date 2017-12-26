@@ -61,7 +61,7 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
                 g.DrawString('\uF0BB', gdi.font('Webdings', 130), _.RGB(70, 70, 70), this.x, this.y, this.w, this.h, SF);
             }
             else if (!fb.IsPlaying) {
-                g.DrawString(g_theme_name + ' ' + g_theme_version, gdi.font('Segoe Ui Semibold', 24), _.RGB(70, 70, 70), this.x, this.y, this.w, this.h, g_string_format.align_center);
+                g.DrawString('Album Art Panel', gdi.font('Segoe Ui Semibold', 24), _.RGB(70, 70, 70), this.x, this.y, this.w, this.h, g_string_format.align_center);
             }
             else {
                 g.DrawString('No album image', gdi.font('Segoe Ui Semibold', 24), _.RGB(70, 70, 70), this.x, this.y, this.w, this.h, g_string_format.align_center);

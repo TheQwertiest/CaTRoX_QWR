@@ -16,7 +16,7 @@ g_properties.add_properties(
 
 // Fixup properties
 (function() {
-    var title_queries = _.jsonParse(g_properties.title_queries);
+    var title_queries = JSON.parse(g_properties.title_queries);
     if (!_.isArray(title_queries)) {
         g_properties.title_queries = JSON.stringify([]);
     }

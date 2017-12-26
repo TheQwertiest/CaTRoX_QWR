@@ -1,4 +1,7 @@
 _.mixin({
+    /**
+     * @constructor
+     */
     seekbar: function (x, y, w, h) {
         this.playback_seek = function () {
             this.repaint();

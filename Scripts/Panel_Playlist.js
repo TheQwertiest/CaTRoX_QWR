@@ -66,7 +66,7 @@ var g_component_utils = _.cc('foo_utils');
     g_properties.show_rating = g_properties.show_rating && g_component_playcount;
     g_properties.show_playcount = g_properties.show_playcount && g_component_playcount;
 
-    var group_query_list = _.jsonParse(g_properties.group_query_list);
+    var group_query_list = JSON.parse(g_properties.group_query_list);
     if (!_.isArray(group_query_list) || !_.isArray(group_query_list[0])) {
         g_properties.group_query_list = JSON.stringify([[]]);
     }

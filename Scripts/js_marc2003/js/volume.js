@@ -1,4 +1,7 @@
 _.mixin({
+    /**
+     * @constructor
+     */
     volume: function (x, y, w, h) {
         this.repaint = function () {
             var expXY = 2,
