@@ -57,6 +57,7 @@ g_properties.add_properties(
 
 var g_component_playcount = _.cc('foo_playcount');
 var g_component_utils = _.cc('foo_utils');
+var g_has_queue_functionality = qwr_utils.has_modded_jscript() || utils.Version < 2000;
 
 // Fixup properties
 (function() {
@@ -65,6 +66,7 @@ var g_component_utils = _.cc('foo_utils');
     g_properties.row_h = Math.max(10, g_properties.row_h);
     g_properties.show_rating = g_properties.show_rating && g_component_playcount;
     g_properties.show_playcount = g_properties.show_playcount && g_component_playcount;
+    g_properties.show_queue_position = g_properties.show_queue_position && g_has_queue_functionality;
 
     var group_query_list = JSON.parse(g_properties.group_query_list);
     if (!_.isArray(group_query_list) || !_.isArray(group_query_list[0])) {
@@ -601,7 +603,6 @@ function Playlist(x, y) {
 
         var has_selected_item = selection_handler.has_selected_items();
         var has_multiple_selected_items = selection_handler.selected_items_count() > 1;
-        var is_queue_active = plman.IsPlaybackQueueActive();
         var is_auto_playlist = plman.IsAutoPlaylist(cur_playlist_idx);
         var playlist_count = plman.PlaylistCount;
         var send_to_playlist_start_idx = 0;
@@ -631,7 +632,7 @@ function Playlist(x, y) {
 
         if (!is_cur_playlist_empty) {
             cpm.AppendMenuItem(MF_STRING, 6, 'Refresh playlist \tF5');
-            if (is_queue_active && g_properties.show_queue_position) {
+            if (g_properties.show_queue_position && plman.IsPlaybackQueueActive()) {
                 cpm.AppendMenuItem(MF_STRING, 9, 'Flush playback queue \tCtrl+Shift+Q');
             }
         }
@@ -705,7 +706,9 @@ function Playlist(x, y) {
             appear_row.CheckMenuItem(34, g_properties.show_focused_row);
             appear_row.AppendMenuItem(g_component_playcount ? MF_STRING : MF_GRAYED, 32, 'Show play count');
             appear_row.CheckMenuItem(32, g_properties.show_playcount);
-            appear_row.AppendMenuItem(MF_STRING, 35, 'Show queue position');
+            if (g_has_queue_functionality) {
+                appear_row.AppendMenuItem(MF_STRING, 35, 'Show queue position');
+            }
             appear_row.CheckMenuItem(35, g_properties.show_queue_position);
             appear_row.AppendMenuItem(g_component_playcount ? MF_STRING : MF_GRAYED, 33, 'Show rating');
             appear_row.CheckMenuItem(33, g_properties.show_rating);
@@ -864,9 +867,7 @@ function Playlist(x, y) {
                     break;
                 case 35:
                     g_properties.show_queue_position = !g_properties.show_queue_position;
-                    if (g_properties.show_queue_position) {
-                        queue_handler.initialize_queue();
-                    }
+                    queue_handler  = g_properties.show_queue_position ? new QueueHandler(rows, cur_playlist_idx) : undefined;
                     break;
                 case 36:
                     g_properties.alternate_row_color = !g_properties.alternate_row_color;
@@ -1289,7 +1290,7 @@ function Playlist(x, y) {
                 break;
             }
             case VK_KEY_Q: {
-                if (!g_properties.show_queue_position) {
+                if (!queue_handler) {
                     break;
                 }
 
@@ -1454,7 +1455,7 @@ function Playlist(x, y) {
     };
 
     this.on_playback_queue_changed = function (origin) {
-        if (!g_properties.show_queue_position) {
+        if (!queue_handler) {
             return;
         }
 
@@ -1576,7 +1577,9 @@ function Playlist(x, y) {
             on_displayed_row_count_change();
         }
 
-        queue_handler = new QueueHandler(rows, cur_playlist_idx);
+        if (g_properties.show_queue_position) {
+            queue_handler = new QueueHandler(rows, cur_playlist_idx);
+        }
         selection_handler = new SelectionHandler(rows, headers, cur_playlist_idx);
     };
 
@@ -3701,6 +3704,9 @@ function QueueHandler(rows_arg, cur_playlist_idx_arg) {
     this.initialize_queue();
 }
 
+/**
+ * @constructor
+ */
 function PlaylistInfo(x, y, w, h) {
     this.on_paint = function (gr) {
         if (!info_text) {
