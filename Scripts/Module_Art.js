@@ -704,7 +704,6 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
     var has_photoshop;
     var was_on_size_called = false;
 
-    /** @type {null|number} */
     var cycle_timer = null;
 
     if (feature_thumbs) {
@@ -753,7 +752,7 @@ function Thumbs(cover_switch_callback_arg) {
         var old_w = this.w;
         var old_h = this.h;
 
-        this.size = Math.min(g_properties.thumb_size, Math.floor(((is_vertical ? wh : ww) - g_properties.thumb_padding * 3) / 4));
+        this.size = Math.min(/** @type{number} */ g_properties.thumb_size, Math.floor(((is_vertical ? wh : ww) - g_properties.thumb_padding * 3) / 4));
 
         if (is_vertical) {
             this.w = this.size;
@@ -810,7 +809,7 @@ function Thumbs(cover_switch_callback_arg) {
 
         var x = this.x,
             y = this.y;
-        var w = Math.min(g_properties.thumb_size, Math.max(Math.floor(((is_vertical ? this.h : this.w) - 3 * p) / 4), 0));
+        var w = Math.min(/** @type{number} */ g_properties.thumb_size, Math.max(Math.floor(((is_vertical ? this.h : this.w) - 3 * p) / 4), 0));
         var h = w;
 
         this.btns.buttons.front = new _.button(x, y, w, h, default_thumb_imgs.front, function () {cover_switch_callback(0);}, 'Front');

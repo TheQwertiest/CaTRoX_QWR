@@ -163,19 +163,19 @@ function UltraMini() {
 
             // SeekBar
             var p = 2;
-            var x = seekbar.x,
-                y = seekbar.y,
-                w = seekbar.w,
-                h = seekbar.h;
+            var x = seekbar_obj.x,
+                y = seekbar_obj.y,
+                w = seekbar_obj.w,
+                h = seekbar_obj.h;
 
             var sliderBackColor = _.RGBA(37, 37, 37, panel_alpha);
             var sliderBarColor = _.RGBA(190, 192, 194, panel_alpha);
-            var sliderBarHoverColor = _.RGBA(231, 233, 235, Math.min(panel_alpha, seekbar.hover_alpha));
+            var sliderBarHoverColor = _.RGBA(231, 233, 235, Math.min(panel_alpha, seekbar_obj.hover_alpha));
             gr.FillSolidRect(x, y + p, w, h - p * 2, sliderBackColor);
             if (fb.IsPlaying && fb.PlaybackLength > 0) {
-                gr.FillSolidRect(x, y + p, seekbar.pos(), h - p * 2, sliderBarColor);
-                gr.FillSolidRect(x, y + p, seekbar.pos(), h - p * 2, sliderBarHoverColor);
-                gr.FillSolidRect(x + seekbar.pos() - 2, y + p - 1, 4, h - p * 2 + 2, _.RGBA(255, 255, 255, panel_alpha));
+                gr.FillSolidRect(x, y + p, seekbar_obj.pos(), h - p * 2, sliderBarColor);
+                gr.FillSolidRect(x, y + p, seekbar_obj.pos(), h - p * 2, sliderBarHoverColor);
+                gr.FillSolidRect(x + seekbar_obj.pos() - 2, y + p - 1, 4, h - p * 2 + 2, _.RGBA(255, 255, 255, panel_alpha));
             }
 
             // VolBar
@@ -204,8 +204,8 @@ function UltraMini() {
         create_buttons(0, playback_y, this.w, playback_h);
 
         var seekbar_y = playback_y - seekbar_h + Math.floor(seekbar_h / 2);
-        seekbar = new _.seekbar(5, seekbar_y, this.w - 10, seekbar_h);
-        seekbar.show_tt = show_tooltips;
+        seekbar_obj = new _.seekbar(5, seekbar_y, this.w - 10, seekbar_h);
+        seekbar_obj.show_tt = show_tooltips;
 
         var volume_bar_y = playback_y + Math.floor(playback_h / 2 - volume_bar_h / 2) + 2;
         volume_bar = new _.volume(volume_bar_x, volume_bar_y, Math.min(this.w - volume_bar_x - 4, 60), volume_bar_h);
@@ -227,7 +227,7 @@ function UltraMini() {
     };
 
     this.on_playback_starting = function (cmd, is_paused) {
-        seekbar.playback_start();
+        seekbar_obj.playback_start();
         buttons.refresh_play_button();
     };
 
@@ -238,7 +238,7 @@ function UltraMini() {
 
     this.on_playback_pause = function (isPlaying) {
         title_cycler.on_playback_pause(isPlaying);
-        seekbar.playback_pause(isPlaying);
+        seekbar_obj.playback_pause(isPlaying);
         buttons.refresh_play_button();
     };
 
@@ -249,12 +249,12 @@ function UltraMini() {
     this.on_playback_stop = function (reason) {
         title_cycler.on_playback_stop(reason);
         art_module.playback_stop();
-        seekbar.playback_stop();
+        seekbar_obj.playback_stop();
         buttons.refresh_play_button();
     };
 
     this.on_playback_seek = function () {
-        seekbar.playback_seek();
+        seekbar_obj.playback_seek();
     };
 
     this.on_mouse_move = function (x, y, m) {
@@ -265,8 +265,8 @@ function UltraMini() {
             return;
         }
 
-        if (seekbar.drag) {
-            seekbar.move(x, y);
+        if (seekbar_obj.drag) {
+            seekbar_obj.move(x, y);
             return;
         }
 
@@ -289,13 +289,13 @@ function UltraMini() {
                 volume_bar.repaint();
             }
         }
-        seekbar.move(x, y);
+        seekbar_obj.move(x, y);
         buttons.move(x, y);
     };
 
     this.on_mouse_lbtn_down = function (x, y, m) {
         buttons.lbtn_down(x, y);
-        seekbar.lbtn_down(x, y);
+        seekbar_obj.lbtn_down(x, y);
         if (show_volume_bar) {
             volume_bar.lbtn_down(x, y);
         }
@@ -305,7 +305,7 @@ function UltraMini() {
         qwr_utils.EnableSizing(m);
 
         buttons.lbtn_up(x, y);
-        seekbar.lbtn_up(x, y);
+        seekbar_obj.lbtn_up(x, y);
         if (show_volume_bar) {
             volume_bar.lbtn_up(x, y);
         }
@@ -325,7 +325,7 @@ function UltraMini() {
     };
 
     this.on_mouse_leave = function () {
-        if (volume_bar.drag || seekbar.drag) {
+        if (volume_bar.drag || seekbar_obj.drag) {
             return;
         }
 
@@ -388,7 +388,7 @@ function UltraMini() {
         switch (name) {
             case 'show_tooltips': {
                 show_tooltips = info;
-                seekbar.show_tt = info;
+                seekbar_obj.show_tt = info;
                 volume_bar.show_tt = info;
                 buttons.show_tt = info;
                 break;
@@ -621,7 +621,8 @@ function UltraMini() {
     }, this));
     var buttons = undefined;
     var volume_bar = undefined;
-    var seekbar = undefined;
+    /** @type {?seekbar} */
+    var seekbar_obj = undefined;
 
     create_button_images();
     // Set tracking mode in ArtModule to NowPlaying
@@ -759,7 +760,7 @@ function TitleCycler(on_change_fn_arg) {
 
     function reset_timer() {
         stop_timer();
-        cur_title_type = 0;
+        cur_query_idx = 0;
         cycle_title();
         start_timer();
     }

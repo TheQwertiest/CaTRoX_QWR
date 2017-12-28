@@ -1615,14 +1615,14 @@ function Playlist(x, y) {
         if (scrollbar) {
             scrollbar.reset();
         }
-        scrollbar = new _.scrollbar(scrollbar_x, scrollbar_y, g_properties.scrollbar_w, scrollbar_h, row_h, scrollbar_redraw_callback);
+        scrollbar = new ScrollBar(scrollbar_x, scrollbar_y, g_properties.scrollbar_w, scrollbar_h, row_h, scrollbar_redraw_callback);
     }
 
     function update_scrollbar() {
         var total_height_in_rows = g_properties.show_header ? headers.length * header_h_in_rows : 0;
-        headers.forEach(function (item) {
-            if (!item.is_collapsed) {
-                total_height_in_rows += item.rows.length;
+        headers.forEach(function (header) {
+            if (!header.is_collapsed) {
+                total_height_in_rows += header.rows.length;
             }
         });
 
@@ -2175,7 +2175,9 @@ function Playlist(x, y) {
     var was_on_size_called = false;
     var rows_to_draw_precise = 0;
 
+    /** @type {Array<Row>} */
     var rows = [];
+    /** @type {Array<Header>} */
     var headers = [];
     var items_to_draw = [];
 
@@ -2220,6 +2222,8 @@ function Playlist(x, y) {
     // Objects
     var selection_handler = undefined;
     var queue_handler = undefined;
+
+    /** @type {?ScrollBar} */
     var scrollbar = undefined;
     var collapse_handler = new CollapseHandler();
     var playlist_info = new PlaylistInfo(0, 0, 0, 24);
@@ -2712,9 +2716,12 @@ function Header(x, y, w, h, idx) {
     }
 
     //public:
+    /** @const {string} */
     this.type = 'Header';
+    /** @const {number} */
     this.idx = idx;
 
+    /** @type{Array<Row>} */
     this.rows = [];
 
     this.is_selected_static = false;
@@ -2964,8 +2971,11 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
     }
 
     //public:
+    /** @const {string} */
     this.type = 'Row';
+    /** @const {number} */
     this.idx = idx;
+    /** @const {IFbMetadbHandle} */
     this.metadb = metadb;
 
     //const after header creation
@@ -3041,16 +3051,6 @@ function Rating(x, y, w, h, metadb) {
 
         if (g_properties.use_rating_from_tags) {
             if (!_.startsWith(_.tf('%path%', this.metadb), 'http')) {
-                /*
-                var file_info = this.metadb.GetFileInfo();
-                var rating_meta_idx = file_info.MetaFind('RATING');
-                if (rating_meta_idx === -1)){
-                    file_info.MetaAdd('RATING',(current_rating === new_rating) ? undefined : new_rating );
-                }
-                else {
-                    file_info.MetaSet(rating_meta_idx,(current_rating === new_rating) ? undefined : new_rating );
-                }
-                */
                 var handle = fb.CreateHandleList();
                 handle.Add(this.metadb);
                 handle.UpdateFileInfoFromJSON(

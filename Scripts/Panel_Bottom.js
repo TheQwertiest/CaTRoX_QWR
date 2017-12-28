@@ -18,12 +18,11 @@ var volumeBarW = 70;
 var buttons;
 var showTooltips = false;
 var volumeBar;
-var seekbar;
+var seekbar_obj;
 var seekbarTime1 = '0:00';
 var seekbarTime2 = '0:00';
 
 var cur_minimode = pss_switch.minimode.state;
-var show_spectrum = pss_switch.spectrum.state === 'Show';
 
 /// Reduce move
 var moveChecker = new _.moveCheckReducer;
@@ -36,10 +35,10 @@ function on_paint(gr) {
 
     // SeekBar
     var p = 5;
-    var x = seekbar.x,
-        y = seekbar.y,
-        w = seekbar.w,
-        h = seekbar.h;
+    var x = seekbar_obj.x,
+        y = seekbar_obj.y,
+        w = seekbar_obj.w,
+        h = seekbar_obj.h;
 
     var sliderBackColor = _.RGB(37, 37, 37);
     var sliderBarColor = _.RGB(110, 112, 114);
@@ -53,16 +52,16 @@ function on_paint(gr) {
         sliderTextColor = (fb.IsPlaying ? _.RGB(130, 132, 134) : _.RGB(80, 80, 80));
     var time2 = isStream ? 'stream' : (g_properties.show_remaining_time && playbackTimeRemaining ? timeRemaining : ' ' + length);
 
-    if (!seekbar.drag) {
+    if (!seekbar_obj.drag) {
         seekbarTime1 = ((fb.IsPlaying && fb.PlaybackTime) ? fb.TitleFormat('%playback_time%').Eval() : '0:00');
         seekbarTime2 = (fb.IsPlaying ? (fb.IsPlaying && seekbarTime1 === '0:00' ? '-' + fb.TitleFormat('%length%').Eval() : time2) : (metadb ? ' ' + length : ' 0:00'));
     }
 
-    var sliderBarHoverColor = _.RGBA(151, 153, 155, seekbar.hover_alpha);
+    var sliderBarHoverColor = _.RGBA(151, 153, 155, seekbar_obj.hover_alpha);
     gr.FillSolidRect(x, y + p, w, h - p * 2, sliderBackColor);
     if (fb.IsPlaying && fb.PlaybackLength > 0) {
-        gr.FillSolidRect(x, y + p, seekbar.pos(), h - p * 2, sliderBarColor);
-        gr.FillSolidRect(x, y + p, seekbar.pos(), h - p * 2, sliderBarHoverColor);
+        gr.FillSolidRect(x, y + p, seekbar_obj.pos(), h - p * 2, sliderBarColor);
+        gr.FillSolidRect(x, y + p, seekbar_obj.pos(), h - p * 2, sliderBarHoverColor);
     }
 
     var seekbarTextFont = gdi.font('Consolas', 14, 1);
@@ -109,8 +108,8 @@ function on_size() {
     }
 
     var seekbarY = Math.floor(wh / 2 - seekbarH / 2) + 2;
-    seekbar = new _.seekbar(textW, seekbarY, seekbarW, seekbarH);
-    seekbar.show_tt = showTooltips;
+    seekbar_obj = new _.seekbar(textW, seekbarY, seekbarW, seekbarH);
+    seekbar_obj.show_tt = showTooltips;
 }
 
 function on_mouse_wheel(delta) {
@@ -129,11 +128,11 @@ function on_mouse_move(x, y, m) {
 
     qwr_utils.DisableSizing(m);
 
-    seekbar.move(x, y);
+    seekbar_obj.move(x, y);
 
-    if (seekbar.drag) {
-        seekbarTime1 = timeFormat(fb.PlaybackLength * seekbar.drag_seek, true);
-        seekbarTime2 = timeFormat(fb.PlaybackLength - fb.PlaybackLength * seekbar.drag_seek, true);
+    if (seekbar_obj.drag) {
+        seekbarTime1 = timeFormat(fb.PlaybackLength * seekbar_obj.drag_seek, true);
+        seekbarTime2 = timeFormat(fb.PlaybackLength - fb.PlaybackLength * seekbar_obj.drag_seek, true);
         if (seekbarTime2 !== '0:00')
             seekbarTime2 = '-' + seekbarTime2;
         else
@@ -153,7 +152,7 @@ function on_mouse_move(x, y, m) {
 
 function on_mouse_lbtn_down(x, y, m) {
     buttons.lbtn_down(x, y);
-    seekbar.lbtn_down(x, y);
+    seekbar_obj.lbtn_down(x, y);
     if (cur_minimode === 'Full')
         volumeBar.lbtn_down(x, y);
 }
@@ -162,7 +161,7 @@ function on_mouse_lbtn_up(x, y, m) {
     qwr_utils.EnableSizing(m);
 
     buttons.lbtn_up(x, y);
-    seekbar.lbtn_up(x, y);
+    seekbar_obj.lbtn_up(x, y);
     if (cur_minimode === 'Full')
         volumeBar.lbtn_up(x, y);
 }
@@ -172,31 +171,31 @@ function on_mouse_lbtn_dblclk(x, y, m) {
 }
 
 function on_mouse_leave() {
-    if (seekbar.drag || volumeBar.drag) {
+    if (seekbar_obj.drag || volumeBar.drag) {
         return;
     }
 
     buttons.leave();
-    seekbar.leave();
+    seekbar_obj.leave();
     volumeBar.leave();
 }
 
 function on_playback_starting(cmd, is_paused) {
-    seekbar.playback_start();
+    seekbar_obj.playback_start();
 }
 
 function on_playback_pause(isPlaying) {
-    seekbar.playback_pause(isPlaying);
+    seekbar_obj.playback_pause(isPlaying);
 }
 
 function on_playback_stop(reason) {
-    seekbar.playback_stop();
+    seekbar_obj.playback_stop();
     // For seekbarTime refresh
     window.Repaint();
 }
 
 function on_playback_seek() {
-    seekbar.playback_seek();
+    seekbar_obj.playback_seek();
     // For seekbarTime refresh
     window.Repaint();
 }
@@ -393,7 +392,7 @@ function createButtonImages() {
             var ico_color = item.is_accented ? accent_ico_colors[s] : default_ico_colors[s];
 
             var img = gdi.CreateImage(w, h);
-            g = img.GetGraphics();
+            var g = img.GetGraphics();
             g.SetSmoothingMode(SmoothingMode.HighQuality);
             g.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
             g.FillSolidRect(0, 0, w, h, pssBackColor); // Cleartype is borked, if drawn without background
@@ -453,7 +452,7 @@ function on_notify_data(name, info) {
         case 'show_tooltips': {
             showTooltips = info;
             buttons.show_tt = showTooltips;
-            seekbar.show_tt = showTooltips;
+            seekbar_obj.show_tt = showTooltips;
             volumeBar.show_tt = showTooltips;
             break;
         }

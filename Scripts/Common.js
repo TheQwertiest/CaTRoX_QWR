@@ -9,7 +9,10 @@ var g_theme_version = '4.0.4';
 
 var scriptFolder = 'themes\\' + g_theme_folder + '\\Scripts\\';
 // ================================================================================= //
-var UIHacks = new ActiveXObject('UIHacks');
+/** @type {IUIHacks} */
+var UIHacks =
+    /** @type {IUIHacks} */
+    new ActiveXObject('UIHacks');
 
 var pssBackColor = _.RGB(25, 25, 25);
 var panelsBackColor = _.RGB(30, 30, 30);
@@ -299,7 +302,7 @@ var qwr_utils = {
         }
     },
     caller: function () {
-        var caller = /^function\s+([^(]+)/.exec(arguments.callee.caller.caller);
+        var caller = /^function\s+([^(]+)/.exec(/** @type{string} */ arguments.callee.caller.caller);
         if (caller) {
             return caller[1];
         }
@@ -308,7 +311,7 @@ var qwr_utils = {
         }
     },
     function_name: function () {
-        var caller = /^function\s+([^(]+)/.exec(arguments.callee.caller);
+        var caller = /^function\s+([^(]+)/.exec(/** @type{string} */ arguments.callee.caller);
         if (caller) {
             return caller[1];
         }
@@ -322,7 +325,7 @@ var qwr_utils = {
         }
     },
     check_fonts: function (fonts) {
-        var checkedFonts = '';
+        var msg = '';
         var failCounter = 0;
 
         fonts.forEach(function (item) {
@@ -330,17 +333,13 @@ var qwr_utils = {
             if (!check) {
                 failCounter++;
             }
-            checkedFonts += ('\n' + item + (check ? ': Installed.' : ': NOT INSTALLED!'));
+            msg += ('\n' + item + (check ? ': Installed.' : ': NOT INSTALLED!'));
         });
 
         if (failCounter) {
-            checkedFonts += '\n\nPlease install missing ' + (failCounter > 1 ? 'fonts' : 'font') + ' and restart foobar!';
-            fb.ShowPopupMessage(checkedFonts, 'Font Check');
-
-            return false;
+            msg += '\n\nPlease install missing ' + (failCounter > 1 ? 'fonts' : 'font') + ' and restart foobar!';
+            throw new ThemeError(msg);
         }
-
-        return true;
     },
     has_modded_jscript: _.once(function() {
         var ret = _.attempt(function() {
@@ -357,7 +356,12 @@ function g_numeric_ascending_sort(a, b) {
     return (a - b);
 }
 
-function Property(text_id, default_value) {
+/**
+ * @constructor
+ * @param{string} text_id
+ * @param{*} default_value
+ */
+function PanelProperty(text_id, default_value) {
     this.get = function() {
         return value;
 
@@ -377,25 +381,24 @@ var g_properties = new function() {
     this.add_properties = function (properties) {
         _.forEach(properties, _.bind(function (item, i) {
             if (!_.isArray(item) || item.length !== 2 || !_.isString(item[0])) {
-                throw new TypeError('property', typeof item, '{ string, [string, any] }' , 'Usage: add_properties({\n  property_name, [property.string.description, property_default_value]\n})' );
+                throw new TypeError('property', typeof item, '{ string, [string, any] }', 'Usage: add_properties({\n  property_name, [property.string.description, property_default_value]\n})');
             }
             if (i === 'add_properties') {
                 throw new ArgumentError('property_name', i, 'This name is reserved');
             }
-            if (!_.isNil(this[i]) || !_.isNil(this[i + 'internal'])) {
+            if (!_.isNil(this[i]) || !_.isNil(this[i + '_internal'])) {
                 throw new ArgumentError('property_name', i, 'This name is already occupied');
             }
 
-            this[i + 'internal'] = new Property(item[0], item[1]);
+            this[i + '_internal'] = new PanelProperty(item[0], item[1]);
             Object.defineProperty(this, i, {
                 get: function () {
-                    return this[i + 'internal'].get()
+                    return this[i + '_internal'].get()
                 },
                 set: function (new_value) {
-                    this[i + 'internal'].set(new_value)
+                    this[i + '_internal'].set(new_value)
                 }
             });
         }, this));
     };
 };
-

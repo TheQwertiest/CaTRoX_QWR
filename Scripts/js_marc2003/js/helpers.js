@@ -110,9 +110,7 @@ _.mixin({
         var b = Math.round(c1[2] + f * (c2[2] - c1[2]));
         return _.RGB(r, g, b);
     },
-    /**
-     * @constructor
-     */
+    /** @constructor */
     button:                    function (x, y, w, h, img_src, fn, tiptext) {
         this.paint = function (gr, alpha) {
             if (this.state !== "pressed") {
@@ -178,9 +176,7 @@ _.mixin({
 
         this.set_image(img_src);
     },
-    /**
-     * @constructor
-     */
+    /** @constructor */
     buttons:
         function () {
         this.reset = function () {
@@ -890,9 +886,7 @@ _.mixin({
             tooltip.Activate();
         }
     },
-    /**
-     * @constructor
-     */
+    /** @constructor */
     tt_handler:                function () {
         this.showDelayed = function (text) {
             tt_timer.start(this.id, text);

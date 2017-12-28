@@ -125,8 +125,10 @@ function on_paint(gr) {
         }
     }
 
-    gr.FillSolidRect(x, listY - g_properties.list_top_pad, listW, g_properties.list_top_pad, panelsBackColor);  // Top margin
-    gr.FillSolidRect(x, listY + listH, listW, g_properties.list_bottom_pad, panelsBackColor); // Bottom margin
+    gr.FillSolidRect(x, listY - g_properties.list_top_pad,
+        listW, /** @type{number} */ g_properties.list_top_pad, panelsBackColor);  // Top margin
+    gr.FillSolidRect(x, listY + listH,
+        listW, /** @type{number} */ g_properties.list_bottom_pad, panelsBackColor); // Bottom margin
 
 
     var partialRowShift = listPos - rowShift;
@@ -198,7 +200,7 @@ function listOnSize() {
         meta[i] = [((metaName === 'www') ? metaName : metaName.toLowerCase().capitalize() + ':')];
 
         meta[i][1] = inf;
-        meta[i][2] = Math.ceil(g.MeasureString(meta[i][0], infoNameFont, 0, 0, 0, 0).Width) + 5;
+        meta[i][2] = Math.ceil(/** @type{number} */ g.MeasureString(meta[i][0], infoNameFont, 0, 0, 0, 0).Width) + 5;
     }
 
     for (var i = 0; i < fileInfo.InfoCount; i++) {
@@ -206,7 +208,7 @@ function listOnSize() {
 
         info[i] = [infoName.toLowerCase().capitalize() + ':'];
         info[i][1] = fileInfo.InfoValue(fileInfo.InfoFind(infoName));
-        info[i][2] = Math.ceil(g.MeasureString(info[i][0], infoNameFont, 0, 0, 0, 0).Width) + 5;
+        info[i][2] = Math.ceil(/** @type{number} */ g.MeasureString(info[i][0], infoNameFont, 0, 0, 0, 0).Width) + 5;
     }
 
     list = list.concat(meta, info);
@@ -250,7 +252,7 @@ function listOnSize() {
             scrollbar.reset();
         }
 
-        scrollbar = new _.scrollbar(scrollbarX, scrollbarY, g_properties.scrollbar_w, scrollbarH, g_properties.row_h, redrawListCallback);
+        scrollbar = new ScrollBar(scrollbarX, scrollbarY, g_properties.scrollbar_w, scrollbarH, g_properties.row_h, redrawListCallback);
         scrollbar.set_window_param(windowSizeInRows, listLength);
 
         scrollbar.scroll_to(listPos);

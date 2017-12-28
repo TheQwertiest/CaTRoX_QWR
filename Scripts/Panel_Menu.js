@@ -49,8 +49,16 @@ g_properties.add_properties(
     if (g_properties.incompatibility_notified)
         return;
 
-    if (!qwr_utils.has_modded_jscript())
-        fb.ShowPopupMessage('Warning: Vanilla JScript component detected!\nThis theme relies on modded JScript component, so some features will be unavailable!\n\nSources for modded JScript are available at https://github.com/TheQwertiest/foo-jscript-panel\n\nTo hide this warning change \'system.jscript_incompatibility_notified\' to \'true\' in Panel Properties (SHIFT-right-click).', 'CaTRoX (QWR Edition)');
+    if (!qwr_utils.has_modded_jscript()) {
+        var msg = 'Warning: Vanilla JScript component detected, so some features will be unavailable!\n';
+        msg += '\nDisabled features:\n';
+        msg += '    - Persistent window size for Full Mode and Playlist Mode.\n';
+        msg += '    - Top Panel: dynamic button state for \'YouTube Video Toggle\' and \'Last.FM Scrobbling Toggle\' buttons.\n';
+        msg += '\nSources for modded JScript are available at https://github.com/TheQwertiest/foo-jscript-panel\n';
+        msg += '\nTo disable this warning set \'system.jscript_incompatibility_notified\' to \'true\' in Panel Properties (SHIFT-right-click on Menu Panel).\n';
+
+        fb.ShowPopupMessage(msg, 'CaTRoX (QWR Edition)');
+    }
 })();
 
 qwr_utils.check_fonts(['Segoe Ui', 'Segoe Ui Semibold', 'Segoe Ui Symbol', 'Consolas', 'Marlett', 'Guifx v2 Transports', 'FontAwesome']);
@@ -79,6 +87,7 @@ var FrameStyle =
         NoCaption:    2,
         NoBorder:     3
     };
+
 var MoveStyle =
     {
         Default: 0,

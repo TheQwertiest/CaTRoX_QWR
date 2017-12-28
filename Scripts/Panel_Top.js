@@ -247,7 +247,7 @@ function create_button_images() {
 
         for (var s = 0; s <= 2; s++) {
             var img = gdi.CreateImage(w, h);
-            g = img.GetGraphics();
+            var g = img.GetGraphics();
             g.SetSmoothingMode(SmoothingMode.HighQuality);
             g.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
             g.FillSolidRect(0, 0, w, h, pssBackColor); // Cleartype is borked, if drawn without background
