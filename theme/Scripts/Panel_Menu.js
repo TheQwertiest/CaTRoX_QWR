@@ -29,36 +29,45 @@ var trace_on_move = false;
 
 g_properties.add_properties(
     {
-        maximize_to_fullscreen:   ['user.window.maximize_to_fullscreen', true],
-        show_window_shadow:       ['user.window.shadow.show', true],
-        show_fb2k_version:        ['user.title_bar.fb2k_version.show', false],
-        show_theme_version:       ['user.title_bar.theme_version.show', false],
-        show_cpu_usage:           ['user.title_bar.cpu_usage.show', false],
-        show_tooltips:            ['user.global.tooltips.show', true],
-        saved_mode:               ['system.window.saved_mode', 'Full'],
-        full_mode_saved_width:    ['system.window.full.saved_width', 895],
-        full_mode_saved_height:   ['system.window.full.saved_height', 650],
-        mini_mode_saved_width:    ['system.window.mini.saved_width', 250],
-        mini_mode_saved_height:   ['system.window.mini.saved_height', 600],
-        is_first_launch:          ['system.first_launch', true],
-        incompatibility_notified: ['system.jscript_incompatibility_notified', false]
+        maximize_to_fullscreen: ['user.window.maximize_to_fullscreen', true],
+        show_window_shadow:     ['user.window.shadow.show', true],
+        show_fb2k_version:      ['user.title_bar.fb2k_version.show', false],
+        show_theme_version:     ['user.title_bar.theme_version.show', false],
+        show_cpu_usage:         ['user.title_bar.cpu_usage.show', false],
+        show_tooltips:          ['user.global.tooltips.show', true],
+        saved_mode:             ['system.window.saved_mode', 'Full'],
+        full_mode_saved_width:  ['system.window.full.saved_width', 895],
+        full_mode_saved_height: ['system.window.full.saved_height', 650],
+        mini_mode_saved_width:  ['system.window.mini.saved_width', 250],
+        mini_mode_saved_height: ['system.window.mini.saved_height', 600],
+        is_first_launch:        ['system.first_launch', true],
+
+        incompatibility_notified: ['system.jscript_incompatibility.notified', false],
+        incompatibility_version:  ['system.jscript_incompatibility.version', utils.Version]
     }
 );
 
 (function check_modded_jscript_availability() {
-    if (g_properties.incompatibility_notified)
+    if (qwr_utils.has_modded_jscript()
+        || (g_properties.incompatibility_notified && utils.Version === g_properties.incompatibility_version)) {
         return;
-
-    if (!qwr_utils.has_modded_jscript()) {
-        var msg = 'Warning: Vanilla JScript component detected, so some features will be unavailable!\n';
-        msg += '\nDisabled features:\n';
-        msg += '    - Persistent window size for Full Mode and Playlist Mode.\n';
-        msg += '    - Top Panel: dynamic button state for \'YouTube Video Toggle\' and \'Last.FM Scrobbling Toggle\' buttons.\n';
-        msg += '\nSources for modded JScript are available at https://github.com/TheQwertiest/foo-jscript-panel\n';
-        msg += '\nTo disable this warning set \'system.jscript_incompatibility_notified\' to \'true\' in Panel Properties (SHIFT-right-click on Menu Panel).\n';
-
-        fb.ShowPopupMessage(msg, 'CaTRoX (QWR Edition)');
     }
+
+    // Needed in case of JScript update
+    g_properties.incompatibility_version = utils.Version;
+    g_properties.incompatibility_notified = false;
+
+    var msg = 'Warning: Vanilla JScript component detected, so some features will be unavailable!\n';
+    msg += '\nDisabled features:\n';
+    msg += '    - Persistent window size for Full Mode and Playlist Mode.\n';
+    msg += '    - Top Panel: dynamic button state for \'YouTube Video Toggle\' and \'Last.FM Scrobbling Toggle\' buttons.\n';
+    if (utils.Version >= 2000) {
+        msg += '    - Playlist: queue handling functionality.\n';
+    }
+    msg += '\nSources for modded JScript are available at https://github.com/TheQwertiest/foo-jscript-panel\n';
+    msg += '\nTo disable this warning set \'system.jscript_incompatibility.notified\' to \'true\' in Panel Properties (SHIFT-right-click on Menu Panel).\n';
+
+    fb.ShowPopupMessage(msg, 'CaTRoX (QWR Edition)');
 })();
 
 qwr_utils.check_fonts(['Segoe Ui', 'Segoe Ui Semibold', 'Segoe Ui Symbol', 'Consolas', 'Marlett', 'Guifx v2 Transports', 'FontAwesome']);
