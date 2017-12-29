@@ -20,6 +20,8 @@ g_properties.add_properties(
 g_properties.track_mode = Math.max(1, Math.min(3, g_properties.track_mode));
 g_properties.row_h = Math.max(10, g_properties.row_h);
 
+// TODO: add tooltip text to value if it's too long to display
+
 var g_track_modes =
     {
         auto:     1,
