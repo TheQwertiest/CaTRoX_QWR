@@ -1,9 +1,22 @@
 # Changelog
 
 ## [Unreleased]
+### Added
+- Art Mode: title queries and title cycle interval can be configured now through Panel Properties.
+- Added compatibility fixes for vanilla JScript v2.0.0 component.
+
+### Changed
+- Art Mode: empty title text is skipped skipped now.
+- Top Panel: adjusted fb2k logo color :D
+
+### Fixed
+- Playlist Panel: fixed various errors with custom grouping query.
+- Menu Panel: fixed pseudo caption not always working.
+- Fixed wrong window sizes on player Mode change when FrameStyle is
+other than NoBorder.
+- Removed unneeded resizes on mode change.
 
 ## [4.0.4] - 2017-12-24
-
 ### Changed 
 - Playlist: date and album now won't be displayed if unavailable (previously was displayed as '?').
 - Better handling of vanilla JScript component.

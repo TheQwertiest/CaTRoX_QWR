@@ -14,6 +14,8 @@ See [Installation Guide](https://github.com/TheQwertiest/CaTRoX_QWR/wiki/Install
 
 Use [Support Thread](https://hydrogenaud.io/index.php/topic,114991.new.html) to report issues if you encounter any =)
 
+See [Changelog](https://github.com/theqwertiest/CaTRoX_QWR/blob/master/CHANGELOG.md) for info about changes in upcoming and previous releases.
+
 #### Included 3rd party scripts
  - YouTube Track Manager (Panel_YT.js): https://hydrogenaud.io/index.php/topic,105522.0.html by WilB.
  - Library Tree (Panel_Library.js): https://hydrogenaud.io/index.php/topic,110938.0.html by WilB.
