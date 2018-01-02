@@ -11,7 +11,7 @@ function userinterface() {
     var WshShell = new ActiveXObject("WScript.Shell"); try {var dpi = WshShell.RegRead("HKCU\\Control Panel\\Desktop\\WindowMetrics\\AppliedDPI");} catch (e) {var dpi = 120;} this.scale = dpi < 121 ? 1 : dpi / 120; this.zoomUpd = window.GetProperty("SYSTEM.Zoom Update", false);
     var blend = "", custom_col = window.GetProperty("_CUSTOM COLOURS/FONTS: USE", false), cust_icon_font = window.GetProperty("_Custom.Font Icon [Node] (Name,Style[0or1])", "Segoe UI Symbol,0"), icon = window.GetProperty(" Node: Custom Icon: +|- // Examples","| // (+)|(−) | | | | | | | | |").trim(), icon_f_name= "Segoe UI", icon_f_style = 0, iconcol_c = "", iconcol_e = "", iconcol_h = "", linecol = window.GetProperty(" Node: Lines: Hide-0 Grey-1 Blend-2 Text-3", 1), mix = 0, orig_font_sz = 16, s_col = window.GetProperty(" Search Style: Fade-0 Blend-1 Norm-2 Highlight-3", 0), s_linecol = window.GetProperty(" Search: Line Colour: Grey-0 Blend-1 Text-2", 0), sp = 6, sp1 = 6, sp2 = 6, sum = 0, node_sz = Math.round(11 * this.scale), zoom = 100, zoom_font_sz = 16, zoom_node = 100;
     this.b1 = 0x04ffffff; this.b2 = 0x04000000; this.backcol = ""; this.backcol_h = ""; this.backcolsel = ""; this.backcoltrans = ""; this.bg = false; this.collapse = ""; this.expand =  ""; this.ct = false; this.dui = window.InstanceType; this.fill = 0; this.font; this.framecol = ""; this.h = 0; this.icon_font; this.icon_pad = window.GetProperty(" Node: Custom Icon: Vertical Padding", -2); this.icon_w = 17; this.iconcol_c = ""; this.iconcol_e = ""; this.iconcol_h = ""; this.j_font; this.l_s1 = 4; this.l_s2 = 6; this.l_s3 = 7; this.linecol = ""; this.pen = 1; this.pen_c = 0x55888888; this.row_h = 20; this.s_font; this.s_linecol = ""; this.searchcol = ""; this.sel = 3; this.textcol = ""; this.textcol_h = ""; this.textselcol = ""; this.txt_box = ""; this.w = 0; this.alternate = window.GetProperty(" Row Stripes", false); this.local = typeof conf === 'undefined' ? false : true; this.margin = window.GetProperty(" Margin", 8); this.node_sz = Math.round(11 * this.scale);
-    this.trace = function(message) {var trace = true; if (trace) fb.trace("Library Tree: " + message);} // true enables fb.trace
+    this.trace = function(message) {var trace = true; if (trace) console.log("Library Tree: " + message);} // true enables console.log
     if (custom_col) {if (cust_icon_font.length) {cust_icon_font = cust_icon_font.split(","); try {var st = Math.round(parseFloat(cust_icon_font[1])), font_test = gdi.Font(cust_icon_font[0], 16, st); icon_f_name = cust_icon_font[0]; icon_f_style = st;} catch(e) {this.trace("JScript Panel is unable to use your node icon font. Using Segoe UI instead");}}}
     try {var win_node = parseFloat(window.GetProperty("ADV.Node [Default]: Themed 0 or 1", "0").replace(/\s+/g, "").charAt(0)); if (isNaN(win_node)) win_node = 0;  if (win_node != 0 && win_node != 1) win_node = 0; if (win_node == 1)  window.SetProperty("ADV.Node [Default]: Themed 0 or 1", "1 // Highlight & Custom Colours N/A For Themed"); else window.SetProperty("ADV.Node [Default]: Themed 0 or 1", "" + 0 + "");} catch (e) {win_node = 0; window.SetProperty("ADV.Node [Default]: Themed 0 or 1", "" + 0 + "");}
     this.node_style = window.GetProperty(" Node: Custom (No Lines)", false) ? 0 : !win_node ? 1 : 2; if (this.node_style > 2 || this.node_style < 0) this.node_style = 1; this.node_win = this.node_style == 2 ? 1 : 0;
@@ -40,7 +40,7 @@ function userinterface() {
     var get_textselcol = function(c, n) {var cc = [R(c), G(c), B(c)]; var ccc = []; for (var i = 0; i < cc.length; i++) {ccc[i] = cc[i] / 255; ccc[i] = ccc[i] <= 0.03928 ? ccc[i] / 12.92 : Math.pow(((ccc[i] + 0.055 ) / 1.055), 2.4);} var L = 0.2126 * ccc[0] + 0.7152 * ccc[1] + 0.0722 * ccc[2]; if (L > 0.31) return n ? 50 : RGB(0, 0, 0); else return n ? 200 : RGB(255, 255, 255);}
     var set_custom_col = function(c, t) {if (!custom_col) return ""; try {var cc = "", col = []; col = c.split("-"); if (col.length != 3 && col.length != 4) return ""; switch (t) {case 0: cc = RGB(col[0], col[1], col[2]); break; case 1: switch (col.length) {case 3: cc = RGB(col[0], col[1], col[2]); break; case 4: cc = RGBA(col[0], col[1], col[2], col[3]); break;} break;} return cc;} catch(e) {return ""};}
     this.draw = function(gr) {if (this.bg) try {gr.FillSolidRect(0, 0, this.w, this.h, this.backcol)} catch(e) {}}
-    this.on_refresh_background_done = function(image) {if (!image || !custom_col || !window.IsTransparent || this.dui || !this.node_style) return; if (iconcol_c === "" && iconcol_e === "" && iconcol_h === "") return; this.icon_col(image.GetColorScheme(1).toArray()[0]);}
+    this.on_refresh_background_done = function(image) {if (!image || !custom_col || !window.IsTransparent || this.dui || !this.node_style) return; if (iconcol_c === "" && iconcol_e === "" && iconcol_h === "") return; this.icon_col(image.GetColourScheme(1).toArray()[0]);}
     this.outline = function(c, but) {if (but) {if (window.IsTransparent || R(c) + G(c) + B(c) > 30) return RGBA(0, 0, 0, 36); else return RGBA(255, 255, 255, 36);} else if (R(c) + G(c) + B(c) > 255 * 1.5) return RGB(30, 30, 10); else return RGB(225, 225, 245);}
     this.reset_colors = function () {iconcol_c = ""; iconcol_e = ""; iconcol_h = ""; this.backcol = ""; this.backcol_h = ""; this.backcolsel = ""; this.backcoltrans = ""; this.framecol = ""; this.iconcol_c = ""; this.iconcol_e = ""; this.iconcol_h = ""; this.linecol = ""; this.s_linecol = ""; this.searchcol = ""; this.textcol = ""; this.textcol_h = ""; this.textselcol = ""; this.txt_box = "";}
 
@@ -74,16 +74,16 @@ function userinterface() {
         this.backcoltrans = set_custom_col(window.GetProperty("_Custom.Colour Transparent Fill", ""), 1);
 
         if (this.dui) { // custom colour mapping: DUI colours can be remapped by changing the numbers (0-3)
-            if (this.textcol === "") this.textcol = window.GetColorDUI(0);
-            if (this.backcol === "") this.backcol = window.GetColorDUI(1);
-            if (this.textcol_h === "") this.textcol_h = window.GetColorDUI(2);
-            if (this.backcolsel === "") this.backcolsel = window.GetColorDUI(3);
+            if (this.textcol === "") this.textcol = window.GetColourDUI(0);
+            if (this.backcol === "") this.backcol = window.GetColourDUI(1);
+            if (this.textcol_h === "") this.textcol_h = window.GetColourDUI(2);
+            if (this.backcolsel === "") this.backcolsel = window.GetColourDUI(3);
         } else { // custom colour mapping: CUI colours can be remapped by changing the numbers (0-6)
-            if (this.textcol === "") this.textcol = window.GetColorCUI(0);
-            if (this.backcol === "") this.backcol = window.GetColorCUI(3);
-            if (this.textcol_h === "") this.textcol_h = window.GetColorCUI(2);
-            if (this.backcolsel === "") this.backcolsel = window.GetColorCUI(4);
-            if (this.textselcol === "") this.textselcol = window.GetColorCUI(1);
+            if (this.textcol === "") this.textcol = window.GetColourCUI(0);
+            if (this.backcol === "") this.backcol = window.GetColourCUI(3);
+            if (this.textcol_h === "") this.textcol_h = window.GetColourCUI(2);
+            if (this.backcolsel === "") this.backcolsel = window.GetColourCUI(4);
+            if (this.textselcol === "") this.textselcol = window.GetColourCUI(1);
         }
         if (this.backcol_h === "") this.backcol_h = 0x1E30AFED;
         if (s_linecol == 1 && window.IsTransparent && !this.dui) s_linecol = 0;

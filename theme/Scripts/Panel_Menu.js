@@ -47,7 +47,7 @@ g_properties.add_properties(
     }
 );
 
-(function check_modded_jscript_availability() {
+(function check_jscript_compatibility() {
     if (qwr_utils.has_modded_jscript()
         || (g_properties.incompatibility_notified && utils.Version === g_properties.incompatibility_version)) {
         return;
@@ -61,9 +61,6 @@ g_properties.add_properties(
     msg += '\nDisabled features:\n';
     msg += '    - Persistent window size for Full Mode and Playlist Mode.\n';
     msg += '    - Top Panel: dynamic button state for \'YouTube Video Toggle\' and \'Last.FM Scrobbling Toggle\' buttons.\n';
-    if (utils.Version >= 2000) {
-        msg += '    - Playlist: queue handling functionality.\n';
-    }
     msg += '\nSources for modded JScript are available at https://github.com/TheQwertiest/foo-jscript-panel\n';
     msg += '\nTo disable this warning set \'system.jscript_incompatibility.notified\' to \'true\' in Panel Properties (SHIFT-right-click on Menu Panel).\n';
 
@@ -108,12 +105,12 @@ var MoveStyle =
 var menu = new Menu();
 
 function on_paint(gr) {
-    trace_call && trace_on_paint && fb.trace(qwr_utils.function_name());
+    trace_call && trace_on_paint && console.log(qwr_utils.function_name());
     menu.on_paint(gr);
 }
 
 function on_size() {
-    trace_call && fb.trace(qwr_utils.function_name());
+    trace_call && console.log(qwr_utils.function_name());
     var ww = window.Width;
     var wh = window.Height;
 
@@ -126,42 +123,42 @@ function on_size() {
 }
 
 function on_mouse_move(x, y, m) {
-    trace_call && trace_on_move && fb.trace(qwr_utils.function_name());
+    trace_call && trace_on_move && console.log(qwr_utils.function_name());
     menu.on_mouse_move(x, y, m);
 }
 
 function on_mouse_lbtn_down(x, y, m) {
-    trace_call && fb.trace(qwr_utils.function_name());
+    trace_call && console.log(qwr_utils.function_name());
     menu.on_mouse_lbtn_down(x, y, m);
 }
 
 function on_mouse_lbtn_dblclk(x, y, m) {
-    trace_call && fb.trace(qwr_utils.function_name());
+    trace_call && console.log(qwr_utils.function_name());
     menu.on_mouse_lbtn_dblclk(x, y, m);
 }
 
 function on_mouse_lbtn_up(x, y, m) {
-    trace_call && fb.trace(qwr_utils.function_name());
+    trace_call && console.log(qwr_utils.function_name());
     menu.on_mouse_lbtn_up(x, y, m);
 }
 
 function on_mouse_leave() {
-    trace_call && fb.trace(qwr_utils.function_name());
+    trace_call && console.log(qwr_utils.function_name());
     menu.on_mouse_leave();
 }
 
 function on_mouse_rbtn_up(x, y) {
-    trace_call && fb.trace(qwr_utils.function_name());
+    trace_call && console.log(qwr_utils.function_name());
     return menu.on_mouse_rbtn_up(x, y);
 }
 
 function on_always_on_top_changed(state) {
-    trace_call && fb.trace(qwr_utils.function_name());
+    trace_call && console.log(qwr_utils.function_name());
     menu.on_always_on_top_changed(state);
 }
 
 function on_notify_data(name, info) {
-    trace_call && fb.trace(qwr_utils.function_name());
+    trace_call && console.log(qwr_utils.function_name());
     menu.on_notify_data(name, info);
 }
 
@@ -578,7 +575,7 @@ function Menu() {
                         }
                     }
                     catch (e) {
-                        fb.trace(e + ' Disable WSH safe mode');
+                        console.log(e + ' Disable WSH safe mode');
                     }
 
                     buttons.buttons.maximize.tiptext = (UIHacks.FullScreen || UIHacks.MainWindowState === WindowState.Maximized)

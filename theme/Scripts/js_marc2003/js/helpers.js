@@ -1143,13 +1143,6 @@ folders.artists = folders.data + "artists\\";
 folders.lastfm = folders.data + "lastfm\\";
 folders.docs = fb.ComponentPath + "docs\\";
 
-var console = {
-    pre: '',
-    log: function (text) {
-        fb.Trace(this.pre + text);
-    }
-};
-
 var guifx = {
     font:  'Guifx v2 Transports',
     up:    '.',

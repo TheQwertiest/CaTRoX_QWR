@@ -25,12 +25,12 @@ g_properties.add_properties(
 var ultra_mini = new UltraMini();
 
 function on_paint(gr) {
-    trace_on_paint && fb.trace(qwr_utils.function_name());
+    trace_on_paint && console.log(qwr_utils.function_name());
     ultra_mini.on_paint(gr);
 }
 
 function on_size() {
-    trace_call && fb.trace(qwr_utils.function_name());
+    trace_call && console.log(qwr_utils.function_name());
     var ww = window.Width;
     var wh = window.Height;
 
@@ -43,92 +43,92 @@ function on_size() {
 }
 
 function on_get_album_art_done(metadb, art_id, image, image_path) {
-    trace_call && fb.trace(qwr_utils.function_name());
+    trace_call && console.log(qwr_utils.function_name());
     ultra_mini.on_get_album_art_done(metadb, art_id, image, image_path);
 }
 
 function on_playlist_switch() {
-    trace_call && fb.trace(qwr_utils.function_name());
+    trace_call && console.log(qwr_utils.function_name());
     ultra_mini.on_playlist_switch();
 }
 
 function on_item_focus_change() {
-    trace_call && fb.trace(qwr_utils.function_name());
+    trace_call && console.log(qwr_utils.function_name());
     ultra_mini.on_item_focus_change();
 }
 
 function on_playback_starting(cmd, is_paused) {
-    trace_call && fb.trace(qwr_utils.function_name());
+    trace_call && console.log(qwr_utils.function_name());
     ultra_mini.on_playback_starting(cmd, is_paused);
 }
 
 function on_playback_new_track(metadb) {
-    trace_call && fb.trace(qwr_utils.function_name());
+    trace_call && console.log(qwr_utils.function_name());
     ultra_mini.on_playback_new_track(metadb);
 }
 
 function on_playback_pause(isPlaying) {
-    trace_call && fb.trace(qwr_utils.function_name());
+    trace_call && console.log(qwr_utils.function_name());
     ultra_mini.on_playback_pause(isPlaying);
 }
 
 function on_playback_dynamic_info_track() {
-    trace_call && fb.trace(qwr_utils.function_name());
+    trace_call && console.log(qwr_utils.function_name());
     ultra_mini.on_playback_dynamic_info_track();
 }
 
 function on_playback_stop(reason) {
-    trace_call && fb.trace(qwr_utils.function_name());
+    trace_call && console.log(qwr_utils.function_name());
     ultra_mini.on_playback_stop(reason);
 }
 
 function on_playback_seek() {
-    trace_call && fb.trace(qwr_utils.function_name());
+    trace_call && console.log(qwr_utils.function_name());
     ultra_mini.on_playback_seek();
 }
 
 function on_mouse_move(x, y, m) {
-    trace_on_move && fb.trace(qwr_utils.function_name());
+    trace_on_move && console.log(qwr_utils.function_name());
     ultra_mini.on_mouse_move(x, y, m);
 }
 
 function on_mouse_lbtn_down(x, y, m) {
-    trace_call && fb.trace(qwr_utils.function_name());
+    trace_call && console.log(qwr_utils.function_name());
     ultra_mini.on_mouse_lbtn_down(x, y, m);
 }
 
 function on_mouse_lbtn_up(x, y, m) {
-    trace_call && fb.trace(qwr_utils.function_name());
+    trace_call && console.log(qwr_utils.function_name());
     ultra_mini.on_mouse_lbtn_up(x, y, m);
 }
 
 function on_mouse_rbtn_up(x, y) {
-    trace_call && fb.trace(qwr_utils.function_name());
+    trace_call && console.log(qwr_utils.function_name());
     ultra_mini.on_mouse_rbtn_up(x, y);
 }
 
 function on_mouse_wheel(delta) {
-    trace_call && fb.trace(qwr_utils.function_name());
+    trace_call && console.log(qwr_utils.function_name());
     ultra_mini.on_mouse_wheel(delta);
 }
 
 function on_mouse_leave() {
-    trace_call && fb.trace(qwr_utils.function_name());
+    trace_call && console.log(qwr_utils.function_name());
     ultra_mini.on_mouse_leave();
 }
 
 function on_key_down(vkey) {
-    trace_call && fb.trace(qwr_utils.function_name());
+    trace_call && console.log(qwr_utils.function_name());
     ultra_mini.on_key_down(vkey);
 }
 
 function on_volume_change(val) {
-    trace_call && fb.trace(qwr_utils.function_name());
+    trace_call && console.log(qwr_utils.function_name());
     ultra_mini.on_volume_change(val);
 }
 
 function on_notify_data(name, info) {
-    trace_call && fb.trace(qwr_utils.function_name());
+    trace_call && console.log(qwr_utils.function_name());
     ultra_mini.on_notify_data(name, info);
 }
 

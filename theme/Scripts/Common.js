@@ -288,7 +288,7 @@ var qwr_utils = {
             }
         }
         catch (e) {
-            fb.trace(e)
+            console.log(e)
         }
     },
     DisableSizing: function (m) {
@@ -298,7 +298,7 @@ var qwr_utils = {
             }
         }
         catch (e) {
-            fb.trace(e)
+            console.log(e)
         }
     },
     caller: function () {

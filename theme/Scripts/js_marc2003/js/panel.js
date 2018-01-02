@@ -61,12 +61,12 @@ _.mixin({
 		
 		this.colours_changed = function () {
 			if (window.InstanceType) {
-				this.colours.background = window.GetColorDUI(1);
-				this.colours.text = window.GetColorDUI(0);
-				this.colours.highlight = window.GetColorDUI(2);
+				this.colours.background = window.GetColourDUI(1);
+				this.colours.text = window.GetColourDUI(0);
+				this.colours.highlight = window.GetColourDUI(2);
 			} else {
-				this.colours.background = window.GetColorCUI(3);
-				this.colours.text = window.GetColorCUI(0);
+				this.colours.background = window.GetColourCUI(3);
+				this.colours.text = window.GetColourCUI(0);
 				this.colours.highlight = _.blendColours(this.colours.text, this.colours.background, 0.4);
 			}
 			this.colours.header = this.colours.highlight & 0x45FFFFFF;
@@ -106,7 +106,7 @@ _.mixin({
 				var col = this.colours.background;
 				break;
 			case this.colours.mode.value == 1:
-				var col = utils.GetSysColor(15);
+				var col = utils.GetSysColour(15);
 				break;
 			case this.colours.mode.value == 2:
 				var col = this.colours.custom_background.value;
@@ -173,7 +173,7 @@ _.mixin({
 				window.Repaint();
 				break;
 			case idx == 103:
-				this.colours.custom_background.value = utils.ColorPicker(window.ID, this.colours.custom_background.value);
+				this.colours.custom_background.value = utils.ColourPicker(window.ID, this.colours.custom_background.value);
 				window.Repaint();
 				break;
 			case idx == 110:
@@ -211,8 +211,8 @@ _.mixin({
 		}
 		
                 window.DlgCode = DLGC_WANTALLKEYS;
-		console.pre = name + ': ';
-                this.name = name;
+
+        this.name = name;
 		this.features = features || [];
 		this.fonts = {};
 		this.colours = {};

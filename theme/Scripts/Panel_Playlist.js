@@ -57,7 +57,6 @@ g_properties.add_properties(
 
 var g_component_playcount = _.cc('foo_playcount');
 var g_component_utils = _.cc('foo_utils');
-var g_has_queue_functionality = qwr_utils.has_modded_jscript() || utils.Version < 2000;
 
 // Fixup properties
 (function() {
@@ -66,7 +65,6 @@ var g_has_queue_functionality = qwr_utils.has_modded_jscript() || utils.Version 
     g_properties.row_h = Math.max(10, g_properties.row_h);
     g_properties.show_rating = g_properties.show_rating && g_component_playcount;
     g_properties.show_playcount = g_properties.show_playcount && g_component_playcount;
-    g_properties.show_queue_position = g_properties.show_queue_position && g_has_queue_functionality;
 
     var group_query_list = JSON.parse(g_properties.group_query_list);
     if (!_.isArray(group_query_list) || !_.isArray(group_query_list[0])) {
@@ -132,13 +130,13 @@ Header.group_query_handler = new GroupQueryHandler();
 var playlist = new Playlist(0, 0);
 
 function on_paint(gr) {
-    trace_call && trace_on_paint && fb.trace(qwr_utils.function_name());
+    trace_call && trace_on_paint && console.log(qwr_utils.function_name());
 
     playlist.on_paint(gr);
 }
 
 function on_size() {
-    trace_call && fb.trace(qwr_utils.function_name());
+    trace_call && console.log(qwr_utils.function_name());
 
     var ww = window.Width;
     var wh = window.Height;
@@ -152,7 +150,7 @@ function on_size() {
 }
 
 function on_mouse_move(x, y, m) {
-    trace_call && trace_on_move && fb.trace(qwr_utils.function_name());
+    trace_call && trace_on_move && console.log(qwr_utils.function_name());
 
     qwr_utils.DisableSizing(m);
 
@@ -160,19 +158,19 @@ function on_mouse_move(x, y, m) {
 }
 
 function on_mouse_lbtn_down(x, y, m) {
-    trace_call && fb.trace(qwr_utils.function_name());
+    trace_call && console.log(qwr_utils.function_name());
 
     playlist.on_mouse_lbtn_down(x, y, m);
 }
 
 function on_mouse_lbtn_dblclk(x, y, m) {
-    trace_call && fb.trace(qwr_utils.function_name());
+    trace_call && console.log(qwr_utils.function_name());
 
     playlist.on_mouse_lbtn_dblclk(x, y, m);
 }
 
 function on_mouse_lbtn_up(x, y, m) {
-    trace_call && fb.trace(qwr_utils.function_name());
+    trace_call && console.log(qwr_utils.function_name());
 
     playlist.on_mouse_lbtn_up(x, y, m);
 
@@ -180,145 +178,145 @@ function on_mouse_lbtn_up(x, y, m) {
 }
 
 function on_mouse_rbtn_down(x, y, m) {
-    trace_call && fb.trace(qwr_utils.function_name());
+    trace_call && console.log(qwr_utils.function_name());
 
     playlist.on_mouse_rbtn_down(x, y, m);
 }
 
 function on_mouse_rbtn_up(x, y, m) {
-    trace_call && fb.trace(qwr_utils.function_name());
+    trace_call && console.log(qwr_utils.function_name());
 
     return playlist.on_mouse_rbtn_up(x, y, m);
 }
 
 function on_mouse_wheel(delta) {
-    trace_call && fb.trace(qwr_utils.function_name());
+    trace_call && console.log(qwr_utils.function_name());
 
     playlist.on_mouse_wheel(delta);
 }
 
 function on_mouse_leave() {
-    trace_call && fb.trace(qwr_utils.function_name());
+    trace_call && console.log(qwr_utils.function_name());
 
     playlist.on_mouse_leave();
 }
 
 function on_key_down(vkey) {
-    trace_call && fb.trace(qwr_utils.function_name());
+    trace_call && console.log(qwr_utils.function_name());
 
     playlist.on_key_down(vkey);
 }
 
 function on_key_up(vkey) {
-    trace_call && fb.trace(qwr_utils.function_name());
+    trace_call && console.log(qwr_utils.function_name());
 
     playlist.on_key_up(vkey);
 }
 
 function on_drag_enter(action, x, y, mask) {
-    trace_call && fb.trace(qwr_utils.function_name());
+    trace_call && console.log(qwr_utils.function_name());
 
     playlist.on_drag_enter(action, x, y, mask);
 }
 
 function on_drag_leave() {
-    trace_call && fb.trace(qwr_utils.function_name());
+    trace_call && console.log(qwr_utils.function_name());
 
     playlist.on_drag_leave();
 }
 
 function on_drag_drop(action, x, y, mask) {
-    trace_call && fb.trace(qwr_utils.function_name());
+    trace_call && console.log(qwr_utils.function_name());
 
     playlist.on_drag_drop(action, x, y, mask);
 }
 
 function on_drag_over(action, x, y, mask) {
-    trace_call && fb.trace(qwr_utils.function_name());
+    trace_call && console.log(qwr_utils.function_name());
 
     playlist.on_drag_over(action, x, y, mask);
 }
 
 function on_item_focus_change(playlist_arg, from, to) {
-    trace_call && fb.trace(qwr_utils.function_name());
+    trace_call && console.log(qwr_utils.function_name());
 
     playlist.on_item_focus_change(playlist_arg, from, to);
 }
 
 function on_playlists_changed() {
-    trace_call && fb.trace(qwr_utils.function_name());
+    trace_call && console.log(qwr_utils.function_name());
 
     playlist.on_playlists_changed();
 }
 
 function on_playlist_switch() {
-    trace_call && fb.trace(qwr_utils.function_name());
+    trace_call && console.log(qwr_utils.function_name());
 
     playlist.on_playlist_switch();
 }
 
 function on_playlist_items_reordered(playlistIndex) {
-    trace_call && fb.trace(qwr_utils.function_name());
+    trace_call && console.log(qwr_utils.function_name());
 
     playlist.on_playlist_items_reordered(playlistIndex);
 }
 
 function on_playlist_items_removed(playlistIndex) {
-    trace_call && fb.trace(qwr_utils.function_name());
+    trace_call && console.log(qwr_utils.function_name());
 
     playlist.on_playlist_modified(playlistIndex);
 }
 
 function on_playlist_items_added(playlistIndex) {
-    trace_call && fb.trace(qwr_utils.function_name());
+    trace_call && console.log(qwr_utils.function_name());
 
     playlist.on_playlist_items_added(playlistIndex);
 }
 
 function on_playlist_items_selection_change() {
-    trace_call && fb.trace(qwr_utils.function_name());
+    trace_call && console.log(qwr_utils.function_name());
 
     playlist.on_playlist_items_selection_change();
 }
 
 function on_playback_new_track(metadb) {
-    trace_call && fb.trace(qwr_utils.function_name());
+    trace_call && console.log(qwr_utils.function_name());
 
     playlist.on_playback_new_track(metadb);
 }
 
 function on_playback_queue_changed(origin) {
-    trace_call && fb.trace(qwr_utils.function_name());
+    trace_call && console.log(qwr_utils.function_name());
 
     playlist.on_playback_queue_changed(origin);
 }
 
 function on_playback_stop(reason) {
-    trace_call && fb.trace(qwr_utils.function_name());
+    trace_call && console.log(qwr_utils.function_name());
 
     playlist.on_playback_stop(reason);
 }
 
 function on_focus(is_focused) {
-    trace_call && fb.trace(qwr_utils.function_name());
+    trace_call && console.log(qwr_utils.function_name());
 
     playlist.on_focus(is_focused);
 }
 
 function on_metadb_changed(handles, fromhook) {
-    trace_call && fb.trace(qwr_utils.function_name());
+    trace_call && console.log(qwr_utils.function_name());
 
     playlist.on_metadb_changed(handles, fromhook);
 }
 
 function on_get_album_art_done(metadb, art_id, image, image_path) {
-    trace_call && fb.trace(qwr_utils.function_name());
+    trace_call && console.log(qwr_utils.function_name());
 
     playlist.on_get_album_art_done(metadb, art_id, image, image_path);
 }
 
 function on_notify_data(name, info) {
-    trace_call && fb.trace(qwr_utils.function_name());
+    trace_call && console.log(qwr_utils.function_name());
 
     playlist.on_notify_data(name, info);
 }
@@ -632,7 +630,7 @@ function Playlist(x, y) {
 
         if (!is_cur_playlist_empty) {
             cpm.AppendMenuItem(MF_STRING, 6, 'Refresh playlist \tF5');
-            if (g_properties.show_queue_position && plman.IsPlaybackQueueActive()) {
+            if (queue_handler && queue_handler.has_items()) {
                 cpm.AppendMenuItem(MF_STRING, 9, 'Flush playback queue \tCtrl+Shift+Q');
             }
         }
@@ -658,7 +656,7 @@ function Playlist(x, y) {
             cpm.AppendMenuSeparator();
             // -------------------------------------------------------------- //
             //---> Collapse/Expand
-            if ( g_properties.show_header) {
+            if (g_properties.show_header) {
                 ce.AppendMenuItem(MF_STRING, 20, 'Collapse all');
                 if (plman.ActivePlaylist === plman.PlayingPlaylist) {
                     ce.AppendMenuItem(MF_STRING, 21, 'Collapse all but now playing');
@@ -1530,7 +1528,7 @@ function Playlist(x, y) {
 
     // This method does not contain any redraw calls - it's purely back-end
     this.initialize_list = function () {
-        trace_call && fb.trace('initialize_list');
+        trace_call && console.log('initialize_list');
         cur_playlist_idx = plman.ActivePlaylist;
         var playlist_size = plman.PlaylistItemCount(cur_playlist_idx);
         var playlist_items = plman.GetPlaylistItems(cur_playlist_idx);
@@ -3641,8 +3639,8 @@ function QueueHandler(rows_arg, cur_playlist_idx_arg) {
             reset_queued_status();
         }
 
-        var queue_contents = plman.GetPlaybackQueueContents().toArray();
-        if (!queue_contents.length) {
+        var queue_contents = plman.GetPlaybackQueueHandles();
+        if (!queue_contents.Count) {
             return;
         }
 
@@ -3681,6 +3679,10 @@ function QueueHandler(rows_arg, cur_playlist_idx_arg) {
 
     this.flush = function(){
         plman.FlushPlaybackQueue();
+    };
+
+    this.has_items = function() {
+        return !!plman.GetPlaybackQueueHandles().Count;
     };
 
     function reset_queued_status() {
@@ -4077,9 +4079,6 @@ function GroupQueryHandler () {
     ];
     var query_map_by_name = queries.map(function(item) {
         return item.name;
-    });
-    var query_map_by_idx = queries.map(function(item) {
-        return item.idx;
     });
 
     /** @type {?number} */

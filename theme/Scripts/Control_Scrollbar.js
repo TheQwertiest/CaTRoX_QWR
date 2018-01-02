@@ -626,7 +626,7 @@ function ScrollBar(x, y, w, h, row_h, fn_redraw) {
 
                                 break;
                         }
-                        //fb.trace(i, item.state, item.hover_alpha , item.pressed_alpha , item.hot_alpha);
+                        //console.log(i, item.state, item.hover_alpha , item.pressed_alpha , item.hot_alpha);
                         //item.repaint();
                     });
 

@@ -54,16 +54,16 @@ function userinterface() {
         this.backcoltrans = set_custom_col(window.GetProperty("_Custom.Colour Transparent Fill", ""), 1);
 
         if (this.dui) { // custom colour mapping: DUI colours can be remapped by changing the numbers (0-3)
-            if (this.textcol === "") this.textcol = window.GetColorDUI(0);
-            if (this.backcol === "") this.backcol = window.GetColorDUI(1);
-            this.tcol_h = window.GetColorDUI(2);
-            if (this.backcolsel === "") this.backcolsel = window.GetColorDUI(3);
+            if (this.textcol === "") this.textcol = window.GetColourDUI(0);
+            if (this.backcol === "") this.backcol = window.GetColourDUI(1);
+            this.tcol_h = window.GetColourDUI(2);
+            if (this.backcolsel === "") this.backcolsel = window.GetColourDUI(3);
         } else { // custom colour mapping: CUI colours can be remapped by changing the numbers (0-6)
-            if (this.textcol === "") this.textcol = window.GetColorCUI(0);
-            if (this.backcol === "") this.backcol = window.GetColorCUI(3);
-            this.tcol_h = window.GetColorCUI(2);
-            if (this.backcolsel === "") this.backcolsel = window.GetColorCUI(4);
-            if (this.textselcol === "") this.textselcol = window.GetColorCUI(1);
+            if (this.textcol === "") this.textcol = window.GetColourCUI(0);
+            if (this.backcol === "") this.backcol = window.GetColourCUI(3);
+            this.tcol_h = window.GetColourCUI(2);
+            if (this.backcolsel === "") this.backcolsel = window.GetColourCUI(4);
+            if (this.textselcol === "") this.textselcol = window.GetColourCUI(1);
         }
         if (this.textcol_h === "") this.textcol_h = col_theme < 2 ? get_blend(!col_theme ? this.textcol : this.tcol_h, this.backcol == 0 ? 0xff000000 : this.backcol, !col_theme ? 0.8 : 0.875) : col_theme == 2 ? this.textcol : this.tcol_h;
         this.blend = get_blend(this.textcol_h, this.textcol, 0.5);
@@ -164,7 +164,7 @@ function panel_operations() {
     this.video_mode = this.f_yt_ok ? this.np_graphic && window.GetProperty("SYSTEM.Nowplaying Prefer Video Mode", false) : false;
     this.show_video = this.video_mode; this.show_images = this.np_graphic && !this.show_video ? true : false;
     this.text_auto = window.GetProperty(" Layout Auto Adjust", true)
-    this.trace = function(message) {var trace = true; if (trace) fb.trace("YouTube Track Manager: " + message);} // true enables fb.trace
+    this.trace = function(message) {var trace = true; if (trace) console.log("YouTube Track Manager: " + message);} // true enables console.log
     this.use_saved = window.GetProperty(" Radio Play Saved Stations", false);
     this.use_local = window.GetProperty("SYSTEM.Use Local", false);
     this.vid_chk = function() {if (this.np_graphic && !alb.show && !t.block() && this.video_mode) return; timer.reset(timer.vid, timer.vidi); if (this.vid_full_ctrl && this.eval("%video_popup_status%") == "visible") fb.RunMainMenuCommand("View/Visualizations/Video");}
