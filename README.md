@@ -19,7 +19,7 @@ See [Changelog](https://github.com/theqwertiest/CaTRoX_QWR/blob/master/CHANGELOG
 #### Included 3rd party scripts
  - YouTube Track Manager (Panel_YT.js): https://hydrogenaud.io/index.php/topic,105522.0.html by WilB.
  - Library Tree (Panel_Library.js): https://hydrogenaud.io/index.php/topic,110938.0.html by WilB.
- - Various samples from foo_jscript_panel: https://github.com/19379/foo-jscript-panel/tree/master/foo_jscript_panel/samples/complete/js by marc2003.
+ - Various samples from foo_jscript_panel: https://github.com/marc2k3/foo_jscript_panel/tree/master/foo_jscript_panel/samples/complete/js by marc2003.
 
 #### Credits
  - eXtremeHunter1972: original CaTRoX theme (http://extremehunter1972.deviantart.com/art/CaTRoX-1-April-2014-368146015).
