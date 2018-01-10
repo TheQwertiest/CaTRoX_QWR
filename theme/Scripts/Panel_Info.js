@@ -340,83 +340,86 @@ function TrackInfoList() {
             return scrollbar.rbtn_up(x, y);
         }
 
-        var is_info_empty = !rows.length;
-        var is_over_item = !!last_hover_item;
-
-        var cpm = window.CreatePopupMenu();
-        var track = window.CreatePopupMenu();
-        var appear = window.CreatePopupMenu();
-
-        var context_menu = [
-            cpm, track, appear
-        ];
-
-        plman.SetActivePlaylistContext();
-
-        if (!is_info_empty) {
-            cpm.AppendMenuItem(MF_STRING, 1, 'Refresh info \tF5');
-        }
-
-        track.AppendMenuItem(MF_STRING, 2, 'Automatic (current selection/playing item)');
-        track.AppendMenuItem(MF_STRING, 3, 'Playing item');
-        track.AppendMenuItem(MF_STRING, 4, 'Current selection');
-        track.CheckMenuRadioItem(2, 4, 1 + g_properties.track_mode);
-        track.AppendTo(cpm, MF_STRING, 'Displayed track');
-
         // TODO: add tag editing menu
         // TODO: add sort menu
+        // TODO: add option to hide file or meta info
 
-        cpm.AppendMenuSeparator();
+        var cmm = new ContextMainMenu();
+
+        cmm.append(new ContextItem(
+            'Refresh info \tF5',
+            _.bind(function () {
+                this.initialize_list();
+            }, this))
+        );
+
+        // -------------------------------------------------------------- //
+        //---> Track Mode
+
+        cmm.append_separator();
+
+        var track = new ContextMenu('Displayed track');
+        cmm.append(track);
+
+        track.append(new ContextItem(
+            'Automatic (current selection/playing item)',
+            _.bind(function () {
+                g_properties.track_mode = track_modes.auto;
+                this.initialize_list();
+            }, this))
+        );
+        track.append(new ContextItem(
+            'Playing item',
+            _.bind(function () {
+                g_properties.track_mode = track_modes.playing;
+                this.initialize_list();
+            }, this))
+        );
+        track.append(new ContextItem(
+            'Current selection',
+            _.bind(function () {
+                g_properties.track_mode = track_modes.selected;
+                this.initialize_list();
+            }, this))
+        );
+
+        track.radio_check(0, g_properties.track_mode - 1);
 
         // -------------------------------------------------------------- //
         //---> Appearance
 
-        appear.AppendTo(cpm, MF_STRING, 'Appearance');
-        appear.AppendMenuItem(MF_STRING, 5, 'Show scrollbar');
-        appear.CheckMenuItem(5, g_properties.show_scrollbar);
-        appear.AppendMenuItem(MF_STRING, 6, 'Alternate row color');
-        appear.CheckMenuItem(6, g_properties.alternate_row_color);
+        cmm.append_separator();
+
+        var appear = new ContextMenu('Appearance');
+        cmm.append(appear);
+
+        appear.append(new ContextItem(
+            'Show scrollbar',
+            function () {
+                g_properties.show_scrollbar = !g_properties.show_scrollbar;
+                on_scrollbar_visibility_change(g_properties.show_scrollbar);
+            },
+            {is_checked: g_properties.show_scrollbar})
+        );
+
+        appear.append(new ContextItem(
+            'Alternate row color',
+            function () {
+                g_properties.alternate_row_color = !g_properties.alternate_row_color;
+            },
+            {is_checked: g_properties.alternate_row_color})
+        );
 
         // -------------------------------------------------------------- //
         //---> System
         if (utils.IsKeyPressed(VK_SHIFT)) {
-            cpm.AppendMenuSeparator();
-            _.appendDefaultContextMenu(cpm);
+            cmm.append_separator();
+            qwr_utils.append_default_context_menu(cmm, scriptFolder + "Panel_Info.js");
         }
 
-        var id = cpm.TrackPopupMenu(x, y);
-        switch (id) {
-            case 1:
-                this.initialize_list();
-                break;
-            // -------------------------------------------------------------- //
-            //---> Tracking Mode
-            case 2:
-                g_properties.track_mode = track_modes.auto;
-                this.initialize_list();
-                break;
-            case 3:
-                g_properties.track_mode = track_modes.playing;
-                this.initialize_list();
-                break;
-            case 4:
-                g_properties.track_mode = track_modes.selected;
-                this.initialize_list();
-                break;
-            // -------------------------------------------------------------- //
-            //---> Appearance
-            case 5:
-                g_properties.show_scrollbar = !g_properties.show_scrollbar;
-                on_scrollbar_visibility_change(g_properties.show_scrollbar);
-                break;
-            case 6:
-                g_properties.alternate_row_color = !g_properties.alternate_row_color;
-                break;
-            default:
-                _.executeDefaultContextMenu(id, scriptFolder + 'Panel_Info.js');
-        }
+        cmm.execute(x, y);
 
-        _.dispose.apply(null,context_menu);
+        cmm.dispose();
 
         this.repaint();
         return true;
