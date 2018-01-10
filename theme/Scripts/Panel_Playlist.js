@@ -127,7 +127,7 @@ g_pl_colors.row_queued = _.RGBA(150, 150, 150, 0);
 // Called in Playlist constructor
 // TODO: consider hiding in Header constructor
 Header.group_query_handler = new GroupQueryHandler();
-var playlist = new Playlist(0, 0);
+var playlist = new Playlist();
 
 function on_paint(gr) {
     trace_call && trace_on_paint && console.log(qwr_utils.function_name());
@@ -321,7 +321,10 @@ function on_notify_data(name, info) {
     playlist.on_notify_data(name, info);
 }
 
-function Playlist(x, y) {
+/**
+ * @constructor
+ */
+function Playlist() {
     // public:
 
     /// callbacks
@@ -333,6 +336,10 @@ function Playlist(x, y) {
             _.forEachRight(items_to_draw, function (item) {
                 item.draw(gr);
             });
+
+            // Hide rows that shouldn't be visible
+            gr.FillSolidRect(this.x, this.y, this.w, list_y - this.y, g_pl_colors.background);
+            gr.FillSolidRect(this.x, list_y + list_h, this.w, (this.y + this.h) - (list_y + list_h), g_pl_colors.background);
         }
         else {
             var text;
@@ -704,9 +711,7 @@ function Playlist(x, y) {
             appear_row.CheckMenuItem(34, g_properties.show_focused_row);
             appear_row.AppendMenuItem(g_component_playcount ? MF_STRING : MF_GRAYED, 32, 'Show play count');
             appear_row.CheckMenuItem(32, g_properties.show_playcount);
-            if (g_has_queue_functionality) {
-                appear_row.AppendMenuItem(MF_STRING, 35, 'Show queue position');
-            }
+            appear_row.AppendMenuItem(MF_STRING, 35, 'Show queue position');
             appear_row.CheckMenuItem(35, g_properties.show_queue_position);
             appear_row.AppendMenuItem(g_component_playcount ? MF_STRING : MF_GRAYED, 33, 'Show rating');
             appear_row.CheckMenuItem(33, g_properties.show_rating);
@@ -1627,7 +1632,7 @@ function Playlist(x, y) {
             }
         });
 
-        if (total_height_in_rows <= Math.ceil(rows_to_draw_precise)) {
+        if (total_height_in_rows <= rows_to_draw_precise) {
             is_scrollbar_available = false;
             g_properties.scroll_pos = 0;
             on_scrollbar_visibility_change(false);
@@ -2160,8 +2165,8 @@ function Playlist(x, y) {
     }
 
     // public:
-    this.x = x;
-    this.y = y;
+    this.x = 0;
+    this.y = 0;
     this.w = 0;
     this.h = 0;
 
@@ -2182,7 +2187,7 @@ function Playlist(x, y) {
     var headers = [];
     var items_to_draw = [];
 
-    var list_x = x + g_properties.list_left_pad;
+    var list_x = /** @type {number} */ g_properties.list_left_pad;
     var list_y = 0;
     var list_w = 0;
     var list_h = 0;
