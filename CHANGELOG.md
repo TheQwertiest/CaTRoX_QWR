@@ -2,8 +2,11 @@
 
 ## [Unreleased]
 ### Added
-- Art Mode: title queries and title cycle interval can be configured now through Panel Properties.
 - Added compatibility fixes for vanilla JScript v2.0.0 component.
+
+## [4.0.5] - 2018-01-10
+### Added
+- Art Mode: title queries and title cycle interval can be configured now through Panel Properties.
 
 ### Changed
 - Art Mode: empty title text is skipped skipped now.
@@ -141,7 +144,8 @@ other than NoBorder.
 ### Fixed
 - Fixed various crashes caused by incompatibility with JScript.
 
-[Unreleased]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.0.4...HEAD
+[Unreleased]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.0.5...HEAD
+[4.0.5]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.0.4...v4.0.5
 [4.0.4]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.0.3...v4.0.4
 [4.0.3]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.0.2b...v4.0.3
 [4.0.2b]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.0.2a...v4.0.2b
