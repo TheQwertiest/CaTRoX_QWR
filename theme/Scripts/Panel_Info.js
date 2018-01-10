@@ -199,14 +199,15 @@ function TrackInfoList() {
         }
         else {
             var text;
-            if (!metadb) {
+            if (!cur_metadb) {
                 text = 'Track Info';
             }
             else {
                 text = 'No info to display';
             }
 
-            gr.DrawString(text, gdi.font('Segoe Ui', 16), _.RGB(80, 80, 80), this.x, this.y, this.w, this.h, g_string_format.align_center);
+            var track_info_format = g_string_format.align_center | g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
+            gr.DrawString(text, gdi.font('Segoe Ui Semibold', 24), _.RGB(70, 70, 70), this.x, this.y, this.w, this.h, track_info_format);
         }
 
         if (is_scrollbar_available) {
@@ -303,7 +304,10 @@ function TrackInfoList() {
             return;
         }
 
-        // TODO: azaza
+        if (!item.is_readonly) {
+            item.edit_metadata();
+            item.repaint();
+        }
     };
 
     this.on_mouse_lbtn_up = function (x, y, m) {
@@ -337,7 +341,7 @@ function TrackInfoList() {
         }
 
         var is_info_empty = !rows.length;
-        var is_over_item = false;
+        var is_over_item = !!last_hover_item;
 
         var cpm = window.CreatePopupMenu();
         var track = window.CreatePopupMenu();
@@ -495,34 +499,34 @@ function TrackInfoList() {
         if (cur_metadb) {
             var fileInfo = cur_metadb.GetFileInfo();
 
-            var name_text;
+            var tag_name;
             var value_text;
 
             for (var i = 0; i < fileInfo.MetaCount; i++) {
-                var metaName = fileInfo.MetaName(i);
+                var is_readonly;
 
-                if (metaName === 'title' && (fb.IsPlaying && _.startsWith(cur_metadb.RawPath, 'http://'))) {
+                tag_name = fileInfo.MetaName(i);
+                if (tag_name === 'title' && (fb.IsPlaying && _.startsWith(cur_metadb.RawPath, 'http://'))) {
                     value_text = fb.TitleFormat('%title%').Eval();
+                    is_readonly = true;
                 }
                 else {
-                    value_text = fileInfo.MetaValue(fileInfo.MetaFind(metaName), 0);
+                    value_text = fileInfo.MetaValue(fileInfo.MetaFind(tag_name), 0);
+                    is_readonly = _.startsWith(_.tf('%path%', this.metadb), 'http');
                 }
 
-                name_text = [((metaName === 'www') ? metaName : _.capitalize(metaName.toLowerCase()) + ':')];
-
-                rows.push(new Row(list_x, 0, list_w, row_h, name_text, value_text));
-                rows[i].is_odd = (i + 1) % 2;
+                rows.push(new Row(list_x, 0, list_w, row_h, cur_metadb, tag_name, value_text));
+                _.last(rows).is_odd = (i + 1) % 2;
+                _.last(rows).is_readonly = is_readonly;
             }
 
             var cur_rows_count = rows.length;
             for (var i = 0; i < fileInfo.InfoCount; i++) {
-                var infoName = fileInfo.InfoName(i);
+                tag_name = fileInfo.InfoName(i);
+                value_text = fileInfo.InfoValue(fileInfo.InfoFind(tag_name));
 
-                name_text = _.capitalize(infoName.toLowerCase()) + ':';
-                value_text = fileInfo.InfoValue(fileInfo.InfoFind(infoName));
-
-                rows.push(new Row(list_x, 0, list_w, row_h, name_text, value_text));
-                rows[cur_rows_count + i].is_odd = ((cur_rows_count + i) + 1) % 2;
+                rows.push(new Row(list_x, 0, list_w, row_h, cur_metadb, tag_name, value_text));
+                _.last(rows).is_odd = ((cur_rows_count + i) + 1) % 2;
             }
         }
 
@@ -867,10 +871,6 @@ function TrackInfoList() {
 
     // Playback state
     var cur_metadb = undefined;
-    /** @type {?number} */
-    var cur_playlist_idx = undefined;
-    var playing_item = undefined;
-    var focused_item = undefined;
 
     // Mouse and key state
     var mouse_in = false;
@@ -888,9 +888,6 @@ function TrackInfoList() {
     var is_scrollbar_visible = g_properties.show_scrollbar;
     var is_scrollbar_available = false;
 
-    // Objects
-    var selection_handler = undefined;
-
     /** @type {?ScrollBar} */
     var scrollbar = undefined;
     
@@ -900,7 +897,7 @@ function TrackInfoList() {
 /**
  * @constructor
  */
-function Row(x, y, w, h, name_text_arg, value_text_arg) {
+function Row(x, y, w, h, metadb_arg, tag_name_arg, value_text_arg) {
     //public:
     this.draw = function (gr) {
         gr.FillSolidRect(this.x, this.y, this.w, this.h, g_tr_i_colors.background);
@@ -915,6 +912,7 @@ function Row(x, y, w, h, name_text_arg, value_text_arg) {
         var cur_x = this.x + p;
 
         {
+            var name_text = /** @type{string} */ [((tag_name === 'www') ? tag_name : _.capitalize(tag_name.toLowerCase()) + ':')];
             var name_text_w = Math.ceil(/** @type{number} */ gr.MeasureString(name_text, g_tr_i_fonts.info_name, 0, 0, 0, 0).Width) + 5;
             gr.DrawString(name_text, g_tr_i_fonts.info_name, g_tr_i_colors.info_name, cur_x, this.y, name_text_w, this.h, info_text_format);
 
@@ -946,10 +944,26 @@ function Row(x, y, w, h, name_text_arg, value_text_arg) {
         this.w = w;
     };
 
+    this.edit_metadata = function() {
+        var new_value = _.input2('Enter new ' + tag_name + ' value', 'Change metadata value', value_text);
+        if (!_.isNil(new_value)) {
+            value_text = new_value;
+
+            var handle = fb.CreateHandleList();
+            handle.Add(metadb);
+
+            var meta_obj = {};
+            meta_obj[tag_name] = value_text;
+            handle.UpdateFileInfoFromJSON(JSON.stringify(meta_obj));
+        }
+    };
+
     //public:
+    var metadb = metadb_arg;
 
     //const after creation
     this.is_odd = false;
+    this.is_readonly = true;
 
     this.x = x;
     this.y = y;
@@ -959,7 +973,7 @@ function Row(x, y, w, h, name_text_arg, value_text_arg) {
     //private:
 
     /** @type {string} */
-    var name_text = name_text_arg;
+    var tag_name = tag_name_arg;
     /** @type {string} */
     var value_text = value_text_arg;
 }
