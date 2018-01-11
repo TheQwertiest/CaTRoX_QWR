@@ -864,13 +864,18 @@ _.tt_handler.tt_timer = new function () {
     this.start = function (id, text) {
         tt_caller = id;
 
-        this.force_stop(); /// < There can be only one tooltip present at all times, so we can kill the timer w/o any worries
+        if (!tooltip_timer && tooltip.Text) {
+            _.tt(text);
+        }
+        else {
+            this.force_stop(); /// < There can be only one tooltip present at all times, so we can kill the timer w/o any worries
 
-        if (!tooltip_timer) {
-            tooltip_timer = window.SetTimeout(_.bind(function () {
-                _.tt(text);
-                tooltip_timer = null;
-            }, this), 500);
+            if (!tooltip_timer) {
+                tooltip_timer = window.SetTimeout(_.bind(function () {
+                    _.tt(text);
+                    tooltip_timer = null;
+                }, this), 500);
+            }
         }
     };
 
