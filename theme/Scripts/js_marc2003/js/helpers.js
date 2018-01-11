@@ -73,21 +73,6 @@ _.mixin({
         var items = items_arg;
         var hover_predicate = hover_predicate_arg;
     },
-    appendDefaultContextMenu:  function (cpm) {
-        if (!cpm) {
-            return;
-        }
-
-        var start_idx = 500;
-
-        cpm.AppendMenuItem(MF_STRING, start_idx, "Console");
-        cpm.AppendMenuItem(MF_STRING, start_idx + 1, "Restart");
-        cpm.AppendMenuItem(MF_STRING, start_idx + 2, "Preferences...");
-        cpm.AppendMenuSeparator();
-        cpm.AppendMenuItem(MF_STRING, start_idx + 3, "Configure script...");
-        cpm.AppendMenuItem(MF_STRING, start_idx + 4, "Configure...");
-        cpm.AppendMenuItem(MF_STRING, start_idx + 5, "Panel Properties...");
-    },
     artistFolder:              function (artist) {
         var a = _.fbSanitise(artist);
         var folder = folders.artists + a;
@@ -367,41 +352,6 @@ _.mixin({
     },
     drawOverlay:               function (gr, x, y, w, h) {
         gr.FillGradRect(x, y, w, h, 90, _.RGBA(0, 0, 0, 230), _.RGBA(0, 0, 0, 200));
-    },
-    executeDefaultContextMenu: function (idx, scriptPath) {
-        var start_idx = 500;
-
-        var true_idx = idx - start_idx;
-        if (true_idx < 0) {
-            return false;
-        }
-
-        switch (true_idx) {
-            case 0:
-                fb.ShowConsole();
-                return true;
-            case 1:
-                fb.RunMainMenuCommand("File/Restart");
-                return true;
-            case 2:
-                fb.RunMainMenuCommand("File/Preferences");
-                return true;
-            case 3:
-                if (scriptPath) {
-                    if (!_.runCmd("notepad++.exe " + scriptPath)) {
-                        _.runCmd("notepad.exe " + scriptPath);
-                    }
-                }
-                return true;
-            case 4:
-                window.ShowConfigure();
-                return true;
-            case 5:
-                window.ShowProperties();
-                return true;
-        }
-
-        return false;
     },
     explorer:                  function (file) {
         if (_.isFile(file)) {
