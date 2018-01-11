@@ -346,7 +346,7 @@ function TrackInfoList() {
         // TODO: add sort menu
         // TODO: add option to hide file or meta info
 
-        var cmm = new ContextMainMenu();
+        var cmm = new Context.MainMenu();
 
         cmm.append_item(
             'Refresh info \tF5',
@@ -359,7 +359,7 @@ function TrackInfoList() {
 
         cmm.append_separator();
 
-        var track = new ContextMenu('Displayed track');
+        var track = new Context.Menu('Displayed track');
         cmm.append(track);
 
         track.append_item(
@@ -390,7 +390,7 @@ function TrackInfoList() {
 
         cmm.append_separator();
 
-        var appear = new ContextMenu('Appearance');
+        var appear = new Context.Menu('Appearance');
         cmm.append(appear);
 
         appear.append_item(

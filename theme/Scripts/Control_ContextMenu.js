@@ -1,17 +1,20 @@
 // ==PREPROCESSOR==
-// @name 'ContextMenu Control'
+// @name 'Context.Menu Control'
 // @author 'TheQwertiest'
 // ==/PREPROCESSOR==
 
 g_script_list.push('Control_ContextMenu.js');
 
+/** @namespace */
+var Context = {};
+
 /**
  * @final
  * @constructor
- * @extends {ContextMenu}
+ * @extends {Context.Menu}
  */
-function ContextMainMenu() {
-    ContextMenu.call(this, '');
+Context.MainMenu = function() {
+    Context.Menu.call(this, '');
 
     // public:
 
@@ -35,9 +38,9 @@ function ContextMainMenu() {
 
         return this.execute_menu(idx);
     };
-}
-ContextMainMenu.prototype = Object.create(ContextMenu.prototype);
-ContextMainMenu.prototype.constructor = ContextMainMenu;
+};
+Context.MainMenu.prototype = Object.create(Context.Menu.prototype);
+Context.MainMenu.prototype.constructor = Context.MainMenu;
 
 /**
  * @param{string} text_arg
@@ -45,19 +48,19 @@ ContextMainMenu.prototype.constructor = ContextMainMenu;
  * @param{boolean=} [optional_args.is_grayed_out=false]
  * @param{boolean=} [optional_args.is_checked=false]
  * @constructor
- * @extends {ContextBaseItem}
+ * @extends {Context.BaseObject}
  */
-function ContextMenu(text_arg, optional_args) {
-    ContextBaseItem.call(this, text_arg);
+Context.Menu = function (text_arg, optional_args) {
+    Context.BaseObject.call(this, text_arg);
 
     // public:
 
     /**
-     * @param{ContextBaseItem} item
+     * @param{Context.BaseObject} item
      */
     this.append = function (item) {
-        if (!(item instanceof ContextBaseItem)) {
-            throw new TypeError('context_item', typeof item, 'instanceof ContextBaseItem');
+        if (!(item instanceof Context.BaseObject)) {
+            throw new TypeError('context_item', typeof item, 'instanceof Context.BaseObject');
         }
 
         this.menu_items.push(item);
@@ -72,11 +75,11 @@ function ContextMenu(text_arg, optional_args) {
      * @param{boolean=} [optional_args.is_radio_checked=false]
      */
     this.append_item = function (text_arg, callback_fn_arg, optional_args) {
-        this.append(new ContextItem(text_arg, callback_fn_arg, optional_args));
+        this.append(new Context.Item(text_arg, callback_fn_arg, optional_args));
     };
 
     this.append_separator = function () {
-        this.append(new ContextMenuSeparator());
+        this.append(new Context.Separator());
     };
 
     /**
@@ -142,7 +145,7 @@ function ContextMenu(text_arg, optional_args) {
     };
 
     /**
-     * @param{ContextMenu} parent_menu
+     * @param{Context.Menu} parent_menu
      * @protected
      */
     this.initialize_menu = function (parent_menu) {
@@ -171,7 +174,7 @@ function ContextMenu(text_arg, optional_args) {
     };
 
     /** @const{string} */
-    this.type = 'ContextMenu';
+    this.type = 'Context.Menu';
 
     /** @const{boolean} */
     var is_grayed_out = !!(optional_args && optional_args.is_grayed_out);
@@ -181,9 +184,10 @@ function ContextMenu(text_arg, optional_args) {
 
     /** @protected */
     this.cm = window.CreatePopupMenu();
-}
-ContextMenu.prototype = Object.create(ContextBaseItem.prototype);
-ContextMenu.prototype.constructor = ContextMenu;
+};
+
+Context.Menu.prototype = Object.create(Context.BaseObject.prototype);
+Context.Menu.prototype.constructor = Context.Menu;
 
 /**
  * @param{string} text_arg
@@ -193,11 +197,11 @@ ContextMenu.prototype.constructor = ContextMenu;
  * @param{boolean=} [optional_args.is_checked=false]
  * @param{boolean=} [optional_args.is_radio_checked=false]
  * @constructor
- * @extends {ContextBaseItem}
+ * @extends {Context.BaseObject}
  */
 
-function ContextItem(text_arg, callback_fn_arg, optional_args) {
-    ContextBaseItem.call(this, text_arg);
+Context.Item = function(text_arg, callback_fn_arg, optional_args) {
+    Context.BaseObject.call(this, text_arg);
 
     // public:
 
@@ -228,7 +232,7 @@ function ContextItem(text_arg, callback_fn_arg, optional_args) {
     };
 
     /**
-     * @param{ContextMenu} parent_menu
+     * @param{Context.Menu} parent_menu
      * @protected
      */
     this.initialize_menu = function(parent_menu) {
@@ -258,7 +262,7 @@ function ContextItem(text_arg, callback_fn_arg, optional_args) {
     // const
 
     /** @const{string} */
-    this.type = 'ContextItem';
+    this.type = 'Context.Item';
 
     // const
 
@@ -270,16 +274,16 @@ function ContextItem(text_arg, callback_fn_arg, optional_args) {
 
     var is_checked = !!(optional_args && optional_args.is_checked);
     var is_radio_checked = !!(optional_args && optional_args.is_radio_checked);
-}
-ContextItem.prototype = Object.create(ContextBaseItem.prototype);
-ContextItem.prototype.constructor = ContextItem;
+};
+Context.Item.prototype = Object.create(Context.BaseObject.prototype);
+Context.Item.prototype.constructor = Context.Item;
 
 /**
  * @constructor
- * @extends {ContextBaseItem}
+ * @extends {Context.BaseObject}
  */
-function ContextMenuSeparator() {
-    ContextBaseItem.call(this, '');
+Context.Separator = function () {
+    Context.BaseObject.call(this, '');
 
     /**
      * @param{number} start_idx
@@ -292,7 +296,7 @@ function ContextMenuSeparator() {
     };
 
     /**
-     * @param{ContextMenu} parent_menu
+     * @param{Context.Menu} parent_menu
      * @protected
      */
     this.initialize_menu = function(parent_menu) {
@@ -309,18 +313,18 @@ function ContextMenuSeparator() {
     };
 
     /** @const{string} */
-    this.type = 'ContextMenuSeparator';
-}
-ContextMenuSeparator.prototype = Object.create(ContextBaseItem.prototype);
-ContextMenuSeparator.prototype.constructor = ContextMenuSeparator;
+    this.type = 'Context.Separator';
+};
+Context.Separator.prototype = Object.create(Context.BaseObject.prototype);
+Context.Separator.prototype.constructor = Context.Separator;
 
 /**
  * @param {IFbMetadbHandleList} metadb_handles_arg
  * @constructor
- * @extends {ContextBaseItem}
+ * @extends {Context.BaseObject}
  */
-function ContextFoobarMenu(metadb_handles_arg) {
-    ContextBaseItem.call(this, '');
+Context.FoobarMenu = function (metadb_handles_arg) {
+    Context.BaseObject.call(this, '');
 
     this.dispose = function() {
         this.cm.Dispose();
@@ -338,7 +342,7 @@ function ContextFoobarMenu(metadb_handles_arg) {
     };
 
     /**
-     * @param{ContextMenu} parent_menu
+     * @param{Context.Menu} parent_menu
      * @protected
      */
     this.initialize_menu = function(parent_menu) {
@@ -356,21 +360,21 @@ function ContextFoobarMenu(metadb_handles_arg) {
     };
 
     /** @const{string} */
-    this.type = 'ContextFoobarMenu';
+    this.type = 'Context.FoobarMenu';
 
     /** @private{IContextMenuManager} */
     this.cm = fb.CreateContextMenuManager();
 
     var metadb_handles = metadb_handles_arg;
-}
-ContextFoobarMenu.prototype = Object.create(ContextBaseItem.prototype);
-ContextFoobarMenu.prototype.constructor = ContextFoobarMenu;
+};
+Context.FoobarMenu.prototype = Object.create(Context.BaseObject.prototype);
+Context.FoobarMenu.prototype.constructor = Context.FoobarMenu;
 
 /**
  * @param{string} text_arg
  * @constructor
  */
-function ContextBaseItem(text_arg) {
+Context.BaseObject = function (text_arg) {
 
     /**
      * @param{number} start_idx
@@ -383,7 +387,7 @@ function ContextBaseItem(text_arg) {
     };
 
     /**
-     * @param{ContextMenu} parent_menu
+     * @param{Context.Menu} parent_menu
      * @protected
      * @abstract
      */
@@ -408,11 +412,11 @@ function ContextBaseItem(text_arg) {
 
     /** @type{?number} */
     this.idx = undefined;
-}
+};
 
 _.mixin(qwr_utils, {
     /**
-     * @param {ContextMenu} cm
+     * @param {Context.Menu} cm
      */
     append_default_context_menu_to: function (cm) {
         if (!cm) {
@@ -443,7 +447,7 @@ _.mixin(qwr_utils, {
 
         cm.append_separator();
 
-        var edit = new ContextMenu('Edit panel scripts');
+        var edit = new Context.Menu('Edit panel scripts');
         cm.append(edit);
 
         var edit_fn = function (script_filename) {

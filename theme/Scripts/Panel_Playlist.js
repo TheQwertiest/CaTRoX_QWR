@@ -616,7 +616,7 @@ function Playlist() {
 
         plman.SetActivePlaylistContext();
 
-        var cmm = new ContextMainMenu();
+        var cmm = new Context.MainMenu();
 
         if (fb.IsPlaying) {
             cmm.append_item(
@@ -701,7 +701,7 @@ function Playlist() {
             //---> Collapse/Expand
 
             if (g_properties.show_header) {
-                var ce = new ContextMenu('Collapse/Expand');
+                var ce = new Context.Menu('Collapse/Expand');
                 cmm.append(ce);
 
                 ce.append_item(
@@ -763,7 +763,7 @@ function Playlist() {
             // -------------------------------------------------------------- //
             //---> Appearance
 
-            var appear = new ContextMenu('Appearance');
+            var appear = new Context.Menu('Appearance');
             cmm.append(appear);
 
             appear.append_item(
@@ -798,7 +798,7 @@ function Playlist() {
             );
 
             if (g_properties.show_header) {
-                var appear_header = new ContextMenu('Headers');
+                var appear_header = new Context.Menu('Headers');
                 appear.append(appear_header);
 
                 appear_header.append_item(
@@ -821,7 +821,7 @@ function Playlist() {
                         {is_checked: g_properties.show_group_info}
                     );
 
-                    var art = new ContextMenu('Album art');
+                    var art = new Context.Menu('Album art');
                     appear_header.append(art);
 
                     art.append_item(
@@ -851,7 +851,7 @@ function Playlist() {
                 }
             }
 
-            var appear_row = new ContextMenu('Rows');
+            var appear_row = new Context.Menu('Rows');
             appear.append(appear_row);
 
             appear_row.append_item(
@@ -912,7 +912,7 @@ function Playlist() {
             // Selection
 
             //---> Sort
-            var sort = new ContextMenu(
+            var sort = new Context.Menu(
                 has_multiple_selected_items ? 'Sort selection' : 'Sort',
                 {is_grayed_out: is_auto_playlist}
             );
@@ -1025,7 +1025,7 @@ function Playlist() {
             // -------------------------------------------------------------- //
             //---> Web links
 
-            var web = new ContextMenu('Weblinks');
+            var web = new Context.Menu('Weblinks');
             cmm.append(web);
 
             web.append_item(
@@ -1081,7 +1081,7 @@ function Playlist() {
             //---> Send
 
             if (has_selected_item) {
-                var send = new ContextMenu('Send selection');
+                var send = new Context.Menu('Send selection');
                 cmm.append(send);
 
                 send.append_item(
@@ -1143,7 +1143,7 @@ function Playlist() {
                 cmm.append_separator();
             }
 
-            var ccmm = new ContextFoobarMenu(plman.GetPlaylistSelectedItems(cur_playlist_idx));
+            var ccmm = new Context.FoobarMenu(plman.GetPlaylistSelectedItems(cur_playlist_idx));
             cmm.append(ccmm);
         }
 
@@ -3957,17 +3957,15 @@ function PlaylistInfo(x, y, w, h) {
     };
 
     this.on_mouse_rbtn_up = function (x, y, m) {
-        if (!this.trace(x, y)) {
+        if (!this.trace(x, y) || !utils.IsKeyPressed(VK_SHIFT)) {
             return true;
         }
 
-        var cpm = window.CreatePopupMenu();
-        if (utils.IsKeyPressed(VK_SHIFT)) {
-            _.appendDefaultContextMenu(cpm);
-        }
+        var cmm = new Context.MainMenu();
+        qwr_utils.append_default_context_menu_to(cmm);
 
-        var id = cpm.TrackPopupMenu(x, y);
-        _.executeDefaultContextMenu(id, scriptFolder + 'Panel_Playlist.js');
+        cmm.execute(x,y);
+        cmm.dispose();
 
         return true;
     };
@@ -4055,7 +4053,7 @@ function GroupQueryHandler () {
     };
 
     this.append_menu_to = function (parent_menu, on_execute_callback_fn) {
-        var group = new ContextMenu('Grouping');
+        var group = new Context.Menu('Grouping');
         parent_menu.append(group);
 
         var group_by_text = 'by...';
