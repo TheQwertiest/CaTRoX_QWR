@@ -102,25 +102,16 @@ function on_key_down(vkey) {
 }
 
 function on_mouse_rbtn_up(x, y) {
-    var cpm = window.CreatePopupMenu();
+    var cmm = new Context.MainMenu();
 
-    artModule.append_menu(cpm);
+    artModule.append_menu_to(cmm);
 
     if (utils.IsKeyPressed(VK_SHIFT)) {
-        cpm.AppendMenuSeparator();
-        _.appendDefaultContextMenu(cpm);
+        qwr_utils.append_default_context_menu_to(cmm);
     }
 
-    var id = cpm.TrackPopupMenu(x, y);
-
-    if (!artModule.execute_menu(id)) {
-        switch (id) {
-            default:
-                _.executeDefaultContextMenu(id, scriptFolder + 'Panel_Cover.js');
-        }
-    }
-
-    _.dispose(cpm);
+    cmm.execute(x,y);
+    cmm.dispose();
 
     return true;
 }

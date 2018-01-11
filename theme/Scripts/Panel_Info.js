@@ -146,7 +146,7 @@ function on_playlists_changed() {
 function on_playlist_switch() {
     trace_call && console.log(qwr_utils.function_name());
 
-    track_info.on_playlist_switch();
+    //track_info.on_playlist_switch();
 }
 
 function on_playback_new_track(metadb) {

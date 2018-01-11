@@ -275,97 +275,122 @@ function Menu() {
     };
 
     this.on_mouse_rbtn_up = function (x, y, m) {
-        var cpm = window.CreatePopupMenu();
-        var frame = window.CreatePopupMenu();
+        var cmm = new Context.MainMenu();
 
-        frame.AppendMenuItem(MF_STRING, 1, 'Default');
-        frame.AppendMenuItem(MF_STRING, 2, 'Small caption');
-        frame.AppendMenuItem(MF_STRING, 3, 'No caption');
-        frame.AppendMenuItem(MF_STRING, 4, 'No border');
-        frame.CheckMenuRadioItem(1, 4, UIHacks.FrameStyle + 1);
-        if (UIHacks.FrameStyle === FrameStyle.NoBorder && UIHacks.Aero.Active) {
-            frame.AppendMenuSeparator();
-            frame.AppendMenuItem(MF_STRING, 5, 'Show window shadow');
-            frame.CheckMenuItem(5, g_properties.show_window_shadow);
-        }
-        frame.AppendTo(cpm, MF_STRING, 'Frame style');
+        var frame = new Context.Menu('Frame style');
+        cmm.append(frame);
 
-        if (UIHacks.FrameStyle !== FrameStyle.Default) {
-            cpm.AppendMenuSeparator();
-            cpm.AppendMenuItem(MF_STRING, 6, 'Maximize button -> to fullscreen');
-        }
-        cpm.CheckMenuItem(6, g_properties.maximize_to_fullscreen);
-        cpm.AppendMenuSeparator();
-
-        cpm.AppendMenuItem(MF_STRING, 7, 'Show foobar version');
-        cpm.CheckMenuItem(7, g_properties.show_fb2k_version);
-
-        cpm.AppendMenuItem(MF_STRING, 8, 'Show theme version');
-        cpm.CheckMenuItem(8, g_properties.show_theme_version);
-
-        cpm.AppendMenuItem(MF_STRING, 9, 'Show button tooltips');
-        cpm.CheckMenuItem(9, g_properties.show_tooltips);
-
-        if (utils.IsKeyPressed(VK_SHIFT)) {
-            cpm.AppendMenuSeparator();
-            cpm.AppendMenuItem(MF_STRING, 99, 'Show CPU usage');
-            cpm.CheckMenuItem(99, g_properties.show_cpu_usage);
-            _.appendDefaultContextMenu(cpm);
-        }
-
-        var id = cpm.TrackPopupMenu(x, y);
-
-        switch (id) {
-            case 1:
+        frame.append_item(
+            'Default',
+            _.bind(function () {
                 frame_handler.change_style(FrameStyle.Default);
                 create_buttons(this.x, this.y, this.w, this.h);
-                break;
-            case 2:
+            }, this)
+        );
+
+        frame.append_item(
+            'Small caption',
+            _.bind(function () {
                 frame_handler.change_style(FrameStyle.SmallCaption);
                 create_buttons(this.x, this.y, this.w, this.h);
-                break;
-            case 3:
+            }, this)
+        );
+
+        frame.append_item(
+            'No caption',
+            _.bind(function () {
                 frame_handler.change_style(FrameStyle.NoCaption);
                 create_buttons(this.x, this.y, this.w, this.h);
                 frame_handler.set_caption(left_pad, this.y, right_pad - left_pad, this.h);
-                break;
-            case 4:
+            }, this)
+        );
+
+        frame.append_item(
+            'No border',
+            _.bind(function () {
                 frame_handler.change_style(FrameStyle.NoBorder);
                 create_buttons(this.x, this.y, this.w, this.h);
                 frame_handler.set_caption(left_pad, this.y, right_pad - left_pad, this.h);
-                break;
-            case 5:
-                g_properties.show_window_shadow = !g_properties.show_window_shadow;
-                frame_handler.toggle_shadow(g_properties.show_window_shadow);
-                break;
-            case 6:
-                g_properties.maximize_to_fullscreen = !g_properties.maximize_to_fullscreen;
-                break;
-            case 7:
+            }, this)
+        );
+
+        frame.radio_check(0, UIHacks.FrameStyle);
+
+        if (UIHacks.FrameStyle === FrameStyle.NoBorder && UIHacks.Aero.Active) {
+            frame.append_separator();
+
+            frame.append_item(
+                'Show window shadow',
+                function () {
+                    g_properties.show_window_shadow = !g_properties.show_window_shadow;
+                    frame_handler.toggle_shadow(g_properties.show_window_shadow);
+                },
+                {is_checked: g_properties.show_window_shadow}
+            );
+        }
+
+        if (UIHacks.FrameStyle !== FrameStyle.Default) {
+            cmm.append_separator();
+
+            cmm.append_item(
+                'Maximize button -> to fullscreen',
+                function () {
+                    g_properties.maximize_to_fullscreen = !g_properties.maximize_to_fullscreen;
+                },
+                {is_checked: g_properties.maximize_to_fullscreen}
+            );
+        }
+
+        cmm.append_separator();
+
+        cmm.append_item(
+            'Show foobar version',
+            function () {
                 g_properties.show_fb2k_version = !g_properties.show_fb2k_version;
-                break;
-            case 8:
+            },
+            {is_checked: g_properties.show_fb2k_version}
+        );
+
+        cmm.append_item(
+            'Show theme version',
+            function () {
                 g_properties.show_theme_version = !g_properties.show_theme_version;
-                break;
-            case 9:
+            },
+            {is_checked: g_properties.show_theme_version}
+        );
+
+        cmm.append_item(
+            'Show button tooltips',
+            function () {
                 g_properties.show_tooltips = !g_properties.show_tooltips;
                 buttons.show_tt = g_properties.show_tooltips;
                 window.NotifyOthers('show_tooltips', g_properties.show_tooltips);
-                break;
-            case 99:
-                g_properties.show_cpu_usage = !g_properties.show_cpu_usage;
-                if (g_properties.show_cpu_usage) {
-                    cpu_usage_tracker.start();
-                }
-                else {
-                    cpu_usage_tracker.stop();
-                }
-                break;
-            default:
-                _.executeDefaultContextMenu(id, scriptFolder + 'Panel_Menu.js');
+            },
+            {is_checked: g_properties.show_tooltips}
+        );
+
+        if (utils.IsKeyPressed(VK_SHIFT)) {
+            cmm.append_separator();
+
+            cmm.append_item(
+                'Show CPU usage',
+                function () {
+                    g_properties.show_cpu_usage = !g_properties.show_cpu_usage;
+                    if (g_properties.show_cpu_usage) {
+                        cpu_usage_tracker.start();
+                    }
+                    else {
+                        cpu_usage_tracker.stop();
+                    }
+                },
+                {is_checked: g_properties.show_cpu_usage}
+            );
+
+            qwr_utils.append_default_context_menu_to(cmm);
         }
 
-        _.dispose(frame, cpm);
+        cmm.execute(x, y);
+        cmm.dispose();
 
         this.repaint();
 

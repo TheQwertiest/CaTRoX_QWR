@@ -295,6 +295,7 @@ function ScrollBar(x, y, w, h, row_h, fn_redraw) {
         }
 
         var cmm = new Context.MainMenu();
+
         qwr_utils.append_default_context_menu_to(cmm);
 
         cmm.execute(x,y);

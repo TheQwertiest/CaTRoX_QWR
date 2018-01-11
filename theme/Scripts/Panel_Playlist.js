@@ -1028,54 +1028,24 @@ function Playlist() {
             var web = new Context.Menu('Weblinks');
             cmm.append(web);
 
-            web.append_item(
-                'Google',
-                function () {
-                    link('google', metadb);
-                }
-            );
+            var web_links = [
+                ['Google', 'google'],
+                ['Google Images', 'googleImages'],
+                ['eCover', 'eCover'],
+                ['Wikipedia', 'wikipedia'],
+                ['YouTube', 'youTube'],
+                ['Last FM', 'lastFM'],
+                ['Discogs', 'discogs']
+            ];
 
-            web.append_item(
-                'Google Images',
-                function () {
-                    link('googleImages', metadb);
-                }
-            );
-
-            web.append_item(
-                'eCover',
-                function () {
-                    link('eCover', metadb);
-                }
-            );
-
-            web.append_item(
-                'Wikipedia',
-                function () {
-                    link('wikipedia', metadb);
-                }
-            );
-
-            web.append_item(
-                'YouTube',
-                function () {
-                    link('youTube', metadb);
-                }
-            );
-
-            web.append_item(
-                'Last FM',
-                function () {
-                    link('lastFM', metadb);
-                }
-            );
-
-            web.append_item(
-                'Discogs',
-                function () {
-                    link('discogs', metadb);
-                }
-            );
+            web_links.forEach(function (item) {
+                web.append_item(
+                    item[0],
+                    function (url) {
+                        link(url);
+                    }.bind(null, item[1])
+                );
+            });
 
             // -------------------------------------------------------------- //
             //---> Send

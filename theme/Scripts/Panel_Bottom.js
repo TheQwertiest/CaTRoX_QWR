@@ -416,33 +416,34 @@ function createButtonImages() {
 }
 
 function on_mouse_rbtn_up(x, y) {
-    var cpm = window.CreatePopupMenu();
+    var cmm = new Context.MainMenu();
 
-    cpm.AppendMenuItem(MF_STRING, 3, 'Show time remaining');
-    cpm.CheckMenuItem(3, g_properties.show_remaining_time);
-    if (cur_minimode === 'Full') {
-        cpm.AppendMenuItem(MF_STRING, 4, 'Show music spectrum');
-        cpm.CheckMenuItem(4, pss_switch.spectrum.state === 'Show');
-    }
-    if (utils.IsKeyPressed(VK_SHIFT)) {
-        cpm.AppendMenuSeparator();
-        _.appendDefaultContextMenu(cpm);
-    }
-
-    var id = cpm.TrackPopupMenu(x, y);
-    switch (id) {
-        case 3:
+    cmm.append_item(
+        'Show time remaining',
+        function() {
             g_properties.show_remaining_time = !g_properties.show_remaining_time;
             window.Repaint();
-            break;
-        case 4:
-            pss_switch.spectrum.state = pss_switch.spectrum.state === 'Show' ? 'Hide' : 'Show';
-            break;
-        default:
-            _.executeDefaultContextMenu(id, scriptFolder + 'Panel_Bottom.js');
+        },
+        {is_checked:g_properties.show_remaining_time}
+    );
+
+    if (cur_minimode === 'Full') {
+        cmm.append_item(
+            'Show music spectrum',
+            function() {
+                pss_switch.spectrum.state = pss_switch.spectrum.state === 'Show' ? 'Hide' : 'Show';
+            },
+            {is_checked:pss_switch.spectrum.state === 'Show'}
+        );
     }
 
-    cpm.Dispose();
+    if (utils.IsKeyPressed(VK_SHIFT)) {
+        qwr_utils.append_default_context_menu_to(cmm);
+    }
+
+    cmm.execute(x,y);
+    cmm.dispose();
+
     return true;
 }
 

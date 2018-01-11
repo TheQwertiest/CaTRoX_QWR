@@ -102,7 +102,7 @@ Context.Menu = function (text_arg, optional_args) {
             throw new ArgumentError('check_idx', check_idx, 'Value is out of bounds');
         }
 
-        if (start_idx > check_idx) {
+        if (start_idx >= this.menu_items.length) {
             throw new ArgumentError('start_idx', start_idx, 'Value is out of bounds');
         }
 
@@ -390,7 +390,7 @@ Context.MainMenu = function() {
 
     // public:
 
-    /** @return{boolean} */
+    /** @return{boolean} true, if some item was clicked*/
     this.execute = function (x, y) {
         // Initialize menu
         var cur_idx = 1;
@@ -407,6 +407,9 @@ Context.MainMenu = function() {
 
         // Execute menu
         var idx = this.cm.TrackPopupMenu(x, y);
+        if (!idx) {
+            return false;
+        }
 
         return this.execute_menu(idx);
     };

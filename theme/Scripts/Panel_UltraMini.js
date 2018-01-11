@@ -362,26 +362,21 @@ function UltraMini() {
     };
 
     this.on_mouse_rbtn_up = function (x, y) {
-        var cpm = window.CreatePopupMenu();
+        var cmm = new Context.MainMenu();
 
-        cpm.AppendMenuItem(MF_STRING, 36, 'Reload \tF5');
+        cmm.append_item(
+            'Reload \tF5',
+            function(){
+                art_module.reload_art()
+            }
+        );
 
         if (utils.IsKeyPressed(VK_SHIFT)) {
-            cpm.AppendMenuSeparator();
-            _.appendDefaultContextMenu(cpm);
+            qwr_utils.append_default_context_menu_to(cmm);
         }
 
-        var id = cpm.TrackPopupMenu(x, y);
-
-        switch (id) {
-            case 36:
-                art_module.reload_art();
-                break;
-            default:
-                _.executeDefaultContextMenu(id, scriptFolder + 'Panel_UltraMini.js');
-        }
-
-        _.dispose(cpm);
+        cmm.execute(x,y);
+        cmm.dispose();
 
         return true;
     };

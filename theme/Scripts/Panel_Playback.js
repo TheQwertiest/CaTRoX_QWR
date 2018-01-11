@@ -356,20 +356,16 @@ function createButtonImages() {
 // =================================================== //
 
 function on_mouse_rbtn_up(x, y) {
-    var cpm = window.CreatePopupMenu();
-
-    if (utils.IsKeyPressed(VK_SHIFT)) {
-        _.appendDefaultContextMenu(cpm);
+    if (!utils.IsKeyPressed(VK_SHIFT)) {
+        return true;
     }
 
-    var id = cpm.TrackPopupMenu(x, y);
+    var cmm = new Context.MainMenu();
 
-    switch (id) {
-        default:
-            _.executeDefaultContextMenu(id, scriptFolder + 'Panel_Playback.js');
-    }
+    qwr_utils.append_default_context_menu_to(cmm);
 
-    _.dispose(cpm);
+    cmm.execute(x,y);
+    cmm.dispose();
 
     return true;
 }

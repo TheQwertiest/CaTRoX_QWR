@@ -7,7 +7,7 @@ g_script_list.push('Control_Scrollbar.js');
 
 g_properties.add_properties(
     {
-        show_logo:        ['user.fb2k_logo.show', false],
+        show_logo:        ['user.fb2k_logo.show', true],
         show_btn_ellipse: ['user.buttons.eclipse.show_always', false]
     }
 );
@@ -283,35 +283,35 @@ function create_button_images() {
 }
 
 function on_mouse_rbtn_up(x, y) {
-    var cpm = window.CreatePopupMenu();
+    var cmm = new Context.MainMenu();
 
-    cpm.AppendMenuItem(MF_STRING, 8, 'Show foobar2000 logo');
-    cpm.CheckMenuItem(8, g_properties.show_logo);
-    cpm.AppendMenuItem(MF_STRING, 12, g_properties.show_btn_ellipse ? 'Hide button ellipse' : 'Show button ellipse');
-
-    if (utils.IsKeyPressed(VK_SHIFT)) {
-        cpm.AppendMenuSeparator();
-        _.appendDefaultContextMenu(cpm);
-    }
-
-    var id = cpm.TrackPopupMenu(x, y);
-
-    switch (id) {
-        case 8:
+    cmm.append_item(
+        'Show foobar2000 logo',
+        function() {
             g_properties.show_logo = !g_properties.show_logo;
-            window.Repaint();
-            break;
-        case 12:
+        },
+        {is_checked:g_properties.show_logo}
+    );
+
+    cmm.append_item(
+        'Show button ellipse',
+        function() {
             g_properties.show_btn_ellipse = !g_properties.show_btn_ellipse;
             create_button_images();
             on_size();
-            window.Repaint();
-            break;
-        default:
-            _.executeDefaultContextMenu(id, scriptFolder + 'Panel_Top.js');
+        },
+        {is_checked:g_properties.show_btn_ellipse}
+    );
+
+    if (utils.IsKeyPressed(VK_SHIFT)) {
+        qwr_utils.append_default_context_menu_to(cmm);
     }
 
-    _.dispose(cpm);
+
+    cmm.execute(x,y);
+    cmm.dispose();
+
+    window.Repaint();
 
     return true;
 }

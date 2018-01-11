@@ -304,241 +304,210 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
         g_properties.track_mode = mode;
     };
 
-    this.append_menu = function (cpm) {
-        var thumb_cm;
-        var track = window.CreatePopupMenu();
-        var cycle;
-        var web = window.CreatePopupMenu();
-
-        if (thumbs) {
-            thumb_cm = window.CreatePopupMenu();
-        }
-        if (feature_cycle) {
-            cycle = window.CreatePopupMenu();
-        }
-
-        context_menu.push(track, web);
-        if (thumbs) {
-            context_menu.push(thumb_cm);
-        }
-        if (feature_cycle) {
-            context_menu.push(cycle);
-        }
-
-        var metadb = get_current_metadb();
-
-        if (thumbs) {
-            thumb_cm.AppendMenuItem(MF_STRING, 601, 'Thumbs show');
-            thumb_cm.CheckMenuItem(601, g_properties.show_thumbs);
-            thumb_cm.AppendMenuSeparator();
-            var mf_string = (g_properties.show_thumbs ? MF_STRING : MF_GRAYED);
-            thumb_cm.AppendMenuItem(mf_string, 602, 'Thumbs left');
-            thumb_cm.AppendMenuItem(mf_string, 603, 'Thumbs top');
-            thumb_cm.AppendMenuItem(mf_string, 604, 'Thumbs right');
-            thumb_cm.AppendMenuItem(mf_string, 605, 'Thumbs bottom');
-            thumb_cm.CheckMenuRadioItem(602, 605, g_properties.thumb_position + 601);
-            thumb_cm.AppendTo(cpm, MF_STRING, 'Thumbs');
-            cpm.AppendMenuSeparator();
-        }
-
-        track.AppendMenuItem(MF_STRING, 606, 'Automatic (current selection/playing item)');
-        track.AppendMenuItem(MF_STRING, 607, 'Playing item');
-        track.AppendMenuItem(MF_STRING, 608, 'Current selection');
-        track.CheckMenuRadioItem(606, 608, g_properties.track_mode + 605);
-        track.AppendTo(cpm, MF_STRING, 'Displayed track');
-
-        if (feature_cycle) {
-            cycle.AppendMenuItem(MF_STRING, 620, 'Enable cycle');
-            cycle.CheckMenuItem(620, g_properties.enable_cycle);
-            cycle.AppendMenuSeparator();
-            var grayIfNoCycle = (g_properties.enable_cycle ? MF_STRING : MF_GRAYED);
-            cycle.AppendMenuItem(grayIfNoCycle, 621, '5 sec');
-            cycle.AppendMenuItem(grayIfNoCycle, 622, '10 sec');
-            cycle.AppendMenuItem(grayIfNoCycle, 623, '20 sec');
-            cycle.AppendMenuItem(grayIfNoCycle, 624, '30 sec');
-            cycle.AppendMenuItem(grayIfNoCycle, 625, '40 sec');
-            cycle.AppendMenuItem(grayIfNoCycle, 626, '50 sec');
-            cycle.AppendMenuItem(grayIfNoCycle, 627, '1 min');
-            cycle.AppendMenuItem(grayIfNoCycle, 628, '2 min');
-            cycle.AppendMenuItem(grayIfNoCycle, 629, '3 min');
-            cycle.AppendMenuItem(grayIfNoCycle, 620, '4 min');
-            cycle.AppendMenuItem(grayIfNoCycle, 631, '5 min');
-            cycle.CheckMenuRadioItem(621, 631, JSON.parse(g_properties.cycle_interval)[1]);
-            cycle.AppendTo(cpm, MF_STRING, 'Cycle covers');
-        }
-
-        cpm.AppendMenuSeparator();
-        cpm.AppendMenuItem(MF_STRING, 632, 'Use disc mask');
-        cpm.CheckMenuItem(632, g_properties.use_disc_mask);
-        if (art_arr[cur_art_id]) {
-            cpm.AppendMenuItem(art_arr[cur_art_id].is_embedded ? MF_GRAYED : MF_STRING, 633, 'Open image');
-            if (has_photoshop) {
-                cpm.AppendMenuItem(art_arr[cur_art_id].is_embedded ? MF_GRAYED : MF_STRING, 634, 'Open image with Photoshop');
-            }
-            cpm.AppendMenuItem(MF_STRING, 635, 'Open image folder');
-        }
-
-        cpm.AppendMenuItem(MF_STRING, 636, 'Reload \tF5');
-
-        //---> Weblinks
-        cpm.AppendMenuSeparator();
-        web.AppendMenuItem(MF_STRING, 650, 'Google');
-        web.AppendMenuItem(MF_STRING, 651, 'Google Images');
-        web.AppendMenuItem(MF_STRING, 652, 'eCover');
-        web.AppendMenuItem(MF_STRING, 653, 'Wikipedia');
-        web.AppendMenuItem(MF_STRING, 654, 'YouTube');
-        web.AppendMenuItem(MF_STRING, 655, 'Last FM');
-        web.AppendMenuItem(MF_STRING, 656, 'Discogs');
-        web.AppendTo(cpm, !metadb ? MF_GRAYED : MF_STRING, 'Weblinks');
-    };
-
-    this.execute_menu = function (idx) {
+    this.append_menu_to = function (parent_menu) {
         var metadb = get_current_metadb();
         var selected_metadb = get_selected_metadb();
 
-        var idxFound = false;
         if (thumbs) {
-            idxFound = true;
-            switch (idx) {
-                case 601:
+            var thumb_cm = new Context.Menu('Thumbs');
+            parent_menu.append(thumb_cm);
+
+            thumb_cm.append_item(
+                'Thumbs show',
+                _.bind(function () {
                     g_properties.show_thumbs = !g_properties.show_thumbs;
                     on_thumb_position_change();
-                    break;
-                case 602:
+                }, this),
+                {is_checked: g_properties.show_thumbs}
+            );
+
+            thumb_cm.append_separator();
+
+            var options = {is_grayed_out: !g_properties.show_thumbs};
+            thumb_cm.append_item(
+                'Thumbs left',
+                _.bind(function () {
                     thumbs.change_position(this.x, this.y, this.w, this.h, pos.left);
                     on_thumb_position_change();
-                    break;
-                case 603:
+                }, this),
+                options
+            );
+
+            thumb_cm.append_item(
+                'Thumbs top',
+                _.bind(function () {
                     thumbs.change_position(this.x, this.y, this.w, this.h, pos.top);
                     on_thumb_position_change();
-                    break;
-                case 604:
+                }, this),
+                options
+            );
+
+            thumb_cm.append_item(
+                'Thumbs right',
+                _.bind(function () {
                     thumbs.change_position(this.x, this.y, this.w, this.h, pos.right);
                     on_thumb_position_change();
-                    break;
-                case 605:
+                }, this),
+                options
+            );
+
+            thumb_cm.append_item(
+                'Thumbs bottom',
+                _.bind(function () {
                     thumbs.change_position(this.x, this.y, this.w, this.h, pos.bottom);
                     on_thumb_position_change();
-                    break;
-                default:
-                    idxFound = false;
-            }
+                }, this),
+                options
+            );
+
+            thumb_cm.radio_check(2, g_properties.thumb_position - 1);
         }
+
+        var track = new Context.Menu('Displayed track');
+        parent_menu.append(track);
+
+        track.append_item(
+            'Automatic (current selection/playing item)',
+            _.bind(function () {
+                g_properties.track_mode = track_modes.auto;
+                fb.IsPlaying ? this.get_album_art(fb.GetNowPlaying()) : (selected_metadb ? this.get_album_art(selected_metadb) : this.clear_art());
+            }, this)
+        );
+        track.append_item(
+            'Playing item',
+            _.bind(function () {
+                g_properties.track_mode = track_modes.playing;
+                fb.IsPlaying ? this.get_album_art(fb.GetNowPlaying()) : this.clear_art();
+            }, this)
+        );
+        track.append_item(
+            'Current selection',
+            _.bind(function () {
+                g_properties.track_mode = track_modes.selected;
+                selected_metadb ? this.get_album_art(selected_metadb) : this.clear_art();
+            }, this)
+        );
+
+        track.radio_check(0, g_properties.track_mode - 1);
 
         if (feature_cycle) {
-            idxFound = true;
-            switch (idx) {
-                case 620:
+            var cycle = new Context.Menu('Cycle covers');
+            parent_menu.append(cycle);
+
+            cycle.append_item(
+                'Enable cycle',
+                function () {
                     g_properties.enable_cycle = !g_properties.enable_cycle;
                     trigger_cycle_timer(g_properties.enable_cycle, art_arr.length);
-                    break;
-                case 621:
-                    set_cycle_interval(5000, idx);
-                    break;
-                case 622:
-                    set_cycle_interval(10000, idx);
-                    break;
-                case 623:
-                    set_cycle_interval(20000, idx);
-                    break;
-                case 624:
-                    set_cycle_interval(30000, idx);
-                    break;
-                case 625:
-                    set_cycle_interval(40000, idx);
-                    break;
-                case 626:
-                    set_cycle_interval(50000, idx);
-                    break;
-                case 627:
-                    set_cycle_interval(60000, idx);
-                    break;
-                case 628:
-                    set_cycle_interval(120000, idx);
-                    break;
-                case 629:
-                    set_cycle_interval(180000, idx);
-                    break;
-                case 630:
-                    set_cycle_interval(240000, idx);
-                    break;
-                case 631:
-                    set_cycle_interval(300000, idx);
-                    break;
-                default:
-                    idxFound = false;
-            }
+                },
+                {is_checked: g_properties.enable_cycle}
+            );
 
-            function set_cycle_interval(iv, id) {
-                g_properties.cycle_interval = JSON.stringify([iv, id]);
+            cycle.append_separator();
 
-                trigger_cycle_timer(g_properties.enable_cycle, art_arr.length, true);
-            }
+            var cycle_intervals = [
+                ['5 sec', 5000],
+                ['10 sec', 10000],
+                ['20 sec', 20000],
+                ['30 sec', 30000],
+                ['40 sec', 40000],
+                ['50 sec', 50000],
+                ['1 min', 60000],
+                ['2 min', 120000],
+                ['3 min', 180000],
+                ['4 min', 240000],
+                ['5 min', 300000]
+            ];
+
+            cycle_intervals.forEach(function (item) {
+                var options = {is_grayed_out: !g_properties.enable_cycle};
+                if (g_properties.cycle_interval === item[1]) {
+                    options.is_radio_checked = true;
+                }
+
+                cycle.append_item(
+                    item[0],
+                    function (interval) {
+                        g_properties.cycle_interval = interval;
+                        trigger_cycle_timer(g_properties.enable_cycle, art_arr.length, true);
+                    }.bind(null, item[1]),
+                    options
+                );
+            });
         }
 
-        if (!idxFound) {
-            idxFound = true;
-            switch (idx) {
-                case 606:
-                    g_properties.track_mode = track_modes.auto;
-                    fb.IsPlaying ? this.get_album_art(fb.GetNowPlaying()) : (selected_metadb ? this.get_album_art(selected_metadb) : this.clear_art());
-                    break;
-                case 607:
-                    g_properties.track_mode = track_modes.playing;
-                    fb.IsPlaying ? this.get_album_art(fb.GetNowPlaying()) : this.clear_art();
-                    break;
-                case 608:
-                    g_properties.track_mode = track_modes.selected;
-                    selected_metadb ? this.get_album_art(selected_metadb) : this.clear_art();
-                    break;
-                case 632:
-                    g_properties.use_disc_mask = !g_properties.use_disc_mask;
-                    this.reload_art();
-                    break;
-                case 633:
+        parent_menu.append_separator();
+
+        parent_menu.append_item(
+            'Use disc mask',
+            _.bind(function () {
+                g_properties.use_disc_mask = !g_properties.use_disc_mask;
+                this.reload_art();
+            }, this),
+            {is_checked: g_properties.use_disc_mask}
+        );
+
+        if (art_arr[cur_art_id]) {
+            parent_menu.append_item(
+                'Open image',
+                function () {
                     _.run(art_arr[cur_art_id].path);
-                    break;
-                case 634:
-                    _.runCmd('Photoshop ' + '\"' + art_arr[cur_art_id].path + '\"');
-                    break;
-                case 635:
-                    _.explorer(art_arr[cur_art_id].path);
-                    break;
-                case 636:
-                    this.reload_art();
-                    break;
-                case 650:
-                    link('google', metadb);
-                    break;
-                case 651:
-                    link('googleImages', metadb);
-                    break;
-                case 652:
-                    link('eCover', metadb);
-                    break;
-                case 653:
-                    link('wikipedia', metadb);
-                    break;
-                case 654:
-                    link('youTube', metadb);
-                    break;
-                case 655:
-                    link('lastFM', metadb);
-                    break;
-                case 656:
-                    link('discogs', metadb);
-                    break;
-                default:
-                    idxFound = false;
+                },
+                {is_grayed_out: art_arr[cur_art_id].is_embedded}
+            );
+
+            if (has_photoshop) {
+                parent_menu.append_item(
+                    'Open image with Photoshop',
+                    function () {
+                        _.runCmd('Photoshop ' + '\"' + art_arr[cur_art_id].path + '\"');
+                    },
+                    {is_grayed_out: art_arr[cur_art_id].is_embedded}
+                );
             }
+
+            parent_menu.append_item(
+                'Open image folder',
+                function () {
+                    _.explorer(art_arr[cur_art_id].path);
+                },
+                {is_grayed_out: !_.isFile(art_arr[cur_art_id].is_embedded)}
+            );
         }
 
-        context_menu.forEach(function (item) {
-            item.dispose();
-        });
-        context_menu = [];
+        parent_menu.append_separator();
 
-        return idxFound;
+        parent_menu.append_item(
+            'Reload \tF5',
+            _.bind(function () {
+                this.reload_art();
+            }, this)
+        );
+
+        //---> Weblinks
+        parent_menu.append_separator();
+
+        var web = new Context.Menu('Weblinks', {is_grayed_out: !metadb});
+        parent_menu.append(web);
+
+        var web_links = [
+            ['Google', 'google'],
+            ['Google Images', 'googleImages'],
+            ['eCover', 'eCover'],
+            ['Wikipedia', 'wikipedia'],
+            ['YouTube', 'youTube'],
+            ['Last FM', 'lastFM'],
+            ['Discogs', 'discogs']
+        ];
+
+        web_links.forEach(function (item) {
+            web.append_item(
+                item[0],
+                function (url) {
+                    link(url);
+                }.bind(null, item[1])
+            );
+        });
     };
 
 //private:
@@ -632,7 +601,7 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
         if (enable_cycle && !cycle_timer && artLength > 1) {
             cycle_timer = window.setInterval(function () {
                 that.mouse_wheel(-1);
-            }, JSON.parse(g_properties.cycle_interval)[0]);
+            }, g_properties.cycle_interval);
         }
     }
 
@@ -702,8 +671,6 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
     var cur_art_id = artType.defaultVal;
     var art_arr = [];
 
-    var context_menu = [];
-
     var has_photoshop;
     var was_on_size_called = false;
 
@@ -728,7 +695,7 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
     if (feature_cycle) {
         g_properties.add_properties({
                 enable_cycle:   ['user.art.cycle.enable', false],
-                cycle_interval: ['user.art.cycle.interval', JSON.stringify([10000, 622])]
+                cycle_interval: ['user.art.cycle.interval', 10000]
             }
         );
     }
