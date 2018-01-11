@@ -605,7 +605,7 @@ function UltraMini() {
     var volume_bar_x = 0;
 
     // Runtime state
-    var panel_alpha = 255;
+    var panel_alpha = 0;
     var mouse_in_panel = false;
     var show_volume_bar = false;
 
@@ -717,7 +717,7 @@ function Animator(on_alpha_change_fn_arg) {
 
     var timerRate = 25;
     
-    var alpha = 255;
+    var alpha = 0;
 }
 
 /**
