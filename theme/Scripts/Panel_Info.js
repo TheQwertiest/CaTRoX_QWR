@@ -16,6 +16,10 @@ g_properties.add_properties(
         list_right_pad:  ['user.list.pad.right', 4],
         list_bottom_pad: ['user.list.pad.bottom', 4],
 
+        show_metadata: ['user.list.show_metadata', true],
+        show_fileinfo: ['user.list.show_fileinfo', true],
+        is_sorted:     ['user.list.is_sorted', false],
+
         show_scrollbar:      ['user.scrollbar.show', true],
         scrollbar_right_pad: ['user.scrollbar.pad.right', 0],
         scrollbar_w:         ['user.scrollbar.width', utils.GetSystemMetrics(2)],
@@ -307,7 +311,6 @@ function TrackInfoList() {
             return;
         }
 
-        var was_double_clicked = mouse_double_clicked;
         mouse_double_clicked = false;
         mouse_down = false;
 
@@ -317,10 +320,6 @@ function TrackInfoList() {
             if (wasDragging) {
                 return;
             }
-        }
-
-        if (was_double_clicked) {
-            return;
         }
 
         clear_last_hover_item();
@@ -347,9 +346,6 @@ function TrackInfoList() {
 
         var hover_item = last_hover_item;
         clear_last_hover_item();
-
-        // TODO: add sort menu
-        // TODO: add option to hide file or meta info
 
         var cmm = new Context.MainMenu();
 
@@ -479,6 +475,48 @@ function TrackInfoList() {
             {is_checked: g_properties.alternate_row_color}
         );
 
+        appear.append_item(
+            'Show metadata',
+            _.bind(function () {
+                g_properties.show_metadata = !g_properties.show_metadata;
+                this.initialize_list();
+            },this),
+            {is_checked: g_properties.show_metadata}
+        );
+
+        appear.append_item(
+            'Show file info',
+            _.bind(function () {
+                g_properties.show_fileinfo = !g_properties.show_fileinfo;
+                this.initialize_list();
+            },this),
+            {is_checked: g_properties.show_fileinfo}
+        );
+
+        // -------------------------------------------------------------- //
+        //---> Sort
+
+        var sort = new Context.Menu('Sort');
+        cmm.append(sort);
+
+        sort.append_item(
+            'Sort alphabetically',
+            _.bind(function () {
+                g_properties.is_sorted = true;
+                this.initialize_list()
+            },this)
+        );
+
+        sort.append_item(
+            'Sort by type',
+            _.bind(function () {
+                g_properties.is_sorted = false;
+                this.initialize_list()
+            },this)
+        );
+
+        sort.radio_check(0, g_properties.is_sorted ? 0 : 1);
+
         // -------------------------------------------------------------- //
         //---> System
 
@@ -571,32 +609,45 @@ function TrackInfoList() {
             var tag_name;
             var value_text;
 
-            for (var i = 0; i < fileInfo.MetaCount; i++) {
-                var is_readonly;
+            if (g_properties.show_metadata) {
+                for (var i = 0; i < fileInfo.MetaCount; i++) {
+                    var is_readonly;
 
-                tag_name = fileInfo.MetaName(i);
-                if (tag_name === 'title' && (fb.IsPlaying && _.startsWith(cur_metadb.RawPath, 'http://'))) {
-                    value_text = fb.TitleFormat('%title%').Eval();
-                    is_readonly = true;
-                }
-                else {
-                    value_text = fileInfo.MetaValue(fileInfo.MetaFind(tag_name), 0);
-                    is_readonly = _.startsWith(_.tf('%path%', this.metadb), 'http');
-                }
+                    tag_name = fileInfo.MetaName(i);
+                    if (tag_name === 'title' && (fb.IsPlaying && _.startsWith(cur_metadb.RawPath, 'http://'))) {
+                        value_text = fb.TitleFormat('%title%').Eval();
+                        is_readonly = true;
+                    }
+                    else {
+                        value_text = fileInfo.MetaValue(fileInfo.MetaFind(tag_name), 0);
+                        is_readonly = _.startsWith(_.tf('%path%', this.metadb), 'http');
+                    }
 
-                rows.push(new Row(list_x, 0, list_w, row_h, cur_metadb, tag_name, value_text));
-                _.last(rows).is_odd = (i + 1) % 2;
-                _.last(rows).is_readonly = is_readonly;
+                    rows.push(new Row(list_x, 0, list_w, row_h, cur_metadb, tag_name, value_text));
+                    _.last(rows).is_odd = (i + 1) % 2;
+                    _.last(rows).is_readonly = is_readonly;
+                }
             }
 
-            var cur_rows_count = rows.length;
-            for (var i = 0; i < fileInfo.InfoCount; i++) {
-                tag_name = fileInfo.InfoName(i);
-                value_text = fileInfo.InfoValue(fileInfo.InfoFind(tag_name));
+            if (g_properties.show_fileinfo) {
+                var cur_rows_count = rows.length;
+                for (var i = 0; i < fileInfo.InfoCount; i++) {
+                    tag_name = fileInfo.InfoName(i);
+                    value_text = fileInfo.InfoValue(fileInfo.InfoFind(tag_name));
 
-                rows.push(new Row(list_x, 0, list_w, row_h, cur_metadb, tag_name, value_text));
-                _.last(rows).is_odd = ((cur_rows_count + i) + 1) % 2;
+                    rows.push(new Row(list_x, 0, list_w, row_h, cur_metadb, tag_name, value_text));
+                    _.last(rows).is_odd = ((cur_rows_count + i) + 1) % 2;
+                }
             }
+        }
+
+        if (g_properties.is_sorted) {
+            rows.sort(function(a, b) {
+                var a_tag = a.get_tag_name().toUpperCase();
+                var b_tag = b.get_tag_name().toUpperCase();
+
+                return a_tag.localeCompare(b_tag);
+            });
         }
 
         if (was_on_size_called) {
@@ -945,6 +996,7 @@ function TrackInfoList() {
 
     /** @type {Array<Row>} */
     var rows = [];
+    /** @type {Array<Row>} */
     var items_to_draw = [];
 
     var list_x = /** @type {number} */ g_properties.list_left_pad;
