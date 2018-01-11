@@ -1128,7 +1128,7 @@ function Playlist() {
                         playlist_text,
                         function (playlist_idx) {
                             selection_handler.send_to_playlist(playlist_idx);
-                        }.bind(i),
+                        }.bind(null,i),
                         {is_grayed_out: is_item_autoplaylist || i === cur_playlist_idx}
                     );
                 }
@@ -1154,7 +1154,7 @@ function Playlist() {
             qwr_utils.append_default_context_menu_to(cmm);
         }
 
-        cmm.execute();
+        cmm.execute(x,y);
         cmm.dispose();
 
         this.repaint();

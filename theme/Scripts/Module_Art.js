@@ -2,6 +2,9 @@
 // @name 'Art Module'
 // @author 'TheQwertiest & eXtremeHunter'
 // ==/PREPROCESSOR==
+
+g_script_list.push('Control_Scrollbar.js');
+
 g_properties.add_properties(
     {
         track_mode:         ['user.art.track_mode', 2],

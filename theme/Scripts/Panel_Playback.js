@@ -3,6 +3,8 @@
 // @author 'TheQwertiest'
 // ==/PREPROCESSOR==
 
+g_script_list.push('Control_Scrollbar.js');
+
 var buttons;
 var showTooltips = false;
 var cur_minimode = pss_switch.minimode.state;

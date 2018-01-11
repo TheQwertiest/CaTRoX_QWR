@@ -9,38 +9,48 @@ g_script_list.push('Control_ContextMenu.js');
 var Context = {};
 
 /**
- * @final
+ * @param{string} text_arg
  * @constructor
- * @extends {Context.Menu}
  */
-Context.MainMenu = function() {
-    Context.Menu.call(this, '');
+Context.BaseObject = function (text_arg) {
 
-    // public:
-
-    /** @return{boolean} */
-    this.execute = function (x, y) {
-        // Initialize menu
-        var cur_idx = 1;
-        this.menu_items.forEach(function(item){
-            if (!item.initialize_menu_idx) {
-                return;
-            }
-            cur_idx = item.initialize_menu_idx(cur_idx);
-        });
-
-        this.menu_items.forEach(_.bind(function(item){
-            item.initialize_menu(this);
-        },this));
-
-        // Execute menu
-        var idx = this.cm.TrackPopupMenu(x, y);
-
-        return this.execute_menu(idx);
+    /**
+     * @param{number} start_idx
+     * @return{number} end_idx
+     * @protected
+     * @abstract
+     */
+    this.initialize_menu_idx = function(start_idx) {
+        throw new LogicError("initialize_menu_idx not implemented");
     };
+
+    /**
+     * @param{Context.Menu} parent_menu
+     * @protected
+     * @abstract
+     */
+    this.initialize_menu = function(parent_menu) {
+        throw new LogicError("initialize_menu not implemented");
+    };
+
+    /**
+     * @param{number} idx
+     * @return{boolean}
+     * @protected
+     * @abstract
+     * */
+    this.execute_menu = function (idx) {
+        throw new LogicError("execute_menu not implemented");
+    };
+
+    // const
+
+    /** @const{string} */
+    this.text = text_arg;
+
+    /** @type{?number} */
+    this.idx = undefined;
 };
-Context.MainMenu.prototype = Object.create(Context.Menu.prototype);
-Context.MainMenu.prototype.constructor = Context.MainMenu;
 
 /**
  * @param{string} text_arg
@@ -371,48 +381,38 @@ Context.FoobarMenu.prototype = Object.create(Context.BaseObject.prototype);
 Context.FoobarMenu.prototype.constructor = Context.FoobarMenu;
 
 /**
- * @param{string} text_arg
+ * @final
  * @constructor
+ * @extends {Context.Menu}
  */
-Context.BaseObject = function (text_arg) {
+Context.MainMenu = function() {
+    Context.Menu.call(this, '');
 
-    /**
-     * @param{number} start_idx
-     * @return{number} end_idx
-     * @protected
-     * @abstract
-     */
-    this.initialize_menu_idx = function(start_idx) {
-        throw new LogicError("initialize_menu_idx not implemented");
+    // public:
+
+    /** @return{boolean} */
+    this.execute = function (x, y) {
+        // Initialize menu
+        var cur_idx = 1;
+        this.menu_items.forEach(function(item){
+            if (!item.initialize_menu_idx) {
+                return;
+            }
+            cur_idx = item.initialize_menu_idx(cur_idx);
+        });
+
+        this.menu_items.forEach(_.bind(function(item){
+            item.initialize_menu(this);
+        },this));
+
+        // Execute menu
+        var idx = this.cm.TrackPopupMenu(x, y);
+
+        return this.execute_menu(idx);
     };
-
-    /**
-     * @param{Context.Menu} parent_menu
-     * @protected
-     * @abstract
-     */
-    this.initialize_menu = function(parent_menu) {
-        throw new LogicError("initialize_menu not implemented");
-    };
-
-    /**
-     * @param{number} idx
-     * @return{boolean}
-     * @protected
-     * @abstract
-     * */
-    this.execute_menu = function (idx) {
-        throw new LogicError("execute_menu not implemented");
-    };
-
-    // const
-
-    /** @const{string} */
-    this.text = text_arg;
-
-    /** @type{?number} */
-    this.idx = undefined;
 };
+Context.MainMenu.prototype = Object.create(Context.Menu.prototype);
+Context.MainMenu.prototype.constructor = Context.MainMenu;
 
 _.mixin(qwr_utils, {
     /**
@@ -450,9 +450,9 @@ _.mixin(qwr_utils, {
         var edit = new Context.Menu('Edit panel scripts');
         cm.append(edit);
 
-        var edit_fn = function (script_filename) {
-            if (!_.runCmd("notepad++.exe " + script_filename)) {
-                _.runCmd("notepad.exe " + script_filename);
+        var edit_fn = function (script_path) {
+            if (!_.runCmd("notepad++.exe " + script_path)) {
+                _.runCmd("notepad.exe " + script_path);
             }
         };
 
@@ -460,9 +460,7 @@ _.mixin(qwr_utils, {
             var script_path = scriptFolder + filename;
             edit.append_item(
                 filename,
-                function(){
-                    edit_fn(script_path);
-                },
+                edit_fn.bind(null, script_path),
                 {is_grayed_out: !_.isFile(script_path)}
             );
         });

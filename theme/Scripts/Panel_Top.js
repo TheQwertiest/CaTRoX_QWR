@@ -3,6 +3,8 @@
 // @author 'TheQwertiest'
 // ==/PREPROCESSOR==
 
+g_script_list.push('Control_Scrollbar.js');
+
 g_properties.add_properties(
     {
         show_logo:        ['user.fb2k_logo.show', false],

@@ -6,6 +6,8 @@ var trace_call = false;
 var trace_on_paint = false;
 var trace_on_move = false;
 
+g_script_list.push('Control_Scrollbar.js');
+
 g_properties.add_properties(
     {
         art_pad:          ['user.art.pad', 0],

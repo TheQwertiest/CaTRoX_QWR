@@ -2,6 +2,9 @@
 // @name 'Cover Panel'
 // @author 'TheQwertiest'
 // ==/PREPROCESSOR==
+
+g_script_list.push('Control_Scrollbar.js');
+
 g_properties.add_properties(
     {
         panel_pad: ['user.panel.pad',   5]

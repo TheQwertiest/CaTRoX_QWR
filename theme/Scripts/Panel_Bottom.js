@@ -2,6 +2,9 @@
 // @name 'Seekbar Panel'
 // @author 'TheQwertiest'
 // ==/PREPROCESSOR==
+
+g_script_list.push('Control_Scrollbar.js');
+
 g_properties.add_properties(
     {
         show_remaining_time: ['user.seekbar.show_remaining_time', true]
