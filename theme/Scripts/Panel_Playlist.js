@@ -8,6 +8,8 @@ var trace_call = false;
 var trace_on_paint = false;
 var trace_on_move = false;
 
+g_script_list.push('Panel_Playlist.js');
+
 // TODO: consider making registration for on_key handlers
 // TODO: research the source of hangs with big art image loading (JScript? fb2k?)
 // TODO: measure draw vs backend performance (don't forget to disable playlist in other mode before testing)
@@ -610,425 +612,550 @@ function Playlist() {
         var has_multiple_selected_items = selection_handler.selected_items_count() > 1;
         var is_auto_playlist = plman.IsAutoPlaylist(cur_playlist_idx);
         var playlist_count = plman.PlaylistCount;
-        var send_to_playlist_start_idx = 0;
         var is_cur_playlist_empty = !rows.length;
-
-        var cpm = window.CreatePopupMenu();
-        var web = window.CreatePopupMenu();
-        var ce = window.CreatePopupMenu();
-        var ccmm = fb.CreateContextMenuManager();
-        var appear = window.CreatePopupMenu();
-        var appear_row = window.CreatePopupMenu();
-        var appear_header = window.CreatePopupMenu();
-        var sort = window.CreatePopupMenu();
-        var lists = window.CreatePopupMenu();
-        var send = window.CreatePopupMenu();
-        var art = window.CreatePopupMenu();
-
-        var context_menu = [
-            cpm, web, ce, ccmm, appear, appear_row, appear_header, sort, lists, send, art
-        ];
 
         plman.SetActivePlaylistContext();
 
+        var cmm = new ContextMainMenu();
+
         if (fb.IsPlaying) {
-            cpm.AppendMenuItem(MF_STRING, 5, 'Show now playing');
+            cmm.append_item(
+                'Show now playing',
+                function(){
+                    show_now_playing();
+                });
         }
 
         if (!is_cur_playlist_empty) {
-            cpm.AppendMenuItem(MF_STRING, 6, 'Refresh playlist \tF5');
+            cmm.append_item(
+                'Refresh playlist \tF5',
+                _.bind(function(){
+                    this.initialize_list();
+                    scroll_to_focused_or_now_playing();
+                },this));
+
             if (queue_handler && queue_handler.has_items()) {
-                cpm.AppendMenuItem(MF_STRING, 9, 'Flush playback queue \tCtrl+Shift+Q');
+                cmm.append_item(
+                    'Flush playback queue \tCtrl+Shift+Q',
+                    function(){
+                        queue_handler.flush();
+                    });
             }
         }
 
+        /// Copy, paste and etc
+
         if (has_selected_item || copy_paste_metadb_list.Count > 0) {
-            cpm.AppendMenuSeparator();
+            if (!cmm.is_empty()) {
+                cmm.append_separator();
+            }
 
             if (has_selected_item) {
-                cpm.AppendMenuItem(has_selected_item ? MF_STRING : MF_GRAYED, 10, 'Cut');
-                cpm.AppendMenuItem(has_selected_item ? MF_STRING : MF_GRAYED, 11, 'Copy');
+                cmm.append_item(
+                    'Cut',
+                    function() {
+                        copy_paste_metadb_list = selection_handler.cut();
+                    },
+                    { is_grayed_out: !has_selected_item }
+                    );
+
+                cmm.append_item(
+                    'Copy',
+                    function() {
+                        copy_paste_metadb_list = selection_handler.copy();
+                    },
+                    { is_grayed_out: !has_selected_item }
+                );
             }
             if (copy_paste_metadb_list.Count > 0) {
-                cpm.AppendMenuItem((copy_paste_metadb_list.Count > 0) ? MF_STRING : MF_GRAYED, 12, 'Paste');
+                cmm.append_item(
+                    'Paste',
+                    function() {
+                        selection_handler.paste(copy_paste_metadb_list);
+                    },
+                    { is_grayed_out: !copy_paste_metadb_list.Count }
+                );
             }
         }
 
         if (has_selected_item) {
-            cpm.AppendMenuSeparator();
-            cpm.AppendMenuItem(is_auto_playlist ? MF_GRAYED : MF_STRING, 8, 'Remove');
+            if (!cmm.is_empty()) {
+                cmm.append_separator();
+            }
+
+            cmm.append_item(
+                'Remove',
+                function() {
+                    plman.RemovePlaylistSelection(cur_playlist_idx);
+                },
+                { is_grayed_out: is_auto_playlist }
+            );
         }
 
         if (!is_cur_playlist_empty) {
-            cpm.AppendMenuSeparator();
+            if (!cmm.is_empty()) {
+                cmm.append_separator();
+            }
+
             // -------------------------------------------------------------- //
             //---> Collapse/Expand
+
             if (g_properties.show_header) {
-                ce.AppendMenuItem(MF_STRING, 20, 'Collapse all');
+                var ce = new ContextMenu('Collapse/Expand');
+                cmm.append(ce);
+
+                ce.append_item(
+                    'Collapse all',
+                    function () {
+                        collapse_handler.collapse_all();
+                        if (collapse_handler.changed) {
+                            scroll_to_focused_or_now_playing();
+                        }
+                    }
+                );
+
                 if (plman.ActivePlaylist === plman.PlayingPlaylist) {
-                    ce.AppendMenuItem(MF_STRING, 21, 'Collapse all but now playing');
+                    ce.append_item(
+                        'Collapse all but now playing',
+                        function () {
+                            collapse_handler.collapse_all_but_now_playing();
+                            if (collapse_handler.changed) {
+                                scroll_to_now_playing_or_focused();
+                            }
+                        }
+                    );
                 }
-                ce.AppendMenuItem(MF_STRING, 22, 'Expand all');
-                ce.AppendMenuSeparator();
-                ce.AppendMenuItem(MF_STRING, 23, 'Auto');
-                ce.CheckMenuItem(23, g_properties.auto_colapse);
-                ce.AppendMenuItem(MF_STRING, 24, 'Collapse on start');
-                ce.CheckMenuItem(24, g_properties.collapse_on_start);
-                ce.AppendTo(cpm, MF_STRING, 'Collapse/Expand');
+
+                ce.append_item(
+                    'Expand all',
+                    function () {
+                        collapse_handler.expand_all();
+                        if (collapse_handler.changed) {
+                            scroll_to_focused_or_now_playing();
+                        }
+                    });
+
+                ce.append_separator();
+
+                ce.append_item(
+                    'Auto',
+                    function () {
+                        g_properties.auto_colapse = !g_properties.auto_colapse;
+                        if (g_properties.auto_colapse) {
+                            collapse_handler.collapse_all_but_now_playing();
+                            if (collapse_handler.changed) {
+                                scroll_to_now_playing_or_focused();
+                            }
+                        }
+                    },
+                    {is_checked: g_properties.auto_colapse}
+                );
+
+                ce.append_item(
+                    'Collapse on start',
+                    function () {
+                        g_properties.collapse_on_start = !g_properties.collapse_on_start;
+                    },
+                    {is_checked: g_properties.collapse_on_start}
+                );
             }
 
             // -------------------------------------------------------------- //
             //---> Appearance
 
-            appear.AppendTo(cpm, MF_STRING, 'Appearance');
-            appear.CheckMenuItem(37, g_properties.show_scrollbar);
-            appear.AppendMenuItem(MF_STRING, 39, 'Show playlist info');
-            appear.CheckMenuItem(39, g_properties.show_playlist_info);
-            appear.AppendMenuItem(MF_STRING, 37, 'Show scrollbar');
-            appear.CheckMenuItem(37, g_properties.show_scrollbar);
-            appear.AppendMenuItem(MF_STRING, 40, 'Show group header');
-            appear.CheckMenuItem(40, g_properties.show_header);
-            if (g_properties.show_header) {
-                appear_header.AppendTo(appear, MF_STRING, 'Headers');
-                appear_header.AppendMenuItem(MF_STRING, 41, 'Use compact group header');
-                appear_header.CheckMenuItem(41, g_properties.use_compact_header);
+            var appear = new ContextMenu('Appearance');
+            cmm.append(appear);
 
-                if (!g_properties.use_compact_header) {
-                    appear_header.AppendMenuItem(MF_STRING, 31, 'Show group info');
-                    appear_header.CheckMenuItem(31, g_properties.show_group_info);
-
-                    art.AppendTo(appear_header, MF_STRING, 'Album art');
-                    art.AppendMenuItem(MF_STRING, 42, 'Show');
-                    art.CheckMenuItem(42, g_properties.show_album_art);
-                    art.AppendMenuItem(g_properties.show_album_art ? MF_STRING : MF_GRAYED, 43, 'Auto');
-                    art.CheckMenuItem(43, g_properties.auto_album_art);
-                }
-            }
-            appear_row.AppendTo(appear, MF_STRING, 'Rows');
-            appear_row.AppendMenuItem(MF_STRING, 36, 'Alternate row color');
-            appear_row.CheckMenuItem(36, g_properties.alternate_row_color);
-            appear_row.AppendMenuItem(MF_STRING, 34, 'Show focus item');
-            appear_row.CheckMenuItem(34, g_properties.show_focused_row);
-            appear_row.AppendMenuItem(g_component_playcount ? MF_STRING : MF_GRAYED, 32, 'Show play count');
-            appear_row.CheckMenuItem(32, g_properties.show_playcount);
-            appear_row.AppendMenuItem(MF_STRING, 35, 'Show queue position');
-            appear_row.CheckMenuItem(35, g_properties.show_queue_position);
-            appear_row.AppendMenuItem(g_component_playcount ? MF_STRING : MF_GRAYED, 33, 'Show rating');
-            appear_row.CheckMenuItem(33, g_properties.show_rating);
-
-            // -------------------------------------------------------------- //
-            // Grouping
-            Header.group_query_handler.append_menu(cpm);
-
-            // -------------------------------------------------------------- //
-            // Selection
-
-            //---> Sort
-            sort.AppendMenuItem(MF_STRING, 60, 'Sort by...');
-            sort.AppendMenuItem(MF_STRING, 61, 'Randomize');
-            sort.AppendMenuItem(MF_STRING, 62, 'Reverse');
-            sort.AppendMenuItem(MF_STRING, 63, 'Sort by album');
-            sort.AppendMenuItem(MF_STRING, 64, 'Sort by artist');
-            sort.AppendMenuItem(MF_STRING, 65, 'Sort by file path');
-            sort.AppendMenuItem(MF_STRING, 66, 'Sort by title');
-            sort.AppendMenuItem(MF_STRING, 67, 'Sort by track number');
-            sort.AppendMenuItem(MF_STRING, 68, 'Sort by date');
-            sort.AppendTo(cpm, is_auto_playlist ? MF_GRAYED : MF_STRING, has_multiple_selected_items ? 'Sort selection' : 'Sort');
-
-            // -------------------------------------------------------------- //
-            //---> Web links
-            web.AppendMenuItem(MF_STRING, 80, 'Google');
-            web.AppendMenuItem(MF_STRING, 81, 'Google Images');
-            web.AppendMenuItem(MF_STRING, 82, 'eCover');
-            web.AppendMenuItem(MF_STRING, 83, 'Wikipedia');
-            web.AppendMenuItem(MF_STRING, 84, 'YouTube');
-            web.AppendMenuItem(MF_STRING, 85, 'Last FM');
-            web.AppendMenuItem(MF_STRING, 86, 'Discogs');
-            web.AppendTo(cpm, MF_STRING, 'Weblinks');
-            // -------------------------------------------------------------- //
-            //---> Send
-
-            if (has_selected_item) {
-                send.AppendMenuItem(MF_STRING, 100, 'To top');
-                send.AppendMenuItem(MF_STRING, 101, 'To bottom');
-                send.AppendMenuSeparator();
-                send.AppendMenuItem(MF_STRING, 102, 'Create New Playlist \tCtrl+N');
-                send.AppendMenuSeparator();
-                send_to_playlist_start_idx = 103;
-                for (var i = 0; i < playlist_count; ++i) {
-                    var playlist_text = plman.GetPlaylistName(i) + ' [' + plman.PlaylistItemCount(i) + ']';
-                    if (plman.IsAutoPlaylist(i)) {
-                        playlist_text += ' (Auto)';
-                    }
-                    if (i === plman.PlayingPlaylist) {
-                        playlist_text += ' (Now Playing)';
-                    }
-
-                    send.AppendMenuItem((plman.IsAutoPlaylist(i) || i === cur_playlist_idx) ? MF_GRAYED : MF_STRING,
-                        send_to_playlist_start_idx + i,
-                        playlist_text);
-                }
-                send.AppendTo(cpm, MF_STRING, 'Send selection');
-            }
-        }
-
-        // -------------------------------------------------------------- //
-        //---> Context Menu Manager
-        if (has_selected_item) {
-            cpm.AppendMenuSeparator();
-            ccmm.InitContext(plman.GetPlaylistSelectedItems(cur_playlist_idx));
-            ccmm.BuildMenu(cpm, 2000, -1);
-        }
-
-        // -------------------------------------------------------------- //
-        //---> System
-        if (utils.IsKeyPressed(VK_SHIFT)) {
-            cpm.AppendMenuSeparator();
-            _.appendDefaultContextMenu(cpm);
-        }
-
-        var id = cpm.TrackPopupMenu(x, y);
-
-        if (has_selected_item) {
-            ccmm.ExecuteByID(id - 2000);
-        }
-
-        // -------------------------------------------------------------- //
-        if (Header.group_query_handler.execute_menu(id)) {
-            this.initialize_list();
-            scroll_to_focused_or_now_playing();
-        }
-        else {
-            switch (id) {
-                case 5:
-                    show_now_playing();
-                    break;
-                case 6:
-                    this.initialize_list();
-                    scroll_to_focused_or_now_playing();
-                    break;
-                case 8:
-                    plman.RemovePlaylistSelection(cur_playlist_idx);
-                    break;
-                case 9:
-                    queue_handler.flush();
-                    break;
-                case 10:
-                    copy_paste_metadb_list = selection_handler.cut();
-                    break;
-                case 11:
-                    copy_paste_metadb_list = selection_handler.copy();
-                    break;
-                case 12:
-                    selection_handler.paste(copy_paste_metadb_list);
-                    break;
-                // -------------------------------------------------------------- //
-                case 20:
-                    //---> Collapse/Expand
-                    collapse_handler.collapse_all();
-                    if (collapse_handler.changed) {
-                        scroll_to_focused_or_now_playing();
-                    }
-                    break;
-                case 21:
-                    collapse_handler.collapse_all_but_now_playing();
-                    if (collapse_handler.changed) {
-                        scroll_to_now_playing_or_focused();
-                    }
-                    break;
-                case 22:
-                    collapse_handler.expand_all();
-                    if (collapse_handler.changed) {
-                        scroll_to_focused_or_now_playing();
-                    }
-                    break;
-                case 23:
-                    g_properties.auto_colapse = !g_properties.auto_colapse;
-                    if (g_properties.auto_colapse) {
-                        collapse_handler.collapse_all_but_now_playing();
-                        if (collapse_handler.changed) {
-                            scroll_to_now_playing_or_focused();
-                        }
-                    }
-                    break;
-                case 24:
-                    g_properties.collapse_on_start = !g_properties.collapse_on_start;
-                    break;
-                // -------------------------------------------------------------- //
-                //---> Appearance
-                case 31:
-                    g_properties.show_group_info = !g_properties.show_group_info;
-                    break;
-                case 32:
-                    g_properties.show_playcount = !g_properties.show_playcount;
-                    break;
-                case 33:
-                    g_properties.show_rating = !g_properties.show_rating;
-                    break;
-                case 34:
-                    g_properties.show_focused_row = !g_properties.show_focused_row;
-                    break;
-                case 35:
-                    g_properties.show_queue_position = !g_properties.show_queue_position;
-                    queue_handler  = g_properties.show_queue_position ? new QueueHandler(rows, cur_playlist_idx) : undefined;
-                    break;
-                case 36:
-                    g_properties.alternate_row_color = !g_properties.alternate_row_color;
-                    break;
-                case 37:
-                    g_properties.show_scrollbar = !g_properties.show_scrollbar;
-                    on_scrollbar_visibility_change(g_properties.show_scrollbar);
-                    break;
-                case 39:
+            appear.append_item(
+                'Show playlist info',
+                function () {
                     g_properties.show_playlist_info = !g_properties.show_playlist_info;
                     on_playlist_info_visibility_change();
-                    break;
-                case 40:
+                },
+                {is_checked: g_properties.show_playlist_info}
+            );
+
+            appear.append_item(
+                'Show scrollbar',
+                function () {
+                    g_properties.show_scrollbar = !g_properties.show_scrollbar;
+                    on_scrollbar_visibility_change(g_properties.show_scrollbar);
+                },
+                {is_checked: g_properties.show_scrollbar}
+            );
+
+            appear.append_item(
+                'Show group header',
+                _.bind(function () {
                     g_properties.show_header = !g_properties.show_header;
                     if (g_properties.show_header) {
                         collapse_handler.expand_all();
                     }
                     this.initialize_list();
                     scroll_to_focused_or_now_playing();
-                    break;
-                case 41:
-                    g_properties.use_compact_header = !g_properties.use_compact_header;
-                    header_h_in_rows = g_properties.use_compact_header ? g_properties.rows_in_compact_header : g_properties.rows_in_header;
-                    this.initialize_list();
-                    scroll_to_focused_or_now_playing();
-                    break;
-                case 42:
-                    g_properties.show_album_art = !g_properties.show_album_art;
-                    if (g_properties.show_album_art) {
-                        get_album_art(items_to_draw);
-                    }
-                    break;
-                case 43:
-                    g_properties.auto_album_art = !g_properties.auto_album_art;
-                    if (g_properties.show_album_art) {
-                        get_album_art(items_to_draw);
-                    }
-                    break;
-                case 60:
-                    //---> Sort
+                }, this),
+                {is_checked: g_properties.show_header}
+            );
+
+            if (g_properties.show_header) {
+                var appear_header = new ContextMenu('Headers');
+                appear.append(appear_header);
+
+                appear_header.append_item(
+                    'Use compact group header',
+                    _.bind(function () {
+                        g_properties.use_compact_header = !g_properties.use_compact_header;
+                        header_h_in_rows = g_properties.use_compact_header ? g_properties.rows_in_compact_header : g_properties.rows_in_header;
+                        this.initialize_list();
+                        scroll_to_focused_or_now_playing();
+                    }, this),
+                    {is_checked: g_properties.use_compact_header}
+                );
+
+                if (!g_properties.use_compact_header) {
+                    appear_header.append_item(
+                        'Show group info',
+                        function () {
+                            g_properties.show_group_info = !g_properties.show_group_info;
+                        },
+                        {is_checked: g_properties.show_group_info}
+                    );
+
+                    var art = new ContextMenu('Album art');
+                    appear_header.append(art);
+
+                    art.append_item(
+                        'Show',
+                        function () {
+                            g_properties.show_album_art = !g_properties.show_album_art;
+                            if (g_properties.show_album_art) {
+                                get_album_art(items_to_draw);
+                            }
+                        },
+                        {is_checked: g_properties.show_album_art}
+                    );
+
+                    art.append_item(
+                        'Auto',
+                        function () {
+                            g_properties.auto_album_art = !g_properties.auto_album_art;
+                            if (g_properties.show_album_art) {
+                                get_album_art(items_to_draw);
+                            }
+                        },
+                        {
+                            is_checked:    g_properties.auto_album_art,
+                            is_grayed_out: !g_properties.show_album_art
+                        }
+                    );
+                }
+            }
+
+            var appear_row = new ContextMenu('Rows');
+            appear.append(appear_row);
+
+            appear_row.append_item(
+                'Alternate row color',
+                function () {
+                    g_properties.alternate_row_color = !g_properties.alternate_row_color;
+                },
+                {is_checked: g_properties.alternate_row_color}
+            );
+
+            appear_row.append_item(
+                'Show focus item',
+                function () {
+                    g_properties.show_focused_row = !g_properties.show_focused_row;
+                },
+                {is_checked: g_properties.show_focused_row}
+            );
+
+            appear_row.append_item(
+                'Show play count',
+                function () {
+                    g_properties.show_playcount = !g_properties.show_playcount;
+                },
+                {
+                    is_checked:    g_properties.show_playcount,
+                    is_grayed_out: !g_component_playcount
+                }
+            );
+
+            appear_row.append_item(
+                'Show queue position',
+                function () {
+                    g_properties.show_queue_position = !g_properties.show_queue_position;
+                    queue_handler = g_properties.show_queue_position ? new QueueHandler(rows, cur_playlist_idx) : undefined;
+                },
+                {is_checked: g_properties.show_queue_position}
+            );
+
+            appear_row.append_item(
+                'Show rating',
+                function () {
+                    g_properties.show_rating = !g_properties.show_rating;
+                },
+                {
+                    is_checked:    g_properties.show_rating,
+                    is_grayed_out: !g_component_playcount
+                }
+            );
+
+            // -------------------------------------------------------------- //
+            // Grouping
+            Header.group_query_handler.append_menu_to(cmm, _.bind(function(){
+                this.initialize_list();
+                scroll_to_focused_or_now_playing();
+            },this));
+
+            // -------------------------------------------------------------- //
+            // Selection
+
+            //---> Sort
+            var sort = new ContextMenu(
+                has_multiple_selected_items ? 'Sort selection' : 'Sort',
+                {is_grayed_out: is_auto_playlist}
+            );
+            cmm.append(sort);
+
+            sort.append_item(
+                'Sort by...',
+                function () {
                     if (has_multiple_selected_items) {
                         fb.RunMainMenuCommand('Edit/Selection/Sort/Sort by...');
                     }
                     else {
                         fb.RunMainMenuCommand('Edit/Sort/Sort by...');
                     }
-                    break;
-                case 61:
+                }
+            );
+
+            sort.append_item(
+                'Randomize',
+                function () {
                     if (has_multiple_selected_items) {
                         fb.RunMainMenuCommand('Edit/Selection/Sort/Randomize');
                     }
                     else {
                         fb.RunMainMenuCommand('Edit/Sort/Randomize')
                     }
-                    break;
-                case 62:
+                }
+            );
+
+            sort.append_item(
+                'Reverse',
+                function () {
                     if (has_multiple_selected_items) {
                         fb.RunMainMenuCommand('Edit/Selection/Sort/Reverse');
                     }
                     else {
                         fb.RunMainMenuCommand('Edit/Sort/Reverse')
                     }
-                    break;
-                case 63:
+                }
+            );
+
+            sort.append_item(
+                'Sort by album',
+                function () {
                     if (has_multiple_selected_items) {
                         fb.RunMainMenuCommand('Edit/Selection/Sort/Sort by album');
                     }
                     else {
                         fb.RunMainMenuCommand('Edit/Sort/Sort by album');
                     }
-                    break;
-                case 64:
+                }
+            );
+
+            sort.append_item(
+                'Sort by artist',
+                function () {
                     if (has_multiple_selected_items) {
                         fb.RunMainMenuCommand('Edit/Selection/Sort/Sort by artist');
                     }
                     else {
                         fb.RunMainMenuCommand('Edit/Sort/Sort by artist');
                     }
-                    break;
-                case 65:
+                }
+            );
+
+            sort.append_item(
+                'Sort by file path',
+                function () {
                     if (has_multiple_selected_items) {
                         fb.RunMainMenuCommand('Edit/Selection/Sort/Sort by file path');
                     }
                     else {
                         fb.RunMainMenuCommand('Edit/Sort/Sort by file path');
                     }
-                    break;
-                case 66:
+                }
+            );
+
+            sort.append_item(
+                'Sort by title',
+                function () {
                     if (has_multiple_selected_items) {
                         fb.RunMainMenuCommand('Edit/Selection/Sort/Sort by title');
                     }
                     else {
                         fb.RunMainMenuCommand('Edit/Sort/Sort by title');
                     }
-                    break;
-                case 67:
+                }
+            );
+
+            sort.append_item(
+                'Sort by track number',
+                function () {
                     if (has_multiple_selected_items) {
                         fb.RunMainMenuCommand('Edit/Selection/Sort/Sort by track number');
                     }
                     else {
                         fb.RunMainMenuCommand('Edit/Sort/Sort by track number');
                     }
-                    break;
-                case 68:
+                }
+            );
+
+            sort.append_item(
+                'Sort by date',
+                function () {
                     plman.UndoBackup(cur_playlist_idx);
                     plman.SortByFormat(cur_playlist_idx, '%date%', has_multiple_selected_items);
-                    break;
-                // -------------------------------------------------------------- //
-                // Web links
-                case 80:
+                }
+            );
+
+            // -------------------------------------------------------------- //
+            //---> Web links
+
+            var web = new ContextMenu('Weblinks');
+            cmm.append(web);
+
+            web.append_item(
+                'Google',
+                function () {
                     link('google', metadb);
-                    break;
-                case 81:
+                }
+            );
+
+            web.append_item(
+                'Google Images',
+                function () {
                     link('googleImages', metadb);
-                    break;
-                case 82:
+                }
+            );
+
+            web.append_item(
+                'eCover',
+                function () {
                     link('eCover', metadb);
-                    break;
-                case 83:
+                }
+            );
+
+            web.append_item(
+                'Wikipedia',
+                function () {
                     link('wikipedia', metadb);
-                    break;
-                case 84:
+                }
+            );
+
+            web.append_item(
+                'YouTube',
+                function () {
                     link('youTube', metadb);
-                    break;
-                case 85:
+                }
+            );
+
+            web.append_item(
+                'Last FM',
+                function () {
                     link('lastFM', metadb);
-                    break;
-                case 86:
+                }
+            );
+
+            web.append_item(
+                'Discogs',
+                function () {
                     link('discogs', metadb);
-                    break;
-                // -------------------------------------------------------------- //
-                // Selection
-                case 100: // Send to top
-                    plman.UndoBackup(cur_playlist_idx);
-                    plman.MovePlaylistSelection(cur_playlist_idx, -plman.GetPlaylistFocusItemIndex(cur_playlist_idx));
-                    break;
-                case 101: // Send to bottom
-                    plman.UndoBackup(cur_playlist_idx);
-                    plman.MovePlaylistSelection(cur_playlist_idx, plman.PlaylistItemCount(cur_playlist_idx) - plman.GetPlaylistSelectedItems(cur_playlist_idx).Count);
-                    break;
-                case 102:
-                    plman.CreatePlaylist(playlist_count, '');
-                    plman.InsertPlaylistItems(playlist_count, 0, plman.GetPlaylistSelectedItems(cur_playlist_idx), true);
-                    break;
-                // -------------------------------------------------------------- //
-                default:
-                    _.executeDefaultContextMenu(id, scriptFolder + 'Panel_Playlist.js');
+                }
+            );
+
+            // -------------------------------------------------------------- //
+            //---> Send
+
+            if (has_selected_item) {
+                var send = new ContextMenu('Send selection');
+                cmm.append(send);
+
+                send.append_item(
+                    'To top',
+                    function () {
+                        plman.UndoBackup(cur_playlist_idx);
+                        plman.MovePlaylistSelection(cur_playlist_idx, -plman.GetPlaylistFocusItemIndex(cur_playlist_idx));
+                    }
+                );
+
+                send.append_item(
+                    'To bottom',
+                    function () {
+                        plman.UndoBackup(cur_playlist_idx);
+                        plman.MovePlaylistSelection(cur_playlist_idx, plman.PlaylistItemCount(cur_playlist_idx) - plman.GetPlaylistSelectedItems(cur_playlist_idx).Count);
+                    }
+                );
+
+                send.append_separator();
+
+                send.append_item(
+                    'Create New Playlist \tCtrl+N',
+                    function () {
+                        plman.CreatePlaylist(playlist_count, '');
+                        plman.InsertPlaylistItems(playlist_count, 0, plman.GetPlaylistSelectedItems(cur_playlist_idx), true);
+                    }
+                );
+
+                send.append_separator();
+
+                for (var i = 0; i < playlist_count; ++i) {
+                    var playlist_text = plman.GetPlaylistName(i) + ' [' + plman.PlaylistItemCount(i) + ']';
+
+                    var is_item_autoplaylist = plman.IsAutoPlaylist(i);
+                    if (is_item_autoplaylist) {
+                        playlist_text += ' (Auto)';
+                    }
+
+                    if (i === plman.PlayingPlaylist) {
+                        playlist_text += ' (Now Playing)';
+                    }
+
+                    send.append_item(
+                        playlist_text,
+                        function (playlist_idx) {
+                            selection_handler.send_to_playlist(playlist_idx);
+                        }.bind(i),
+                        {is_grayed_out: is_item_autoplaylist || i === cur_playlist_idx}
+                    );
+                }
             }
         }
 
-        for (var i = 0; i < plman.PlaylistCount; i++) {
-            if (id === (send_to_playlist_start_idx + i)) {
-                selection_handler.send_to_playlist(i);
-                break;
+        // -------------------------------------------------------------- //
+        //---> Context Menu Manager
+
+        if (has_selected_item) {
+            if (!cmm.is_empty()) {
+                cmm.append_separator();
             }
+
+            var ccmm = new ContextFoobarMenu(plman.GetPlaylistSelectedItems(cur_playlist_idx));
+            cmm.append(ccmm);
         }
 
-        _.dispose.apply(null,context_menu);
+        // -------------------------------------------------------------- //
+        //---> System
+
+        if (utils.IsKeyPressed(VK_SHIFT)) {
+            qwr_utils.append_default_context_menu_to(cmm);
+        }
+
+        cmm.execute();
+        cmm.dispose();
 
         this.repaint();
         return true;
@@ -3927,38 +4054,70 @@ function GroupQueryHandler () {
         return cur_query_name;
     };
 
-    this.append_menu = function (cpm) {
-        var group = window.CreatePopupMenu();
-
-        group.AppendTo(cpm, MF_STRING, 'Grouping');
+    this.append_menu_to = function (parent_menu, on_execute_callback_fn) {
+        var group = new ContextMenu('Grouping');
+        parent_menu.append(group);
 
         var group_by_text = 'by...';
         if (this.get_query_name() === 'user_defined') {
             group_by_text += ' [' + this.get_query() + ']';
         }
-        group.AppendMenuItem(MF_STRING, cm_start_idx, group_by_text);
-        group.AppendMenuItem(MF_STRING, cm_start_idx + 1, 'by artist');
-        group.AppendMenuItem(MF_STRING, cm_start_idx + 2, 'by artist / album');
-        group.AppendMenuItem(MF_STRING, cm_start_idx + 3, 'by artist / album / disc number');
-        group.AppendMenuItem(MF_STRING, cm_start_idx + 4, 'by path');
-        group.AppendMenuItem(MF_STRING, cm_start_idx + 5, 'by date');
+        group.append_item(
+            group_by_text,
+            function() {
+                execute_menu(0, on_execute_callback_fn);
+            }
+        );
+
+        group.append_item(
+            'by artist',
+            function() {
+                execute_menu(1, on_execute_callback_fn);
+            }
+        );
+
+        group.append_item(
+            'by artist / album',
+            function() {
+                execute_menu(2, on_execute_callback_fn);
+            }
+        );
+        group.append_item(
+           'by artist / album / disc number',
+            function() {
+                execute_menu(3, on_execute_callback_fn);
+            }
+        );
+
+        group.append_item(
+            'by path',
+            function() {
+                execute_menu(4, on_execute_callback_fn);
+            }
+        );
+
+        group.append_item(
+            'by date',
+            function() {
+                execute_menu(5, on_execute_callback_fn);
+            }
+        );
 
         var query_idx = queries[query_map_by_name.indexOf(cur_query_name)].idx;
-        group.CheckMenuRadioItem(cm_start_idx, cm_start_idx + 5, cm_start_idx + query_idx);
-
-        context_menu.push(group);
+        group.radio_check(0, query_idx);
     };
 
-    this.execute_menu = function (idx) {
-        var true_idx = idx - cm_start_idx;
-        if (true_idx < 0) {
-            return false;
-        }
+    this.sync_state = function(value) {
+        g_properties.user_group_query = value.g_user_group_query;
+        g_properties.last_used_group_query_name = value.g_last_used_group_query_name;
 
-        var idx_found = true;
+        set_query_by_name(value.name);
+    };
+
+    function execute_menu(idx, on_execute_callback_fn) {
         var need_notify = true;
 
-        switch (true_idx) {
+        switch (idx) {
             case 0:
                 if (request_user_query()) {
                     set_query_by_name('user_defined');
@@ -3983,8 +4142,7 @@ function GroupQueryHandler () {
                 set_query_by_name('artist_date');
                 break;
             default:
-                need_notify = false;
-                idx_found = false;
+                throw new ArgumentError('menu_idx', idx)
         }
 
         if (need_notify) {
@@ -3996,20 +4154,9 @@ function GroupQueryHandler () {
             };
 
             window.NotifyOthers('sync_group_query_state', syncData);
+            on_execute_callback_fn();
         }
-
-        _.dispose.apply(null,context_menu);
-        context_menu = [];
-
-        return idx_found;
-    };
-
-    this.sync_state = function(value) {
-        g_properties.user_group_query = value.g_user_group_query;
-        g_properties.last_used_group_query_name = value.g_last_used_group_query_name;
-
-        set_query_by_name(value.name);
-    };
+    }
 
     /**
      * @return {boolean}
@@ -4093,7 +4240,4 @@ function GroupQueryHandler () {
     var cur_query_name = '';
 
     var group_query_list = JSON.parse(g_properties.group_query_list);
-
-    var cm_start_idx = 600;
-    var context_menu = [];
 }

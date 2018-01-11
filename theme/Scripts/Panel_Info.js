@@ -1,11 +1,13 @@
 // ==PREPROCESSOR==
 // @name 'Info Panel'
-// @author 'eXtremeHunter & TheQwertiest'
+// @author 'TheQwertiest'
 // ==/PREPROCESSOR==
 
 var trace_call = false;
 var trace_on_paint = false;
 var trace_on_move = false;
+
+g_script_list.push('Panel_Info.js');
 
 g_properties.add_properties(
     {
@@ -346,12 +348,11 @@ function TrackInfoList() {
 
         var cmm = new ContextMainMenu();
 
-        cmm.append(new ContextItem(
+        cmm.append_item(
             'Refresh info \tF5',
             _.bind(function () {
                 this.initialize_list();
-            }, this))
-        );
+            }, this));
 
         // -------------------------------------------------------------- //
         //---> Track Mode
@@ -361,27 +362,26 @@ function TrackInfoList() {
         var track = new ContextMenu('Displayed track');
         cmm.append(track);
 
-        track.append(new ContextItem(
+        track.append_item(
             'Automatic (current selection/playing item)',
             _.bind(function () {
                 g_properties.track_mode = track_modes.auto;
                 this.initialize_list();
-            }, this))
-        );
-        track.append(new ContextItem(
+            }, this));
+
+        track.append_item(
             'Playing item',
             _.bind(function () {
                 g_properties.track_mode = track_modes.playing;
                 this.initialize_list();
-            }, this))
-        );
-        track.append(new ContextItem(
+            }, this));
+
+        track.append_item(
             'Current selection',
             _.bind(function () {
                 g_properties.track_mode = track_modes.selected;
                 this.initialize_list();
-            }, this))
-        );
+            }, this));
 
         track.radio_check(0, g_properties.track_mode - 1);
 
@@ -393,28 +393,26 @@ function TrackInfoList() {
         var appear = new ContextMenu('Appearance');
         cmm.append(appear);
 
-        appear.append(new ContextItem(
+        appear.append_item(
             'Show scrollbar',
             function () {
                 g_properties.show_scrollbar = !g_properties.show_scrollbar;
                 on_scrollbar_visibility_change(g_properties.show_scrollbar);
             },
-            {is_checked: g_properties.show_scrollbar})
-        );
+            {is_checked: g_properties.show_scrollbar});
 
-        appear.append(new ContextItem(
+        appear.append_item(
             'Alternate row color',
             function () {
                 g_properties.alternate_row_color = !g_properties.alternate_row_color;
             },
-            {is_checked: g_properties.alternate_row_color})
-        );
+            {is_checked: g_properties.alternate_row_color});
 
         // -------------------------------------------------------------- //
         //---> System
+
         if (utils.IsKeyPressed(VK_SHIFT)) {
-            cmm.append_separator();
-            qwr_utils.append_default_context_menu(cmm, scriptFolder + "Panel_Info.js");
+            qwr_utils.append_default_context_menu_to(cmm);
         }
 
         cmm.execute(x, y);
@@ -856,7 +854,7 @@ function TrackInfoList() {
             selected: 3
         };
 
-    // Constants
+    /** @const {number} */
     var row_h = g_properties.row_h;
 
     // Window state

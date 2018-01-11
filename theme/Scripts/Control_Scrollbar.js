@@ -2,6 +2,9 @@
 // @name 'Scrollbar Control'
 // @author 'TheQwertiest'
 // ==/PREPROCESSOR==
+
+g_script_list.push('Control_Scrollbar.js');
+
 g_properties.add_properties(
     {
         wheel_scroll_page: ['user.scrollbar.wheel_whole_page', false]
@@ -287,21 +290,15 @@ function ScrollBar(x, y, w, h, row_h, fn_redraw) {
     };
 
     this.rbtn_up = function (x, y) {
-        if (!this.trace(x, y)) {
+        if (!this.trace(x, y) || !utils.IsKeyPressed(VK_SHIFT)) {
             return true;
         }
-        var cpm = window.CreatePopupMenu();
 
-        if (utils.IsKeyPressed(VK_SHIFT)) {
-            cpm.AppendMenuItem(MF_STRING, 1, 'Configure script...');
-        }
+        var cmm = new ContextMainMenu();
+        qwr_utils.append_default_context_menu_to(cmm);
 
-        var id = cpm.TrackPopupMenu(x, y);
-        if (id === 1) {
-            qwr_utils.run_notepad('Control_Scrollbar.js');
-        }
-
-        _.dispose(cpm);
+        cmm.execute(x,y);
+        cmm.dispose();
 
         return true;
     };
