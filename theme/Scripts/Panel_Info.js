@@ -29,8 +29,6 @@ g_properties.add_properties(
 g_properties.track_mode = Math.max(1, Math.min(3, g_properties.track_mode));
 g_properties.row_h = Math.max(10, g_properties.row_h);
 
-// TODO: add tooltip text to value if it's too long to display
-
 var g_tr_i_fonts = {
     info_name: gdi.font('Segoe Ui Semibold', 12),
     info_value: gdi.font('Segoe Ui', 12)
@@ -39,6 +37,7 @@ var g_tr_i_fonts = {
 var g_tr_i_colors = {
     background: panelsBackColor,
     row_alternate: _.RGB(35, 35, 35),
+    row_selected: panelsLineColorSelected,
     line_color: panelsLineColor,
     info_name: _.RGB(160, 162, 164),
     info_value: panelsNormalTextColor
@@ -98,7 +97,7 @@ function on_mouse_lbtn_up(x, y, m) {
 function on_mouse_rbtn_down(x, y, m) {
     trace_call && console.log(qwr_utils.function_name());
 
-    //track_info.on_mouse_rbtn_down(x, y, m);
+    track_info.on_mouse_rbtn_down(x, y, m);
 }
 
 function on_mouse_rbtn_up(x, y, m) {
@@ -137,18 +136,6 @@ function on_item_focus_change(playlist_arg, from, to) {
     track_info.on_item_focus_change(playlist_arg, from, to);
 }
 
-function on_playlists_changed() {
-    trace_call && console.log(qwr_utils.function_name());
-
-    //track_info.on_playlists_changed();
-}
-
-function on_playlist_switch() {
-    trace_call && console.log(qwr_utils.function_name());
-
-    //track_info.on_playlist_switch();
-}
-
 function on_playback_new_track(metadb) {
     trace_call && console.log(qwr_utils.function_name());
 
@@ -167,12 +154,6 @@ function on_playback_dynamic_info_track() {
     track_info.on_playback_dynamic_info_track();
 }
 
-function on_focus(is_focused) {
-    trace_call && console.log(qwr_utils.function_name());
-
-    track_info.on_focus(is_focused);
-}
-
 function on_metadb_changed(handles, fromhook) {
     trace_call && console.log(qwr_utils.function_name());
 
@@ -188,7 +169,7 @@ function TrackInfoList() {
         gr.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
 
         if (items_to_draw.length) {
-            _.forEachRight(items_to_draw, function (item,i) {
+            _.forEachRight(items_to_draw, function (item, i) {
                 item.draw(gr);
                 if (!g_properties.alternate_row_color && i > 0 && i < items_to_draw.length) {
                     gr.DrawLine(item.x, item.y, item.x + item.w, item.y, 1, g_tr_i_colors.line_color);
@@ -252,23 +233,33 @@ function TrackInfoList() {
 
         if (!this.trace(x, y)) {
             mouse_in = false;
+            clear_last_hover_item();
+
             return;
         }
 
         mouse_in = true;
 
-        if (mouse_down && this.trace_list(x, y)) {
-            var item = get_item_under_mouse(x, y);
-            if (item && last_hover_item && item !== last_hover_item) {
-                //TODO: azaza
-            }
+        if (!this.trace_list(x, y) || mouse_down) {
+            return;
+        }
 
-            last_hover_item = get_item_under_mouse(x, y);
+        var item = get_item_under_mouse(x, y);
+        if (item) {
+            if (item !== last_hover_item) {
+                last_hover_item = item;
+                item.tt.showDelayed(item.get_value_text());
+            }
+        }
+        else {
+            clear_last_hover_item();
         }
     };
 
     this.on_mouse_lbtn_down = function (x, y, m) {
         mouse_down = true;
+        clear_last_hover_item();
+
         if (mouse_double_clicked) {
             return;
         }
@@ -283,11 +274,10 @@ function TrackInfoList() {
         var item = this.trace_list(x, y) ? get_item_under_mouse(x, y) : undefined;
         last_hover_item = item;
 
-        if (!item) {
-            return;
+        if (item) {
+            item.is_selected = true;
+            this.repaint();
         }
-
-        // TODO: azaza
     };
 
     this.on_mouse_lbtn_dblclk = function (x, y, m) {
@@ -333,8 +323,21 @@ function TrackInfoList() {
             return;
         }
 
-        last_hover_item = undefined;
+        clear_last_hover_item();
         mouse_on_item = false;
+    };
+
+    this.on_mouse_rbtn_down = function (x, y, m) {
+        mouse_down = true;
+        clear_last_hover_item();
+
+        var item = this.trace_list(x, y) ? get_item_under_mouse(x, y) : undefined;
+        last_hover_item = item;
+
+        if (item) {
+            item.is_selected = true;
+            this.repaint();
+        }
     };
 
     this.on_mouse_rbtn_up = function (x, y, m) {
@@ -342,7 +345,9 @@ function TrackInfoList() {
             return scrollbar.rbtn_up(x, y);
         }
 
-        // TODO: add tag editing menu
+        var hover_item = last_hover_item;
+        clear_last_hover_item();
+
         // TODO: add sort menu
         // TODO: add option to hide file or meta info
 
@@ -352,7 +357,68 @@ function TrackInfoList() {
             'Refresh info \tF5',
             _.bind(function () {
                 this.initialize_list();
-            }, this));
+            }, this)
+        );
+
+
+        // -------------------------------------------------------------- //
+        //---> Edit Mode
+
+        cmm.append_separator();
+
+        cmm.append_item(
+            'Add',
+            _.bind(function () {
+                var new_tag = _.input2('Enter metadata name', 'Add new metadata', '');
+                if (!new_tag) {
+                    return;
+                }
+
+                var new_value = _.input2('Enter value for ' + new_tag, 'Add new metadata', '');
+                if (!_.isNil(new_value)) {
+                    var handle = fb.CreateHandleList();
+                    handle.Add(cur_metadb);
+
+                    var meta_obj = {};
+                    meta_obj[new_tag] = new_value;
+                    handle.UpdateFileInfoFromJSON(JSON.stringify(meta_obj));
+
+                    this.initialize_list();
+                }
+            }, this)
+        );
+
+        if (hover_item) {
+            cmm.append_item(
+                'Edit',
+                function () {
+                    hover_item.edit_metadata();
+                },
+                {is_grayed_out: hover_item.is_readonly}
+            );
+
+            cmm.append_item(
+                'Copy',
+                function () {
+                    _.setClipboardData(hover_item.get_value_text())
+                }
+            );
+
+            cmm.append_item(
+                'Remove',
+                _.bind(function () {
+                    var handle = fb.CreateHandleList();
+                    handle.Add(cur_metadb);
+
+                    var meta_obj = {};
+                    meta_obj[hover_item.get_tag_name()] = '';
+                    handle.UpdateFileInfoFromJSON(JSON.stringify(meta_obj));
+
+                    this.initialize_list();
+                }, this),
+                {is_grayed_out: hover_item.is_readonly}
+            );
+        }
 
         // -------------------------------------------------------------- //
         //---> Track Mode
@@ -367,21 +433,24 @@ function TrackInfoList() {
             _.bind(function () {
                 g_properties.track_mode = track_modes.auto;
                 this.initialize_list();
-            }, this));
+            }, this)
+        );
 
         track.append_item(
             'Playing item',
             _.bind(function () {
                 g_properties.track_mode = track_modes.playing;
                 this.initialize_list();
-            }, this));
+            }, this)
+        );
 
         track.append_item(
             'Current selection',
             _.bind(function () {
                 g_properties.track_mode = track_modes.selected;
                 this.initialize_list();
-            }, this));
+            }, this)
+        );
 
         track.radio_check(0, g_properties.track_mode - 1);
 
@@ -399,14 +468,16 @@ function TrackInfoList() {
                 g_properties.show_scrollbar = !g_properties.show_scrollbar;
                 on_scrollbar_visibility_change(g_properties.show_scrollbar);
             },
-            {is_checked: g_properties.show_scrollbar});
+            {is_checked: g_properties.show_scrollbar}
+        );
 
         appear.append_item(
             'Alternate row color',
             function () {
                 g_properties.alternate_row_color = !g_properties.alternate_row_color;
             },
-            {is_checked: g_properties.alternate_row_color});
+            {is_checked: g_properties.alternate_row_color}
+        );
 
         // -------------------------------------------------------------- //
         //---> System
@@ -435,6 +506,7 @@ function TrackInfoList() {
         }
 
         mouse_in = false;
+        clear_last_hover_item();
     };
 
     this.on_item_focus_change = function (playlist_idx, from_idx, to_idx) {
@@ -461,10 +533,6 @@ function TrackInfoList() {
     this.on_playback_dynamic_info_track = function () {
         that.initialize_list();
         this.repaint();
-    };
-
-    this.on_focus = function (is_focused) {
-        //is_in_focus = is_focused;
     };
 
     this.on_metadb_changed = function (handles, fromhook) {
@@ -620,7 +688,7 @@ function TrackInfoList() {
             }
             scrollbar.set_x(that.w - g_properties.scrollbar_w - g_properties.scrollbar_right_pad);
         }
-        
+
         rows.forEach(function (item) {
             item.set_w(list_w);
         });
@@ -683,10 +751,10 @@ function TrackInfoList() {
         if (!is_scrollbar_available) {
             return;
         }
-        
+
         var from_item = from_row;
         var to_item = to_row;
-        
+
         var to_item_state = get_item_visibility_state(to_item);
 
 
@@ -700,7 +768,7 @@ function TrackInfoList() {
                         var is_item_prev = from_item.type === to_item.type && from_item.idx - 1 === to_item.idx;
 
                         var is_item_next = from_item.type === to_item.type && from_item.idx + 1 === to_item.idx;
-                        
+
                         var row_shift = from_item_state.invisible_part + 1;
                         if (is_item_prev) {
                             scrollbar.scroll_to(scroll_pos - row_shift);
@@ -837,6 +905,20 @@ function TrackInfoList() {
         return metadb;
     }
 
+    function clear_last_hover_item() {
+        if (!last_hover_item) {
+            return
+        }
+
+        last_hover_item.tt.clear();
+        if (last_hover_item.is_selected) {
+            last_hover_item.is_selected = false;
+            that.repaint();
+        }
+
+        last_hover_item = null;
+    }
+
     // public:
     this.x = 0;
     this.y = 0;
@@ -891,7 +973,7 @@ function TrackInfoList() {
 
     /** @type {?ScrollBar} */
     var scrollbar = undefined;
-    
+
     this.initialize_list();
 }
 
@@ -905,6 +987,21 @@ function Row(x, y, w, h, metadb_arg, tag_name_arg, value_text_arg) {
 
         if (this.is_odd && g_properties.alternate_row_color) {
             gr.FillSolidRect(this.x, this.y + 1, this.w, this.h - 1, g_tr_i_colors.row_alternate);
+        }
+
+        if (this.is_selected) {
+            if (g_properties.alternate_row_color) {
+                if (this.is_cropped) {
+                    // last item is cropped
+                    gr.DrawRect(this.x, this.y, this.w - 1, this.h - 1, 1, g_tr_i_colors.row_selected);
+                }
+                else {
+                    gr.DrawRect(this.x, this.y, this.w - 1, this.h, 1, g_tr_i_colors.row_selected);
+                }
+            }
+            else {
+                gr.FillSolidRect(this.x, this.y, this.w, this.h, g_tr_i_colors.row_alternate);
+            }
         }
 
         var info_text_format = g_string_format.v_align_center | g_string_format.trim_ellipsis_char | g_string_format.line_limit;
@@ -945,7 +1042,7 @@ function Row(x, y, w, h, metadb_arg, tag_name_arg, value_text_arg) {
         this.w = w;
     };
 
-    this.edit_metadata = function() {
+    this.edit_metadata = function () {
         var new_value = _.input2('Enter new ' + tag_name + ' value', 'Change metadata value', value_text);
         if (!_.isNil(new_value)) {
             value_text = new_value;
@@ -959,19 +1056,31 @@ function Row(x, y, w, h, metadb_arg, tag_name_arg, value_text_arg) {
         }
     };
 
+    this.get_value_text = function () {
+        return value_text;
+    };
+
+    this.get_tag_name = function () {
+        return tag_name;
+    };
+
     //public:
-    var metadb = metadb_arg;
-
-    //const after creation
-    this.is_odd = false;
-    this.is_readonly = true;
-
     this.x = x;
     this.y = y;
     this.w = w;
     this.h = h;
 
+    //const after creation
+    this.is_odd = false;
+    this.is_readonly = true;
+
+    this.is_selected = false;
+
+    this.tt = new _.tt_handler;
+
     //private:
+
+    var metadb = metadb_arg;
 
     /** @type {string} */
     var tag_name = tag_name_arg;
