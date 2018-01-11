@@ -39,12 +39,12 @@ var g_tr_i_fonts = {
 };
 
 var g_tr_i_colors = {
-    background: panelsBackColor,
+    background: g_theme.colors.panel_back,
     row_alternate: _.RGB(35, 35, 35),
-    row_selected: panelsLineColorSelected,
-    line_color: panelsLineColor,
+    row_selected: g_theme.colors.panel_line_selected,
+    line_color: g_theme.colors.panel_line,
     info_name: _.RGB(160, 162, 164),
-    info_value: panelsNormalTextColor
+    info_value: g_theme.colors.panel_text_normal
 };
 
 
@@ -199,10 +199,10 @@ function TrackInfoList() {
 
         if (is_scrollbar_available) {
             if (!scrollbar.is_scrolled_up) {
-                gr.FillGradRect(list_x, list_y - 1, list_w, 7 + 1, 270, _.RGBtoRGBA(panelsBackColor, 0), _.RGBtoRGBA(panelsBackColor, 200));
+                gr.FillGradRect(list_x, list_y - 1, list_w, 7 + 1, 270, _.RGBtoRGBA(g_theme.colors.panel_back, 0), _.RGBtoRGBA(g_theme.colors.panel_back, 200));
             }
             if (!scrollbar.is_scrolled_down) {
-                gr.FillGradRect(list_x, list_y + list_h - 8, list_w, 7 + 1, 90, _.RGBtoRGBA(panelsBackColor, 0), _.RGBtoRGBA(panelsBackColor, 200));
+                gr.FillGradRect(list_x, list_y + list_h - 8, list_w, 7 + 1, 90, _.RGBtoRGBA(g_theme.colors.panel_back, 0), _.RGBtoRGBA(g_theme.colors.panel_back, 200));
             }
         }
 

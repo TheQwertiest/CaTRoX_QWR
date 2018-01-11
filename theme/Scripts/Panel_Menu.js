@@ -182,13 +182,13 @@ function Menu() {
             }
         }
 
-        gr.FillSolidRect(this.x - pad, this.y - pad, this.w + 2*pad, this.h + pad, pssBackColor);
-        gr.FillSolidRect(this.x, this.y, this.w, this.h, panelsFrontColor);
+        gr.FillSolidRect(this.x - pad, this.y - pad, this.w + 2*pad, this.h + pad, g_theme.colors.pss_back);
+        gr.FillSolidRect(this.x, this.y, this.w, this.h, g_theme.colors.panel_front);
         gr.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
 
         if (g_properties.show_window_shadow) {
             // Dirty hack to fix the appearing border
-            gr.DrawLine(this.x - pad, this.y - pad, this.w + 2*pad, this.y - pad, 1, pssBackColor);
+            gr.DrawLine(this.x - pad, this.y - pad, this.w + 2*pad, this.y - pad, 1, g_theme.colors.pss_back);
         }
 
         if (g_properties.show_fb2k_version || g_properties.show_theme_version || g_properties.show_cpu_usage) {
@@ -214,7 +214,7 @@ function Menu() {
                 if (title_text) {
                     title_text += separator_text;
                 }
-                title_text += g_theme_name + ' ' + g_theme_version;
+                title_text += g_theme.name + ' ' + g_theme.version;
             }
 
             if (g_properties.show_fb2k_version) {
@@ -767,7 +767,7 @@ function Menu() {
                 var g = img.GetGraphics();
                 g.SetSmoothingMode(SmoothingMode.HighQuality);
                 g.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
-                g.FillSolidRect(0, 0, w, h, panelsFrontColor); // Cleartype is borked, if drawn without background
+                g.FillSolidRect(0, 0, w, h, g_theme.colors.panel_front); // Cleartype is borked, if drawn without background
 
                 if (item.id === 'menu') {
                     var menuTextColor = default_menu_text_colors[s];

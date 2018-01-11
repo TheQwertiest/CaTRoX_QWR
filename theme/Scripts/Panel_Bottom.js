@@ -33,7 +33,7 @@ var moveChecker = new _.moveCheckReducer;
 createButtonImages();
 
 function on_paint(gr) {
-    gr.FillSolidRect(0, 0, ww, wh, pssBackColor);
+    gr.FillSolidRect(0, 0, ww, wh, g_theme.colors.pss_back);
     gr.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
 
     // SeekBar
@@ -134,8 +134,8 @@ function on_mouse_move(x, y, m) {
     seekbar_obj.move(x, y);
 
     if (seekbar_obj.drag) {
-        seekbarTime1 = timeFormat(fb.PlaybackLength * seekbar_obj.drag_seek, true);
-        seekbarTime2 = timeFormat(fb.PlaybackLength - fb.PlaybackLength * seekbar_obj.drag_seek, true);
+        seekbarTime1 = format_time(fb.PlaybackLength * seekbar_obj.drag_seek, true);
+        seekbarTime2 = format_time(fb.PlaybackLength - fb.PlaybackLength * seekbar_obj.drag_seek, true);
         if (seekbarTime2 !== '0:00')
             seekbarTime2 = '-' + seekbarTime2;
         else
@@ -398,7 +398,7 @@ function createButtonImages() {
             var g = img.GetGraphics();
             g.SetSmoothingMode(SmoothingMode.HighQuality);
             g.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
-            g.FillSolidRect(0, 0, w, h, pssBackColor); // Cleartype is borked, if drawn without background
+            g.FillSolidRect(0, 0, w, h, g_theme.colors.pss_back); // Cleartype is borked, if drawn without background
 
             g.DrawString(item.ico, item.font, ico_color, 0, 0, w, h, g_string_format.align_center);
 
@@ -461,6 +461,22 @@ function on_notify_data(name, info) {
             break;
         }
     }
+}
+
+function format_time(s, truncate) {
+    var weeks = Math.floor(s / 604800),
+        days = Math.floor(s % 604800 / 86400),
+        hours = Math.floor((s % 86400) / 3600),
+        minutes = Math.floor(((s % 86400) % 3600) / 60),
+        seconds = Math.round((((s % 86400) % 3600) % 60));
+
+    weeks = weeks > 0 ? weeks + 'wk ' : '';
+    days = days > 0 ? days + 'd ' : '';
+    hours = hours > 0 ? hours + ':' : '';
+    (truncate ? minutes = minutes + ':' : minutes = (minutes < 10 ? '0' + minutes : minutes) + ':');
+    seconds = seconds < 10 ? '0' + seconds : seconds;
+
+    return weeks + days + hours + minutes + seconds;
 }
 
 pss_switch.spectrum.refresh();

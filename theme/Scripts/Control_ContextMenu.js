@@ -460,7 +460,7 @@ _.mixin(qwr_utils, {
         };
 
         g_script_list.forEach(function (filename) {
-            var script_path = scriptFolder + filename;
+            var script_path = g_theme.script_folder + filename;
             edit.append_item(
                 filename,
                 edit_fn.bind(null, script_path),

@@ -19,7 +19,7 @@ var rightBtnX = 0;
 createButtonImages();
 
 function on_paint(gr) {
-    gr.FillSolidRect(0, 0, ww, wh, pssBackColor);
+    gr.FillSolidRect(0, 0, ww, wh, g_theme.colors.pss_back);
     gr.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
 
     buttons.paint(gr);
@@ -336,7 +336,7 @@ function createButtonImages() {
             var g = img.GetGraphics();
             g.SetSmoothingMode(SmoothingMode.HighQuality);
             g.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
-            g.FillSolidRect(0, 0, w, h, pssBackColor); // Cleartype is borked, if drawn without background
+            g.FillSolidRect(0, 0, w, h, g_theme.colors.pss_back); // Cleartype is borked, if drawn without background
 
             g.DrawString(item.ico, item.font, default_ico_colors[s], (i === 'Stop') ? 0 : 1, 0, w, h, g_string_format.align_center);
 

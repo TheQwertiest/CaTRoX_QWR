@@ -3,40 +3,21 @@
 // @author 'TheQwertiest'
 // ==/PREPROCESSOR==
 
-var g_theme_name = 'CaTRoX (QWR Edition)';
-var g_theme_folder = 'CaTRoX';
-var g_theme_version = '4.0.5';
+var g_theme = {};
+g_theme.name = 'CaTRoX (QWR Edition)';
+g_theme.version = '4.0.5';
+g_theme.folder_name = 'CaTRoX';
+g_theme.script_folder = 'themes\\' + g_theme.folder_name + '\\Scripts\\';
 
-var scriptFolder = 'themes\\' + g_theme_folder + '\\Scripts\\';
-// ================================================================================= //
-/** @type {IUIHacks} */
-var UIHacks =
-    /** @type {IUIHacks} */
-    new ActiveXObject('UIHacks');
+g_theme.colors = {};
+g_theme.colors.pss_back = _.RGB(25, 25, 25);
+g_theme.colors.panel_back = _.RGB(30, 30, 30);
+g_theme.colors.panel_front = _.RGB(40, 40, 40);
+g_theme.colors.panel_line = _.RGB(55, 55, 55);
+g_theme.colors.panel_line_selected = g_theme.colors.panel_line;
+g_theme.colors.panel_text_normal = _.RGB(125, 127, 129);
 
-var pssBackColor = _.RGB(25, 25, 25);
-var panelsBackColor = _.RGB(30, 30, 30);
-var panelsFrontColor = _.RGB(40, 40, 40);
-var panelsLineColor = _.RGB(55, 55, 55);
-var panelsLineColorSelected = panelsLineColor;
-var panelsNormalTextColor = _.RGB(125, 127, 129);
-// ================================================================================= //
-function timeFormat(s, truncate) {
-    var weeks = Math.floor(s / 604800),
-        days = Math.floor(s % 604800 / 86400),
-        hours = Math.floor((s % 86400) / 3600),
-        minutes = Math.floor(((s % 86400) % 3600) / 60),
-        seconds = Math.round((((s % 86400) % 3600) % 60));
-
-    weeks = weeks > 0 ? weeks + 'wk ' : '';
-    days = days > 0 ? days + 'd ' : '';
-    hours = hours > 0 ? hours + ':' : '';
-    (truncate ? minutes = minutes + ':' : minutes = (minutes < 10 ? '0' + minutes : minutes) + ':');
-    seconds = seconds < 10 ? '0' + seconds : seconds;
-
-    return weeks + days + hours + minutes + seconds;
-}
-
+/** @enum{number} */
 var g_string_format = {
     h_align_near:   0x00000000,
     h_align_center: 0x10000000,
@@ -66,6 +47,7 @@ var g_string_format = {
     no_clip:                 0x00004000
 };
 
+/** @enum{number} */
 var g_font_style = {
     regular:     0,
     bold:        1,
@@ -75,7 +57,7 @@ var g_font_style = {
     strikeout:   8
 };
 
-//--->
+/** @enum{number} */
 var g_playback_order = {
     default:         0,
     repeat_playlist: 1,
@@ -86,6 +68,7 @@ var g_playback_order = {
     shuffle_folders: 6
 };
 
+/** @enum{string|number} */
 var g_guifx = {
     name:          'Guifx v2 Transports',
     play:          1,
@@ -148,6 +131,7 @@ var g_guifx = {
     police:        'p'
 };
 
+/** @enum{number} */
 var g_album_art_id = {
     front:  0,
     back:   1,
@@ -155,51 +139,6 @@ var g_album_art_id = {
     icon:   3,
     artist: 4
 };
-
-function link(site, metadb) {
-    if (!metadb) {
-        return;
-    }
-
-    var meta_info = metadb.GetFileInfo();
-    var artist = meta_info.MetaValue(meta_info.MetaFind('artist'), 0).replace(/\s+/g, '+').replace(/&/g, '%26');
-    var album = meta_info.MetaValue(meta_info.MetaFind('album'), 0).replace(/\s+/g, '+');
-    var title = meta_info.MetaValue(meta_info.MetaFind('title'), 0).replace(/\s+/g, '+');
-
-    var search_term = artist ? artist : title;
-
-    switch (site) {
-        case 'google':
-            site = (search_term ? 'http://images.google.com/search?q=' + search_term + '&ie=utf-8' : null);
-            break;
-        case 'googleImages':
-            site = (search_term ? 'http://images.google.com/images?hl=en&q=' + search_term + '&ie=utf-8' : null);
-            break;
-        case 'eCover':
-            site = (search_term || album ? 'http://ecover.to/?Module=ExtendedSearch&SearchString=' + search_term + '+' + album + '&ie=utf-8' : null);
-            break;
-        case 'wikipedia':
-            site = (artist ? 'http://en.wikipedia.org/wiki/' + artist.replace(/\+/g, '_') : null);
-            break;
-        case 'youTube':
-            site = (search_term ? 'http://www.youtube.com/results?search_type=&search_query=' + search_term + '&ie=utf-8' : null);
-            break;
-        case 'lastFM':
-            site = (search_term ? 'http://www.last.fm/music/' + search_term.replace('/', '%252F') : null);
-            break;
-        case 'discogs':
-            site = (search_term || album ? 'http://www.discogs.com/search?q=' + search_term + '+' + album + '&ie=utf-8' : null);
-            break;
-        default:
-            site = undefined;
-    }
-
-    if (!site) {
-        return;
-    }
-
-    _.run(site);
-}
 
 /**
  * @constructor
@@ -281,7 +220,7 @@ function ArgumentError(arg_name, arg_value, additional_msg) {
 ArgumentError.prototype = Object.create(Error.prototype);
 
 var qwr_utils = {
-    EnableSizing:                function (m) {
+    EnableSizing:       function (m) {
         try {
             if (UIHacks.FrameStyle === 3 && UIHacks.DisableSizing) {
                 UIHacks.DisableSizing = false;
@@ -291,7 +230,7 @@ var qwr_utils = {
             console.log(e)
         }
     },
-    DisableSizing:               function (m) {
+    DisableSizing:      function (m) {
         try {
             if (m && UIHacks.FrameStyle === 3 && !UIHacks.DisableSizing) {
                 UIHacks.DisableSizing = true;
@@ -301,25 +240,24 @@ var qwr_utils = {
             console.log(e)
         }
     },
-    caller:                      function () {
+    /**
+     * @return {string}
+     */
+    caller:             function () {
         var caller = /^function\s+([^(]+)/.exec(/** @type{string} */ arguments.callee.caller.caller);
-        if (caller) {
-            return caller[1];
-        }
-        else {
-            return 0;
-        }
+        return caller ? caller[1] : '';
     },
-    function_name:               function () {
+    /**
+     * @return {string}
+     */
+    function_name:      function () {
         var caller = /^function\s+([^(]+)/.exec(/** @type{string} */ arguments.callee.caller);
-        if (caller) {
-            return caller[1];
-        }
-        else {
-            return 0;
-        }
+        return caller ? caller[1] : '';
     },
-    check_fonts:                 function (fonts) {
+    /**
+     * @param{Array<string>} fonts
+     */
+    check_fonts:        function (fonts) {
         var msg = '';
         var failCounter = 0;
 
@@ -336,7 +274,10 @@ var qwr_utils = {
             throw new ThemeError(msg);
         }
     },
-    has_modded_jscript:          _.once(function () {
+    /**
+     * @return{boolean}
+     */
+    has_modded_jscript: _.once(function () {
         var ret = _.attempt(function () {
             // Methods from modded JScript
             wsh_utils.GetWndByHandle(666);
@@ -344,12 +285,56 @@ var qwr_utils = {
         });
 
         return !_.isError(ret);
-    })
-};
+    }),
+    /**
+     * @param{string} site
+     * @param{IFbMetadbHandle} metadb
+     */
+    link:               function (site, metadb) {
+        if (!metadb) {
+            return;
+        }
 
-function g_numeric_ascending_sort(a, b) {
-    return (a - b);
-}
+        var meta_info = metadb.GetFileInfo();
+        var artist = meta_info.MetaValue(meta_info.MetaFind('artist'), 0).replace(/\s+/g, '+').replace(/&/g, '%26');
+        var album = meta_info.MetaValue(meta_info.MetaFind('album'), 0).replace(/\s+/g, '+');
+        var title = meta_info.MetaValue(meta_info.MetaFind('title'), 0).replace(/\s+/g, '+');
+
+        var search_term = artist ? artist : title;
+
+        switch (site.toLowerCase()) {
+            case 'google':
+                site = (search_term ? 'http://images.google.com/search?q=' + search_term + '&ie=utf-8' : null);
+                break;
+            case 'googleimages':
+                site = (search_term ? 'http://images.google.com/images?hl=en&q=' + search_term + '&ie=utf-8' : null);
+                break;
+            case 'ecover':
+                site = (search_term || album ? 'http://ecover.to/?Module=ExtendedSearch&SearchString=' + search_term + '+' + album + '&ie=utf-8' : null);
+                break;
+            case 'wikipedia':
+                site = (artist ? 'http://en.wikipedia.org/wiki/' + artist.replace(/\+/g, '_') : null);
+                break;
+            case 'youtube':
+                site = (search_term ? 'http://www.youtube.com/results?search_type=&search_query=' + search_term + '&ie=utf-8' : null);
+                break;
+            case 'lastfm':
+                site = (search_term ? 'http://www.last.fm/music/' + search_term.replace('/', '%252F') : null);
+                break;
+            case 'discogs':
+                site = (search_term || album ? 'http://www.discogs.com/search?q=' + search_term + '+' + album + '&ie=utf-8' : null);
+                break;
+            default:
+                site = undefined;
+        }
+
+        if (!site) {
+            return;
+        }
+
+        _.run(site);
+    }
+};
 
 /**
  * @param{string} text_id
@@ -357,10 +342,16 @@ function g_numeric_ascending_sort(a, b) {
  * @constructor
  */
 function PanelProperty(text_id, default_value) {
+    /**
+     * @return {*}
+     */
     this.get = function() {
         return value;
 
     };
+    /**
+     * @param {*} new_value
+     */
     this.set = function(new_value) {
         if (value !== new_value) {
             window.SetProperty(this.text_id, new_value);
@@ -369,8 +360,14 @@ function PanelProperty(text_id, default_value) {
     };
 
     this.text_id = text_id;
+
     var value = window.GetProperty(this.text_id, default_value);
 }
+
+/** @type {IUIHacks} */
+var UIHacks =
+    /** @type {IUIHacks} */
+    new ActiveXObject('UIHacks');
 
 var g_properties = new function() {
     this.add_properties = function (properties) {

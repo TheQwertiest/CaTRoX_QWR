@@ -26,7 +26,7 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
         var SF = g_string_format.align_center | g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
         var art = art_arr[cur_art_id];
 
-        g.FillSolidRect(this.x, this.y, this.w, this.h, panelsBackColor);
+        g.FillSolidRect(this.x, this.y, this.w, this.h, g_theme.colors.panel_back);
         g.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
 
         if (art) {
@@ -504,7 +504,7 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
             web.append_item(
                 item[0],
                 function (url) {
-                    link(url);
+                    qwr_utils.link(url, metadb);
                 }.bind(null, item[1])
             );
         });
@@ -657,7 +657,7 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
     var feature_border = _.includes(features, 'borders');
     var feature_thumbs = _.includes(features, 'thumbs');
     var feature_cycle = _.includes(features, 'auto_cycle');
-    var frame_color = panelsLineColor;
+    var frame_color = g_theme.colors.panel_line;
 
     var oldAlbum;
     var currentAlbum;
@@ -931,7 +931,7 @@ function Thumbs(cover_switch_callback_arg) {
             g.DrawImage(art_img, x + p, y + p, art_img.Width, art_img.Height, 0, 0, art_img.Width, art_img.Height, 0, 230);
         }
         else {
-            g.FillSolidRect(x + p, y + p, w - x - 2 * p, h - y - 2 * p, panelsBackColor); // Cleartype is borked, if drawn without background
+            g.FillSolidRect(x + p, y + p, w - x - 2 * p, h - y - 2 * p, g_theme.colors.panel_back); // Cleartype is borked, if drawn without background
             var btn_text_format = g_string_format.align_center | g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
             g.DrawString(btnText, gdi.font('Segoe Ui', 14), _.RGB(70, 70, 70), 0, 0, w, h, btn_text_format);
         }
@@ -970,7 +970,7 @@ function Thumbs(cover_switch_callback_arg) {
     var that = this;
 
     var border_size = 2;
-    var frame_color = panelsLineColor;
+    var frame_color = g_theme.colors.panel_line;
     var pos = Thumbs.pos;
 
     var original_art_imgs = [];

@@ -102,7 +102,7 @@ var pss_switch = new function() {
     }
 
     // private:
-    var settings_path = fb.ProfilePath + 'theme_settings\\' + g_theme_folder;
+    var settings_path = fb.ProfilePath + 'theme_settings\\' + g_theme.folder_name;
     _.createFolder(fb.ProfilePath + 'theme_settings');
     _.createFolder(settings_path);
 

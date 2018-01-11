@@ -31,7 +31,7 @@ create_button_images();
 function on_paint(gr) {
     var metadb = (fb.IsPlaying ? fb.GetNowPlaying() : fb.GetFocusItem());
 
-    gr.FillSolidRect(0, 0, ww, wh, pssBackColor);
+    gr.FillSolidRect(0, 0, ww, wh, g_theme.colors.pss_back);
     gr.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
 
     // Logo
@@ -40,7 +40,7 @@ function on_paint(gr) {
             logoW = 16,
             logoY = Math.floor((wh - logoW) / 2);
 
-        var fooLogo = gdi.Image(fb.FoobarPath + 'themes\\' + g_theme_folder + '\\Images\\fooLogo.png');
+        var fooLogo = gdi.Image(fb.FoobarPath + 'themes\\' + g_theme.folder_name + '\\Images\\fooLogo.png');
         gr.SetInterpolationMode(InterpolationMode.HighQualityBicubic);
         gr.DrawImage(fooLogo, logoX, logoY, logoW, logoW, 0, 0, fooLogo.Width, fooLogo.Height, 0, 175);
     }
@@ -185,9 +185,9 @@ function create_button_images() {
 
     var accented_ico_colors =
         [
-            _.RGB(182, 158, 44), // _.RGBA(255, 220, 55, 155) + pssBackColor
-            _.RGB(234, 202, 53), // _.RGBA(255, 220, 55, 225) + pssBackColor
-            _.RGB(141, 122, 38)  // _.RGBA(255, 220, 55, 105) + pssBackColor
+            _.RGB(182, 158, 44), // _.RGBA(255, 220, 55, 155) + g_theme.colors.pss_back
+            _.RGB(234, 202, 53), // _.RGBA(255, 220, 55, 225) + g_theme.colors.pss_back
+            _.RGB(141, 122, 38)  // _.RGBA(255, 220, 55, 105) + g_theme.colors.pss_back
         ];
 
     var default_ellipse_colors =
@@ -252,7 +252,7 @@ function create_button_images() {
             var g = img.GetGraphics();
             g.SetSmoothingMode(SmoothingMode.HighQuality);
             g.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
-            g.FillSolidRect(0, 0, w, h, pssBackColor); // Cleartype is borked, if drawn without background
+            g.FillSolidRect(0, 0, w, h, g_theme.colors.pss_back); // Cleartype is borked, if drawn without background
 
             var ico_color = item.is_accented ? accented_ico_colors[s] : default_ico_colors[s];
             var ellipse_color = default_ellipse_colors[s];
@@ -266,7 +266,7 @@ function create_button_images() {
             if (item.add_cross) {
                 var slash_font = gdi.font('Arial', 22, g_font_style.bold);
                 g.DrawString('\u2215', slash_font, ico_color, 1, 1, w, h, g_string_format.align_center);
-                g.DrawString('\u2215', slash_font, pssBackColor, 3, 1, w, h, g_string_format.align_center);
+                g.DrawString('\u2215', slash_font, g_theme.colors.pss_back, 3, 1, w, h, g_string_format.align_center);
             }
 
             img.ReleaseGraphics(g);

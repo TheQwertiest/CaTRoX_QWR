@@ -139,7 +139,7 @@ function on_notify_data(name, info) {
  */
 function UltraMini() {
     this.on_paint = function (gr) {
-        gr.FillSolidRect(0, 0, this.w, this.h, panelsBackColor);
+        gr.FillSolidRect(0, 0, this.w, this.h, g_theme.colors.panel_back);
         gr.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
 
         // Art
@@ -147,7 +147,7 @@ function UltraMini() {
             art_module.paint(gr);
         }
         else {
-            gr.DrawString(g_theme_name + ' ' + g_theme_version, gdi.font('Segoe Ui Semibold', 24), _.RGB(70, 70, 70), 0, 0, this.w, this.h, g_string_format.align_center);
+            gr.DrawString(g_theme.name + ' ' + g_theme.version, gdi.font('Segoe Ui Semibold', 24), _.RGB(70, 70, 70), 0, 0, this.w, this.h, g_string_format.align_center);
         }
 
         // Title

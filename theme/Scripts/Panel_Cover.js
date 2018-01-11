@@ -17,7 +17,7 @@ var ww;
 var wh;
 
 function on_paint(gr) {
-    gr.FillSolidRect( 0, 0, ww, wh, panelsBackColor);
+    gr.FillSolidRect( 0, 0, ww, wh, g_theme.colors.panel_back);
     artModule.paint(gr);
 }
 
