@@ -18,7 +18,6 @@ g_properties.add_properties(
 
         show_metadata: ['user.list.show_metadata', true],
         show_fileinfo: ['user.list.show_fileinfo', true],
-        is_sorted:     ['user.list.is_sorted', false],
 
         show_scrollbar:      ['user.scrollbar.show', true],
         scrollbar_right_pad: ['user.scrollbar.pad.right', 0],
@@ -41,7 +40,8 @@ var g_tr_i_fonts = {
 var g_tr_i_colors = {
     background: g_theme.colors.panel_back,
     row_alternate: _.RGB(35, 35, 35),
-    row_selected: g_theme.colors.panel_line_selected,
+    row_pressed: g_theme.colors.panel_line_selected,
+    row_pressed_rect: _.RGB(80, 80, 80),
     line_color: g_theme.colors.panel_line,
     info_name: _.RGB(160, 162, 164),
     info_value: g_theme.colors.panel_text_normal
@@ -140,6 +140,12 @@ function on_item_focus_change(playlist_arg, from, to) {
     track_info.on_item_focus_change(playlist_arg, from, to);
 }
 
+function on_playlist_switch() {
+    trace_call && console.log(qwr_utils.function_name());
+
+    track_info.on_playlist_switch();
+}
+
 function on_playback_new_track(metadb) {
     trace_call && console.log(qwr_utils.function_name());
 
@@ -176,7 +182,7 @@ function TrackInfoList() {
             _.forEachRight(items_to_draw, function (item, i) {
                 item.draw(gr);
                 if (!g_properties.alternate_row_color && i > 0 && i < items_to_draw.length) {
-                    gr.DrawLine(item.x, item.y, item.x + item.w, item.y, 1, g_tr_i_colors.line_color);
+                    gr.DrawLine(item.x, item.y, item.x + item.w - 1, item.y, 1, g_tr_i_colors.line_color);
                 }
             });
 
@@ -279,8 +285,8 @@ function TrackInfoList() {
         last_hover_item = item;
 
         if (item) {
-            item.is_selected = true;
-            this.repaint();
+            item.is_pressed = true;
+            alpha_timer.start();
         }
     };
 
@@ -334,8 +340,8 @@ function TrackInfoList() {
         last_hover_item = item;
 
         if (item) {
-            item.is_selected = true;
-            this.repaint();
+            item.is_pressed = true;
+            alpha_timer.start();
         }
     };
 
@@ -358,7 +364,7 @@ function TrackInfoList() {
 
 
         // -------------------------------------------------------------- //
-        //---> Edit Mode
+        //---> Track info management
 
         cmm.append_separator();
 
@@ -385,19 +391,21 @@ function TrackInfoList() {
         );
 
         if (hover_item) {
+            cmm.append_separator();
+            
+            cmm.append_item(
+                'Copy',
+                function () {
+                    _.setClipboardData(hover_item.get_value_text())
+                }
+            );
+
             cmm.append_item(
                 'Edit',
                 function () {
                     hover_item.edit_metadata();
                 },
                 {is_grayed_out: hover_item.is_readonly}
-            );
-
-            cmm.append_item(
-                'Copy',
-                function () {
-                    _.setClipboardData(hover_item.get_value_text())
-                }
             );
 
             cmm.append_item(
@@ -469,9 +477,11 @@ function TrackInfoList() {
 
         appear.append_item(
             'Alternate row color',
-            function () {
+            _.bind(function () {
                 g_properties.alternate_row_color = !g_properties.alternate_row_color;
-            },
+                // To reinit row images
+                this.initialize_list();
+            }, this),
             {is_checked: g_properties.alternate_row_color}
         );
 
@@ -480,7 +490,7 @@ function TrackInfoList() {
             _.bind(function () {
                 g_properties.show_metadata = !g_properties.show_metadata;
                 this.initialize_list();
-            },this),
+            }, this),
             {is_checked: g_properties.show_metadata}
         );
 
@@ -489,33 +499,9 @@ function TrackInfoList() {
             _.bind(function () {
                 g_properties.show_fileinfo = !g_properties.show_fileinfo;
                 this.initialize_list();
-            },this),
+            }, this),
             {is_checked: g_properties.show_fileinfo}
         );
-
-        // -------------------------------------------------------------- //
-        //---> Sort
-
-        var sort = new Context.Menu('Sort');
-        cmm.append(sort);
-
-        sort.append_item(
-            'Sort alphabetically',
-            _.bind(function () {
-                g_properties.is_sorted = true;
-                this.initialize_list()
-            },this)
-        );
-
-        sort.append_item(
-            'Sort by type',
-            _.bind(function () {
-                g_properties.is_sorted = false;
-                this.initialize_list()
-            },this)
-        );
-
-        sort.radio_check(0, g_properties.is_sorted ? 0 : 1);
 
         // -------------------------------------------------------------- //
         //---> System
@@ -549,14 +535,21 @@ function TrackInfoList() {
 
     this.on_item_focus_change = function (playlist_idx, from_idx, to_idx) {
         if (!fb.IsPlaying || g_properties.track_mode === track_modes.selected) {
-            that.initialize_list();
+            this.initialize_list();
+            this.repaint();
+        }
+    };
+
+    this.on_playlist_switch = function () {
+        if (!fb.IsPlaying || g_properties.track_mode === track_modes.selected) {
+            this.initialize_list();
             this.repaint();
         }
     };
 
     this.on_playback_new_track = function (metadb) {
         if (g_properties.track_mode !== track_modes.selected) {
-            that.initialize_list();
+            this.initialize_list();
             this.repaint();
         }
     };
@@ -569,13 +562,15 @@ function TrackInfoList() {
     };
 
     this.on_playback_dynamic_info_track = function () {
-        that.initialize_list();
+        this.initialize_list();
         this.repaint();
     };
 
     this.on_metadb_changed = function (handles, fromhook) {
-        that.initialize_list();
-        this.repaint();
+        if (handles.Find(cur_metadb) !== -1) {
+            this.initialize_list();
+            this.repaint();
+        }
     };
 
     /// EOF callbacks
@@ -598,6 +593,13 @@ function TrackInfoList() {
     // This method does not contain any redraw calls - it's purely back-end
     this.initialize_list = function () {
         trace_call && console.log('initialize_list');
+
+        if (rows.length) {
+            alpha_timer.stop();
+            rows.forEach(function (row) {
+                row.dispose();
+            })
+        }
 
         rows = [];
         scroll_pos = 0;
@@ -639,14 +641,9 @@ function TrackInfoList() {
                     _.last(rows).is_odd = ((cur_rows_count + i) + 1) % 2;
                 }
             }
-        }
 
-        if (g_properties.is_sorted) {
-            rows.sort(function(a, b) {
-                var a_tag = a.get_tag_name().toUpperCase();
-                var b_tag = b.get_tag_name().toUpperCase();
-
-                return a_tag.localeCompare(b_tag);
+            alpha_timer = new _.alpha_timer(rows, function (row) {
+                return row.is_pressed;
             });
         }
 
@@ -713,10 +710,6 @@ function TrackInfoList() {
             is_scrollbar_visible = is_visible;
             update_list_w_size();
         }
-    }
-
-    function on_playlist_info_visibility_change() {
-        update_list_h_size();
     }
 
     function update_list_h_size() {
@@ -962,9 +955,9 @@ function TrackInfoList() {
         }
 
         last_hover_item.tt.clear();
-        if (last_hover_item.is_selected) {
-            last_hover_item.is_selected = false;
-            that.repaint();
+        if (last_hover_item.is_pressed) {
+            last_hover_item.is_pressed = false;
+            alpha_timer.start();
         }
 
         last_hover_item = null;
@@ -1026,6 +1019,8 @@ function TrackInfoList() {
     /** @type {?ScrollBar} */
     var scrollbar = undefined;
 
+    var alpha_timer = null;
+
     this.initialize_list();
 }
 
@@ -1035,44 +1030,28 @@ function TrackInfoList() {
 function Row(x, y, w, h, metadb_arg, tag_name_arg, value_text_arg) {
     //public:
     this.draw = function (gr) {
-        gr.FillSolidRect(this.x, this.y, this.w, this.h, g_tr_i_colors.background);
+        if (!row_normal_image) {
+            var image = gdi.CreateImage(this.w, this.h);
+            var image_gr = image.GetGraphics();
 
-        if (this.is_odd && g_properties.alternate_row_color) {
-            gr.FillSolidRect(this.x, this.y + 1, this.w, this.h - 1, g_tr_i_colors.row_alternate);
+            draw_on_image(image_gr, false);
+
+            image.ReleaseGraphics(image_gr);
+            row_normal_image = image;
         }
 
-        if (this.is_selected) {
-            if (g_properties.alternate_row_color) {
-                if (this.is_cropped) {
-                    // last item is cropped
-                    gr.DrawRect(this.x, this.y, this.w - 1, this.h - 1, 1, g_tr_i_colors.row_selected);
-                }
-                else {
-                    gr.DrawRect(this.x, this.y, this.w - 1, this.h, 1, g_tr_i_colors.row_selected);
-                }
-            }
-            else {
-                gr.FillSolidRect(this.x, this.y, this.w, this.h, g_tr_i_colors.row_alternate);
-            }
+        if (!row_pressed_image) {
+            var image = gdi.CreateImage(this.w, this.h);
+            var image_gr = image.GetGraphics();
+
+            draw_on_image(image_gr, true);
+
+            image.ReleaseGraphics(image_gr);
+            row_pressed_image = image;
         }
 
-        var info_text_format = g_string_format.v_align_center | g_string_format.trim_ellipsis_char | g_string_format.line_limit;
-
-        var p = 5;
-        var cur_x = this.x + p;
-
-        {
-            var name_text = /** @type{string} */ [((tag_name === 'www') ? tag_name : _.capitalize(tag_name.toLowerCase()) + ':')];
-            var name_text_w = Math.ceil(/** @type{number} */ gr.MeasureString(name_text, g_tr_i_fonts.info_name, 0, 0, 0, 0).Width) + 5;
-            gr.DrawString(name_text, g_tr_i_fonts.info_name, g_tr_i_colors.info_name, cur_x, this.y, name_text_w, this.h, info_text_format);
-
-            cur_x += name_text_w;
-        }
-
-        {
-            var value_text_w = this.w - (cur_x - this.x);
-            gr.DrawString(value_text, g_tr_i_fonts.info_value, g_tr_i_colors.info_value, cur_x, this.y, value_text_w, this.h, info_text_format);
-        }
+        gr.DrawImage(row_normal_image, this.x, this.y, this.w, this.h, 0, 0, this.w, this.h, 0, 255);
+        gr.DrawImage(row_pressed_image, this.x, this.y, this.w, this.h, 0, 0, this.w, this.h, 0, this.hover_alpha);
     };
 
     var throttled_repaint = _.throttle(_.bind(function () {
@@ -1092,6 +1071,7 @@ function Row(x, y, w, h, metadb_arg, tag_name_arg, value_text_arg) {
 
     this.set_w = function (w) {
         this.w = w;
+        clear_image();
     };
 
     this.edit_metadata = function () {
@@ -1105,6 +1085,8 @@ function Row(x, y, w, h, metadb_arg, tag_name_arg, value_text_arg) {
             var meta_obj = {};
             meta_obj[tag_name] = value_text;
             handle.UpdateFileInfoFromJSON(JSON.stringify(meta_obj));
+
+            clear_image();
         }
     };
 
@@ -1116,6 +1098,56 @@ function Row(x, y, w, h, metadb_arg, tag_name_arg, value_text_arg) {
         return tag_name;
     };
 
+    this.dispose = function () {
+        clear_image();
+    };
+
+    function clear_image() {
+        if (row_normal_image) {
+            row_normal_image.Dispose();
+            row_normal_image = null;
+        }
+        if (row_pressed_image) {
+            row_pressed_image.Dispose();
+            row_pressed_image = null;
+        }
+    }
+
+    function draw_on_image(g, is_pressed) {
+        g.FillSolidRect(0, 0, that.w, that.h, g_tr_i_colors.background);
+        g.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
+
+        if (that.is_odd && g_properties.alternate_row_color) {
+            g.FillSolidRect(0, 1, that.w, that.h - 1, g_tr_i_colors.row_alternate);
+        }
+
+        if (is_pressed) {
+            if (g_properties.alternate_row_color) {
+                g.DrawRect(0, 0, that.w - 1, that.h - 1, 1, g_tr_i_colors.row_pressed_rect);
+            }
+            else {
+                g.FillSolidRect(0, 0, that.w, that.h, g_tr_i_colors.row_pressed);
+            }
+        }
+
+        var info_text_format = g_string_format.v_align_center | g_string_format.trim_ellipsis_char | g_string_format.line_limit;
+
+        var p = 5;
+        var cur_x = p;
+        {
+            var name_text = /** @type{string} */ [((tag_name === 'www') ? tag_name : _.capitalize(tag_name.toLowerCase()) + ':')];
+            var name_text_w = Math.ceil(/** @type{number} */ g.MeasureString(name_text, g_tr_i_fonts.info_name, 0, 0, 0, 0).Width) + 5;
+            g.DrawString(name_text, g_tr_i_fonts.info_name, g_tr_i_colors.info_name, cur_x, 0, name_text_w, that.h, info_text_format);
+
+            cur_x += name_text_w;
+        }
+
+        {
+            var value_text_w = (that.w - p) - cur_x;
+            g.DrawString(value_text, g_tr_i_fonts.info_value, g_tr_i_colors.info_value, cur_x, 0, value_text_w, that.h, info_text_format);
+        }
+    }
+
     //public:
     this.x = x;
     this.y = y;
@@ -1126,11 +1158,14 @@ function Row(x, y, w, h, metadb_arg, tag_name_arg, value_text_arg) {
     this.is_odd = false;
     this.is_readonly = true;
 
-    this.is_selected = false;
+    this.is_pressed = false;
+    // this is actually press_alpha, but _.alpha_timer expects item.hover_alpha
+    this.hover_alpha = 0;
 
     this.tt = new _.tt_handler;
 
     //private:
+    var that = this;
 
     var metadb = metadb_arg;
 
@@ -1138,4 +1173,9 @@ function Row(x, y, w, h, metadb_arg, tag_name_arg, value_text_arg) {
     var tag_name = tag_name_arg;
     /** @type {string} */
     var value_text = value_text_arg;
+
+    /** @type {?IGdiBitmap} */
+    var row_normal_image = null;
+    /** @type {?IGdiBitmap} */
+    var row_pressed_image = null;
 }
