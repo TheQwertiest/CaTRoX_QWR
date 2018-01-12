@@ -2854,7 +2854,6 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
         gr.FillSolidRect(this.x, this.y, this.w, this.h, g_pl_colors.background);
 
         if (this.is_odd && g_properties.alternate_row_color) {
-            //gr.FillSolidRect(this.x, this.y, this.w, this.h - 1, g_pl_colors.row_alternate);
             gr.FillSolidRect(this.x, this.y + 1, this.w, this.h - 1, g_pl_colors.row_alternate);
         }
 
@@ -2867,14 +2866,9 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
 
         if (this.is_selected_dynamic()) {
             if (g_properties.alternate_row_color) {
-                //gr.DrawRect(this.x, this.y - 1, this.w - 1, this.h, 1, g_pl_colors.row_focus_selected);
-                if (this.is_cropped) {
-                    // last item is cropped
-                    gr.DrawRect(this.x, this.y, this.w - 1, this.h - 1, 1, g_pl_colors.row_focus_selected);
-                }
-                else {
-                    gr.DrawRect(this.x, this.y, this.w - 1, this.h, 1, g_pl_colors.row_focus_selected);
-                }
+                // last item is cropped
+                var rect_h = this.is_cropped ? this.h - 1 : this.h;
+                gr.DrawRect(this.x, this.y, this.w - 1, rect_h, 1, g_pl_colors.row_focus_selected);
             }
             else {
                 gr.FillSolidRect(this.x, this.y, this.w, this.h, g_pl_colors.row_selected);
@@ -2896,14 +2890,9 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
 
         //--->
         if (g_properties.show_focused_row && this.is_focused) {
-            //gr.DrawRect(this.x + 1, this.y, this.w - 3, this.h - 2, 1, row_color_focus);
-            if (this.is_cropped) {
-                // last item is cropped
-                gr.DrawRect(this.x + 1, this.y + 1, this.w - 3, this.h - 3, 1, row_color_focus);
-            }
-            else {
-                gr.DrawRect(this.x + 1, this.y + 1, this.w - 3, this.h - 2, 1, row_color_focus);
-            }
+            // last item is cropped
+            var rect_h = this.is_cropped ? this.h - 3 : this.h - 2;
+            gr.DrawRect(this.x + 1, this.y + 1, this.w - 3, rect_h, 1, row_color_focus);
         }
 
         if (this.is_drop_top_selected) {

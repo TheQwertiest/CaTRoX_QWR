@@ -141,8 +141,9 @@ var g_album_art_id = {
 };
 
 /**
- * @constructor
  * @param {string} msg
+ * @constructor
+ * @extends {Error}
  */
 function ThemeError(msg) {
     Error.call(this, '') ;
@@ -158,8 +159,9 @@ function ThemeError(msg) {
 ThemeError.prototype = Object.create(Error.prototype);
 
 /**
- * @constructor
  * @param {string} msg
+ * @constructor
+ * @extends {Error}
  */
 function LogicError(msg) {
     Error.call(this, '') ;
@@ -175,11 +177,12 @@ function LogicError(msg) {
 LogicError.prototype = Object.create(Error.prototype);
 
 /**
- * @constructor
  * @param {string} arg_name
  * @param {string} arg_type
  * @param {string} valid_type
  * @param {string=} additional_msg
+ * @constructor
+ * @extends {Error}
  */
 function TypeError(arg_name, arg_type, valid_type, additional_msg) {
     Error.call(this, '') ;
@@ -198,10 +201,11 @@ function TypeError(arg_name, arg_type, valid_type, additional_msg) {
 TypeError.prototype = Object.create(Error.prototype);
 
 /**
- * @constructor
  * @param {string} arg_name
  * @param {*} arg_value
  * @param {string=} additional_msg
+ * @constructor
+ * @extends {Error}
  */
 function ArgumentError(arg_name, arg_value, additional_msg) {
     Error.call(this, '') ;
@@ -264,7 +268,7 @@ var qwr_utils = {
         fonts.forEach(function (item) {
             var check = utils.CheckFont(item);
             if (!check) {
-                failCounter++;
+                ++failCounter;
             }
             msg += ('\n' + item + (check ? ': Installed.' : ': NOT INSTALLED!'));
         });
