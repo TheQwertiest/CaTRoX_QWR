@@ -11,44 +11,45 @@ g_script_list.push('Panel_Info.js');
 
 g_properties.add_properties(
     {
-        list_left_pad:   ['user.list.pad.left', 4],
-        list_top_pad:    ['user.list.pad.top', 4],
-        list_right_pad:  ['user.list.pad.right', 4],
-        list_bottom_pad: ['user.list.pad.bottom', 4],
-
         show_metadata: ['user.list.show_metadata', true],
         show_fileinfo: ['user.list.show_fileinfo', true],
 
-        show_scrollbar:      ['user.scrollbar.show', true],
-        scrollbar_right_pad: ['user.scrollbar.pad.right', 0],
-        scrollbar_w:         ['user.scrollbar.width', utils.GetSystemMetrics(2)],
-
-        row_h:               ['user.row.height', 20],
         alternate_row_color: ['user.row.alternate_color', false],
 
-        track_mode: ['user.track_mode', 3]
+        track_mode: ['user.track_mode', 3],
+
+        first_launch: ['system.script_first_launch', true]
     }
 );
-g_properties.track_mode = Math.max(1, Math.min(3, g_properties.track_mode));
-g_properties.row_h = Math.max(10, g_properties.row_h);
+// Fixup properties
+(function() {
+    g_properties.track_mode = Math.max(1, Math.min(3, g_properties.track_mode));
+
+    if (g_properties.first_launch) {
+        g_properties.scrollbar_top_pad = 3;
+        g_properties.list_left_pad = 4;
+        g_properties.list_top_pad = 4;
+        g_properties.list_right_pad = 4;
+        g_properties.list_bottom_pad = 4;
+
+        g_properties.first_launch = false;
+    }
+})();
 
 var g_tr_i_fonts = {
-    info_name: gdi.font('Segoe Ui Semibold', 12),
+    info_name:  gdi.font('Segoe Ui Semibold', 12),
     info_value: gdi.font('Segoe Ui', 12)
 };
 
 var g_tr_i_colors = {
-    background: g_theme.colors.panel_back,
-    row_alternate: _.RGB(35, 35, 35),
-    row_pressed: g_theme.colors.panel_line_selected,
+    background:       g_theme.colors.panel_back,
+    row_alternate:    _.RGB(35, 35, 35),
+    row_pressed:      g_theme.colors.panel_line_selected,
     row_pressed_rect: _.RGB(80, 80, 80),
-    line_color: g_theme.colors.panel_line,
-    info_name: _.RGB(160, 162, 164),
-    info_value: g_theme.colors.panel_text_normal
+    line_color:       g_theme.colors.panel_line,
+    info_name:        _.RGB(160, 162, 164),
+    info_value:       g_theme.colors.panel_text_normal
 };
-
-
-var track_info = new TrackInfoList();
 
 function on_paint(gr) {
     trace_call && trace_on_paint && console.log(qwr_utils.function_name());
@@ -170,7 +171,13 @@ function on_metadb_changed(handles, fromhook) {
     track_info.on_metadb_changed(handles, fromhook);
 }
 
+/**
+ * @constructor
+ * @extends {List}
+ */
 function TrackInfoList() {
+    List.call(this, 0, 0, 0, 0, new List.RowContent());
+
     // public:
 
     /// callbacks
@@ -178,17 +185,17 @@ function TrackInfoList() {
         gr.FillSolidRect(this.x, this.y, this.w, this.h, g_tr_i_colors.background);
         gr.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
 
-        if (items_to_draw.length) {
-            _.forEachRight(items_to_draw, function (item, i) {
+        if (this.items_to_draw.length) {
+            _.forEachRight(this.items_to_draw, _.bind(function (item, i) {
                 item.draw(gr);
-                if (!g_properties.alternate_row_color && i > 0 && i < items_to_draw.length) {
+                if (!g_properties.alternate_row_color && i > 0 && i < this.items_to_draw.length) {
                     gr.DrawLine(item.x, item.y, item.x + item.w - 1, item.y, 1, g_tr_i_colors.line_color);
                 }
-            });
+            }, this));
 
-            // Hide rows that shouldn't be visible
-            gr.FillSolidRect(this.x, this.y, this.w, list_y - this.y, g_tr_i_colors.background);
-            gr.FillSolidRect(this.x, list_y + list_h, this.w, (this.y + this.h) - (list_y + list_h), g_tr_i_colors.background);
+            // Hide this.cnt.items that shouldn't be visible
+            gr.FillSolidRect(this.x, this.y, this.w, this.list_y - this.y, g_tr_i_colors.background);
+            gr.FillSolidRect(this.x, this.list_y + this.list_h, this.w, (this.y + this.h) - (this.list_y + this.list_h), g_tr_i_colors.background);
         }
         else {
             var text;
@@ -203,58 +210,39 @@ function TrackInfoList() {
             gr.DrawString(text, gdi.font('Segoe Ui Semibold', 24), _.RGB(70, 70, 70), this.x, this.y, this.w, this.h, track_info_format);
         }
 
-        if (is_scrollbar_available) {
-            if (!scrollbar.is_scrolled_up) {
-                gr.FillGradRect(list_x, list_y - 1, list_w, 7 + 1, 270, _.RGBtoRGBA(g_theme.colors.panel_back, 0), _.RGBtoRGBA(g_theme.colors.panel_back, 200));
+        if (this.is_scrollbar_available) {
+            if (!this.scrollbar.is_scrolled_up) {
+                gr.FillGradRect(this.list_x, this.list_y - 1, this.list_w, 7 + 1, 270, _.RGBtoRGBA(g_theme.colors.panel_back, 0), _.RGBtoRGBA(g_theme.colors.panel_back, 200));
             }
-            if (!scrollbar.is_scrolled_down) {
-                gr.FillGradRect(list_x, list_y + list_h - 8, list_w, 7 + 1, 90, _.RGBtoRGBA(g_theme.colors.panel_back, 0), _.RGBtoRGBA(g_theme.colors.panel_back, 200));
+            if (!this.scrollbar.is_scrolled_down) {
+                gr.FillGradRect(this.list_x, this.list_y + this.list_h - 8, this.list_w, 7 + 1, 90, _.RGBtoRGBA(g_theme.colors.panel_back, 0), _.RGBtoRGBA(g_theme.colors.panel_back, 200));
             }
         }
 
-        if (is_scrollbar_visible) {
-            scrollbar.paint(gr);
+        if (this.is_scrollbar_visible) {
+            this.scrollbar.paint(gr);
         }
     };
 
     this.on_size = function (w, h) {
-        var w_changed = this.w !== w;
-        var h_changed = this.h !== h;
-
-        if (h_changed) {
-            on_h_size(h);
-        }
-
-        if (w_changed) {
-            on_w_size(w)
-        }
-
+        List.prototype.on_size.apply(this, [w, h]);
         was_on_size_called = true;
     };
 
     this.on_mouse_move = function (x, y, m) {
-        if (is_scrollbar_visible) {
-            scrollbar.move(x, y, m);
-
-            if (scrollbar.b_is_dragging || scrollbar.trace(x, y)) {
-                return;
+        if (List.prototype.on_mouse_move.apply(this, [x, y, m])) {
+            if (!this.trace(x, y)) {
+                clear_last_hover_item();
             }
-        }
-
-        if (!this.trace(x, y)) {
-            mouse_in = false;
-            clear_last_hover_item();
 
             return;
         }
 
-        mouse_in = true;
-
-        if (!this.trace_list(x, y) || mouse_down) {
+        if (this.mouse_down) {
             return;
         }
 
-        var item = get_item_under_mouse(x, y);
+        var item = this.get_item_under_mouse(x, y);
         if (item) {
             if (item !== last_hover_item) {
                 last_hover_item = item;
@@ -267,21 +255,13 @@ function TrackInfoList() {
     };
 
     this.on_mouse_lbtn_down = function (x, y, m) {
-        mouse_down = true;
         clear_last_hover_item();
 
-        if (mouse_double_clicked) {
+        if (List.prototype.on_mouse_lbtn_down.apply(this, [x, y, m])) {
             return;
         }
 
-        if (is_scrollbar_visible) {
-            if (scrollbar.trace(x, y)) {
-                scrollbar.lbtn_dn(x, y, m);
-                return;
-            }
-        }
-
-        var item = this.trace_list(x, y) ? get_item_under_mouse(x, y) : undefined;
+        var item = this.trace_list(x, y) ? this.get_item_under_mouse(x, y) : undefined;
         last_hover_item = item;
 
         if (item) {
@@ -291,17 +271,11 @@ function TrackInfoList() {
     };
 
     this.on_mouse_lbtn_dblclk = function (x, y, m) {
-        mouse_down = true;
-        mouse_double_clicked = true;
-
-        if (is_scrollbar_visible) {
-            if (scrollbar.trace(x, y)) {
-                scrollbar.lbtn_dn(x, y, m);
-                return;
-            }
+        if (List.prototype.on_mouse_lbtn_dblclk.apply(this, [x, y, m])) {
+            return;
         }
 
-        var item = get_item_under_mouse(x, y);
+        var item = this.get_item_under_mouse(x, y);
         if (!item) {
             return;
         }
@@ -313,19 +287,8 @@ function TrackInfoList() {
     };
 
     this.on_mouse_lbtn_up = function (x, y, m) {
-        if (!mouse_down) {
+        if (List.prototype.on_mouse_lbtn_up.apply(this, [x, y, m])) {
             return;
-        }
-
-        mouse_double_clicked = false;
-        mouse_down = false;
-
-        if (is_scrollbar_visible) {
-            var wasDragging = scrollbar.b_is_dragging;
-            scrollbar.lbtn_up(x, y, m);
-            if (wasDragging) {
-                return;
-            }
         }
 
         clear_last_hover_item();
@@ -333,10 +296,10 @@ function TrackInfoList() {
     };
 
     this.on_mouse_rbtn_down = function (x, y, m) {
-        mouse_down = true;
+        this.mouse_down = true;
         clear_last_hover_item();
 
-        var item = this.trace_list(x, y) ? get_item_under_mouse(x, y) : undefined;
+        var item = this.trace_list(x, y) ? this.get_item_under_mouse(x, y) : undefined;
         last_hover_item = item;
 
         if (item) {
@@ -346,8 +309,8 @@ function TrackInfoList() {
     };
 
     this.on_mouse_rbtn_up = function (x, y, m) {
-        if (is_scrollbar_visible && scrollbar.trace(x, y)) {
-            return scrollbar.rbtn_up(x, y);
+        if (this.is_scrollbar_visible && this.scrollbar.trace(x, y)) {
+            return this.scrollbar.rbtn_up(x, y);
         }
 
         var hover_item = last_hover_item;
@@ -392,7 +355,7 @@ function TrackInfoList() {
 
         if (hover_item) {
             cmm.append_separator();
-            
+
             cmm.append_item(
                 'Copy',
                 function () {
@@ -466,14 +429,7 @@ function TrackInfoList() {
         var appear = new Context.Menu('Appearance');
         cmm.append(appear);
 
-        appear.append_item(
-            'Show scrollbar',
-            function () {
-                g_properties.show_scrollbar = !g_properties.show_scrollbar;
-                on_scrollbar_visibility_change(g_properties.show_scrollbar);
-            },
-            {is_checked: g_properties.show_scrollbar}
-        );
+        this.append_scrollbar_visibility_context_menu_to(appear);
 
         appear.append_item(
             'Alternate row color',
@@ -518,18 +474,8 @@ function TrackInfoList() {
         return true;
     };
 
-    this.on_mouse_wheel = function (delta) {
-        if (is_scrollbar_available) {
-            scrollbar.wheel(delta);
-        }
-    };
-
     this.on_mouse_leave = function () {
-        if (is_scrollbar_available) {
-            scrollbar.leave();
-        }
-
-        mouse_in = false;
+        List.prototype.on_mouse_leave.apply(this);
         clear_last_hover_item();
     };
 
@@ -556,7 +502,7 @@ function TrackInfoList() {
 
     this.on_playback_stop = function (reason) {
         if (reason !== 2 && g_properties.track_mode !== track_modes.selected) {
-            that.initialize_list();
+            this.initialize_list();
             this.repaint();
         }
     };
@@ -575,34 +521,19 @@ function TrackInfoList() {
 
     /// EOF callbacks
 
-    this.trace = function (x, y) {
-        return x >= this.x && x < this.x + this.w && y >= this.y && y < this.y + this.h;
-    };
-
-    this.trace_list = function (x, y) {
-        return x >= list_x && x < list_x + list_w && y >= list_y && y < list_y + list_h;
-    };
-
-    var throttled_repaint = _.throttle(_.bind(function () {
-        window.RepaintRect(this.x, this.y, this.w, this.h);
-    }, this), 1000 / 60);
-    this.repaint = function () {
-        throttled_repaint();
-    };
-
     // This method does not contain any redraw calls - it's purely back-end
     this.initialize_list = function () {
         trace_call && console.log('initialize_list');
 
-        if (rows.length) {
+        if (this.cnt.items.length) {
             alpha_timer.stop();
-            rows.forEach(function (row) {
+            this.cnt.items.forEach(function (row) {
                 row.dispose();
             })
         }
 
-        rows = [];
-        scroll_pos = 0;
+        this.cnt.items = [];
+        this.scroll_pos = 0;
 
         cur_metadb = get_current_metadb();
         if (cur_metadb) {
@@ -622,177 +553,40 @@ function TrackInfoList() {
                     }
                     else {
                         value_text = fileInfo.MetaValue(fileInfo.MetaFind(tag_name), 0);
-                        is_readonly = _.startsWith(_.tf('%path%', this.metadb), 'http');
+                        is_readonly = _.startsWith(_.tf('%path%', cur_metadb), 'http');
                     }
 
-                    rows.push(new Row(list_x, 0, list_w, row_h, cur_metadb, tag_name, value_text));
-                    _.last(rows).is_odd = (i + 1) % 2;
-                    _.last(rows).is_readonly = is_readonly;
+                    this.cnt.items.push(new Row(this.list_x, 0, this.list_w, this.row_h, cur_metadb, tag_name, value_text));
+                    _.last(this.cnt.items).is_odd = (i + 1) % 2;
+                    _.last(this.cnt.items).is_readonly = is_readonly;
                 }
             }
 
             if (g_properties.show_fileinfo) {
-                var cur_rows_count = rows.length;
+                var cur_rows_count = this.cnt.items.length;
                 for (var i = 0; i < fileInfo.InfoCount; i++) {
                     tag_name = fileInfo.InfoName(i);
                     value_text = fileInfo.InfoValue(fileInfo.InfoFind(tag_name));
 
-                    rows.push(new Row(list_x, 0, list_w, row_h, cur_metadb, tag_name, value_text));
-                    _.last(rows).is_odd = ((cur_rows_count + i) + 1) % 2;
+                    this.cnt.items.push(new Row(this.list_x, 0, this.list_w, this.row_h, cur_metadb, tag_name, value_text));
+                    _.last(this.cnt.items).is_odd = ((cur_rows_count + i) + 1) % 2;
                 }
             }
 
-            alpha_timer = new _.alpha_timer(rows, function (row) {
+            alpha_timer = new _.alpha_timer(this.cnt.items, function (row) {
                 return row.is_pressed;
             });
         }
-
+        
         if (was_on_size_called) {
-            on_displayed_row_count_change();
+            this.on_list_items_change();
         }
     };
 
     //private:
-    function on_h_size(h) {
-        that.h = h;
-        update_list_h_size();
-    }
-
-    function on_w_size(w) {
-        that.w = w;
-        update_list_w_size();
-    }
-
-    function on_displayed_row_count_change() {
-        update_scrollbar();
-        on_drawn_content_change();
-    }
-
-    function on_drawn_content_change() {
-        set_rows_boundary_status();
-        calculate_shift_params();
-        generate_items_to_draw();
-    }
-
-    function initialize_scrollbar() {
-        is_scrollbar_available = false;
-
-        var scrollbar_x = that.x + that.w - g_properties.scrollbar_w - g_properties.scrollbar_right_pad;
-        var scrollbar_y = that.y + 3;
-        var scrollbar_h = that.h - scrollbar_y - 3;
-
-        if (scrollbar) {
-            scrollbar.reset();
-        }
-        scrollbar = new ScrollBar(scrollbar_x, scrollbar_y, g_properties.scrollbar_w, scrollbar_h, row_h, scrollbar_redraw_callback);
-    }
-
-    function update_scrollbar() {
-        var total_height_in_rows = rows.length;
-
-        if (total_height_in_rows <= rows_to_draw_precise) {
-            is_scrollbar_available = false;
-            scroll_pos = 0;
-            on_scrollbar_visibility_change(false);
-        }
-        else {
-            scrollbar.set_window_param(rows_to_draw_precise, total_height_in_rows);
-            scrollbar.scroll_to(scroll_pos, true);
-
-            scroll_pos = scrollbar.scroll;
-            is_scrollbar_available = true;
-            on_scrollbar_visibility_change(g_properties.show_scrollbar);
-        }
-    }
-
-    function on_scrollbar_visibility_change(is_visible) {
-        if (is_scrollbar_visible !== is_visible) {
-            is_scrollbar_visible = is_visible;
-            update_list_w_size();
-        }
-    }
-
-    function update_list_h_size() {
-        list_y = that.y + g_properties.list_top_pad;
-        list_h = that.h - list_y - g_properties.list_bottom_pad;
-
-        rows_to_draw_precise = list_h / row_h;
-
-        initialize_scrollbar();
-        update_scrollbar();
-        on_drawn_content_change();
-    }
-
-    function update_list_w_size() {
-        list_w = that.w - g_properties.list_left_pad - g_properties.list_right_pad;
-
-        if (is_scrollbar_available) {
-            if (is_scrollbar_visible) {
-                list_w -= scrollbar.w + 2;
-            }
-            scrollbar.set_x(that.w - g_properties.scrollbar_w - g_properties.scrollbar_right_pad);
-        }
-
-        rows.forEach(function (item) {
-            item.set_w(list_w);
-        });
-    }
-
-    function scrollbar_redraw_callback() {
-        scroll_pos = scrollbar.scroll;
-
-        on_drawn_content_change();
-
-        that.repaint();
-    }
-
-    function calculate_shift_params() {
-        row_shift = Math.floor(scroll_pos);
-        pixel_shift = -Math.round((scroll_pos - row_shift) * row_h);
-    }
-
-    function set_rows_boundary_status() {
-        var last_row = _.last(rows);
-        if (last_row) {
-            last_row.is_cropped = is_scrollbar_available ? scrollbar.is_scrolled_down : false;
-        }
-    }
-
-    // Called in three cases:
-    // 1. Window vertical size changed
-    // 2. Scroll position changed
-    // 3. Playlist content changed
-    function generate_items_to_draw() {
-        items_to_draw = [];
-        var start_y = list_y + pixel_shift;
-        var cur_y = 0;
-        var cur_row = 0;
-        var first = true;
-
-        for (var j = 0; j < rows.length; ++j) {
-            if (cur_row >= row_shift) {
-                if (first) {
-                    rows[j].set_y(start_y + (cur_row - row_shift) * row_h);
-                    cur_y = rows[j].y;
-                    first = false;
-                }
-                else {
-                    rows[j].set_y(cur_y);
-                }
-                items_to_draw.push(rows[j]);
-                cur_y += row_h;
-
-                if (cur_y >= that.h) {
-                    break;
-                }
-            }
-
-            ++cur_row;
-        }
-    }
 
     function scroll_to_row(from_row, to_row) {
-        if (!is_scrollbar_available) {
+        if (!this.is_scrollbar_available) {
             return;
         }
 
@@ -815,11 +609,11 @@ function TrackInfoList() {
 
                         var row_shift = from_item_state.invisible_part + 1;
                         if (is_item_prev) {
-                            scrollbar.scroll_to(scroll_pos - row_shift);
+                            this.scrollbar.scroll_to(this.scroll_pos - row_shift);
                             shifted_successfully = true;
                         }
                         else if (is_item_next) {
-                            scrollbar.scroll_to(scroll_pos + row_shift);
+                            this.scrollbar.scroll_to(this.scroll_pos + row_shift);
                             shifted_successfully = true;
                         }
                     }
@@ -828,17 +622,17 @@ function TrackInfoList() {
             }
             case visibility_state['partial_top']: {
                 if (to_item_state.invisible_part % 1 > 0) {
-                    scrollbar.shift_line(-1);
+                    this.scrollbar.shift_line(-1);
                 }
-                scrollbar.scroll_to(scroll_pos - Math.floor(to_item_state.invisible_part));
+                this.scrollbar.scroll_to(this.scroll_pos - Math.floor(to_item_state.invisible_part));
                 shifted_successfully = true;
                 break;
             }
             case visibility_state['partial_bottom']: {
                 if (to_item_state.invisible_part % 1 > 0) {
-                    scrollbar.shift_line(1);
+                    this.scrollbar.shift_line(1);
                 }
-                scrollbar.scroll_to(scroll_pos + Math.floor(to_item_state.invisible_part));
+                this.scrollbar.scroll_to(this.scroll_pos + Math.floor(to_item_state.invisible_part));
                 shifted_successfully = true;
                 break;
             }
@@ -853,8 +647,8 @@ function TrackInfoList() {
 
         if (!shifted_successfully) {
             var item_draw_idx = get_item_draw_row_idx(to_item);
-            var new_scroll_pos = Math.max(0, item_draw_idx - Math.floor(rows_to_draw_precise / 2));
-            scrollbar.scroll_to(new_scroll_pos);
+            var new_scroll_pos = Math.max(0, item_draw_idx - Math.floor(this.rows_to_draw_precise / 2));
+            this.scrollbar.scroll_to(new_scroll_pos);
         }
     }
 
@@ -871,19 +665,19 @@ function TrackInfoList() {
             invisible_part: 1
         };
 
-        _.forEach(items_to_draw, function (item) {
+        _.forEach(this.items_to_draw, function (item) {
             if (item_to_check.type !== item.type) {
                 return true;
             }
 
             if (item.idx === item_to_check.idx) {
-                if (item.y < list_y && item.y + item.h > list_y) {
+                if (item.y < this.list_y && item.y + item.h > this.list_y) {
                     item_state.visibility = visibility_state['partial_top'];
-                    item_state.invisible_part = (list_y - item.y) / row_h;
+                    item_state.invisible_part = (this.list_y - item.y) / this.row_h;
                 }
-                else if (item.y < list_y + list_h && item.y + item.h > list_y + list_h) {
+                else if (item.y < this.list_y + this.list_h && item.y + item.h > this.list_y + this.list_h) {
                     item_state.visibility = visibility_state['partial_bottom'];
-                    item_state.invisible_part = ((item.y + item.h) - (list_y + list_h)) / row_h;
+                    item_state.invisible_part = ((item.y + item.h) - (this.list_y + this.list_h)) / this.row_h;
                 }
                 else {
                     item_state.visibility = visibility_state['full'];
@@ -901,7 +695,7 @@ function TrackInfoList() {
         var draw_row_idx = -1;
         var cur_row = 0;
 
-        _.forEach(rows, function (row) {
+        _.forEach(this.cnt.items, function (row) {
             if (item.idx === row.idx) {
                 draw_row_idx = cur_row;
                 return false;
@@ -914,12 +708,6 @@ function TrackInfoList() {
         }
 
         return draw_row_idx;
-    }
-
-    function get_item_under_mouse(x, y) {
-        return _.find(items_to_draw, function (item) {
-            return item.trace(x, y);
-        });
     }
 
     function get_current_metadb() {
@@ -963,14 +751,7 @@ function TrackInfoList() {
         last_hover_item = null;
     }
 
-    // public:
-    this.x = 0;
-    this.y = 0;
-    this.w = 0;
-    this.h = 0;
-
     // private:
-    var that = this;
 
     /** @enum {number} */
     var track_modes =
@@ -980,54 +761,33 @@ function TrackInfoList() {
             selected: 3
         };
 
-    /** @const {number} */
-    var row_h = g_properties.row_h;
-
     // Window state
     var was_on_size_called = false;
-    var rows_to_draw_precise = 0;
-
-    /** @type {Array<Row>} */
-    var rows = [];
-    /** @type {Array<Row>} */
-    var items_to_draw = [];
-
-    var list_x = /** @type {number} */ g_properties.list_left_pad;
-    var list_y = 0;
-    var list_w = 0;
-    var list_h = 0;
 
     // Playback state
     var cur_metadb = undefined;
 
     // Mouse and key state
-    var mouse_in = false;
-    var mouse_down = false;
-    var mouse_double_clicked = false;
     var mouse_on_item = false;
 
     // Item events
     var last_hover_item = undefined;
-
-    // Scrollbar props
-    var scroll_pos = 0;
-    var row_shift = 0;
-    var pixel_shift = 0;
-    var is_scrollbar_visible = g_properties.show_scrollbar;
-    var is_scrollbar_available = false;
-
-    /** @type {?ScrollBar} */
-    var scrollbar = undefined;
 
     var alpha_timer = null;
 
     this.initialize_list();
 }
 
+TrackInfoList.prototype = Object.create(List.prototype);
+TrackInfoList.prototype.constructor = TrackInfoList;
+
 /**
  * @constructor
+ * @extends {List.Item}
  */
 function Row(x, y, w, h, metadb_arg, tag_name_arg, value_text_arg) {
+    List.Item.call(this, x, y, w, h);
+
     //public:
     this.draw = function (gr) {
         if (!row_normal_image) {
@@ -1054,23 +814,10 @@ function Row(x, y, w, h, metadb_arg, tag_name_arg, value_text_arg) {
         gr.DrawImage(row_pressed_image, this.x, this.y, this.w, this.h, 0, 0, this.w, this.h, 0, this.hover_alpha);
     };
 
-    var throttled_repaint = _.throttle(_.bind(function () {
-        window.RepaintRect(this.x, this.y, this.w, this.h);
-    }, this), 1000 / 60);
-    this.repaint = function () {
-        throttled_repaint();
-    };
-
-    this.trace = function (x, y) {
-        return x >= this.x && x < this.x + this.w && y >= this.y && y < this.y + this.h;
-    };
-
-    this.set_y = function (y) {
-        this.y = y;
-    };
-
+    /** @override */
     this.set_w = function (w) {
-        this.w = w;
+        List.Item.prototype.set_w.apply(this, [w]);
+
         clear_image();
     };
 
@@ -1101,17 +848,6 @@ function Row(x, y, w, h, metadb_arg, tag_name_arg, value_text_arg) {
     this.dispose = function () {
         clear_image();
     };
-
-    function clear_image() {
-        if (row_normal_image) {
-            row_normal_image.Dispose();
-            row_normal_image = null;
-        }
-        if (row_pressed_image) {
-            row_pressed_image.Dispose();
-            row_pressed_image = null;
-        }
-    }
 
     function draw_on_image(g, is_pressed) {
         g.FillSolidRect(0, 0, that.w, that.h, g_tr_i_colors.background);
@@ -1148,11 +884,18 @@ function Row(x, y, w, h, metadb_arg, tag_name_arg, value_text_arg) {
         }
     }
 
+    function clear_image() {
+        if (row_normal_image) {
+            row_normal_image.Dispose();
+            row_normal_image = null;
+        }
+        if (row_pressed_image) {
+            row_pressed_image.Dispose();
+            row_pressed_image = null;
+        }
+    }
+
     //public:
-    this.x = x;
-    this.y = y;
-    this.w = w;
-    this.h = h;
 
     //const after creation
     this.is_odd = false;
@@ -1167,6 +910,7 @@ function Row(x, y, w, h, metadb_arg, tag_name_arg, value_text_arg) {
     //private:
     var that = this;
 
+    /** @const {IFbMetadbHandle} */
     var metadb = metadb_arg;
 
     /** @type {string} */
@@ -1179,3 +923,7 @@ function Row(x, y, w, h, metadb_arg, tag_name_arg, value_text_arg) {
     /** @type {?IGdiBitmap} */
     var row_pressed_image = null;
 }
+Row.prototype = Object.create(List.Item.prototype);
+Row.prototype.constructor = Row;
+
+var track_info = new TrackInfoList();

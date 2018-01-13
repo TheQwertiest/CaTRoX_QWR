@@ -10,21 +10,13 @@ var trace_on_move = false;
 
 g_script_list.push('Panel_Playlist.js');
 
+// TODO: add move reducer for move
+
 // TODO: consider making registration for on_key handlers
 // TODO: research the source of hangs with big art image loading (JScript? fb2k?)
 // TODO: measure draw vs backend performance (don't forget to disable playlist in other mode before testing)
 g_properties.add_properties(
     {
-        list_left_pad:   ['user.list.pad.left', 0],
-        list_top_pad:    ['user.list.pad.top', 0],
-        list_right_pad:  ['user.list.pad.right', 0],
-        list_bottom_pad: ['user.list.pad.bottom', 0],
-
-        show_scrollbar:      ['user.scrollbar.show', true],
-        scrollbar_right_pad: ['user.scrollbar.pad.right', 0],
-        scrollbar_w:         ['user.scrollbar.width', utils.GetSystemMetrics(2)],
-
-        row_h:                  ['user.row.height', 20],
         rows_in_header:         ['user.header.normal.row_count', 4],
         rows_in_compact_header: ['user.header.compact.row_count', 2],
 
@@ -51,8 +43,6 @@ g_properties.add_properties(
         last_used_group_query_name: ['system.header.group.last_used_name', 'artist_album_disc'],
         user_group_query:           ['system.header.group.user_defined_query', ''],
 
-        scroll_pos: ['system.scrollbar.position', 0],
-
         is_selection_dynamic: ['system.selection.dynamic', true]
     }
 );
@@ -64,7 +54,6 @@ var g_component_utils = _.cc('foo_utils');
 (function() {
     g_properties.rows_in_header = Math.max(0, g_properties.rows_in_header);
     g_properties.rows_in_compact_header = Math.max(0, g_properties.rows_in_compact_header);
-    g_properties.row_h = Math.max(10, g_properties.row_h);
     g_properties.show_rating = g_properties.show_rating && g_component_playcount;
     g_properties.show_playcount = g_properties.show_playcount && g_component_playcount;
 
@@ -125,15 +114,9 @@ g_pl_colors.row_focus_selected = g_theme.colors.panel_line_selected;
 g_pl_colors.row_focus_normal = _.RGB(80, 80, 80);
 g_pl_colors.row_queued = _.RGBA(150, 150, 150, 0);
 
-//--->
-// Called in Playlist constructor
-// TODO: consider hiding in Header constructor
-Header.group_query_handler = new GroupQueryHandler();
-var playlist = new Playlist();
 
 function on_paint(gr) {
     trace_call && trace_on_paint && console.log(qwr_utils.function_name());
-
     playlist.on_paint(gr);
 }
 
@@ -161,13 +144,11 @@ function on_mouse_move(x, y, m) {
 
 function on_mouse_lbtn_down(x, y, m) {
     trace_call && console.log(qwr_utils.function_name());
-
     playlist.on_mouse_lbtn_down(x, y, m);
 }
 
 function on_mouse_lbtn_dblclk(x, y, m) {
     trace_call && console.log(qwr_utils.function_name());
-
     playlist.on_mouse_lbtn_dblclk(x, y, m);
 }
 
@@ -181,152 +162,334 @@ function on_mouse_lbtn_up(x, y, m) {
 
 function on_mouse_rbtn_down(x, y, m) {
     trace_call && console.log(qwr_utils.function_name());
-
     playlist.on_mouse_rbtn_down(x, y, m);
 }
 
 function on_mouse_rbtn_up(x, y, m) {
     trace_call && console.log(qwr_utils.function_name());
-
     return playlist.on_mouse_rbtn_up(x, y, m);
 }
 
 function on_mouse_wheel(delta) {
     trace_call && console.log(qwr_utils.function_name());
-
     playlist.on_mouse_wheel(delta);
 }
 
 function on_mouse_leave() {
     trace_call && console.log(qwr_utils.function_name());
-
     playlist.on_mouse_leave();
 }
 
 function on_key_down(vkey) {
     trace_call && console.log(qwr_utils.function_name());
-
     playlist.on_key_down(vkey);
 }
 
 function on_key_up(vkey) {
     trace_call && console.log(qwr_utils.function_name());
-
     playlist.on_key_up(vkey);
 }
 
 function on_drag_enter(action, x, y, mask) {
     trace_call && console.log(qwr_utils.function_name());
-
     playlist.on_drag_enter(action, x, y, mask);
 }
 
 function on_drag_leave() {
     trace_call && console.log(qwr_utils.function_name());
-
     playlist.on_drag_leave();
 }
 
 function on_drag_drop(action, x, y, mask) {
     trace_call && console.log(qwr_utils.function_name());
-
     playlist.on_drag_drop(action, x, y, mask);
 }
 
 function on_drag_over(action, x, y, mask) {
     trace_call && console.log(qwr_utils.function_name());
-
     playlist.on_drag_over(action, x, y, mask);
 }
 
 function on_item_focus_change(playlist_arg, from, to) {
     trace_call && console.log(qwr_utils.function_name());
-
     playlist.on_item_focus_change(playlist_arg, from, to);
 }
 
 function on_playlists_changed() {
     trace_call && console.log(qwr_utils.function_name());
-
     playlist.on_playlists_changed();
 }
 
 function on_playlist_switch() {
     trace_call && console.log(qwr_utils.function_name());
-
     playlist.on_playlist_switch();
 }
 
 function on_playlist_items_reordered(playlistIndex) {
     trace_call && console.log(qwr_utils.function_name());
-
     playlist.on_playlist_items_reordered(playlistIndex);
 }
 
 function on_playlist_items_removed(playlistIndex) {
     trace_call && console.log(qwr_utils.function_name());
-
     playlist.on_playlist_modified(playlistIndex);
 }
 
 function on_playlist_items_added(playlistIndex) {
     trace_call && console.log(qwr_utils.function_name());
-
     playlist.on_playlist_items_added(playlistIndex);
 }
 
 function on_playlist_items_selection_change() {
     trace_call && console.log(qwr_utils.function_name());
-
     playlist.on_playlist_items_selection_change();
 }
 
 function on_playback_new_track(metadb) {
     trace_call && console.log(qwr_utils.function_name());
-
     playlist.on_playback_new_track(metadb);
 }
 
 function on_playback_queue_changed(origin) {
     trace_call && console.log(qwr_utils.function_name());
-
     playlist.on_playback_queue_changed(origin);
 }
 
 function on_playback_stop(reason) {
     trace_call && console.log(qwr_utils.function_name());
-
     playlist.on_playback_stop(reason);
 }
 
 function on_focus(is_focused) {
     trace_call && console.log(qwr_utils.function_name());
-
     playlist.on_focus(is_focused);
 }
 
 function on_metadb_changed(handles, fromhook) {
     trace_call && console.log(qwr_utils.function_name());
-
     playlist.on_metadb_changed(handles, fromhook);
 }
 
 function on_get_album_art_done(metadb, art_id, image, image_path) {
     trace_call && console.log(qwr_utils.function_name());
-
     playlist.on_get_album_art_done(metadb, art_id, image, image_path);
 }
 
 function on_notify_data(name, info) {
     trace_call && console.log(qwr_utils.function_name());
-
     playlist.on_notify_data(name, info);
 }
 
 /**
+ * Playlist + PlaylistInfo
  * @constructor
  */
-function Playlist() {
+function PlaylistPanel() {
+
+    /// Callbacks only
+
+    this.on_paint = function (gr) {
+        playlist.on_paint(gr);
+        if (g_properties.show_playlist_info) {
+            gr.FillSolidRect(0, playlist_info.y + playlist_info.h, playlist_info.w, 2, g_theme.colors.pss_back);
+            playlist_info.on_paint(gr);
+        }
+    };
+
+    this.on_size = function (w, h) {
+        this.w = w;
+        this.h = h;
+
+        playlist.on_size(w, h - (g_properties.show_playlist_info ? playlist_info_and_gap_h : 0));
+        playlist_info.set_w(w);
+    };
+
+    this.on_mouse_move = function (x, y, m) {
+        playlist.on_mouse_move(x, y, m);
+    };
+
+    this.on_mouse_lbtn_down = function (x, y, m) {
+        if (playlist.trace(x, y)) {
+            playlist.on_mouse_lbtn_down(x, y, m)
+        }
+        else if (g_properties.show_playlist_info && playlist_info.trace(x, y)) {
+            playlist_info.on_mouse_lbtn_down(x, y, m);
+        }
+    };
+
+    this.on_mouse_lbtn_dblclk = function (x, y, m) {
+        playlist.on_mouse_lbtn_dblclk(x, y, m);
+    };
+
+    this.on_mouse_lbtn_up = function (x, y, m) {
+        playlist.on_mouse_lbtn_up(x, y, m);
+    };
+
+    this.on_mouse_rbtn_down = function (x, y, m) {
+        playlist.on_mouse_rbtn_down(x, y, m);
+    };
+
+    this.on_mouse_rbtn_up = function (x, y, m) {
+        var was_playlist_info_displayed = g_properties.show_playlist_info;
+
+        playlist.on_mouse_rbtn_up(x, y, m);
+
+        if (was_playlist_info_displayed !== g_properties.show_playlist_info) {
+            toggle_playlist_info(g_properties.show_playlist_info);
+            return true;
+        }
+
+        if (g_properties.show_playlist_info && playlist_info.trace(x, y)) {
+            return playlist_info.on_mouse_rbtn_up(x, y, m);
+        }
+
+        return true
+    };
+
+    this.on_mouse_wheel = function (delta) {
+        playlist.on_mouse_wheel(delta);
+    };
+
+    this.on_mouse_leave = function () {
+        playlist.on_mouse_leave();
+    };
+
+    this.on_drag_enter = function (action, x, y, mask) {
+        playlist.on_drag_enter(action, x, y, mask);
+    };
+
+    this.on_drag_leave = function () {
+        playlist.on_drag_leave();
+    };
+
+    this.on_drag_over = function (action, x, y, mask) {
+        playlist.on_drag_over(action, x, y, mask);
+    };
+
+    this.on_drag_drop = function (action, x, y, m) {
+        playlist.on_drag_drop(action, x, y, m);
+    };
+
+    this.on_key_down = function (vkey) {
+        playlist.on_key_down(vkey);
+        playlist_info.on_key_down(vkey);
+    };
+
+    this.on_key_up = function (vkey) {
+        playlist.on_key_up(vkey);
+    };
+
+    this.on_item_focus_change = function (playlist_idx, from_idx, to_idx) {
+        playlist.on_item_focus_change(playlist_idx, from_idx, to_idx);
+    };
+
+    this.on_playlist_switch = function () {
+        if (g_properties.show_playlist_info) {
+            playlist_info.on_playlist_modified();
+        }
+        playlist.on_playlist_switch();
+    };
+
+    this.on_playlist_items_added = function (playlist_idx) {
+        playlist.on_playlist_items_added(playlist_idx);
+    };
+
+    this.on_playlist_items_reordered = function (playlist_idx) {
+        playlist.on_playlist_items_reordered(playlist_idx);
+    };
+
+    this.on_playlist_modified = function (playlist_idx) {
+        if (g_properties.show_playlist_info) {
+            playlist_info.on_playlist_modified();
+        }
+        playlist.on_playlist_modified(playlist_idx);
+    };
+
+    this.on_playlists_changed = function () {
+        playlist.on_playlists_changed();
+    };
+
+    this.on_playlist_items_selection_change = function () {
+        playlist.on_playlist_items_selection_change();
+        if (g_properties.show_playlist_info) {
+            playlist_info.on_playlist_modified();
+        }
+    };
+
+    this.on_playback_new_track = function (metadb) {
+        playlist.on_playback_new_track(metadb);
+    };
+
+    this.on_playback_queue_changed = function (origin) {
+        playlist.on_playback_queue_changed(origin);
+    };
+
+    this.on_playback_stop = function (reason) {
+        playlist.on_playback_stop(reason);
+    };
+
+    this.on_focus = function (is_focused) {
+        playlist.on_focus(is_focused);
+    };
+
+    this.on_metadb_changed = function (handles, fromhook) {
+        if (g_properties.show_playlist_info) {
+            playlist_info.on_playlist_modified();
+        }
+        playlist.on_metadb_changed(handles, fromhook);
+    };
+
+    this.on_get_album_art_done = function (metadb, art_id, image, image_path) {
+        playlist.on_get_album_art_done(metadb, art_id, image, image_path);
+    };
+
+    this.on_notify_data = function (name, info) {
+        playlist.on_notify_data(name, info);
+    };
+
+    //// EO Callbacks
+
+    this.initialize = function () {
+        playlist.initialize_list();
+    };
+
+    function toggle_playlist_info(show_playlist_info) {
+        playlist.y = that.y + (show_playlist_info ? (playlist_info_and_gap_h) : 0);
+        var new_playlist_h = show_playlist_info ? (playlist.h - playlist_info_and_gap_h) : (playlist.h + playlist_info_and_gap_h);
+        playlist.on_size(playlist.w, new_playlist_h);
+        // Easier to repaint everything
+        window.Repaint();
+    }
+
+    this.x = 0;
+    this.y = 0;
+    this.w = 0;
+    this.h = 0;
+
+    var that = this;
+
+    /** @const {number} */
+    var playlist_info_h = 24;
+    /** @const {number} */
+    var playlist_info_and_gap_h = playlist_info_h + 2;
+
+    // Objects
+    var playlist = new Playlist(0, g_properties.show_playlist_info ? playlist_info_and_gap_h : 0);
+    var playlist_info = new PlaylistInfo(0, 0, 0, playlist_info_h);
+
+    // Mouse and button state
+    var was_in_playlist_info = false;
+}
+
+/**
+ * @param {number} x
+ * @param {number} y
+ * @constructor
+ * @extend {List}
+ */
+function Playlist(x,y) {
+    List.call(this,x,y,0,0,new PlaylistContent());
+
     // public:
 
     /// callbacks
@@ -334,14 +497,14 @@ function Playlist() {
         gr.FillSolidRect(this.x, this.y, this.w, this.h, g_pl_colors.background);
         gr.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
 
-        if (items_to_draw.length) {
-            _.forEachRight(items_to_draw, function (item) {
+        if (this.items_to_draw.length) {
+            _.forEachRight(this.items_to_draw, function (item) {
                 item.draw(gr);
             });
 
             // Hide rows that shouldn't be visible
-            gr.FillSolidRect(this.x, this.y, this.w, list_y - this.y, g_pl_colors.background);
-            gr.FillSolidRect(this.x, list_y + list_h, this.w, (this.y + this.h) - (list_y + list_h), g_pl_colors.background);
+            gr.FillSolidRect(this.x, this.y, this.w, this.list_y - this.y, g_pl_colors.background);
+            gr.FillSolidRect(this.x, this.list_y + this.list_h, this.w, (this.y + this.h) - (this.list_y + this.list_h), g_pl_colors.background);
         }
         else {
             var text;
@@ -355,129 +518,97 @@ function Playlist() {
             gr.DrawString(text, gdi.font('Segoe Ui', 16), _.RGB(80, 80, 80), this.x, this.y, this.w, this.h, g_string_format.align_center);
         }
 
-        if (is_scrollbar_available) {
-            if (!scrollbar.is_scrolled_up) {
-                gr.FillGradRect(list_x, list_y - 1, list_w, 7 + 1, 270, _.RGBtoRGBA(g_theme.colors.panel_back, 0), _.RGBtoRGBA(g_theme.colors.panel_back, 200));
+        if (this.is_scrollbar_available) {
+            if (!this.scrollbar.is_scrolled_up) {
+                gr.FillGradRect(this.list_x, this.list_y - 1, this.list_w, 7 + 1, 270, _.RGBtoRGBA(g_theme.colors.panel_back, 0), _.RGBtoRGBA(g_theme.colors.panel_back, 200));
             }
-            if (!scrollbar.is_scrolled_down) {
-                gr.FillGradRect(list_x, list_y + list_h - 8, list_w, 7 + 1, 90, _.RGBtoRGBA(g_theme.colors.panel_back, 0), _.RGBtoRGBA(g_theme.colors.panel_back, 200));
+            if (!this.scrollbar.is_scrolled_down) {
+                gr.FillGradRect(this.list_x, this.list_y + this.list_h - 8, this.list_w, 7 + 1, 90, _.RGBtoRGBA(g_theme.colors.panel_back, 0), _.RGBtoRGBA(g_theme.colors.panel_back, 200));
             }
         }
 
-        if (is_scrollbar_visible) {
-            scrollbar.paint(gr);
-        }
-
-        if (g_properties.show_playlist_info) {
-            gr.FillSolidRect(0, playlist_info.y + playlist_info.h, this.w, 2, g_theme.colors.pss_back);
-            playlist_info.on_paint(gr);
+        if (this.is_scrollbar_visible) {
+            this.scrollbar.paint(gr);
         }
     };
 
     this.on_size = function (w, h) {
-        var w_changed = this.w !== w;
-        var h_changed = this.h !== h;
-
-        if (h_changed) {
-            on_h_size(h);
-        }
-
-        if (w_changed) {
-            on_w_size(w)
-        }
-
+        List.prototype.on_size.apply(this, [w, h]);
         was_on_size_called = true;
     };
 
     this.on_mouse_move = function (x, y, m) {
-        if (is_scrollbar_visible) {
-            scrollbar.move(x, y, m);
-
-            if (scrollbar.b_is_dragging || scrollbar.trace(x, y)) {
-                return;
-            }
-        }
-
-        if (!this.trace(x, y)) {
-            mouse_in = false;
+        if (List.prototype.on_mouse_move.apply(this, [x, y, m])) {
             return;
         }
 
-        mouse_in = true;
-
-        if (mouse_down && this.trace_list(x, y)) {
-            if (!selection_handler.is_dragging()) {
-                var item = get_item_under_mouse(x, y);
-                if (item && last_hover_item && item !== last_hover_item) {
-                    selection_handler.enable_drag();
-                }
-            }
-
-            if (selection_handler.is_dragging()) {
-                var drop_info = get_drop_row_info(x, y);
-                var row = drop_info.row;
-
-                if (drag_scroll_in_progress) {
-                    if (!row || (y >= (list_y + row_h * 2) && y <= (list_y + list_h - row_h * 2))) {
-                        stop_drag_scroll();
-                    }
-                }
-                else if (row) {
-                    collapse_handler.expand(row.header);
-                    if (collapse_handler.changed) {
-                        this.repaint();
-                    }
-
-                    selection_handler.drag(row, drop_info.is_above);
-
-                    if (is_scrollbar_available) {
-                        if (y < (list_y + row_h * 2) && !scrollbar.is_scrolled_up) {
-                            selection_handler.drag(null, null);
-                            start_drag_scroll('up');
-                        }
-                        if (y > (list_y + list_h - row_h*2) && !scrollbar.is_scrolled_down) {
-                            selection_handler.drag(null, null);
-                            start_drag_scroll('down');
-                        }
-                    }
-                }
-            }
-
-            last_hover_item = get_item_under_mouse(x, y);
+        if (!this.mouse_down || !this.trace_list(x, y)) {
+            return;
         }
+
+        if (!selection_handler.is_dragging()) {
+            var item = this.get_item_under_mouse(x, y);
+            if (item && last_hover_item && item !== last_hover_item) {
+                selection_handler.enable_drag();
+            }
+        }
+
+        if (selection_handler.is_dragging()) {
+            var drop_info = get_drop_row_info(x, y);
+            var row = drop_info.row;
+
+            if (drag_scroll_in_progress) {
+                if (!row || (y >= (this.list_y + this.row_h * 2) && y <= (this.list_y + this.list_h - this.row_h * 2))) {
+                    stop_drag_scroll();
+                }
+            }
+            else if (row) {
+                collapse_handler.expand(row.header);
+                if (collapse_handler.changed) {
+                    this.repaint();
+                }
+
+                selection_handler.drag(row, drop_info.is_above);
+
+                if (this.is_scrollbar_available) {
+                    if (y < (this.list_y + this.row_h * 2) && !this.scrollbar.is_scrolled_up) {
+                        selection_handler.drag(null, null);
+                        start_drag_scroll('up');
+                    }
+                    if (y > (this.list_y + this.list_h - this.row_h*2) && !this.scrollbar.is_scrolled_down) {
+                        selection_handler.drag(null, null);
+                        start_drag_scroll('down');
+                    }
+                }
+            }
+        }
+
+        last_hover_item = this.get_item_under_mouse(x, y);
     };
 
     this.on_mouse_lbtn_down = function (x, y, m) {
-        mouse_down = true;
-        if (mouse_double_clicked) {
+        if (List.prototype.on_mouse_lbtn_down.apply(this, [x, y, m])) {
             return;
-        }
-
-        if (is_scrollbar_visible) {
-            if (scrollbar.trace(x, y)) {
-                scrollbar.lbtn_dn(x, y, m);
-                return;
-            }
         }
 
         var ctrl_pressed = utils.IsKeyPressed(VK_CONTROL);
         var shift_pressed = utils.IsKeyPressed(VK_SHIFT);
-        var item = this.trace_list(x, y) ? get_item_under_mouse(x, y) : undefined;
+        var item = this.trace_list(x, y) ? this.get_item_under_mouse(x, y) : undefined;
         last_hover_item = item;
 
         // TODO: consider moving to selection_handler
         if (item) {
             if (ctrl_pressed && shift_pressed && item.type === 'Header') {
                 collapse_handler.toggle_collapse(item);
-                mouse_down = false;
+                this.mouse_down = false;
             }
             else if (!ctrl_pressed && !shift_pressed
-                     && (item.type === 'Row' && item.is_selected_dynamic()
-                         || item.type === 'Header' && item.is_completely_selected())) {
+                && (item.type === 'Row' && item.is_selected_dynamic()
+                    || item.type === 'Header' && item.is_completely_selected())) {
                 mouse_on_item = true;
             }
             else {
-                selection_handler.update_selection(get_item_under_mouse(x, y), ctrl_pressed, shift_pressed);
+                selection_handler.update_selection(this.get_item_under_mouse(x, y), ctrl_pressed, shift_pressed);
                 selection_handler.sync_items_with_selection();
             }
         }
@@ -487,25 +618,14 @@ function Playlist() {
         }
 
         this.repaint();
-
-        if (g_properties.show_playlist_info && playlist_info.trace(x, y)) {
-            playlist_info.on_mouse_lbtn_down(x, y, m);
-            mouse_down = false;
-        }
     };
 
     this.on_mouse_lbtn_dblclk = function (x, y, m) {
-        mouse_down = true;
-        mouse_double_clicked = true;
-
-        if (is_scrollbar_visible) {
-            if (scrollbar.trace(x, y)) {
-                scrollbar.lbtn_dn(x, y, m);
-                return;
-            }
+        if (List.prototype.on_mouse_lbtn_dblclk.apply(this, [x, y, m])) {
+            return;
         }
 
-        var item = get_item_under_mouse(x, y);
+        var item = this.get_item_under_mouse(x, y);
         if (!item) {
             return;
         }
@@ -525,20 +645,10 @@ function Playlist() {
     };
 
     this.on_mouse_lbtn_up = function (x, y, m) {
-        if (!mouse_down) {
+        var was_double_clicked = this.mouse_double_clicked;
+
+        if (List.prototype.on_mouse_lbtn_up.apply(this, [x, y, m])) {
             return;
-        }
-
-        var was_double_clicked = mouse_double_clicked;
-        mouse_double_clicked = false;
-        mouse_down = false;
-
-        if (is_scrollbar_visible) {
-            var wasDragging = scrollbar.b_is_dragging;
-            scrollbar.lbtn_up(x, y, m);
-            if (wasDragging) {
-                return;
-            }
         }
 
         if (was_double_clicked) {
@@ -562,7 +672,7 @@ function Playlist() {
         else if (mouse_on_item) {
             var ctrl_pressed = utils.IsKeyPressed(VK_CONTROL);
             var shift_pressed = utils.IsKeyPressed(VK_SHIFT);
-            var item = get_item_under_mouse(x, y);
+            var item = this.get_item_under_mouse(x, y);
             if (item) {
                 selection_handler.update_selection(item, ctrl_pressed, shift_pressed);
                 selection_handler.sync_items_with_selection();
@@ -574,22 +684,22 @@ function Playlist() {
     };
 
     this.on_mouse_rbtn_down = function (x, y, m) {
-        if (!rows.length) {
+        if (!this.cnt.rows.length) {
             return;
         }
 
-        if (is_scrollbar_visible && scrollbar.trace(x, y)) {
+        if (this.is_scrollbar_visible && this.scrollbar.trace(x, y)) {
             return;
         }
 
-        var item = this.trace_list(x, y) ? get_item_under_mouse(x, y) : undefined;
+        var item = this.trace_list(x, y) ? this.get_item_under_mouse(x, y) : undefined;
         if (!item) {
             selection_handler.clear_selection();
             selection_handler.sync_items_with_selection();
 
         }
         else if (item.type === 'Row' && !item.is_selected_dynamic()
-                 || item.type === 'Header' && !item.is_completely_selected() ) {
+            || item.type === 'Header' && !item.is_completely_selected() ) {
             selection_handler.update_selection(item);
             selection_handler.sync_items_with_selection();
         }
@@ -598,12 +708,12 @@ function Playlist() {
     };
 
     this.on_mouse_rbtn_up = function (x, y, m) {
-        if (is_scrollbar_visible && scrollbar.trace(x, y)) {
-            return scrollbar.rbtn_up(x, y);
+        if (this.is_scrollbar_visible && this.scrollbar.trace(x, y)) {
+            return this.scrollbar.rbtn_up(x, y);
         }
 
-        if (g_properties.show_playlist_info && playlist_info.trace(x, y)) {
-            return playlist_info.on_mouse_rbtn_up(x, y, m);
+        if (!this.trace(x,y)) {
+            return true;
         }
 
         var metadb = utils.IsKeyPressed(VK_CONTROL) ? (fb.IsPlaying ? fb.GetNowPlaying() : fb.GetFocusItem()) : fb.GetFocusItem();
@@ -612,7 +722,7 @@ function Playlist() {
         var has_multiple_selected_items = selection_handler.selected_items_count() > 1;
         var is_auto_playlist = plman.IsAutoPlaylist(cur_playlist_idx);
         var playlist_count = plman.PlaylistCount;
-        var is_cur_playlist_empty = !rows.length;
+        var is_cur_playlist_empty = !this.cnt.rows.length;
 
         plman.SetActivePlaylistContext();
 
@@ -657,7 +767,7 @@ function Playlist() {
                         copy_paste_metadb_list = selection_handler.cut();
                     },
                     { is_grayed_out: !has_selected_item }
-                    );
+                );
 
                 cmm.append_item(
                     'Copy',
@@ -770,19 +880,11 @@ function Playlist() {
                 'Show playlist info',
                 function () {
                     g_properties.show_playlist_info = !g_properties.show_playlist_info;
-                    on_playlist_info_visibility_change();
                 },
                 {is_checked: g_properties.show_playlist_info}
             );
 
-            appear.append_item(
-                'Show scrollbar',
-                function () {
-                    g_properties.show_scrollbar = !g_properties.show_scrollbar;
-                    on_scrollbar_visibility_change(g_properties.show_scrollbar);
-                },
-                {is_checked: g_properties.show_scrollbar}
-            );
+            this.append_scrollbar_visibility_context_menu_to(appear);
 
             appear.append_item(
                 'Show group header',
@@ -829,7 +931,7 @@ function Playlist() {
                         function () {
                             g_properties.show_album_art = !g_properties.show_album_art;
                             if (g_properties.show_album_art) {
-                                get_album_art(items_to_draw);
+                                get_album_art(this.items_to_draw);
                             }
                         },
                         {is_checked: g_properties.show_album_art}
@@ -840,7 +942,7 @@ function Playlist() {
                         function () {
                             g_properties.auto_album_art = !g_properties.auto_album_art;
                             if (g_properties.show_album_art) {
-                                get_album_art(items_to_draw);
+                                get_album_art(this.items_to_draw);
                             }
                         },
                         {
@@ -885,7 +987,7 @@ function Playlist() {
                 'Show queue position',
                 function () {
                     g_properties.show_queue_position = !g_properties.show_queue_position;
-                    queue_handler = g_properties.show_queue_position ? new QueueHandler(rows, cur_playlist_idx) : undefined;
+                    queue_handler = g_properties.show_queue_position ? new QueueHandler(this.cnt.rows, cur_playlist_idx) : undefined;
                 },
                 {is_checked: g_properties.show_queue_position}
             );
@@ -1131,23 +1233,9 @@ function Playlist() {
         return true;
     };
 
-    this.on_mouse_wheel = function (delta) {
-        if (is_scrollbar_available) {
-            scrollbar.wheel(delta);
-        }
-    };
-
-    this.on_mouse_leave = function () {
-        if (is_scrollbar_available) {
-            scrollbar.leave();
-        }
-
-        mouse_in = false;
-    };
-
     this.on_drag_enter = function (action, x, y, mask) {
-        mouse_in = true;
-        mouse_down = true;
+        this.mouse_in = true;
+        this.mouse_down = true;
         selection_handler.enable_external_drag();
     };
 
@@ -1156,8 +1244,8 @@ function Playlist() {
             stop_drag_scroll();
             selection_handler.disable_external_drag();
         }
-        mouse_in = false;
-        mouse_down = false;
+        this.mouse_in = false;
+        this.mouse_down = false;
 
         this.repaint();
     };
@@ -1171,7 +1259,7 @@ function Playlist() {
             return;
         }
 
-        mouse_down = false;
+        this.mouse_down = false;
         stop_drag_scroll();
 
         if (!this.trace_list(x, y) || !selection_handler.can_drop()) {
@@ -1200,11 +1288,6 @@ function Playlist() {
     this.on_key_down = function (vkey) {
         key_down = true;
 
-        if (playlist_info.on_key_down()) {
-            // No repaint in playlist_info.on_key_down needed
-            return;
-        }
-
         var ctrl_pressed = utils.IsKeyPressed(VK_CONTROL);
         var shift_pressed = utils.IsKeyPressed(VK_SHIFT);
 
@@ -1213,13 +1296,13 @@ function Playlist() {
                 var header = focused_item.header;
                 var new_focus_idx;
                 if (header.is_collapsed) {
-                    new_focus_idx = _.last(headers[Math.max(0, focused_item.header.idx - 1)].rows).idx;
+                    new_focus_idx = _.last(this.cnt.headers[Math.max(0, focused_item.header.idx - 1)].rows).idx;
                 }
                 else {
                     new_focus_idx = Math.max(0, focused_item.idx - 1);
                 }
 
-                selection_handler.update_selection(rows[new_focus_idx], null, shift_pressed);
+                selection_handler.update_selection(this.cnt.rows[new_focus_idx], null, shift_pressed);
                 selection_handler.sync_items_with_selection();
 
                 break;
@@ -1228,13 +1311,13 @@ function Playlist() {
                 var header = focused_item.header;
                 var new_focus_idx;
                 if (header.is_collapsed) {
-                    new_focus_idx = _.head(headers[Math.min(headers.length - 1, focused_item.header.idx + 1)].rows).idx;
+                    new_focus_idx = _.head(this.cnt.headers[Math.min(this.cnt.headers.length - 1, focused_item.header.idx + 1)].rows).idx;
                 }
                 else {
-                    new_focus_idx = Math.min(rows.length - 1, focused_item.idx + 1);
+                    new_focus_idx = Math.min(this.cnt.rows.length - 1, focused_item.idx + 1);
                 }
 
-                selection_handler.update_selection(rows[new_focus_idx], null, shift_pressed);
+                selection_handler.update_selection(this.cnt.rows[new_focus_idx], null, shift_pressed);
                 selection_handler.sync_items_with_selection();
 
                 break;
@@ -1270,25 +1353,25 @@ function Playlist() {
             }
             case VK_PRIOR: {
                 var new_focus_item;
-                if (is_scrollbar_available) {
-                    new_focus_item = _.head(items_to_draw);
+                if (this.is_scrollbar_available) {
+                    new_focus_item = _.head(this.items_to_draw);
                     if (new_focus_item.type === 'Header') {
-                        new_focus_item = rows[new_focus_item.rows[0].idx];
+                        new_focus_item = this.cnt.rows[new_focus_item.rows[0].idx];
                     }
-                    if (new_focus_item.y < list_y && new_focus_item.y + new_focus_item.h > list_y) {
-                        new_focus_item = rows[new_focus_item.idx + 1];
+                    if (new_focus_item.y < this.list_y && new_focus_item.y + new_focus_item.h > this.list_y) {
+                        new_focus_item = this.cnt.rows[new_focus_item.idx + 1];
                     }
                     if (new_focus_item.idx === focused_item.idx) {
-                        scrollbar.shift_page(-1);
+                        this.scrollbar.shift_page(-1);
 
-                        new_focus_item = _.head(items_to_draw);
+                        new_focus_item = _.head(this.items_to_draw);
                         if (new_focus_item.type === 'Header') {
-                            new_focus_item = rows[new_focus_item.rows[0].idx];
+                            new_focus_item = this.cnt.rows[new_focus_item.rows[0].idx];
                         }
                     }
                 }
                 else {
-                    new_focus_item = _.head(items_to_draw);
+                    new_focus_item = _.head(this.items_to_draw);
                 }
 
                 selection_handler.update_selection(new_focus_item, null, shift_pressed);
@@ -1298,25 +1381,25 @@ function Playlist() {
             }
             case VK_NEXT: {
                 var new_focus_item;
-                if (is_scrollbar_available) {
-                    new_focus_item = _.last(items_to_draw);
+                if (this.is_scrollbar_available) {
+                    new_focus_item = _.last(this.items_to_draw);
                     if (new_focus_item.type === 'Header') {
-                        new_focus_item = _.last(headers[new_focus_item.idx - 1].rows);
+                        new_focus_item = _.last(this.cnt.headers[new_focus_item.idx - 1].rows);
                     }
-                    if (new_focus_item.y < list_y + list_h && new_focus_item.y + new_focus_item.h > list_y + list_h) {
-                        new_focus_item = rows[new_focus_item.idx - 1];
+                    if (new_focus_item.y < this.list_y + this.list_h && new_focus_item.y + new_focus_item.h > this.list_y + this.list_h) {
+                        new_focus_item = this.cnt.rows[new_focus_item.idx - 1];
                     }
                     if (new_focus_item.idx === focused_item.idx) {
-                        scrollbar.shift_page(1);
+                        this.scrollbar.shift_page(1);
 
-                        new_focus_item = _.last(items_to_draw);
+                        new_focus_item = _.last(this.items_to_draw);
                         if (new_focus_item.type === 'Header') {
-                            new_focus_item = _.last(headers[new_focus_item.idx - 1].rows);
+                            new_focus_item = _.last(this.cnt.headers[new_focus_item.idx - 1].rows);
                         }
                     }
                 }
                 else {
-                    new_focus_item = _.last(items_to_draw);
+                    new_focus_item = _.last(this.items_to_draw);
                 }
 
                 selection_handler.update_selection(new_focus_item, null, shift_pressed);
@@ -1325,13 +1408,13 @@ function Playlist() {
                 break;
             }
             case VK_HOME: {
-                selection_handler.update_selection(_.head(rows), null, shift_pressed);
+                selection_handler.update_selection(_.head(this.cnt.rows), null, shift_pressed);
                 selection_handler.sync_items_with_selection();
 
                 break;
             }
             case VK_END: {
-                selection_handler.update_selection(_.last(rows), null, shift_pressed);
+                selection_handler.update_selection(_.last(this.cnt.rows), null, shift_pressed);
                 selection_handler.sync_items_with_selection();
 
                 break;
@@ -1448,14 +1531,14 @@ function Playlist() {
         if (to_idx === -1) {
             focused_item = undefined;
         }
-        else if (rows.length) {
-            to_idx = Math.min(to_idx, rows.length - 1);
-            focused_item = rows[to_idx];
+        else if (this.cnt.rows.length) {
+            to_idx = Math.min(to_idx, this.cnt.rows.length - 1);
+            focused_item = this.cnt.rows[to_idx];
             focused_item.is_focused = true;
         }
 
         if (focused_item) {
-            var from_row = from_idx === -1 ? null : rows[from_idx];
+            var from_row = from_idx === -1 ? null : this.cnt.rows[from_idx];
             scroll_to_row(from_row, focused_item);
         }
 
@@ -1465,10 +1548,6 @@ function Playlist() {
     this.on_playlist_switch = function () {
         if (cur_playlist_idx !== plman.ActivePlaylist) {
             g_properties.scroll_pos = _.isNil(scroll_pos_list[plman.ActivePlaylist]) ? 0 : scroll_pos_list[plman.ActivePlaylist];
-        }
-
-        if (g_properties.show_playlist_info) {
-            playlist_info.on_playlist_modified();
         }
 
         this.initialize_list();
@@ -1504,10 +1583,6 @@ function Playlist() {
             return;
         }
 
-        if (g_properties.show_playlist_info) {
-            playlist_info.on_playlist_modified();
-        }
-
         this.initialize_list();
         this.repaint();
     };
@@ -1520,12 +1595,8 @@ function Playlist() {
     };
 
     this.on_playlist_items_selection_change = function () {
-        if (!mouse_in && !key_down) {
+        if (!this.mouse_in && !key_down) {
             selection_handler.initialize_selection();
-        }
-
-        if (g_properties.show_playlist_info) {
-            playlist_info.on_playlist_modified();
         }
     };
 
@@ -1537,7 +1608,7 @@ function Playlist() {
 
         var playing_item_location = plman.GetPlayingItemLocation();
         if (playing_item_location.IsValid && playing_item_location.PlaylistIndex === cur_playlist_idx) {
-            playing_item = rows[playing_item_location.PlaylistItemIndex];
+            playing_item = this.cnt.rows[playing_item_location.PlaylistItemIndex];
             playing_item.is_playing = true;
 
             if (fb.CursorFollowPlayback) {
@@ -1579,11 +1650,7 @@ function Playlist() {
     };
 
     this.on_metadb_changed = function (handles, fromhook) {
-        if (g_properties.show_playlist_info) {
-            playlist_info.on_playlist_modified();
-        }
-
-        rows.forEach(function (item) {
+        this.cnt.rows.forEach(function (item) {
             item.reset_queried_data();
         });
 
@@ -1595,7 +1662,9 @@ function Playlist() {
             image = null;
         }
 
-        items_to_draw.forEach(function (item) {
+        /** @type {Array<Row>|Array<Header>} */
+        var items = this.items_to_draw;
+        items.forEach(function (item) {
             if (item.type === 'Header' && !item.has_art() && item.rows[0].metadb.Compare(metadb)) {
                 item.assign_art(image);
                 item.repaint();
@@ -1613,20 +1682,6 @@ function Playlist() {
 
     /// EOF callbacks
 
-    this.trace = function (x, y) {
-        return x >= this.x && x < this.x + this.w && y >= this.y && y < this.y + this.h;
-    };
-
-    this.trace_list = function (x, y) {
-        return x >= list_x && x < list_x + list_w && y >= list_y && y < list_y + list_h;
-    };
-
-    var throttled_repaint = _.throttle(_.bind(function () {
-        window.RepaintRect(this.x, this.y, this.w, this.h);
-    }, this), 1000 / 60);
-    this.repaint = function () {
-        throttled_repaint();
-    };
 
     // This method does not contain any redraw calls - it's purely back-end
     this.initialize_list = function () {
@@ -1635,31 +1690,34 @@ function Playlist() {
         var playlist_size = plman.PlaylistItemCount(cur_playlist_idx);
         var playlist_items = plman.GetPlaylistItems(cur_playlist_idx);
 
-        rows = [];
+        this.cnt.rows = [];
+        this.cnt.headers = [];
+        this.cnt.set_header_h_in_rows(header_h_in_rows);
+
         for (var i = 0; i < playlist_size; ++i) {
-            rows.push(new Row(list_x, 0, list_w, row_h, playlist_items.Item(i), i, cur_playlist_idx));
+            this.cnt.rows.push(new Row(this.list_x, 0, this.list_w, this.row_h, playlist_items.Item(i), i, cur_playlist_idx));
             if (!g_properties.show_header) {
-                rows[i].is_odd = (i + 1) % 2;
+                this.cnt.rows[i].is_odd = (i + 1) % 2;
             }
         }
 
         playing_item = undefined;
         var playing_item_location = plman.GetPlayingItemLocation();
         if (playing_item_location.IsValid && playing_item_location.PlaylistIndex === cur_playlist_idx) {
-            playing_item = rows[playing_item_location.PlaylistItemIndex];
+            playing_item = this.cnt.rows[playing_item_location.PlaylistItemIndex];
             playing_item.is_playing = true;
         }
 
         focused_item = undefined;
         var focus_item_idx = plman.GetPlaylistFocusItemIndex(cur_playlist_idx);
         if (focus_item_idx !== -1) {
-            focused_item = rows[focus_item_idx];
+            focused_item = this.cnt.rows[focus_item_idx];
             focused_item.is_focused = true;
         }
 
         Header.group_query_handler.initialize(cur_playlist_idx);
         create_headers();
-        collapse_handler.initialize(headers);
+        collapse_handler.initialize(this.cnt.headers);
 
         if (!was_on_size_called) {
             if (g_properties.show_header) {
@@ -1671,132 +1729,48 @@ function Playlist() {
                 collapse_handler.expand_all();
             }
 
-            collapse_handler.set_callback(on_displayed_row_count_change);
+            collapse_handler.set_callback(_.bind(this.on_list_items_change));
         }
         else {
-            on_displayed_row_count_change();
+            this.on_list_items_change();
         }
 
         if (g_properties.show_queue_position) {
-            queue_handler = new QueueHandler(rows, cur_playlist_idx);
+            queue_handler = new QueueHandler(this.cnt.rows, cur_playlist_idx);
         }
-        selection_handler = new SelectionHandler(rows, headers, cur_playlist_idx);
+        selection_handler = new SelectionHandler(this.cnt.rows, this.cnt.headers, cur_playlist_idx);
+    };
+
+    /**
+     * @protected
+     * @override
+     */
+    this.on_content_to_draw_change = function() {
+        set_rows_boundary_status();
+        List.prototype.on_content_to_draw_change.apply(this);
+        get_album_art(this.items_to_draw);
+    };
+
+    /**
+     * @protected
+     * @override
+     */
+    this.scrollbar_redraw_callback = function() {
+        scroll_pos_list[cur_playlist_idx] = Math.round(this.scrollbar.scroll * 1e2) / 1e2;
+        List.prototype.scrollbar_redraw_callback.apply(this);
     };
 
     //private:
-    function on_h_size(h) {
-        that.h = h;
-        update_list_h_size();
-    }
-
-    function on_w_size(w) {
-        that.w = w;
-        playlist_info.set_w(that.w);
-        update_list_w_size();
-    }
-
-    function on_displayed_row_count_change() {
-        update_scrollbar();
-        on_drawn_content_change();
-    }
-
-    function on_drawn_content_change() {
-        set_rows_boundary_status();
-        calculate_shift_params();
-        generate_items_to_draw();
-        get_album_art(items_to_draw);
-    }
-
-    function initialize_scrollbar() {
-        is_scrollbar_available = false;
-
-        var scrollbar_x = that.x + that.w - g_properties.scrollbar_w - g_properties.scrollbar_right_pad;
-        // Consider moving to more suitable place
-        var scrollbar_y = that.y + (g_properties.show_playlist_info ? (playlist_info.h + 2) : 0);
-        var scrollbar_h = that.h - scrollbar_y - 3;
-
-        if (scrollbar) {
-            scrollbar.reset();
-        }
-        scrollbar = new ScrollBar(scrollbar_x, scrollbar_y, g_properties.scrollbar_w, scrollbar_h, row_h, scrollbar_redraw_callback);
-    }
-
-    function update_scrollbar() {
-        var total_height_in_rows = g_properties.show_header ? headers.length * header_h_in_rows : 0;
-        headers.forEach(function (header) {
-            if (!header.is_collapsed) {
-                total_height_in_rows += header.rows.length;
-            }
-        });
-
-        if (total_height_in_rows <= rows_to_draw_precise) {
-            is_scrollbar_available = false;
-            g_properties.scroll_pos = 0;
-            on_scrollbar_visibility_change(false);
-        }
-        else {
-            scrollbar.set_window_param(rows_to_draw_precise, total_height_in_rows);
-            scrollbar.scroll_to(g_properties.scroll_pos, true);
-
-            g_properties.scroll_pos = scrollbar.scroll;
-            is_scrollbar_available = true;
-            on_scrollbar_visibility_change(g_properties.show_scrollbar);
-        }
-    }
-
-    function on_scrollbar_visibility_change(is_visible) {
-        if (is_scrollbar_visible !== is_visible) {
-            is_scrollbar_visible = is_visible;
-            update_list_w_size();
-        }
-    }
-
-    function on_playlist_info_visibility_change() {
-        update_list_h_size();
-    }
-
-    function update_list_h_size() {
-        list_y = that.y + g_properties.list_top_pad;
-        if (g_properties.show_playlist_info) {
-            list_y += playlist_info.h + 2;
-        }
-        list_h = that.h - list_y - g_properties.list_bottom_pad;
-
-        rows_to_draw_precise = list_h / row_h;
-
-        initialize_scrollbar();
-        update_scrollbar();
-        on_drawn_content_change();
-    }
-
-    function update_list_w_size() {
-        list_w = that.w - g_properties.list_left_pad - g_properties.list_right_pad;
-
-        if (is_scrollbar_available) {
-            if (is_scrollbar_visible) {
-                list_w -= scrollbar.w + 2;
-            }
-            scrollbar.set_x(that.w - g_properties.scrollbar_w - g_properties.scrollbar_right_pad);
-        }
-
-        headers.forEach(function (item) {
-            item.set_w(list_w);
-        });
-
-        rows.forEach(function (item) {
-            item.set_w(list_w);
-        });
-    }
 
     function create_headers() {
-        var playlist_copy = rows;
+        var playlist_copy = that.cnt.rows;
         var head_nr = 0;
-        headers = [];
+        that.cnt.headers = [];
         while (playlist_copy.length) {
-            var header = new Header(list_x, 0, list_w, row_h * header_h_in_rows, head_nr);
+            var header = new Header(that.list_x, 0, that.list_w, that.row_h * header_h_in_rows, head_nr, that.row_h);
             header.init_rows(playlist_copy);
             playlist_copy = _.drop(playlist_copy, header.rows.length);
-            headers.push(header);
+            that.cnt.headers.push(header);
             ++head_nr;
         }
     }
@@ -1820,91 +1794,11 @@ function Playlist() {
         debounced_get_album_art(items, force);
     }
 
-    function scrollbar_redraw_callback() {
-        g_properties.scroll_pos = scrollbar.scroll;
-        scroll_pos_list[cur_playlist_idx] = Math.round(g_properties.scroll_pos * 1e2) / 1e2;
-
-        on_drawn_content_change();
-
-        that.repaint();
-    }
-
-    function calculate_shift_params() {
-        row_shift = Math.floor(g_properties.scroll_pos);
-        pixel_shift = -Math.round((g_properties.scroll_pos - row_shift) * row_h);
-    }
-
     function set_rows_boundary_status() {
-        var last_row = _.last(rows);
+        var last_row = _.last(that.cnt.rows);
         if (last_row) {
-            last_row.is_cropped = is_scrollbar_available ? scrollbar.is_scrolled_down : false;
+            last_row.is_cropped = that.is_scrollbar_available ? that.scrollbar.is_scrolled_down : false;
         }
-    }
-
-    // Called in three cases:
-    // 1. Window vertical size changed
-    // 2. Scroll position changed
-    // 3. Playlist content changed
-    function generate_items_to_draw() {
-        items_to_draw = [];
-        var start_y = list_y + pixel_shift;
-        var cur_y = 0;
-        var cur_row = 0;
-        var first = true;
-
-        _.forEach(headers, function (header) {
-            if (g_properties.show_header) {
-                if (cur_row + header_h_in_rows - 1 >= row_shift) {
-                    if (first) {
-                        header.y = start_y + (cur_row - row_shift) * row_h;
-                        cur_y = header.y;
-                        first = false;
-                    }
-                    else {
-                        header.y = cur_y;
-                    }
-                    items_to_draw.push(header);
-                    cur_y += header_h_in_rows * row_h;
-
-                    if (cur_y >= that.h) {
-                        return false;
-                    }
-                }
-
-                cur_row += header_h_in_rows;
-
-                if (header.is_collapsed) {
-                    return true;
-                }
-            }
-
-            var header_rows = header.rows;
-            if (cur_row + header_rows.length - 1 >= row_shift) {
-                for (var j = 0; j < header_rows.length; ++j) {
-                    if (cur_row >= row_shift) {
-                        if (first) {
-                            header_rows[j].set_y(start_y + (cur_row - row_shift) * row_h);
-                            cur_y = header_rows[j].y;
-                            first = false;
-                        }
-                        else {
-                            header_rows[j].set_y(cur_y);
-                        }
-                        items_to_draw.push(header_rows[j]);
-                        cur_y += row_h;
-
-                        if (cur_y >= that.h) {
-                            return false;
-                        }
-                    }
-
-                    ++cur_row;
-                }
-            }
-            else {
-                cur_row += header_rows.length;
-            }
-        });
     }
 
     function show_now_playing() {
@@ -1921,7 +1815,7 @@ function Playlist() {
             collapse_handler.expand(playing_item.header);
         }
 
-        selection_handler.update_selection(rows[playing_item_location.PlaylistItemIndex]);
+        selection_handler.update_selection(that.cnt.rows[playing_item_location.PlaylistItemIndex]);
         selection_handler.sync_items_with_selection();
 
         scroll_to_now_playing();
@@ -1958,7 +1852,7 @@ function Playlist() {
     }
 
     function scroll_to_row(from_row, to_row) {
-        if (!is_scrollbar_available) {
+        if (!that.is_scrollbar_available) {
             return;
         }
 
@@ -1973,7 +1867,6 @@ function Playlist() {
 
         var to_item_h_in_rows = is_to_header ? header_h_in_rows : 1;
         var to_item_state = get_item_visibility_state(to_item);
-
 
         var shifted_successfully = false;
 
@@ -1997,7 +1890,7 @@ function Playlist() {
                                 var from_header_state = get_item_visibility_state(from_header);
                                 row_shift += from_header_state.invisible_part;
                             }
-                            scrollbar.scroll_to(g_properties.scroll_pos - row_shift);
+                            that.scrollbar.scroll_to(g_properties.scroll_pos - row_shift);
                             shifted_successfully = true;
                         }
                         else if (is_item_next) {
@@ -2006,7 +1899,7 @@ function Playlist() {
                                 row_shift += to_header_state.invisible_part;
                             }
 
-                            scrollbar.scroll_to(g_properties.scroll_pos + row_shift);
+                            that.scrollbar.scroll_to(g_properties.scroll_pos + row_shift);
                             shifted_successfully = true;
                         }
                     }
@@ -2015,17 +1908,17 @@ function Playlist() {
             }
             case visibility_state['partial_top']: {
                 if (to_item_state.invisible_part % 1 > 0) {
-                    scrollbar.shift_line(-1);
+                    that.scrollbar.shift_line(-1);
                 }
-                scrollbar.scroll_to(g_properties.scroll_pos - Math.floor(to_item_state.invisible_part));
+                that.scrollbar.scroll_to(g_properties.scroll_pos - Math.floor(to_item_state.invisible_part));
                 shifted_successfully = true;
                 break;
             }
             case visibility_state['partial_bottom']: {
                 if (to_item_state.invisible_part % 1 > 0) {
-                    scrollbar.shift_line(1);
+                    that.scrollbar.shift_line(1);
                 }
-                scrollbar.scroll_to(g_properties.scroll_pos + Math.floor(to_item_state.invisible_part));
+                that.scrollbar.scroll_to(g_properties.scroll_pos + Math.floor(to_item_state.invisible_part));
                 shifted_successfully = true;
                 break;
             }
@@ -2041,13 +1934,13 @@ function Playlist() {
         if (shifted_successfully) {
             if (has_headers && !is_to_header && to_item.idx === _.head(to_header.rows).idx) {
                 var to_header_state = get_item_visibility_state(to_header);
-                scrollbar.scroll_to(g_properties.scroll_pos - to_header_state.invisible_part);
+                that.scrollbar.scroll_to(g_properties.scroll_pos - to_header_state.invisible_part);
             }
         }
         else {
             var item_draw_idx = get_item_draw_row_idx(to_item);
-            var new_scroll_pos = Math.max(0, item_draw_idx - Math.floor(rows_to_draw_precise / 2));
-            scrollbar.scroll_to(new_scroll_pos);
+            var new_scroll_pos = Math.max(0, item_draw_idx - Math.floor(that.rows_to_draw_precise / 2));
+            that.scrollbar.scroll_to(new_scroll_pos);
         }
     }
 
@@ -2061,22 +1954,22 @@ function Playlist() {
     function get_item_visibility_state(item_to_check) {
         var item_state = {
             visibility:     visibility_state['none'],
-            invisible_part: item_to_check.h / row_h
+            invisible_part: item_to_check.h / that.row_h
         };
 
-        _.forEach(items_to_draw, function (item) {
+        _.forEach(that.items_to_draw, function (item) {
             if (item_to_check.type !== item.type) {
                 return true;
             }
 
             if (item.idx === item_to_check.idx) {
-                if (item.y < list_y && item.y + item.h > list_y) {
+                if (item.y < that.list_y && item.y + item.h > that.list_y) {
                     item_state.visibility = visibility_state['partial_top'];
-                    item_state.invisible_part = (list_y - item.y) / row_h;
+                    item_state.invisible_part = (that.list_y - item.y) / that.row_h;
                 }
-                else if (item.y < list_y + list_h && item.y + item.h > list_y + list_h) {
+                else if (item.y < that.list_y + that.list_h && item.y + item.h > that.list_y + that.list_h) {
                     item_state.visibility = visibility_state['partial_bottom'];
-                    item_state.invisible_part = ((item.y + item.h) - (list_y + list_h)) / row_h;
+                    item_state.invisible_part = ((item.y + item.h) - (that.list_y + that.list_h)) / that.row_h;
                 }
                 else {
                     item_state.visibility = visibility_state['full'];
@@ -2094,7 +1987,7 @@ function Playlist() {
         var draw_row_idx = -1;
         var cur_row = 0;
         if (item.type === 'Header') {
-            _.forEach(headers, function (header, i) {
+            _.forEach(that.cnt.headers, function (header, i) {
                 if (item.idx === i) {
                     draw_row_idx = cur_row;
                     return false;
@@ -2107,7 +2000,7 @@ function Playlist() {
             });
         }
         else {
-            _.forEach(headers, function (header) {
+            _.forEach(that.cnt.headers, function (header) {
                 if (g_properties.show_header) {
                     cur_row += header_h_in_rows;
                     if (header.is_collapsed) {
@@ -2133,19 +2026,13 @@ function Playlist() {
         return draw_row_idx;
     }
 
-    function get_item_under_mouse(x, y) {
-        return _.find(items_to_draw, function (item) {
-            return item.trace(x, y);
-        });
-    }
-
     function get_drop_row_info(x, y) {
         var drop_info = {
             row:      undefined,
             is_above: undefined
         };
 
-        var item = get_item_under_mouse(x, y);
+        var item = that.get_item_under_mouse(x, y);
         if (!item) {
             return drop_info;
         }
@@ -2159,7 +2046,7 @@ function Playlist() {
                     drop_info.is_above = true;
                 }
                 else {
-                    drop_info.row = _.last(headers[item.idx - 1].rows);
+                    drop_info.row = _.last(that.cnt.headers[item.idx - 1].rows);
                     drop_info.is_above = false;
                 }
             }
@@ -2176,12 +2063,12 @@ function Playlist() {
             else {
                 if (g_properties.show_header
                     && item.idx === _.last(item.header.rows).idx
-                    || item.idx === _.last(rows).idx) {
+                    || item.idx === _.last(that.cnt.rows).idx) {
                     drop_info.row = item;
                     drop_info.is_above = false;
                 }
                 else {
-                    drop_info.row = rows[item.idx + 1];
+                    drop_info.row = that.cnt.rows[item.idx + 1];
                     drop_info.is_above = true;
                 }
             }
@@ -2195,7 +2082,7 @@ function Playlist() {
             drag_scroll_timeout_timer = setTimeout(function () {
                 if (!drag_scroll_repeat_timer) {
                     drag_scroll_repeat_timer = setInterval(function () {
-                        if (!scrollbar.in_sbar && !selection_handler.is_dragging || !drag_scroll_timeout_timer) {
+                        if (!that.scrollbar.in_sbar && !selection_handler.is_dragging || !drag_scroll_timeout_timer) {
                             return;
                         }
 
@@ -2203,13 +2090,13 @@ function Playlist() {
 
                         var cur_marked_item;
                         if (key === 'up') {
-                            scrollbar.shift_line(-1);
+                            that.scrollbar.shift_line(-1);
 
-                            cur_marked_item = _.head(items_to_draw);
+                            cur_marked_item = _.head(that.items_to_draw);
                             if (cur_marked_item.type === 'Header') {
                                 collapse_handler.expand(cur_marked_item);
                                 if (collapse_handler.changed) {
-                                    scrollbar.scroll_to(g_properties.scroll_pos + cur_marked_item.rows.length);
+                                    that.scrollbar.scroll_to(g_properties.scroll_pos + cur_marked_item.rows.length);
                                 }
 
                                 cur_marked_item = _.head(cur_marked_item.rows);
@@ -2219,16 +2106,16 @@ function Playlist() {
                             cur_marked_item.is_drop_boundary_reached = true;
                         }
                         else if (key === 'down') {
-                            scrollbar.shift_line(1);
+                            that.scrollbar.shift_line(1);
 
-                            cur_marked_item = _.last(items_to_draw);
+                            cur_marked_item = _.last(that.items_to_draw);
                             if (cur_marked_item.type === 'Header') {
                                 collapse_handler.expand(cur_marked_item);
                                 if (collapse_handler.changed) {
                                     that.repaint();
                                 }
 
-                                cur_marked_item = _.last(headers[cur_marked_item.idx - 1].rows);
+                                cur_marked_item = _.last(that.cnt.headers[cur_marked_item.idx - 1].rows);
                             }
 
                             selection_handler.drag(cur_marked_item, false);
@@ -2238,7 +2125,7 @@ function Playlist() {
                             throw new ArgumentError('drag_scroll_command', key);
                         }
 
-                        if (scrollbar.is_scrolled_down || scrollbar.is_scrolled_up) {
+                        if (that.scrollbar.is_scrolled_down || that.scrollbar.is_scrolled_up) {
                             stop_drag_scroll();
                         }
                     }, 50);
@@ -2262,32 +2149,15 @@ function Playlist() {
     }
 
     // public:
-    this.x = 0;
-    this.y = 0;
-    this.w = 0;
-    this.h = 0;
 
     // private:
     var that = this;
 
     // Constants
-    var row_h = g_properties.row_h;
     var header_h_in_rows = g_properties.use_compact_header ? g_properties.rows_in_compact_header : g_properties.rows_in_header;
 
     // Window state
     var was_on_size_called = false;
-    var rows_to_draw_precise = 0;
-
-    /** @type {Array<Row>} */
-    var rows = [];
-    /** @type {Array<Header>} */
-    var headers = [];
-    var items_to_draw = [];
-
-    var list_x = /** @type {number} */ g_properties.list_left_pad;
-    var list_y = 0;
-    var list_w = 0;
-    var list_h = 0;
 
     var is_in_focus = false;
 
@@ -2298,9 +2168,6 @@ function Playlist() {
     var focused_item = undefined;
 
     // Mouse and key state
-    var mouse_in = false;
-    var mouse_down = false;
-    var mouse_double_clicked = false;
     var mouse_on_item = false;
     var key_down = false;
 
@@ -2314,10 +2181,6 @@ function Playlist() {
 
     // Scrollbar props
     var scroll_pos_list = [];
-    var row_shift = 0;
-    var pixel_shift = 0;
-    var is_scrollbar_visible = g_properties.show_scrollbar;
-    var is_scrollbar_available = false;
 
     // copy, cut, paste data
     var copy_paste_metadb_list = fb.CreateHandleList();
@@ -2326,22 +2189,129 @@ function Playlist() {
     var selection_handler = undefined;
     var queue_handler = undefined;
 
-    /** @type {?ScrollBar} */
-    var scrollbar = undefined;
     var collapse_handler = new CollapseHandler();
-    var playlist_info = new PlaylistInfo(0, 0, 0, 24);
 
     // Workaround for bug: PlayingPlaylist is equal to -1 on startup
     if (plman.PlayingPlaylist === -1) {
         plman.PlayingPlaylist = plman.ActivePlaylist;
     }
-    this.initialize_list();
 }
+Playlist.prototype = Object.create(List.prototype);
+Playlist.prototype.constructor = Playlist;
+
 
 /**
  * @constructor
+ * @extend {List.Content}
  */
-function Header(x, y, w, h, idx) {
+PlaylistContent = function() {
+    List.Content.call(this);
+
+    this.generate_items_to_draw = function (wy, wh, row_shift, pixel_shift, row_h) {
+        var items_to_draw = [];
+        var start_y = wy + pixel_shift;
+        var cur_y = 0;
+        var cur_row = 0;
+        var first = true;
+
+        _.forEach(this.headers, function (header) {
+            if (g_properties.show_header) {
+                if (cur_row + header_h_in_rows - 1 >= row_shift) {
+                    if (first) {
+                        header.set_y(start_y + (cur_row - row_shift) * row_h);
+                        cur_y = header.y;
+                        first = false;
+                    }
+                    else {
+                        header.set_y(cur_y);
+                    }
+                    items_to_draw.push(header);
+                    cur_y += header_h_in_rows * row_h;
+
+                    if (cur_y >= wy + wh) {
+                        return false;
+                    }
+                }
+
+                cur_row += header_h_in_rows;
+
+                if (header.is_collapsed) {
+                    return true;
+                }
+            }
+
+            var header_rows = header.rows;
+            if (cur_row + header_rows.length - 1 >= row_shift) {
+                for (var j = 0; j < header_rows.length; ++j) {
+                    if (cur_row >= row_shift) {
+                        if (first) {
+                            header_rows[j].set_y(start_y + (cur_row - row_shift) * row_h);
+                            cur_y = header_rows[j].y;
+                            first = false;
+                        }
+                        else {
+                            header_rows[j].set_y(cur_y);
+                        }
+                        items_to_draw.push(header_rows[j]);
+                        cur_y += row_h;
+                        if (cur_y >= wy + wh) {
+                            return false;
+                        }
+                    }
+
+                    ++cur_row;
+                }
+            }
+            else {
+                cur_row += header_rows.length;
+            }
+        });
+
+        return items_to_draw;
+    };
+
+    this.update_items_w_size = function(w) {
+        this.headers.forEach(function (item) {
+            item.set_w(w);
+        });
+
+        this.rows.forEach(function (item) {
+            item.set_w(w);
+        });
+    };
+
+    this.calculate_total_h_in_rows = function() {
+        var total_height_in_rows = g_properties.show_header ? this.headers.length * header_h_in_rows : 0;
+        this.headers.forEach(function (header) {
+            if (!header.is_collapsed) {
+                total_height_in_rows += header.rows.length;
+            }
+        });
+
+        return total_height_in_rows;
+    };
+
+    this.set_header_h_in_rows = function(header_h_in_rows_arg) {
+        header_h_in_rows = header_h_in_rows_arg;
+    };
+
+    /** @type {Array<Row>} */
+    this.rows = [];
+    /** @type {Array<Header>} */
+    this.headers = [];
+
+    var header_h_in_rows = 0;
+};
+PlaylistContent.prototype = Object.create(List.Content.prototype);
+PlaylistContent.prototype.constructor = PlaylistContent;
+
+/**
+ * @constructor
+ * @extends {List.Item}
+ */
+function Header(x, y, w, h, idx, row_h_arg) {
+    List.Item.call(this, x, y, w, h);
+
     //public:
     this.draw = function (gr) {
         if (g_properties.use_compact_header) {
@@ -2350,13 +2320,6 @@ function Header(x, y, w, h, idx) {
         else {
             this.draw_normal_header(gr);
         }
-    };
-
-    var throttled_repaint = _.throttle(_.bind(function () {
-        window.RepaintRect(this.x, this.y, this.w, this.h);
-    }, this), 1000 / 60);
-    this.repaint = function () {
-        throttled_repaint();
     };
 
     this.draw_normal_header = function (gr) {
@@ -2720,14 +2683,6 @@ function Header(x, y, w, h, idx) {
         clipImg.Dispose();
     };
 
-    this.trace = function (x, y) {
-        return x >= this.x && x < this.x + this.w && y >= this.y && y < this.y + this.h;
-    };
-
-    this.set_w = function (w) {
-        this.w = w;
-    };
-
     this.assign_art = function (image) {
         if (!image || !g_properties.show_album_art) {
             art = null;
@@ -2830,25 +2785,26 @@ function Header(x, y, w, h, idx) {
     this.is_selected_static = false;
     this.is_collapsed = false;
 
-    this.x = x;
-    this.y = y;
-    this.w = w;
-    this.h = h;
-
     //private:
     var that = this;
-    var row_h = g_properties.row_h;
+    var row_h = row_h_arg;
     var art_max_size = that.h - 16;
 
     var metadb;
     var art = undefined;
     var group_query_handler = Header.group_query_handler;
 }
+Header.prototype = Object.create(List.Item.prototype);
+Header.prototype.constructor = Header;
+Header.group_query_handler = new GroupQueryHandler();
 
 /**
  * @constructor
+ * @extends {List.Item}
  */
 function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
+    List.Item.call(this, x, y, w, h);
+
     //public:
     this.draw = function (gr) {
         gr.FillSolidRect(this.x, this.y, this.w, this.h, g_pl_colors.background);
@@ -3006,24 +2962,15 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
         }
     };
 
-    var throttled_repaint = _.throttle(_.bind(function () {
-        window.RepaintRect(this.x, this.y, this.w, this.h);
-    }, this), 1000 / 60);
-    this.repaint = function () {
-        throttled_repaint();
-    };
-
-    this.trace = function (x, y) {
-        return x >= this.x && x < this.x + this.w && y >= this.y && y < this.y + this.h;
-    };
-
+    /** @override */
     this.set_y = function (y) {
-        this.y = y;
+        List.Item.prototype.set_y.apply(this,[y]);
         rating.y = y;
     };
 
+    /** @override */
     this.set_w = function (w) {
-        this.w = w;
+        List.Item.prototype.set_w.apply(this,[w]);
         initialize_rating();
     };
 
@@ -3087,11 +3034,6 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
     this.is_drop_top_selected = false;
     this.is_cropped = false;
 
-    this.x = x;
-    this.y = y;
-    this.w = w;
-    this.h = h;
-
     //private:
     var that = this;
 
@@ -3112,6 +3054,8 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
 
     initialize_rating();
 }
+Row.prototype = Object.create(List.Item.prototype);
+Row.prototype.constructor = Row;
 
 /**
  * @constructor
@@ -3419,7 +3363,7 @@ function SelectionHandler(rows_arg, headers_arg, cur_playlist_idx_arg) {
                 move_delta = - (_.head(selected_indexes) - drop_idx);
             }
             else {
-                move_delta = drop_idx - _.last(selected_indexes) + 1;
+                move_delta = drop_idx - (_.last(selected_indexes) + 1);
             }
 
             plman.MovePlaylistSelection(cur_playlist_idx, move_delta);
@@ -4202,3 +4146,6 @@ function GroupQueryHandler () {
 
     var group_query_list = JSON.parse(g_properties.group_query_list);
 }
+
+var playlist = new PlaylistPanel();
+playlist.initialize();
