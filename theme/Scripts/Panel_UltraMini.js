@@ -12,7 +12,9 @@ g_properties.add_properties(
     {
         art_pad:          ['user.art.pad', 0],
         title_queries:    ['user.title.queries', JSON.stringify(['[%title%]', '[%artist%]', '[%album%]'])],
-        title_cycle_time: ['user.title.cycle_time', 6000]
+        title_cycle_time: ['user.title.cycle_time', 6000],
+
+        first_launch: ['system.script_first_launch', true]
     }
 );
 
@@ -21,6 +23,12 @@ g_properties.add_properties(
     var title_queries = JSON.parse(g_properties.title_queries);
     if (!_.isArray(title_queries)) {
         g_properties.title_queries = JSON.stringify([]);
+    }
+
+    if (g_properties.is_first_launch) {
+        g_properties.track_mode = 3;
+
+        g_properties.is_first_launch = false;
     }
 })();
 

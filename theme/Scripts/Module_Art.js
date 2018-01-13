@@ -7,7 +7,7 @@ g_script_list.push('Control_Scrollbar.js');
 
 g_properties.add_properties(
     {
-        track_mode:         ['user.art.track_mode', 2],
+        track_mode:         ['user.art.track_mode', 3],
         group_format_query: ['user.art.group_format', '%album artist%%album%%discnumber%'],
         use_disc_mask:      ['user.art.use_disc_mask', true]
     }
