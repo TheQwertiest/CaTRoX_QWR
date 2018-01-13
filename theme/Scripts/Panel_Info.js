@@ -474,6 +474,11 @@ function TrackInfoList() {
         return true;
     };
 
+    this.on_mouse_wheel = function (delta) {
+        List.prototype.on_mouse_wheel.apply(this, [delta]);
+        clear_last_hover_item();
+    };
+
     this.on_mouse_leave = function () {
         List.prototype.on_mouse_leave.apply(this);
         clear_last_hover_item();
