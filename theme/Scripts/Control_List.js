@@ -315,7 +315,7 @@ List.prototype.on_w_size = function (w) {
 };
 
 /**
- * Called when this.items cnt is changed.
+ * Called when this.items content is changed.
  * @protected
  */
 List.prototype.on_list_items_change = function () {
