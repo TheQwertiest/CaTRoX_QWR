@@ -101,6 +101,10 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
     };
 
     this.get_album_art_done = function (metadb, art_id, image, image_path) {
+        if (!get_current_metadb()) {
+            return;
+        }
+
         if (art_id === g_album_art_id.artist) {
             art_id = artType.artist;
         }
@@ -224,12 +228,12 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
     // End of Callback methods implementation
     /////////////////////////////////////
 
-    this.get_album_art = function (metadb_arg) {
+    this.get_album_art = function () {
         if (!was_on_size_called) {
             return;
         }
 
-        var metadb = metadb_arg ? metadb_arg : get_current_metadb();
+        var metadb = get_current_metadb();
         if (!metadb) {
             this.clear_art();
             return;
@@ -279,11 +283,10 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
         oldAlbum = currentAlbum;
     };
 
-    this.reload_art = function (metadb_arg) {
+    this.reload_art = function () {
         oldAlbum = currentAlbum = undefined;
 
-        var metadb = metadb_arg ? metadb_arg : undefined;
-        this.get_album_art(metadb);
+        this.get_album_art();
     };
 
     this.clear_art = function () {
@@ -370,21 +373,21 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
             'Automatic (current selection/playing item)',
             _.bind(function () {
                 g_properties.track_mode = track_modes.auto;
-                fb.IsPlaying ? this.get_album_art(fb.GetNowPlaying()) : (selected_metadb ? this.get_album_art(selected_metadb) : this.clear_art());
+                this.get_album_art();
             }, this)
         );
         track.append_item(
             'Playing item',
             _.bind(function () {
                 g_properties.track_mode = track_modes.playing;
-                fb.IsPlaying ? this.get_album_art(fb.GetNowPlaying()) : this.clear_art();
+                this.get_album_art();
             }, this)
         );
         track.append_item(
             'Current selection',
             _.bind(function () {
                 g_properties.track_mode = track_modes.selected;
-                selected_metadb ? this.get_album_art(selected_metadb) : this.clear_art();
+                this.get_album_art();
             }, this)
         );
 
@@ -659,8 +662,10 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
     var feature_cycle = _.includes(features, 'auto_cycle');
     var frame_color = g_theme.colors.panel_line;
 
-    var oldAlbum;
-    var currentAlbum;
+    /** @type {?string} */
+    var oldAlbum = undefined;
+    /** @type {?string} */
+    var currentAlbum = undefined;
     var albumTimer = null;
 
     var art_x = 0;
@@ -669,7 +674,13 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
     var art_h = 0;
 
     var cur_art_id = artType.defaultVal;
-    var art_arr = [];
+    var art_arr = (function(){
+        var arr = [];
+        for (var i = artType.firstVal; i < artType.lastVal; ++i) {
+            arr[i] = null;
+        }
+        return arr;
+    })();
 
     var has_photoshop;
     var was_on_size_called = false;
