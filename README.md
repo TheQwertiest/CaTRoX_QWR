@@ -5,9 +5,9 @@ Theme for [foobar2000](https://www.foobar2000.org) based on the design and color
 [Features](https://github.com/TheQwertiest/CaTRoX_QWR/wiki):
  - Three player modes: Full, Playlist and Art.
  - Custom JScript playlist with extensive customization.
+ - Integrated YouTube support (via foo_youtube and YouTube Manager script).
+ - Tree style media library viewer (via Library Tree script).
  - Borderless player window.
- - Integrated foo_youtube support.
- - Integrated Library Tree and YouTube Manager scripts.
  - And more!
 
 See [Installation Guide](https://github.com/TheQwertiest/CaTRoX_QWR/wiki/Installation) to get started!

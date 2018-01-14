@@ -3,6 +3,33 @@
 ## [Unreleased]
 ### Added
 - Added compatibility fixes for vanilla JScript v2.0.0 component.
+- Track Info Panel:
+  - Added ability to add, copy, edit and remove metadata tags (through double-click and context menu).
+  - Added tooltips on hover, which display full tag value.
+  - Made possible to hide file info tags and show only metadata tags.
+  - Added animation on mouse click.
+- Context Menus: developer context menu (accessible via SHIFT-right-click) now contains all base panel scripts in it's 'Edit panel scripts' sub-menu. 
+
+### Changed
+- Track Info Panel: rewritten from scratch.
+- Various performance improvements.
+- Updated theme.fcl:
+  - Added compatibility fixes for vanilla JScript v2.0.0 component.
+  - Added new script files.
+  - Changed default panel properties.
+
+### Fixed
+- Playlist Panel:
+  - List padding (set via panel properties) is respected now.
+  - Fixed incorrect scroll position that appeared in some cases.
+  - Fixed invalid drag-n-drop position.
+  - Fixed various errors with drag-n-drop on empty playlist area.  
+  - Fixed invalid position of ctrl-v pasted items.
+  - Fixed ctrl-x not removing cut item.
+  - Fixed various crashes during playlist navigation while focused track is not set.
+- Cover Panel:
+  - Fixed 'Loading' text being stuck on script load.
+  - Fixed crashes when track is deleted during art load. 
 
 ## [4.0.5] - 2018-01-10
 ### Added
