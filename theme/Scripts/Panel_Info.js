@@ -51,6 +51,10 @@ var g_tr_i_colors = {
     info_value:       g_theme.colors.panel_text_normal
 };
 
+var mouse_move_suppress = new qwr_utils.MouseMoveSuppress();
+var key_down_suppress = new qwr_utils.KeyModifiersSuppress();
+
+
 function on_paint(gr) {
     trace_call && trace_on_paint && console.log(qwr_utils.function_name());
 
@@ -73,6 +77,10 @@ function on_size() {
 
 function on_mouse_move(x, y, m) {
     trace_call && trace_on_move && console.log(qwr_utils.function_name());
+
+    if (mouse_move_suppress.is_supressed(x,y,m)) {
+        return;
+    }
 
     qwr_utils.DisableSizing(m);
 
@@ -126,7 +134,13 @@ function on_mouse_leave() {
 function on_key_down(vkey) {
     trace_call && console.log(qwr_utils.function_name());
 
-    //track_info.on_key_down(vkey);
+    /*
+    if (key_down_suppress.is_supressed(vkey)) {
+        return;
+    }
+
+    track_info.on_key_down(vkey);
+    */
 }
 
 function on_key_up(vkey) {
@@ -518,7 +532,7 @@ function TrackInfoList() {
     };
 
     this.on_metadb_changed = function (handles, fromhook) {
-        if (handles.Find(cur_metadb) !== -1) {
+        if (!cur_metadb || handles.Find(cur_metadb) !== -1) {
             this.initialize_list();
             this.repaint();
         }

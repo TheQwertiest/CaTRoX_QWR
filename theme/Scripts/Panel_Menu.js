@@ -27,6 +27,8 @@ var trace_call = false;
 var trace_on_paint = false;
 var trace_on_move = false;
 
+g_script_list.push('Panel_Menu.js');
+
 g_properties.add_properties(
     {
         maximize_to_fullscreen: ['user.window.maximize_to_fullscreen', true],
@@ -102,7 +104,9 @@ var MoveStyle =
         Both:    3
     };
 
+var mouse_move_suppress = new qwr_utils.MouseMoveSuppress();
 var menu = new Menu();
+
 
 function on_paint(gr) {
     trace_call && trace_on_paint && console.log(qwr_utils.function_name());
@@ -124,6 +128,11 @@ function on_size() {
 
 function on_mouse_move(x, y, m) {
     trace_call && trace_on_move && console.log(qwr_utils.function_name());
+
+    if (mouse_move_suppress.is_supressed(x,y,m)) {
+        return;
+    }
+
     menu.on_mouse_move(x, y, m);
 }
 

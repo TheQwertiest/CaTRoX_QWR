@@ -11,7 +11,9 @@ g_properties.add_properties(
     }
 );
 
-artModule = new ArtModule(['borders', 'thumbs', 'auto_cycle']);
+var mouse_move_suppress = new qwr_utils.MouseMoveSuppress();
+var key_down_suppress = new qwr_utils.KeyModifiersSuppress();
+var artModule = new ArtModule(['borders', 'thumbs', 'auto_cycle']);
 
 var ww;
 var wh;
@@ -56,9 +58,12 @@ function on_item_focus_change(playlist_arg, from, to) {
 }
 
 function on_mouse_move(x, y, m) {
+    if (mouse_move_suppress.is_supressed(x,y,m)) {
+        return;
+    }
+
     artModule.mouse_move(x, y, m);
 }
-// ============================ //
 
 function on_mouse_lbtn_down(x, y, m) {
     artModule.mouse_lbtn_down(x, y, m);
@@ -85,6 +90,10 @@ function on_mouse_leave() {
 }
 
 function on_key_down(vkey) {
+    if (key_down_suppress.is_supressed(vkey)) {
+        return;
+    }
+
     switch (vkey) {
         case 38: {
             artModule.mouse_wheel(1);

@@ -27,10 +27,10 @@ var seekbarTime2 = '0:00';
 
 var cur_minimode = pss_switch.minimode.state;
 
-/// Reduce move
-var moveChecker = new _.moveCheckReducer;
+var mouse_move_suppress = new qwr_utils.MouseMoveSuppress();
 
 createButtonImages();
+
 
 function on_paint(gr) {
     gr.FillSolidRect(0, 0, ww, wh, g_theme.colors.pss_back);
@@ -125,7 +125,7 @@ function on_mouse_wheel(delta) {
 }
 
 function on_mouse_move(x, y, m) {
-    if (moveChecker.isSameMove(x, y, m)) {
+    if (mouse_move_suppress.is_supressed(x,y,m)) {
         return;
     }
 

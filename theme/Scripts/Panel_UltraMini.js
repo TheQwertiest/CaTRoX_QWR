@@ -32,6 +32,8 @@ g_properties.add_properties(
     }
 })();
 
+var mouse_move_suppress = new qwr_utils.MouseMoveSuppress();
+var key_down_suppress = new qwr_utils.KeyModifiersSuppress();
 var ultra_mini = new UltraMini();
 
 function on_paint(gr) {
@@ -99,6 +101,11 @@ function on_playback_seek() {
 
 function on_mouse_move(x, y, m) {
     trace_on_move && console.log(qwr_utils.function_name());
+
+    if (mouse_move_suppress.is_supressed(x,y,m)) {
+        return;
+    }
+
     ultra_mini.on_mouse_move(x, y, m);
 }
 
@@ -129,6 +136,11 @@ function on_mouse_leave() {
 
 function on_key_down(vkey) {
     trace_call && console.log(qwr_utils.function_name());
+
+    if (key_down_suppress.is_supressed(vkey)) {
+        return;
+    }
+
     ultra_mini.on_key_down(vkey);
 }
 

@@ -618,24 +618,6 @@ _.mixin({
 
         _.dispose(menuManager, menu);
     },
-    moveCheckReducer:          function () {
-        this.isSameMove = function (x, y, m) {
-            if (this.mx === x && this.my === y && this.mm === m) {
-                return true;
-            }
-            else {
-                this.mx = x;
-                this.my = y;
-                this.mm = m;
-
-                return false;
-            }
-        };
-
-        this.mx = undefined;
-        this.my = undefined;
-        this.mm = undefined;
-    },
     nest:                      function (collection, keys) {
         if (!keys.length) {
             return collection;
@@ -925,8 +907,9 @@ var MK_XBUTTON1 = 0x0020;
 var MK_XBUTTON2 = 0x0040;
 
 //--->
-var VK_CONTROL = 0x11;
 var VK_SHIFT = 0x10;
+var VK_CONTROL = 0x11;
+var VK_MENU = 0x12; // ALT
 var VK_PAUSE = 0x13;
 var VK_ESCAPE = 0x1B;
 var VK_SPACE = 0x20;

@@ -23,10 +23,10 @@ var button_images = [];
 var rightMargin = 0;
 var showTooltips = false;
 
-/// Reduce move
-var moveChecker = new _.moveCheckReducer;
+var mouse_move_suppress = new qwr_utils.MouseMoveSuppress();
 
 create_button_images();
+
 
 function on_paint(gr) {
     var metadb = (fb.IsPlaying ? fb.GetNowPlaying() : fb.GetFocusItem());
@@ -72,7 +72,7 @@ function on_size() {
 }
 
 function on_mouse_move(x, y, m) {
-    if (moveChecker.isSameMove(x, y, m)) {
+    if (mouse_move_suppress.is_supressed(x,y,m)) {
         return;
     }
 
