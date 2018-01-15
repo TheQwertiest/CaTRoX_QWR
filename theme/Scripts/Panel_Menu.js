@@ -12,9 +12,9 @@
 })();
 
 (function check_jscript_version() {
-    if (utils.Version < 1321) {
+    if (utils.Version < 2000) {
         var versionStr = utils.Version.toString();
-        var error_msg = 'JScript (modded or vanilla) v1.3.2.1 or higher is required!\n';        
+        var error_msg = 'JScript (modded or vanilla) v2.0.0.0 or higher is required!\n';
         error_msg += 'Your JScript version: ' + versionStr[0] + '.' + versionStr[1] + '.' + versionStr[2] + '.' + versionStr[3];
 
         throw new ThemeError(error_msg);
