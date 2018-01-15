@@ -10,6 +10,8 @@ var trace_on_move = false;
 
 g_script_list.push('Panel_Playlist.js');
 
+// Should be used only for default panel properties
+var g_is_mini_playlist_panel = (window.name.toLowerCase().indexOf('mini') !== -1);
 
 // TODO: consider making registration for on_key handlers
 // TODO: research the source of hangs with big art image loading (JScript? fb2k?)
@@ -22,20 +24,20 @@ g_properties.add_properties(
         show_playlist_info: ['user.playlist_info.show', true],
 
         show_header:        ['user.header.show', true],
-        use_compact_header: ['user.header.use_compact', false],
+        use_compact_header: ['user.header.use_compact', g_is_mini_playlist_panel],
         show_album_art:     ['user.header.this.art.show', true],
         auto_album_art:     ['user.header.this.art.auto', false],
         show_group_info:    ['user.header.info.show', true],
 
         alternate_row_color:  ['user.row.alternate_color', true],
         show_playcount:       ['user.row.play_count.show', _.cc('foo_playcount')],
-        show_rating:          ['user.row.rating.show', _.cc('foo_playcount')],
+        show_rating:          ['user.row.rating.show', _.cc('foo_playcount') && !g_is_mini_playlist_panel],
         use_rating_from_tags: ['user.row.rating.from_tags', false],
         show_focused_row:     ['user.row.focused.show', true],
         show_queue_position:  ['user.row.queue_position.show', true],
 
-        auto_colapse:                ['user.header.collapse.auto', false],
-        collapse_on_playlist_switch: ['user.header.collapse.on_playlist_switched', false],
+        auto_colapse:                ['user.header.collapse.auto', g_is_mini_playlist_panel],
+        collapse_on_playlist_switch: ['user.header.collapse.on_playlist_switch', false],
         collapse_on_start:           ['user.header.collapse.on_start', false],
 
         group_query_list:           ['system.header.group.list', JSON.stringify([['artist_album_disc', '']])],
@@ -321,10 +323,9 @@ function PlaylistPanel() {
     };
 
     this.on_mouse_lbtn_down = function (x, y, m) {
-        if (playlist.trace(x, y)) {
-            playlist.on_mouse_lbtn_down(x, y, m)
-        }
-        else if (g_properties.show_playlist_info && playlist_info.trace(x, y)) {
+        playlist.on_mouse_lbtn_down(x, y, m);
+
+        if (g_properties.show_playlist_info && playlist_info.trace(x, y)) {
             playlist_info.on_mouse_lbtn_down(x, y, m);
         }
     };
@@ -1602,6 +1603,14 @@ function Playlist(x,y) {
                 g_properties.collapse_on_start = !g_properties.collapse_on_start;
             },
             {is_checked: g_properties.collapse_on_start}
+        );
+
+        ce.append_item(
+            'Collapse on playlist switch',
+            function () {
+                g_properties.collapse_on_playlist_switch = !g_properties.collapse_on_playlist_switch;
+            },
+            {is_checked: g_properties.collapse_on_playlist_switch}
         );
     }
 
@@ -3017,15 +3026,15 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
                 length_text = _.tf('[%length%]', this.metadb);
             }
 
+            var length_w = 50;
             if (length_text) {
-                var length_w = 50;
                 var length_x = this.x + this.w - length_w - right_pad;
 
                 gr.DrawString(length_text, title_font, title_color, length_x, this.y, length_w, this.h, g_string_format.align_center);
                 testRect && gr.DrawRect(length_x, this.y - 1, length_w, this.h, 1, _.RGBA(155, 155, 255, 250));
-
-                right_pad += Math.max(length_w, Math.ceil(gr.MeasureString(length_text, title_font, 0, 0, 0, 0).Width + 10));
             }
+            // We always want that padding
+            right_pad += Math.max(length_w, Math.ceil(gr.MeasureString(length_text, title_font, 0, 0, 0, 0).Width + 10));
         }
 
         //---> COUNT
