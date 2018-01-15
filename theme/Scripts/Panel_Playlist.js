@@ -11,7 +11,7 @@ var trace_on_move = false;
 g_script_list.push('Panel_Playlist.js');
 
 // Should be used only for default panel properties
-var g_is_mini_playlist_panel = (window.name.toLowerCase().indexOf('mini') !== -1);
+var g_is_mini_panel = (window.name.toLowerCase().indexOf('mini') !== -1);
 
 // TODO: consider making registration for on_key handlers
 // TODO: research the source of hangs with big art image loading (JScript? fb2k?)
@@ -24,19 +24,19 @@ g_properties.add_properties(
         show_playlist_info: ['user.playlist_info.show', true],
 
         show_header:        ['user.header.show', true],
-        use_compact_header: ['user.header.use_compact', g_is_mini_playlist_panel],
+        use_compact_header: ['user.header.use_compact', g_is_mini_panel],
         show_album_art:     ['user.header.this.art.show', true],
         auto_album_art:     ['user.header.this.art.auto', false],
         show_group_info:    ['user.header.info.show', true],
 
         alternate_row_color:  ['user.row.alternate_color', true],
         show_playcount:       ['user.row.play_count.show', _.cc('foo_playcount')],
-        show_rating:          ['user.row.rating.show', _.cc('foo_playcount') && !g_is_mini_playlist_panel],
+        show_rating:          ['user.row.rating.show', _.cc('foo_playcount') && !g_is_mini_panel],
         use_rating_from_tags: ['user.row.rating.from_tags', false],
         show_focused_row:     ['user.row.focused.show', true],
         show_queue_position:  ['user.row.queue_position.show', true],
 
-        auto_colapse:                ['user.header.collapse.auto', g_is_mini_playlist_panel],
+        auto_colapse:                ['user.header.collapse.auto', g_is_mini_panel],
         collapse_on_playlist_switch: ['user.header.collapse.on_playlist_switch', false],
         collapse_on_start:           ['user.header.collapse.on_start', false],
 

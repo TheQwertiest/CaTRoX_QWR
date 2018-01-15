@@ -71,14 +71,19 @@ function on_mouse_lbtn_up(x, y, m) {
     top_panel.on_mouse_lbtn_up(x, y, m);
 }
 
+function on_mouse_rbtn_up(x, y) {
+    trace_call && console.log(qwr_utils.function_name());
+    return top_panel.on_mouse_rbtn_up(x, y);
+}
+
 function on_mouse_leave() {
     trace_call && console.log(qwr_utils.function_name());
     top_panel.on_mouse_leave();
 }
 
-function on_mouse_rbtn_up(x, y) {
+function on_item_focus_change(playlist_arg, from, to) {
     trace_call && console.log(qwr_utils.function_name());
-    return top_panel.on_mouse_rbtn_up(x, y);
+    top_panel.on_item_focus_change(playlist_arg, from, to);
 }
 
 function on_playback_stop(reason) {
@@ -197,6 +202,10 @@ function TopPanel() {
 
     this.on_mouse_leave = function () {
         buttons.leave();
+    };
+
+    this.on_item_focus_change = function(playlist_arg, from, to) {
+        this.repaint();
     };
 
     this.on_playback_stop = function (reason) {
@@ -355,7 +364,7 @@ function TopPanel() {
                 h = item.h,
                 lw = 2;
 
-            var stateImages = []; //0=normal, 1=hover, 2=down;
+            var state_images = []; //0=normal, 1=hover, 2=down;
 
             for (var s = 0; s <= 2; s++) {
                 var img = gdi.CreateImage(w, h);
@@ -380,14 +389,14 @@ function TopPanel() {
                 }
 
                 img.ReleaseGraphics(g);
-                stateImages[s] = img;
+                state_images[s] = img;
             }
 
             button_images[i] =
                 {
-                    normal:  stateImages[0],
-                    hover:   stateImages[1],
-                    pressed: stateImages[2]
+                    normal:  state_images[0],
+                    hover:   state_images[1],
+                    pressed: state_images[2]
                 };
         });
     }
@@ -410,13 +419,15 @@ function TopPanel() {
     this.w = 0;
     this.h = 0;
 
+    var buttons = {};
+    var button_images = [];
+
+    var show_tooltips = false;
+    
     var is_youtube_video_displayed = g_has_modded_jscript ? fb.IsMainMenuCommandChecked('View/Visualizations/Video') : false;
     var is_scrobbling_enabled = (g_has_modded_jscript && g_component_scrobble) ? fb.IsMainMenuCommandChecked('Playback/Scrobble Tracks') : false;
-
-    var buttons;
-    var button_images = [];
+    
     var right_pad = 0;
-    var show_tooltips = false;
 
     create_button_images();
 }

@@ -57,7 +57,6 @@ var key_down_suppress = new qwr_utils.KeyModifiersSuppress();
 
 function on_paint(gr) {
     trace_call && trace_on_paint && console.log(qwr_utils.function_name());
-
     track_info.on_paint(gr);
 }
 
@@ -89,13 +88,11 @@ function on_mouse_move(x, y, m) {
 
 function on_mouse_lbtn_down(x, y, m) {
     trace_call && console.log(qwr_utils.function_name());
-
     track_info.on_mouse_lbtn_down(x, y, m);
 }
 
 function on_mouse_lbtn_dblclk(x, y, m) {
     trace_call && console.log(qwr_utils.function_name());
-
     track_info.on_mouse_lbtn_dblclk(x, y, m);
 }
 
@@ -109,25 +106,21 @@ function on_mouse_lbtn_up(x, y, m) {
 
 function on_mouse_rbtn_down(x, y, m) {
     trace_call && console.log(qwr_utils.function_name());
-
     track_info.on_mouse_rbtn_down(x, y, m);
 }
 
 function on_mouse_rbtn_up(x, y, m) {
     trace_call && console.log(qwr_utils.function_name());
-
     return track_info.on_mouse_rbtn_up(x, y, m);
 }
 
 function on_mouse_wheel(delta) {
     trace_call && console.log(qwr_utils.function_name());
-
     track_info.on_mouse_wheel(delta);
 }
 
 function on_mouse_leave() {
     trace_call && console.log(qwr_utils.function_name());
-
     track_info.on_mouse_leave();
 }
 
@@ -145,43 +138,36 @@ function on_key_down(vkey) {
 
 function on_key_up(vkey) {
     trace_call && console.log(qwr_utils.function_name());
-
     //track_info.on_key_up(vkey);
 }
 
 function on_item_focus_change(playlist_arg, from, to) {
     trace_call && console.log(qwr_utils.function_name());
-
     track_info.on_item_focus_change(playlist_arg, from, to);
 }
 
 function on_playlist_switch() {
     trace_call && console.log(qwr_utils.function_name());
-
     track_info.on_playlist_switch();
 }
 
 function on_playback_new_track(metadb) {
     trace_call && console.log(qwr_utils.function_name());
-
     track_info.on_playback_new_track(metadb);
 }
 
 function on_playback_stop(reason) {
     trace_call && console.log(qwr_utils.function_name());
-
     track_info.on_playback_stop(reason);
 }
 
 function on_playback_dynamic_info_track() {
     trace_call && console.log(qwr_utils.function_name());
-
     track_info.on_playback_dynamic_info_track();
 }
 
 function on_metadb_changed(handles, fromhook) {
     trace_call && console.log(qwr_utils.function_name());
-
     track_info.on_metadb_changed(handles, fromhook);
 }
 
