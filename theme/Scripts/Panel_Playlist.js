@@ -239,6 +239,11 @@ function on_playlist_switch() {
     playlist.on_playlist_switch();
 }
 
+function on_playlist_items_added(playlistIndex) {
+    trace_call && console.log(qwr_utils.function_name());
+    playlist.on_playlist_items_added(playlistIndex);
+}
+
 function on_playlist_items_reordered(playlistIndex) {
     trace_call && console.log(qwr_utils.function_name());
     playlist.on_playlist_items_reordered(playlistIndex);
@@ -246,12 +251,7 @@ function on_playlist_items_reordered(playlistIndex) {
 
 function on_playlist_items_removed(playlistIndex) {
     trace_call && console.log(qwr_utils.function_name());
-    playlist.on_playlist_modified(playlistIndex);
-}
-
-function on_playlist_items_added(playlistIndex) {
-    trace_call && console.log(qwr_utils.function_name());
-    playlist.on_playlist_items_added(playlistIndex);
+    playlist.on_playlist_items_removed(playlistIndex);
 }
 
 function on_playlist_items_selection_change() {
@@ -398,6 +398,10 @@ function PlaylistPanel() {
         playlist.on_item_focus_change(playlist_idx, from_idx, to_idx);
     };
 
+    this.on_playlists_changed = function () {
+        playlist.on_playlists_changed();
+    };
+
     this.on_playlist_switch = function () {
         if (g_properties.show_playlist_info) {
             playlist_info.on_playlist_modified();
@@ -413,15 +417,8 @@ function PlaylistPanel() {
         playlist.on_playlist_items_reordered(playlist_idx);
     };
 
-    this.on_playlist_modified = function (playlist_idx) {
-        if (g_properties.show_playlist_info) {
-            playlist_info.on_playlist_modified();
-        }
-        playlist.on_playlist_modified(playlist_idx);
-    };
-
-    this.on_playlists_changed = function () {
-        playlist.on_playlists_changed();
+    this.on_playlist_items_removed = function (playlist_idx) {
+        playlist.on_playlist_items_removed(playlist_idx);
     };
 
     this.on_playlist_items_selection_change = function () {
@@ -1208,13 +1205,19 @@ function Playlist(x,y) {
         this.repaint();
     };
 
+    this.on_playlists_changed = function () {
+        if (plman.ActivePlaylist > plman.PlaylistCount
+            || plman.ActivePlaylist === -1) {
+            plman.ActivePlaylist = plman.PlaylistCount - 1;
+        }
+    };
+
     this.on_playlist_switch = function () {
         if (cur_playlist_idx !== plman.ActivePlaylist) {
             g_properties.scroll_pos = _.isNil(scroll_pos_list[plman.ActivePlaylist]) ? 0 : scroll_pos_list[plman.ActivePlaylist];
         }
 
-        this.initialize_list();
-        this.repaint();
+        this.initialize_and_repaint_list();
     };
 
     this.on_playlist_items_added = function (playlist_idx) {
@@ -1225,7 +1228,7 @@ function Playlist(x,y) {
         if (selection_handler.is_external_drop()) {
             selection_handler.drop_external();
         }
-        this.on_playlist_modified(playlist_idx);
+        this.initialize_and_repaint_list(playlist_idx);
     };
 
     this.on_playlist_items_reordered = function (playlist_idx) {
@@ -1239,20 +1242,12 @@ function Playlist(x,y) {
         this.repaint();
     };
 
-    this.on_playlist_modified = function (playlist_idx) {
+    this.on_playlist_items_removed = function (playlist_idx) {
         if (playlist_idx !== cur_playlist_idx) {
             return;
         }
 
-        this.initialize_list();
-        this.repaint();
-    };
-
-    this.on_playlists_changed = function () {
-        if (plman.ActivePlaylist > plman.PlaylistCount
-            || plman.ActivePlaylist === -1) {
-            plman.ActivePlaylist = plman.PlaylistCount - 1;
-        }
+        this.initialize_and_repaint_list(playlist_idx);
     };
 
     this.on_playlist_items_selection_change = function () {
@@ -1341,6 +1336,11 @@ function Playlist(x,y) {
         }
     };
     //</editor-fold>
+
+    this.initialize_and_repaint_list = function () {
+        this.initialize_list();
+        this.repaint();
+    };
 
     /**
      * This method does not contain any redraw calls - it's purely back-end

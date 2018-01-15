@@ -19,11 +19,9 @@ var ww;
 var wh;
 
 function on_paint(gr) {
-    gr.FillSolidRect( 0, 0, ww, wh, g_theme.colors.panel_back);
+    gr.FillSolidRect(0, 0, ww, wh, g_theme.colors.panel_back);
     artModule.paint(gr);
 }
-
-// ============================ //
 
 function on_size() {
     ww = window.Width;
@@ -68,22 +66,18 @@ function on_mouse_move(x, y, m) {
 function on_mouse_lbtn_down(x, y, m) {
     artModule.mouse_lbtn_down(x, y, m);
 }
-// ============================ //
 
 function on_mouse_lbtn_dblclk() {
     artModule.mouse_lbtn_dblclk();
 }
-// ============================ //
 
 function on_mouse_lbtn_up(x, y, m) {
     artModule.mouse_lbtn_up(x, y, m);
 }
-// ============================ //
 
 function on_mouse_wheel(delta) {
     artModule.mouse_wheel(delta);
 }
-// ============================ //
 
 function on_mouse_leave() {
     artModule.mouse_leave();
@@ -95,11 +89,11 @@ function on_key_down(vkey) {
     }
 
     switch (vkey) {
-        case 38: {
-            artModule.mouse_wheel(1);
+        case VK_UP: {
+            artModule.mouse_wheel(-1);
             break;
         }
-        case 40: {
+        case VK_DOWN: {
             artModule.mouse_wheel(1);
             break;
         }

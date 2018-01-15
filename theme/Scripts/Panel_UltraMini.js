@@ -12,9 +12,7 @@ g_properties.add_properties(
     {
         art_pad:          ['user.art.pad', 0],
         title_queries:    ['user.title.queries', JSON.stringify(['[%title%]', '[%artist%]', '[%album%]'])],
-        title_cycle_time: ['user.title.cycle_time', 6000],
-
-        first_launch: ['system.script_first_launch', true]
+        title_cycle_time: ['user.title.cycle_time', 6000]
     }
 );
 
@@ -23,12 +21,6 @@ g_properties.add_properties(
     var title_queries = JSON.parse(g_properties.title_queries);
     if (!_.isArray(title_queries)) {
         g_properties.title_queries = JSON.stringify([]);
-    }
-
-    if (g_properties.is_first_launch) {
-        g_properties.track_mode = 3;
-
-        g_properties.is_first_launch = false;
     }
 })();
 
@@ -631,7 +623,9 @@ function UltraMini() {
 
     // Objects
     var art_module = new ArtModule();
-    var title_cycler = new TitleCycler(this.repaint);
+    var title_cycler = new TitleCycler(_.bind(function(){
+        this.repaint();
+    },this));
     var animator = new Animator(_.bind(function (alpha) {
         panel_alpha = alpha;
         this.repaint();
@@ -647,8 +641,8 @@ function UltraMini() {
 }
 
 /**
- * @constructor
  * @param {Function} on_alpha_change_fn_arg
+ * @constructor
  */
 function Animator(on_alpha_change_fn_arg) {
     this.run_animation = function (animation_name) {
@@ -741,8 +735,8 @@ function Animator(on_alpha_change_fn_arg) {
 }
 
 /**
- * @constructor
  * @param {Function} on_change_fn_arg
+ * @constructor
  */
 function TitleCycler(on_change_fn_arg) {
 
