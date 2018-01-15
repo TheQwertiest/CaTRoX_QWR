@@ -18,24 +18,23 @@ _.mixin({
         };
 
         this.wheel = function (s) {
-            if (this.trace(this.mx, this.my)) {
-                if (s > 0) {
-                    fb.VolumeUp();
-                }
-                else {
-                    fb.VolumeDown();
-                }
-
-                if (this.show_tt) {
-                    var text = fb.Volume.toFixed(2) + " dB (" + _.toVolume(fb.Volume) + "%)";
-                    this.tt.showImmediate(text);
-                }
-
-                return true;
-            }
-            else {
+            if (!this.trace(this.mx, this.my)) {
                 return false;
             }
+
+            if (s > 0) {
+                fb.VolumeUp();
+            }
+            else {
+                fb.VolumeDown();
+            }
+
+            if (this.show_tt) {
+                var text = fb.Volume.toFixed(2) + " dB (" + _.toVolume(fb.Volume) + "%)";
+                this.tt.showImmediate(text);
+            }
+
+            return true;
         };
 
         this.move = function (x, y) {
