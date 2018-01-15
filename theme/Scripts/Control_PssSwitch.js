@@ -3,7 +3,7 @@
 // @author 'TheQwertiest'
 // ==/PREPROCESSOR==
 
-g_script_list.push('Control_Scrollbar.js');
+g_script_list.push('Control_PssSwitch.js');
 
 var pss_switch = new function() {
 

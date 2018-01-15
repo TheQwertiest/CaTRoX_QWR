@@ -6,7 +6,7 @@ var trace_call = false;
 var trace_on_paint = false;
 var trace_on_move = false;
 
-g_script_list.push('Control_Scrollbar.js');
+g_script_list.push('Panel_UltraMini.js');
 
 g_properties.add_properties(
     {

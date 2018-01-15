@@ -3,7 +3,7 @@
 // @author 'TheQwertiest & eXtremeHunter'
 // ==/PREPROCESSOR==
 
-g_script_list.push('Control_Scrollbar.js');
+g_script_list.push('Module_Art.js');
 
 g_properties.add_properties(
     {
