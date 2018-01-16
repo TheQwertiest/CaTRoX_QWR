@@ -1052,7 +1052,7 @@ var plman = new IFbPlaylistManager();
  * @constructor
  */
 function IJSConsole() {
-    /* @param {...*} var_args */
+    /** @param {...*} var_args */
 	this.log = function(var_args) {}; // (void)
 }
 var console = new IJSConsole();
