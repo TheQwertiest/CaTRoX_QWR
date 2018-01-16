@@ -131,9 +131,8 @@ _.mixin({
 
         var that = this;
 
-        var alpha_timer = new _.alpha_timer([that], function(item) {
+        var alpha_timer = new _.alpha_timer([that], function (item) {
             return item.hover;
         });
     }
 });
-

@@ -1,90 +1,92 @@
 _.mixin({
-	lastfm : function () {
-		this.notify_data = function (name, data) {
-			if (name == '2K3.NOTIFY.LASTFM') {
-				this.username = this.read_ini('username');
-				this.sk = this.read_ini('sk');
-				if (this.scrobbler) {
-					this.scrobbler.update_button();
-				}
-				_.forEach(panel.list_objects, function (item) {
-					if (item.mode == 'lastfm_info' && item.properties.mode.value == 1) {
-						item.update();
-					}
-				});
-			}
-		}
-		
-		this.auth = function (method, token) {
-			switch (method) {
-			case 'auth.getToken':
-				this.update_sk('');
-				var api_sig = md5('api_key' + this.api_key + 'method' + method + this.secret);
-				var data = 'format=json&method=' + method + '&api_key=' + this.api_key + '&api_sig=' + api_sig;
-				break;
-			case 'auth.getSession':
-				var api_sig = md5('api_key' + this.api_key + 'method' + method + 'token' + token + this.secret);
-				var data = 'format=json&method=' + method + '&api_key=' + this.api_key + '&api_sig=' + api_sig + '&token=' + token;
-				break;
-			default:
-				return;
-			}
-			this.xmlhttp.open('POST', 'https://ws.audioscrobbler.com/2.0/', true);
-			this.xmlhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-			this.xmlhttp.setRequestHeader('User-Agent', this.ua);
-			this.xmlhttp.send(data);
-			this.xmlhttp.onreadystatechange = _.bind(function () {
-				if (this.xmlhttp.readyState == 4) {
-					var data = _.jsonParse(this.xmlhttp.responseText);
-					if (data.error) {
-						WshShell.popup(data.message, 0, panel.name, popup.stop);
-					} else if (data.token) {
-						_.run('https://last.fm/api/auth/?api_key=' + this.api_key + '&token=' + data.token);
-						if (WshShell.popup('If you granted permission successfully, click Yes to continue.', 0, panel.name, popup.question + popup.yes_no) == popup.yes) {
-							this.auth('auth.getSession', data.token);
-						}
-					} else if (data.session && data.session.key) {
-						this.update_sk(data.session.key);
-					}
-				}
-			}, this);
-		}
-		
-		this.update_username = function () {
-			var username = _.input('Enter your Last.fm username', panel.name, this.username);
-			if (username != this.username) {
-				this.write_ini('username', username);
-				this.update_sk('');
-			}
-		}
-		
-		this.get_base_url = function () {
-			return 'http://ws.audioscrobbler.com/2.0/?format=json&api_key=' + this.api_key;
-		}
-		
-		this.read_ini = function (k) {
-			return utils.ReadINI(this.ini_file, 'Last.fm', k);
-		}
-		
-		this.write_ini = function (k, v) {
-			utils.WriteINI(this.ini_file, 'Last.fm', k, v);
-		}
-		
-		this.update_sk = function (sk) {
-			this.write_ini('sk', sk);
-			window.NotifyOthers('2K3.NOTIFY.LASTFM', 'update');
-			this.notify_data('2K3.NOTIFY.LASTFM', 'update');
-		}
-		
-		this.scrobbler = null;
-		this.ini_file = folders.settings + 'lastfm.ini';
-		this.api_key = '1f078d9e59cb34909f7ed56d7fc64aba';
-		this.secret = 'a8b4adc5de20242f585b12ef08a464a9';
-		this.username = this.read_ini('username');
-		this.sk = this.read_ini('sk');
-		this.ua = 'foo_jscript_panel_lastfm2';
-		this.xmlhttp = new ActiveXObject('Microsoft.XMLHTTP');
-	}
+    lastfm: function () {
+        this.notify_data = function (name, data) {
+            if (name == '2K3.NOTIFY.LASTFM') {
+                this.username = this.read_ini('username');
+                this.sk = this.read_ini('sk');
+                if (this.scrobbler) {
+                    this.scrobbler.update_button();
+                }
+                _.forEach(panel.list_objects, function (item) {
+                    if (item.mode == 'lastfm_info' && item.properties.mode.value == 1) {
+                        item.update();
+                    }
+                });
+            }
+        }
+
+        this.auth = function (method, token) {
+            switch (method) {
+                case 'auth.getToken':
+                    this.update_sk('');
+                    var api_sig = md5('api_key' + this.api_key + 'method' + method + this.secret);
+                    var data = 'format=json&method=' + method + '&api_key=' + this.api_key + '&api_sig=' + api_sig;
+                    break;
+                case 'auth.getSession':
+                    var api_sig = md5('api_key' + this.api_key + 'method' + method + 'token' + token + this.secret);
+                    var data = 'format=json&method=' + method + '&api_key=' + this.api_key + '&api_sig=' + api_sig + '&token=' + token;
+                    break;
+                default:
+                    return;
+            }
+            this.xmlhttp.open('POST', 'https://ws.audioscrobbler.com/2.0/', true);
+            this.xmlhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+            this.xmlhttp.setRequestHeader('User-Agent', this.ua);
+            this.xmlhttp.send(data);
+            this.xmlhttp.onreadystatechange = _.bind(function () {
+                if (this.xmlhttp.readyState == 4) {
+                    var data = _.jsonParse(this.xmlhttp.responseText);
+                    if (data.error) {
+                        WshShell.popup(data.message, 0, window.Name, popup.stop);
+                    }
+                    else if (data.token) {
+                        _.run('https://last.fm/api/auth/?api_key=' + this.api_key + '&token=' + data.token);
+                        if (WshShell.popup('If you granted permission successfully, click Yes to continue.', 0, window.Name, popup.question + popup.yes_no) == popup.yes) {
+                            this.auth('auth.getSession', data.token);
+                        }
+                    }
+                    else if (data.session && data.session.key) {
+                        this.update_sk(data.session.key);
+                    }
+                }
+            }, this);
+        }
+
+        this.update_username = function () {
+            var username = _.input('Enter your Last.fm username', window.Name, this.username);
+            if (username != this.username) {
+                this.write_ini('username', username);
+                this.update_sk('');
+            }
+        }
+
+        this.get_base_url = function () {
+            return 'http://ws.audioscrobbler.com/2.0/?format=json&api_key=' + this.api_key;
+        }
+
+        this.read_ini = function (k) {
+            return utils.ReadINI(this.ini_file, 'Last.fm', k);
+        }
+
+        this.write_ini = function (k, v) {
+            utils.WriteINI(this.ini_file, 'Last.fm', k, v);
+        }
+
+        this.update_sk = function (sk) {
+            this.write_ini('sk', sk);
+            window.NotifyOthers('2K3.NOTIFY.LASTFM', 'update');
+            this.notify_data('2K3.NOTIFY.LASTFM', 'update');
+        }
+
+        this.scrobbler = null;
+        this.ini_file = folders.data + 'lastfm.ini';
+        this.api_key = '1f078d9e59cb34909f7ed56d7fc64aba';
+        this.secret = 'a8b4adc5de20242f585b12ef08a464a9';
+        this.username = this.read_ini('username');
+        this.sk = this.read_ini('sk');
+        this.ua = 'foo_jscript_panel_lastfm2';
+        this.xmlhttp = new ActiveXObject('Microsoft.XMLHTTP');
+    }
 });
 
 /*

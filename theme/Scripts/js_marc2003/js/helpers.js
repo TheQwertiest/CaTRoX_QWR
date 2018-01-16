@@ -30,7 +30,7 @@ function clearTimeout(id) {
 }
 
 _.mixin({
-    alpha_timer: function (items_arg,hover_predicate_arg){
+    alpha_timer:          function (items_arg, hover_predicate_arg) {
         this.start = function () {
             var buttonHoverInStep = 50;
             var buttonHoverOutStep = 15;
@@ -73,7 +73,7 @@ _.mixin({
         var items = items_arg;
         var hover_predicate = hover_predicate_arg;
     },
-    artistFolder:              function (artist) {
+    artistFolder:         function (artist) {
         var a = _.fbSanitise(artist);
         var folder = folders.artists + a;
         if (_.isFolder(folder)) {
@@ -87,7 +87,7 @@ _.mixin({
             return fso.GetFolder(folder) + '\\';
         }
     },
-    blendColours:              function (c1, c2, f) {
+    blendColours:         function (c1, c2, f) {
         c1 = _.toRGB(c1);
         c2 = _.toRGB(c2);
         var r = Math.round(c1[0] + f * (c2[0] - c1[0]));
@@ -96,7 +96,7 @@ _.mixin({
         return _.RGB(r, g, b);
     },
     /** @constructor */
-    button:                    function (x, y, w, h, img_src, fn, tiptext) {
+    button:               function (x, y, w, h, img_src, fn, tiptext) {
         this.paint = function (gr, alpha) {
             if (this.state !== "pressed") {
                 var hoverAlpha = !_.isNil(alpha) ? Math.min(this.hover_alpha, alpha) : this.hover_alpha;
@@ -163,107 +163,107 @@ _.mixin({
     },
     /** @constructor */
     buttons:
-        function () {
-        this.reset = function () {
-            alpha_timer.stop();
-        };
+                          function () {
+                              this.reset = function () {
+                                  alpha_timer.stop();
+                              };
 
-        this.paint = function (gr, alpha) {
-            _.forEach(this.buttons, function (item) {
-                if (!item.hide) {
-                    item.paint(gr, alpha);
-                }
-            });
-        };
+                              this.paint = function (gr, alpha) {
+                                  _.forEach(this.buttons, function (item) {
+                                      if (!item.hide) {
+                                          item.paint(gr, alpha);
+                                      }
+                                  });
+                              };
 
-        this.move = function (x, y) {
-            var hover_btn = _.find(this.buttons, function(item) {
-                return item.trace(x, y);
-            });
+                              this.move = function (x, y) {
+                                  var hover_btn = _.find(this.buttons, function (item) {
+                                      return item.trace(x, y);
+                                  });
 
-            if (hover_btn && hover_btn.hide) {// Button is hidden, ignore
-                if (cur_btn) {
-                    cur_btn.cs("normal");
-                    alpha_timer.start();
-                }
-                cur_btn = null;
-                return null;
-            }
+                                  if (hover_btn && hover_btn.hide) {// Button is hidden, ignore
+                                      if (cur_btn) {
+                                          cur_btn.cs("normal");
+                                          alpha_timer.start();
+                                      }
+                                      cur_btn = null;
+                                      return null;
+                                  }
 
-            if (cur_btn === hover_btn) {// Same button
-                return cur_btn;
-            }
+                                  if (cur_btn === hover_btn) {// Same button
+                                      return cur_btn;
+                                  }
 
-            if (cur_btn) {// Return prev button to normal state
-                cur_btn.cs("normal");
-                alpha_timer.start();
-            }
+                                  if (cur_btn) {// Return prev button to normal state
+                                      cur_btn.cs("normal");
+                                      alpha_timer.start();
+                                  }
 
-            if (hover_btn) {// Select current button
-                hover_btn.cs("hover");
-                if (this.show_tt) {
-                    hover_btn.tt.showDelayed(hover_btn.tiptext);
-                }
-                alpha_timer.start();
-            }
+                                  if (hover_btn) {// Select current button
+                                      hover_btn.cs("hover");
+                                      if (this.show_tt) {
+                                          hover_btn.tt.showDelayed(hover_btn.tiptext);
+                                      }
+                                      alpha_timer.start();
+                                  }
 
-            cur_btn = hover_btn;
-            return cur_btn;
-        };
+                                  cur_btn = hover_btn;
+                                  return cur_btn;
+                              };
 
-        this.leave = function () {
-            if (cur_btn) {
-                cur_btn.cs("normal");
-                if (!cur_btn.hide) {
-                    alpha_timer.start();
-                }
-            }
-            cur_btn = null;
-        };
+                              this.leave = function () {
+                                  if (cur_btn) {
+                                      cur_btn.cs("normal");
+                                      if (!cur_btn.hide) {
+                                          alpha_timer.start();
+                                      }
+                                  }
+                                  cur_btn = null;
+                              };
 
-        this.lbtn_down = function (x, y) {
-            if (!cur_btn) {
-                // Needed when pressing on button with context menu open
-                this.move(x, y);
-            }
+                              this.lbtn_down = function (x, y) {
+                                  if (!cur_btn) {
+                                      // Needed when pressing on button with context menu open
+                                      this.move(x, y);
+                                  }
 
-            if (!cur_btn || cur_btn.hide) {
-                return false;
-            }
+                                  if (!cur_btn || cur_btn.hide) {
+                                      return false;
+                                  }
 
-            cur_btn.cs("pressed");
-            return true;
-        };
+                                  cur_btn.cs("pressed");
+                                  return true;
+                              };
 
-        this.lbtn_up = function (x, y) {
-            if (!cur_btn || cur_btn.hide || cur_btn.state !== "pressed") {
-                return false;
-            }
+                              this.lbtn_up = function (x, y) {
+                                  if (!cur_btn || cur_btn.hide || cur_btn.state !== "pressed") {
+                                      return false;
+                                  }
 
-            if (cur_btn.trace(x, y)) {
-                cur_btn.cs("hover");
-            }
-            cur_btn.lbtn_up(x, y);
+                                  if (cur_btn.trace(x, y)) {
+                                      cur_btn.cs("hover");
+                                  }
+                                  cur_btn.lbtn_up(x, y);
 
-            return true;
-        };
+                                  return true;
+                              };
 
-        this.buttons = {};
-        this.show_tt = false;
+                              this.buttons = {};
+                              this.show_tt = false;
 
-        var that = this;
+                              var that = this;
 
-        var cur_btn = null;
-        var alpha_timer = new _.alpha_timer(that.buttons, function(item){
-            return item.state !== 'normal';
-        });
-    },
-    cc:                        function (name) {
+                              var cur_btn = null;
+                              var alpha_timer = new _.alpha_timer(that.buttons, function (item) {
+                                  return item.state !== 'normal';
+                              });
+                          },
+    cc:                   function (name) {
         return utils.CheckComponent(name, true);
     },
-    count: function(collection, predicate) {
+    count:                function (collection, predicate) {
         var count = 0;
-        collection.forEach(function(item) {
+        collection.forEach(function (item) {
             if (predicate(item)) {
                 ++count;
             }
@@ -271,12 +271,12 @@ _.mixin({
 
         return count;
     },
-    createFolder:              function (folder) {
+    createFolder:         function (folder) {
         if (!_.isFolder(folder)) {
             fso.CreateFolder(folder);
         }
     },
-    deleteFile:                function (file) {
+    deleteFile:           function (file) {
         if (_.isFile(file)) {
             try {
                 fso.DeleteFile(file);
@@ -284,14 +284,14 @@ _.mixin({
             }
         }
     },
-    dispose:                   function () {
+    dispose:              function () {
         _.forEach(arguments, function (item) {
             if (item) {
                 item.Dispose();
             }
         });
     },
-    drawImage:                 function (gr, img, src_x, src_y, src_w, src_h, aspect, border, alpha) {
+    drawImage:            function (gr, img, src_x, src_y, src_w, src_h, aspect, border, alpha) {
         if (!img) {
             return [];
         }
@@ -350,33 +350,38 @@ _.mixin({
         }
         return [src_x, src_y, src_w, src_h];
     },
-    drawOverlay:               function (gr, x, y, w, h) {
+    drawOverlay:          function (gr, x, y, w, h) {
         gr.FillGradRect(x, y, w, h, 90, _.RGBA(0, 0, 0, 230), _.RGBA(0, 0, 0, 200));
     },
-    explorer:                  function (file) {
+    explorer:             function (file) {
         if (_.isFile(file)) {
             WshShell.Run('explorer /select,' + _.q(file));
         }
     },
-    fbEscape:                  function (value) {
+    fbDate:               function (ts) {
+        // ES5 only
+        var tmp = new Date(ts * 1000).toISOString();
+        return tmp.substring(0, 10) + ' ' + tmp.substring(11, 19);
+    },
+    fbEscape:             function (value) {
         return value.replace(/'/g, "''").replace(/[()\[\],$]/g, "'$&'");
     },
-    fbSanitise:                function (value) {
+    fbSanitise:           function (value) {
         return value.replace(/[\/\\|:]/g, '-').replace(/\*/g, 'x').replace(/"/g, "''").replace(/[<>]/g, '_').replace(/\?/g, '').replace(/(?! )\s/g, '');
     },
-    fileExpired:               function (file, period) {
+    fileExpired:          function (file, period) {
         return _.now() - _.lastModified(file) > period;
     },
-    formatNumber:              function (number, separator) {
+    formatNumber:         function (number, separator) {
         return number.replace(/\B(?=(\d{3})+(?!\d))/g, separator);
     },
-    gdiFont:                   function (name, size, style) {
+    gdiFont:              function (name, size, style) {
         return gdi.Font(name, _.scale(size), style);
     },
-    getClipboardData:          function () {
+    getClipboardData:     function () {
         return doc.parentWindow.clipboardData.getData("Text");
     },
-    getElementsByTagName:      function (value, tag) {
+    getElementsByTagName: function (value, tag) {
         doc.open();
         var div = doc.createElement('div');
         div.innerHTML = value;
@@ -384,7 +389,7 @@ _.mixin({
         doc.close();
         return data;
     },
-    getFiles:                  function (folder, exts, newest_first) {
+    getFiles:             function (folder, exts, newest_first) {
         var files = [];
         if (_.isFolder(folder)) {
             var e = new Enumerator(fso.GetFolder(folder).Files);
@@ -405,7 +410,7 @@ _.mixin({
             return files;
         }
     },
-    hacks:                     function () {
+    hacks:                function () {
         this.disable = function () {
             this.uih.MainMenuState = this.MainMenuState.Show;
             this.uih.FrameStyle = this.FrameStyle.Default;
@@ -447,7 +452,7 @@ _.mixin({
         this.uih.MinSize = false;
         this.uih.MaxSize = false;
     },
-    help:                      function (x, y, flags) {
+    help:                 function (x, y, flags) {
         var m = window.CreatePopupMenu();
         _.forEach(ha_links, function (item, i) {
             m.AppendMenuItem(MF_STRING, i + 100, item[0]);
@@ -470,7 +475,7 @@ _.mixin({
         }
         _.dispose(m);
     },
-    img:                       function (value) {
+    img:                  function (value) {
         if (_.isFile(value)) {
             return gdi.Image(value);
         }
@@ -478,21 +483,21 @@ _.mixin({
             return gdi.Image(folders.images + value);
         }
     },
-    input:                     function (prompt, title, value) {
+    input:                function (prompt, title, value) {
         var tmp = _.input2(prompt, title, value);
         return _.isString(tmp) ? tmp : value;
     },
-    input2:                    function (prompt, title, value) {
+    input2:               function (prompt, title, value) {
         var p = prompt.replace(/"/g, _.q(' + Chr(34) + ')).replace(/\n/g, _.q(' + Chr(13) + '));
         var t = title.replace(/"/g, _.q(' + Chr(34) + '));
         var v = value.replace(/"/g, _.q(' + Chr(34) + '));
         var tmp = vb.eval('InputBox(' + _.q(p) + ', ' + _.q(t) + ', ' + _.q(v) + ')');
         return _.isString(tmp) ? tmp.trim() : tmp;
     },
-    isFile:                    function (file) {
+    isFile:               function (file) {
         return _.isString(file) ? fso.FileExists(file) : false;
     },
-    isFolder:                  function (folder) {
+    isFolder:             function (folder) {
         return _.isString(folder) ? fso.FolderExists(folder) : false;
     },
     /**
@@ -500,27 +505,27 @@ _.mixin({
      * @param b
      * @return {boolean} a instanceof b
      */
-    isInstanceOf:              function(a,b) {
+    isInstanceOf:         function (a, b) {
         return (a instanceof b);
     },
-    isUUID:                    function (value) {
+    isUUID:               function (value) {
         var re = /^[0-9a-f]{8}-[0-9a-f]{4}-[345][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
         return re.test(value);
     },
-    jsonParse:                 function (value) {
+    jsonParse:            function (value) {
         try {
             return JSON.parse(value);
         } catch (e) {
             return [];
         }
     },
-    jsonParseFile:             function (file) {
+    jsonParseFile:        function (file) {
         return _.jsonParse(_.open(file));
     },
-    lastModified:              function (file) {
+    lastModified:         function (file) {
         return Date.parse(fso.Getfile(file).DateLastModified);
     },
-    lineWrap:                  function (value, font, width) {
+    lineWrap:             function (value, font, width) {
         var temp_bmp = gdi.CreateImage(1, 1);
         var temp_gr = temp_bmp.GetGraphics();
         var result = [];
@@ -536,11 +541,11 @@ _.mixin({
         temp_bmp = null;
         return result;
     },
-    lockSize:                  function (w, h) {
+    lockSize:             function (w, h) {
         window.MinWidth = window.MaxWidth = w;
         window.MinHeight = window.MaxHeight = h;
     },
-    menu:                      function (x, y, flags) {
+    menu:                 function (x, y, flags) {
         var m1 = window.CreatePopupMenu();
         var s1 = window.CreatePopupMenu();
         var s2 = window.CreatePopupMenu();
@@ -574,12 +579,7 @@ _.mixin({
         s4.AppendTo(m1, MF_STRING, 'Playback');
         s5.AppendTo(m1, MF_STRING, 'Library');
         s6.AppendTo(m1, MF_STRING, 'Help');
-        /*
-         if (_.cc('foo_ui_hacks') && _.cc('foo_ui_columns')) {
-            m1.AppendMenuSeparator();
-            m1.AppendMenuItem(MF_STRING, 1, 'Switch UI');
-        }
-         */
+
         var idx = m1.TrackPopupMenu(x, y, flags);
         switch (true) {
             case idx === 0:
@@ -608,7 +608,7 @@ _.mixin({
         }
         _.dispose(m1, s1, s2, s3, s4, s5, s6, mm1, mm2, mm3, mm4, mm5, mm6);
     },
-    menu_item:                 function (x, y, name, flags) {
+    menu_item:            function (x, y, name, flags) {
         var menuManager = fb.CreateMainMenuManager();
 
         var menu = window.CreatePopupMenu();
@@ -626,7 +626,7 @@ _.mixin({
 
         _.dispose(menuManager, menu);
     },
-    nest:                      function (collection, keys) {
+    nest:                 function (collection, keys) {
         if (!keys.length) {
             return collection;
         }
@@ -639,46 +639,64 @@ _.mixin({
                 .value();
         }
     },
-    open:                      function (file) {
+    open:                 function (file) {
         return utils.ReadTextFile(file);
     },
-    p:                         function (a, b) {
-        Object.defineProperty(this, _.isBoolean(b) ? 'enabled' : 'value', {
-            get: function () {
-                return this.b;
-            },
-            set: function (value) {
-                this.b = value;
-                window.SetProperty(this.a, this.b);
-            }
-        });
+    p:                    function (property, default_) {
+        this.set = function (value) {
+            this.value = value;
+            window.SetProperty(this.property, this.value);
+        }
 
         this.toggle = function () {
-            this.b = !this.b;
-            window.SetProperty(this.a, this.b);
-        };
+            this.enabled = !this.enabled;
+            window.SetProperty(this.property, this.enabled);
+        }
 
-        this.a = a;
-        this.b = window.GetProperty(a, b);
+        this.property = property;
+        if (_.isBoolean(default_)) {
+            this.enabled = window.GetProperty(this.property, default_);
+        }
+        else {
+            this.value = window.GetProperty(this.property, default_);
+        }
     },
-    q:                         function (value) {
+    q:                    function (value) {
         return '"' + value + '"';
     },
-    recycleFile:               function (file) {
+    recycleFile:          function (file) {
         if (_.isFile(file)) {
             app.Namespace(10).MoveHere(file);
         }
     },
-    RGB:                       function (r, g, b) {
+    /**
+     * @param {number} r
+     * @param {number} g
+     * @param {number} b
+     * @return {number}
+     */
+    RGB:                  function (r, g, b) {
         return 0xFF000000 | r << 16 | g << 8 | b;
     },
-    RGBA:                      function (r, g, b, a) {
+    /**
+     * @param {number} r
+     * @param {number} g
+     * @param {number} b
+     * @param {number} a
+     * @return {number}
+     */
+    RGBA:                 function (r, g, b, a) {
         return a << 24 | r << 16 | g << 8 | b;
     },
-    RGBtoRGBA:                 function (rgb, a) {
+    /**
+     * @param {number} rgb
+     * @param {number} a
+     * @return {number}
+     */
+    RGBtoRGBA:            function (rgb, a) {
         return a << 24 | (rgb & 0x00FFFFFF);
     },
-    run:                       function () {
+    run:                  function () {
         try {
             WshShell.Run(_.map(arguments, _.q).join(" "));
             return true;
@@ -686,26 +704,21 @@ _.mixin({
             return false;
         }
     },
-    runCmd:                    function (command, wait) {
+    runCmd:               function (command, wait) {
         try {
             WshShell.Run(command, 0, !_.isNil(wait) ? wait : false);
         } catch (e) {
         }
     },
-    save:                      function (value, file) {
-        try {
-            if (!_.isFolder(utils.FileTest(file, 'split').toArray()[0])) {
-                return false;
-            }
-            var ts = fso.OpenTextFile(file, 2, true, -1);
-            ts.WriteLine(value);
-            ts.Close();
-            return true;
-        } catch (e) {
-            return false;
+    save:                 function (file, value) {
+        if (!_.isFolder(utils.FileTest(file, 'split').toArray()[0])) {
+            return;
+        }
+        if (!utils.WriteTextFile(file, value)) {
+            console.log('Error saving to ' + file);
         }
     },
-    sb:                        function (t, x, y, w, h, v, fn) {
+    sb:                   function (t, x, y, w, h, v, fn) {
         this.paint = function (gr, colour) {
             gr.SetTextRenderingHint(TextRenderingHint.AntiAlias);
             if (this.v()) {
@@ -749,16 +762,16 @@ _.mixin({
         this.fn = fn;
         this.guifx_font = gdi.Font(guifx.font, this.h, 0);
     },
-    setClipboardData:          function (value) {
+    setClipboardData:     function (value) {
         doc.parentWindow.clipboardData.setData('Text', value.toString());
     },
-    scale:                     function (size) {
+    scale:                function (size) {
         return Math.round(size * DPI / 72);
     },
-    shortPath:                 function (file) {
+    shortPath:            function (file) {
         return fso.GetFile(file).ShortPath;
     },
-    splitRGB:                  function (c) {
+    splitRGB:             function (c) {
         var tmp = c.split('-');
         if (tmp.length === 4) {
             return _.RGBA(tmp[0], tmp[1], tmp[2], tmp[3]);
@@ -767,18 +780,18 @@ _.mixin({
             return _.RGB(tmp[0], tmp[1], tmp[2]);
         }
     },
-    stripTags:                 function (value) {
+    stripTags:            function (value) {
         doc.open();
         var div = doc.createElement('div');
         div.innerHTML = value.toString().replace(/<[Pp][^>]*>/g, '').replace(/<\/[Pp]>/g, '<br>').replace(/\n/g, '<br>');
-        var tmp = div.innerText.trim();
+        var tmp = _.trim(div.innerText);
         doc.close();
         return tmp;
     },
-    tagged:                    function (value) {
+    tagged:               function (value) {
         return value !== '' && value !== '?';
     },
-    textWidth:                 function (value, font) {
+    textWidth:            function (value, font) {
         var temp_bmp = gdi.CreateImage(1, 1);
         var temp_gr = temp_bmp.GetGraphics();
         var width = temp_gr.CalcTextWidth(value, font);
@@ -788,7 +801,7 @@ _.mixin({
         temp_bmp = null;
         return width;
     },
-    tf:                        function (t, metadb) {
+    tf:                   function (t, metadb) {
         if (!metadb) {
             return '';
         }
@@ -797,37 +810,37 @@ _.mixin({
         _.dispose(tfo);
         return str;
     },
-    tfe:                       function (t, force) {
+    tfe:                  function (t, force) {
         var tfo = fb.TitleFormat(t);
         var str = tfo.Eval(force);
         _.dispose(tfo);
         return str;
     },
-    toDb:                      function (volume) {
+    toDb:                 function (volume) {
         return 50 * Math.log(0.99 * volume + 0.01) / Math.LN10;
     },
-    toRGB:                     function (a) {
+    toRGB:                function (a) {
         var b = a - 0xFF000000;
         return [b >> 16, b >> 8 & 0xFF, b & 0xFF];
     },
-    toVolume:                  function (db) {
+    toVolume:             function (db) {
         if (db === -100) {
             return 0;
         }
 
         return Math.ceil(Math.pow(10.0, (100 + db) / 50));
     },
-    ts:                        function () {
+    ts:                   function () {
         return Math.floor(_.now() / 1000);
     },
-    tt:                        function (value) {
+    tt:                   function (value) {
         if (tooltip.Text !== _.toString(value)) {
             tooltip.Text = value;
             tooltip.Activate();
         }
     },
     /** @constructor */
-    tt_handler:                function () {
+    tt_handler:           function () {
         this.showDelayed = function (text) {
             tt_timer.start(this.id, text);
         };
@@ -1070,8 +1083,13 @@ var ONE_DAY = 86400000;
 var ONE_WEEK = 604800000;
 
 var DEFAULT_ARTIST = '$meta(artist,0)';
+var N = window.Name + ':';
 
-var DPI = WshShell.RegRead('HKCU\\Control Panel\\Desktop\\WindowMetrics\\AppliedDPI');
+try {
+	var DPI = WshShell.RegRead('HKCU\\Control Panel\\Desktop\\WindowMetrics\\AppliedDPI');
+} catch (e) {
+	var DPI = 96;
+}
 
 var LM = _.scale(5);
 var TM = _.scale(16);
@@ -1081,13 +1099,10 @@ tooltip.SetMaxWidth(1200);
 
 var folders = {};
 folders.home = fb.FoobarPath + "themes\\CaTRoX\\Scripts\\js_marc2003\\";
-folders.js = folders.home + "js\\";
-folders.images = folders.home + "images\\";
-folders.settings = fb.ProfilePath + "js_settings\\";
-folders.data = fb.ProfilePath + "js_data\\";
-folders.artists = folders.data + "artists\\";
-folders.lastfm = folders.data + "lastfm\\";
-folders.docs = fb.ComponentPath + "docs\\";
+folders.images = folders.home + 'images\\';
+folders.data = fb.ProfilePath + 'js_data\\';
+folders.artists = folders.data + 'artists\\';
+folders.lastfm = folders.data + 'lastfm\\';
 
 var guifx = {
     font:  'Guifx v2 Transports',

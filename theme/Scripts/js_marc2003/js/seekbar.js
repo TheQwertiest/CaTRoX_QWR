@@ -5,7 +5,7 @@ _.mixin({
             this.repaint();
         };
 
-        this.repaint = function() {
+        this.repaint = function () {
             var expXY = 2,
                 expWH = expXY * 2;
 
@@ -123,7 +123,7 @@ _.mixin({
 
         var that = this;
 
-        var alpha_timer = new _.alpha_timer([that], function(item) {
+        var alpha_timer = new _.alpha_timer([that], function (item) {
             return item.hover;
         });
 

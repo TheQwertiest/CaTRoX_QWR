@@ -183,7 +183,7 @@ _.mixin({
         this.rbtn_up_done = function (idx) {
             switch (idx) {
                 case 5000:
-                    _.save(this.cb, this.filename);
+                    _.save(this.filename, this.cb);
                     this.artist = '';
                     panel.item_focus_change();
                     break;
@@ -202,7 +202,7 @@ _.mixin({
                 case 5119:
                 case 5120:
                 case 5121:
-                    this.properties.lang.value = idx - 5110;
+                    this.properties.lang.set(idx - 5110);
                     this.artist = '';
                     panel.item_focus_change();
                     break;
@@ -211,11 +211,11 @@ _.mixin({
                     panel.item_focus_change();
                     break;
                 case 5210:
-                    this.properties.title_tf.value = _.input('You can use full title formatting here.', panel.name, this.properties.title_tf.value);
+                    this.properties.title_tf.set(_.input('You can use full title formatting here.', window.Name, this.properties.title_tf.value));
                     window.Repaint();
                     break;
                 case 5220:
-                    this.properties.filename_tf.value = _.input('Use title formatting to specify a path to a text file. eg: $directory_path(%path%)\\info.txt\n\nIf you prefer, you can specify just the path to a folder and the first txt or log file will be used.', panel.name, this.properties.filename_tf.value);
+                    this.properties.filename_tf.set(_.input('Use title formatting to specify a path to a text file. eg: $directory_path(%path%)\\info.txt\n\nIf you prefer, you can specify just the path to a folder and the first txt or log file will be used.', window.Name, this.properties.filename_tf.value));
                     panel.item_focus_change();
                     break;
                 case 5230:
@@ -294,7 +294,7 @@ _.mixin({
                         this.success(f);
                     }
                     else {
-                        console.log('HTTP error: ' + this.xmlhttp.status);
+                        console.log(N, 'HTTP error:', this.xmlhttp.status);
                     }
                 }
             }, this);
@@ -310,8 +310,8 @@ _.mixin({
                             .map('innerText')
                             .stripTags()
                             .value();
-                        console.log(content.length ? 'A review was found and saved.' : 'No review was found on the page for this album.');
-                        _.save(content, f);
+                        console.log(N, content.length ? 'A review was found and saved.' : 'No review was found on the page for this album.');
+                        _.save(f, content);
                         this.artist = '';
                         panel.item_focus_change();
                     }
@@ -332,20 +332,20 @@ _.mixin({
                                 }, this)
                                 .value();
                             if (this.allmusic_url.length) {
-                                console.log('A page was found for ' + _.q(this.album) + '. Now checking for review...');
+                                console.log(N, 'A page was found for ' + _.q(this.album) + '. Now checking for review...');
                                 this.get();
                             }
                             else {
-                                console.log('Could not match artist/album on the Allmusic website.');
-                                _.save('', f);
+                                console.log(N, 'Could not match artist/album on the Allmusic website.');
+                                _.save(f, '');
                             }
                         } catch (e) {
-                            console.log('Could not parse Allmusic server response.');
+                            console.log(N, 'Could not parse Allmusic server response.');
                         }
                     }
                     break;
                 case 'lastfm_bio':
-                    _.save(this.xmlhttp.responseText, f);
+                    _.save(f, this.xmlhttp.responseText);
                     this.artist = '';
                     panel.item_focus_change();
                     break;
