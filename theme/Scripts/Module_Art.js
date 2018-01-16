@@ -59,7 +59,7 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
             }
         }
         else if (art === null) {
-            var metadb = fb.IsPlaying ? fb.GetNowPlaying() : fb.GetFocusItem();
+            var metadb = get_current_metadb();
             if (metadb && (_.startsWith(metadb.RawPath, 'http://')) && utils.CheckFont('Webdings')) {
                 g.DrawString('\uF0BB', gdi.font('Webdings', 130), _.RGB(70, 70, 70), this.x, this.y, this.w, this.h, SF);
             }
@@ -255,24 +255,28 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
         }
 
         cur_art_id = artType.defaultVal; // TODO: consider not changing art type when using reload
-        art_arr = [];
+
+        art_arr.forEach(function (item, i) {
+            art_arr[i] = null;
+        });
+
         if (thumbs) {
             thumbs.clear_thumb_images();
         }
         this.repaint();
 
         if (albumTimer) {
-            window.ClearInterval(albumTimer);
+            clearInterval(albumTimer);
             albumTimer = null;
         }
 
         var artID = artType.firstVal;
 
-        albumTimer = window.setInterval(function () {
+        albumTimer = setInterval(function () {
             utils.GetAlbumArtAsync(window.ID, metadb, (artID === artType.artist) ? artID = g_album_art_id.artist : artID);
 
             if (artID >= artType.lastVal) {
-                window.ClearInterval(albumTimer);
+                clearInterval(albumTimer);
                 albumTimer = null;
             }
             else {
@@ -309,7 +313,6 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
 
     this.append_menu_to = function (parent_menu) {
         var metadb = get_current_metadb();
-        var selected_metadb = get_selected_metadb();
 
         if (thumbs) {
             var thumb_cm = new Context.Menu('Thumbs');
@@ -597,12 +600,12 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
 
     function trigger_cycle_timer(enable_cycle, artLength, restartCycle) {
         if (cycle_timer && (!enable_cycle || !art_arr[cur_art_id] || artLength <= 1 || restartCycle)) {
-            window.ClearInterval(cycle_timer);
+            clearInterval(cycle_timer);
             cycle_timer = null;
         }
 
         if (enable_cycle && !cycle_timer && artLength > 1) {
-            cycle_timer = window.setInterval(function () {
+            cycle_timer = setInterval(function () {
                 that.mouse_wheel(-1);
             }, g_properties.cycle_interval);
         }
