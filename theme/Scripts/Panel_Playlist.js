@@ -296,7 +296,7 @@ function on_notify_data(name, info) {
 //</editor-fold>
 
 /**
- * Playlist + PlaylistInfo
+ * Playlist + PlaylistManager
  * @constructor
  */
 function PlaylistPanel() {
@@ -343,19 +343,18 @@ function PlaylistPanel() {
     };
 
     this.on_mouse_rbtn_up = function (x, y, m) {
+        var was_playlist_info_displayed = g_properties.show_playlist_info;
+
         if (playlist.trace(x, y)) {
-            var was_playlist_info_displayed = g_properties.show_playlist_info;
-
             playlist.on_mouse_rbtn_up(x, y, m);
-
-            if (was_playlist_info_displayed !== g_properties.show_playlist_info) {
-                toggle_playlist_info(g_properties.show_playlist_info);
-            }
-            return true;
         }
 
         if (g_properties.show_playlist_info && playlist_info.trace(x, y)) {
-            return playlist_info.on_mouse_rbtn_up(x, y, m);
+            playlist_info.on_mouse_rbtn_up(x, y, m);
+        }
+
+        if (was_playlist_info_displayed !== g_properties.show_playlist_info) {
+            toggle_playlist_info(g_properties.show_playlist_info);
         }
 
         return true
@@ -485,7 +484,7 @@ function PlaylistPanel() {
     var playlist_info_and_gap_h = playlist_info_h + 2;
 
     // Panel parts
-    var playlist_info = new PlaylistInfo(0, 0, 0, playlist_info_h);
+    var playlist_info = new PlaylistManager(0, 0, 0, playlist_info_h);
     var playlist = new Playlist(0, g_properties.show_playlist_info ? playlist_info_and_gap_h : 0);
 }
 
@@ -1614,13 +1613,7 @@ function Playlist(x,y) {
         var appear = new Context.Menu('Appearance');
         parent_menu.append(appear);
 
-        appear.append_item(
-            'Show playlist info',
-            function () {
-                g_properties.show_playlist_info = !g_properties.show_playlist_info;
-            },
-            {is_checked: g_properties.show_playlist_info}
-        );
+        PlaylistManager.append_playlist_info_visibility_context_menu_to(appear);
 
         that.append_scrollbar_visibility_context_menu_to(appear);
 
@@ -2347,12 +2340,16 @@ Playlist.prototype.constructor = Playlist;
 
 /**
  * @constructor
- * @extend {List.Content}
+ * @extend {List.RowContent}
  */
 PlaylistContent = function() {
-    List.Content.call(this);
+    List.RowContent.call(this);
 
     this.generate_items_to_draw = function (wy, wh, row_shift, pixel_shift, row_h) {
+        if (!g_properties.show_header) {
+            return List.RowContent.prototype.generate_items_to_draw.apply(this, [wy, wh, row_shift, pixel_shift, row_h]);
+        }
+
         var items_to_draw = [];
         var start_y = wy + pixel_shift;
         var cur_y = 0;
@@ -2360,34 +2357,35 @@ PlaylistContent = function() {
         var first = true;
 
         _.forEach(this.headers, function (header) {
-            if (g_properties.show_header) {
-                if (cur_row + header_h_in_rows - 1 >= row_shift) {
-                    if (first) {
-                        header.set_y(start_y + (cur_row - row_shift) * row_h);
-                        cur_y = header.y;
-                        first = false;
-                    }
-                    else {
-                        header.set_y(cur_y);
-                    }
-                    items_to_draw.push(header);
-                    cur_y += header_h_in_rows * row_h;
-
-                    if (cur_y >= wy + wh) {
-                        return false;
-                    }
+            if (cur_row + header_h_in_rows - 1 >= row_shift) {
+                if (first) {
+                    header.set_y(start_y + (cur_row - row_shift) * row_h);
+                    cur_y = header.y;
+                    first = false;
                 }
-
-                cur_row += header_h_in_rows;
-
-                if (header.is_collapsed) {
-                    return true;
+                else {
+                    header.set_y(cur_y);
                 }
+                items_to_draw.push(header);
+                cur_y += header_h_in_rows * row_h;
+
+                if (cur_y >= wy + wh) {
+                    return false;
+                }
+            }
+
+            cur_row += header_h_in_rows;
+
+            if (header.is_collapsed) {
+                return true;
             }
 
             var header_rows = header.rows;
             if (cur_row + header_rows.length - 1 >= row_shift) {
-                for (var j = 0; j < header_rows.length; ++j) {
+                var header_row_start_idx = (cur_row > row_shift) ? 0 : row_shift - cur_row;
+                cur_row += header_row_start_idx;
+
+                for (var j = header_row_start_idx; j < header_rows.length; ++j) {
                     if (cur_row >= row_shift) {
                         if (first) {
                             header_rows[j].set_y(start_y + (cur_row - row_shift) * row_h);
@@ -2416,6 +2414,11 @@ PlaylistContent = function() {
     };
 
     this.update_items_w_size = function(w) {
+        if (!g_properties.show_header) {
+            List.RowContent.prototype.update_items_w_size.apply(this, [w]);
+            return;
+        }
+
         this.headers.forEach(function (item) {
             item.set_w(w);
         });
@@ -2426,7 +2429,11 @@ PlaylistContent = function() {
     };
 
     this.calculate_total_h_in_rows = function() {
-        var total_height_in_rows = g_properties.show_header ? this.headers.length * header_h_in_rows : 0;
+        if (!g_properties.show_header) {
+            return List.RowContent.prototype.calculate_total_h_in_rows.apply(this);
+        }
+
+        var total_height_in_rows = this.headers.length * header_h_in_rows;
         this.headers.forEach(function (header) {
             if (!header.is_collapsed) {
                 total_height_in_rows += header.rows.length;
@@ -2440,14 +2447,12 @@ PlaylistContent = function() {
         header_h_in_rows = header_h_in_rows_arg;
     };
 
-    /** @type {Array<Row>} */
-    this.rows = [];
     /** @type {Array<Header>} */
     this.headers = [];
 
     var header_h_in_rows = 0;
 };
-PlaylistContent.prototype = Object.create(List.Content.prototype);
+PlaylistContent.prototype = Object.create(List.RowContent.prototype);
 PlaylistContent.prototype.constructor = PlaylistContent;
 
 /**
@@ -3923,7 +3928,7 @@ function QueueHandler(rows_arg, cur_playlist_idx_arg) {
 /**
  * @constructor
  */
-function PlaylistInfo(x, y, w, h) {
+function PlaylistManager(x, y, w, h) {
     //<editor-fold desc="Callback Implementation">
     this.on_paint = function (gr) {
         if (!info_text) {
@@ -4040,12 +4045,17 @@ function PlaylistInfo(x, y, w, h) {
     };
 
     this.on_mouse_rbtn_up = function (x, y, m) {
-        if (!this.trace(x, y) || !utils.IsKeyPressed(VK_SHIFT)) {
+        if (!this.trace(x, y)) {
             return true;
         }
 
         var cmm = new Context.MainMenu();
-        qwr_utils.append_default_context_menu_to(cmm);
+
+        PlaylistManager.append_playlist_info_visibility_context_menu_to(cmm);
+
+        if (utils.IsKeyPressed(VK_SHIFT)) {
+            qwr_utils.append_default_context_menu_to(cmm);
+        }
 
         cmm.execute(x,y);
         cmm.dispose();
@@ -4105,6 +4115,15 @@ function PlaylistInfo(x, y, w, h) {
     /** @type {?string} */
     var info_text = undefined;
 }
+PlaylistManager.append_playlist_info_visibility_context_menu_to = function(parent_menu){
+    parent_menu.append_item(
+        'Show playlist manager',
+        function () {
+            g_properties.show_playlist_info = !g_properties.show_playlist_info;
+        },
+        {is_checked: g_properties.show_playlist_info}
+    );
+};
 
 /**
  * @constructor

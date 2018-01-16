@@ -193,7 +193,7 @@ function TrackInfoList() {
                 }
             }, this));
 
-            // Hide this.cnt.items that shouldn't be visible
+            // Hide rows that shouldn't be visible
             gr.FillSolidRect(this.x, this.y, this.w, this.list_y - this.y, g_tr_i_colors.background);
             gr.FillSolidRect(this.x, this.list_y + this.list_h, this.w, (this.y + this.h) - (this.list_y + this.list_h), g_tr_i_colors.background);
         }
@@ -532,14 +532,14 @@ function TrackInfoList() {
     this.initialize_list = function () {
         trace_call && console.log('initialize_list');
 
-        if (this.cnt.items.length) {
+        if (this.cnt.rows.length) {
             alpha_timer.stop();
-            this.cnt.items.forEach(function (row) {
+            this.cnt.rows.forEach(function (row) {
                 row.dispose();
             })
         }
 
-        this.cnt.items = [];
+        this.cnt.rows = [];
         this.scroll_pos = 0;
 
         cur_metadb = get_current_metadb();
@@ -563,24 +563,24 @@ function TrackInfoList() {
                         is_readonly = _.startsWith(_.tf('%path%', cur_metadb), 'http');
                     }
 
-                    this.cnt.items.push(new Row(this.list_x, 0, this.list_w, this.row_h, cur_metadb, tag_name, value_text));
-                    _.last(this.cnt.items).is_odd = (i + 1) % 2;
-                    _.last(this.cnt.items).is_readonly = is_readonly;
+                    this.cnt.rows.push(new Row(this.list_x, 0, this.list_w, this.row_h, cur_metadb, tag_name, value_text));
+                    _.last(this.cnt.rows).is_odd = (i + 1) % 2;
+                    _.last(this.cnt.rows).is_readonly = is_readonly;
                 }
             }
 
             if (g_properties.show_fileinfo) {
-                var cur_rows_count = this.cnt.items.length;
+                var cur_rows_count = this.cnt.rows.length;
                 for (var i = 0; i < fileInfo.InfoCount; i++) {
                     tag_name = fileInfo.InfoName(i);
                     value_text = fileInfo.InfoValue(fileInfo.InfoFind(tag_name));
 
-                    this.cnt.items.push(new Row(this.list_x, 0, this.list_w, this.row_h, cur_metadb, tag_name, value_text));
-                    _.last(this.cnt.items).is_odd = ((cur_rows_count + i) + 1) % 2;
+                    this.cnt.rows.push(new Row(this.list_x, 0, this.list_w, this.row_h, cur_metadb, tag_name, value_text));
+                    _.last(this.cnt.rows).is_odd = ((cur_rows_count + i) + 1) % 2;
                 }
             }
 
-            alpha_timer = new _.alpha_timer(this.cnt.items, function (row) {
+            alpha_timer = new _.alpha_timer(this.cnt.rows, function (row) {
                 return row.is_pressed;
             });
         }
@@ -702,7 +702,7 @@ function TrackInfoList() {
         var draw_row_idx = -1;
         var cur_row = 0;
 
-        _.forEach(this.cnt.items, function (row) {
+        _.forEach(this.cnt.rows, function (row) {
             if (item.idx === row.idx) {
                 draw_row_idx = cur_row;
                 return false;

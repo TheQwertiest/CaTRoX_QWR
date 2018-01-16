@@ -81,7 +81,7 @@ List = function (x, y, w, h, content) {
     this.rows_to_draw_precise = 0;
 
     /** @protected {Array<List.Item>} */
-    this.items = [];
+    this.rows = [];
     /** @protected {Array<List.Item>} */
     this.items_to_draw = [];
 
@@ -349,7 +349,7 @@ List.prototype.on_w_size = function (w) {
 };
 
 /**
- * Called when this.items content is changed.
+ * Called when this.rows content is changed.
  * @protected
  */
 List.prototype.on_list_items_change = function () {
@@ -576,7 +576,7 @@ List.RowContent = function() {
     List.Content.call(this);
 
     /** @type {Array<List.Item>} */
-    this.items = [];
+    this.rows = [];
 };
 List.RowContent.prototype = Object.create(List.Content.prototype);
 List.RowContent.prototype.constructor = List.RowContent;
@@ -585,9 +585,9 @@ List.RowContent.prototype.generate_items_to_draw = function (wy, wh, row_shift, 
     var items_to_draw = [];
     var cur_y = wy + pixel_shift;
 
-    for (var i = row_shift; i < this.items.length; ++i) {
-        this.items[i].y = cur_y;
-        items_to_draw.push(this.items[i]);
+    for (var i = row_shift; i < this.rows.length; ++i) {
+        this.rows[i].y = cur_y;
+        items_to_draw.push(this.rows[i]);
         cur_y += row_h;
 
         if (cur_y >= wh) {
@@ -599,11 +599,11 @@ List.RowContent.prototype.generate_items_to_draw = function (wy, wh, row_shift, 
 };
 
 List.Content.prototype.update_items_w_size = function(w) {
-    this.items.forEach(_.bind(function (item) {
+    this.rows.forEach(_.bind(function (item) {
         item.set_w(w);
     }, this));
 };
 
 List.Content.prototype.calculate_total_h_in_rows = function() {
-    return this.items.length;
+    return this.rows.length;
 };
