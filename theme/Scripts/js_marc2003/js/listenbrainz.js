@@ -83,7 +83,7 @@ _.mixin({
 				console.log('Submitting ' + _.q(tags.artist + ' - ' + tags.title));
 				
 				if (this.properties.show.enabled) {
-					fb.Trace(JSON.stringify(payload, null, 4));
+					console.log(JSON.stringify(payload, null, 4));
 				}
 			}
 			

@@ -592,7 +592,7 @@ _.mixin({
 						break;
 					default:
 						console.log('HTTP error: ' + this.xmlhttp.status);
-						this.xmlhttp.responseText && fb.Trace(this.xmlhttp.responseText);
+						this.xmlhttp.responseText && console.log(this.xmlhttp.responseText);
 						break;
 					}
 				}
