@@ -17,7 +17,7 @@ function IFbUtils() {
 
     /** @type {string} */
     this.ComponentPath = undefined; // (string) (read)
-    /* 
+    /*
     Example:
     console.log(fb.ComponentPath); // C:\Users\User\AppData\Roaming\foobar2000\user-components\foo_jscript_panel\
     */
@@ -119,7 +119,6 @@ function IFbUtils() {
     or any other panel that makes use of the preferences under
     File>Preferences>Display>Selection viewers. Use in conjunction with the on_focus
     callback. See callbacks.txt.
-      
 
     Example1: (for playlist viewers)
 
@@ -150,7 +149,6 @@ function IFbUtils() {
                 selection_holder.SetSelection(handle_list); //must be a valid handle list
         }
     }
- 
     */
 
     this.AddDirectory = function () {}; // (void)
@@ -249,6 +247,7 @@ function IFbUtils() {
         this.Reset = function () {}; // (void)
         this.Print = function () {}; // (void)
     }
+
     /*
     Example:
     var test = fb.CreateProfiler();
@@ -262,7 +261,7 @@ function IFbUtils() {
      * @param {boolean=} [force=true]
      * @return {IFbMetadbHandle}
      */
-    this.GetFocusItem = function (force) {}; // (IFbMetadbHandle) [force]    
+    this.GetFocusItem = function (force) {}; // (IFbMetadbHandle) [force]
     /*
     force: boolean, default true.
     When true, it will use the first item of the active playlist if it is unable to get the focus item.
@@ -503,6 +502,7 @@ function IFbUtils() {
 
     this.VolumeUp = function () {}; // (void)
 }
+
 var fb = new IFbUtils();
 
 /**
@@ -516,7 +516,7 @@ function IGdiUtils() {
      * @return {IGdiBitmap}
      */
     this.CreateImage = function (w, h) {}; // (IGdiBitmap)
-    
+
     /**
      * @param {string} name
      * @param {number} size_px
@@ -528,13 +528,13 @@ function IGdiUtils() {
     size_px: See helpers.txt > Point2Pixel function for conversions.
     style: default 0. See flags.txt > FontStyle
     */
-    
+
     /**
      * @param {string} path
      * @return {IGdiBitmap}
      */
     this.Image = function (path) {}; // (IGdiBitmap)
-    // Example: var img = "e:\\images folder\\my_image.png";    
+    // Example: var img = "e:\\images folder\\my_image.png";
 
     /**
      * @param {number} window_id
@@ -547,6 +547,7 @@ function IGdiUtils() {
     Returns a unqiue id.
     */
 }
+
 var gdi = new IGdiUtils();
 
 /**
@@ -557,10 +558,10 @@ function IFbPlaylistManager() {
     /** @type {number} */
     this.ActivePlaylist = undefined; // (uint) (read, write)
     /*
-    Example1: 
+    Example1:
     console.log(plman.ActivePlaylist); // Returns -1 if there is no active playlist.
     Example2:
-    plman.ActivePlaylist = 1; // Switches to 2nd playlist.          
+    plman.ActivePlaylist = 1; // Switches to 2nd playlist.
     */
 
     /** @type {number} */
@@ -572,13 +573,13 @@ function IFbPlaylistManager() {
     3 Random
     4 Shuffle (tracks)
     5 Shuffle (albums)
-    6 Shuffle (folders)    
+    6 Shuffle (folders)
     */
 
     /** @type {number} */
     this.PlayingPlaylist = undefined; // (uint) (read, write)
     /*
-    Example: 
+    Example:
     console.log(plman.PlayingPlaylist); // Returns -1 if there is no playing playlist
     */
 
@@ -742,6 +743,7 @@ function IFbPlaylistManager() {
         /** @type {number} */
         this.PlaylistItemIndex = undefined; // (uint) (read)
     }
+
     /*
     Example:
     var playing_item_location = plman.GetPlayingItemLocation();
@@ -760,7 +762,7 @@ function IFbPlaylistManager() {
     Example:
     var focus_item_index = plman.GetPlaylistFocusItemIndex(plman.ActivePlaylist); // 0 first item
     Returns -1 if nothing is selected
-    */                                                   
+    */
 
     /**
      * @param {number} playlistIndex
@@ -826,7 +828,7 @@ function IFbPlaylistManager() {
     this.InsertPlaylistItemsFilter = function (playlistIndex, base, handle_list, select) {}; // (uint) select = false
     /*
     Same as above except any duplicates contained in handle_list are removed.
-    */                                                                       
+    */
 
     /**
      * @param {number} playlistIndex
@@ -904,7 +906,19 @@ function IFbPlaylistManager() {
     this.RenamePlaylist = function (playlistIndex, name) {}; // (boolean)
 
     this.SetActivePlaylistContext = function () {}; // (void)
-    // Workaround so you can run fb.RunMainMenuCommand() on the Edit menu when the playlist doesn't have focus.
+    /*
+    Workaround so you can use the Edit menu or run fb.RunMainMenuCommand("Edit/Something...")
+    when your panel has focus and a dedicated playlist viewer doesn't.
+    Example:
+
+    plman.SetActivePlaylistContext(); // once on startup
+
+    function on_focus(is_focused) {
+        if (is_focused) {
+            plman.SetActivePlaylistContext(); // when the panel gets focus but not on every click
+        }
+    }
+    */
 
     /**
      * @param {number} playlistIndex
@@ -1027,18 +1041,18 @@ function IFbPlaylistManager() {
     /*
      * @return {IFbMetadbHandleList}
      */
-    this.GetPlaybackQueueHandles = function() {}; // ((IFbMetadbHandleList))
+    this.GetPlaybackQueueHandles = function () {}; // ((IFbMetadbHandleList))
     /*
     var handles = plman.GetPlaybackQueueHandles();
     if (handles.Count > 0) {
         // removes the need for plman.GetPlaybackQueueCount() and plman.IsPlaybackQueueActive()
     }
     */
-    
+
     /**
      * @param {number} index
      */
-    this.RemoveItemFromPlaybackQueue = function(index) {}; // (void)
+    this.RemoveItemFromPlaybackQueue = function (index) {}; // (void)
 
     /**
      * @param {Array<number>} affectedItems
@@ -1046,6 +1060,7 @@ function IFbPlaylistManager() {
     this.RemoveItemsFromPlaybackQueue = function (affectedItems) {}; // (void)
     // affectedItems: array like [1, 3, 5]
 }
+
 var plman = new IFbPlaylistManager();
 
 /**
@@ -1053,8 +1068,9 @@ var plman = new IFbPlaylistManager();
  */
 function IJSConsole() {
     /** @param {...*} var_args */
-	this.log = function(var_args) {}; // (void)
+    this.log = function (var_args) {}; // (void)
 }
+
 var console = new IJSConsole();
 
 /**
@@ -1084,6 +1100,7 @@ function IJSUtils() {
      * @param {boolean=} [is_dll=true]
      * @return {boolean}
      */
+    this.CheckComponent = function (name, is_dll) {}; //(boolean)
     /*
     is_dll: boolean, default false.
     If true, method checks filename as well as the internal name.
@@ -1198,7 +1215,7 @@ function IJSUtils() {
      * @return {IGdiBitmap}
      */
     this.GetAlbumArtV2 = function (handle, art_id, need_stub) {}; // (IGdiBitmap) [, art_id][, need_stub]
-     /*
+    /*
     art_id: default 0.
     See flags.txt > AlbumArtId
     need stub: boolean, default true.
@@ -1312,14 +1329,20 @@ function IJSUtils() {
     Example:
     utils.WriteINI("e:\\my_file.ini", "Last.fm", "username", "Bob");
     */
-    
-    utils.WriteTextFile(filename, content); (boolean)
+
+    /**
+     * @param {string} filename
+     * @param {string} content
+     * @return {boolean}
+     */
+    this.WriteTextFile = function (filename, content) {}; //(boolean)
     /*
     The parent folder must already exist and the resulting file will be UTF8-BOM.
     Example:
     utils.WriteTextFile("z:\\test.txt", "test");
     */
 }
+
 var utils = new IJSUtils();
 
 /**
@@ -1332,7 +1355,7 @@ function Fb2kWindow() {
     this.DlgCode = function () {}; // (int) (read, write)
     /*
     See flags.txt > With window.DlgCode
-    Example: 
+    Example:
     window.DlgCode(DLGC_WANTALLKEYS);
     */
 
@@ -1379,7 +1402,7 @@ function Fb2kWindow() {
     Returns the @name set in the preprocessor section. See preprocessors.txt
     If that isn't present, the GUID of the panel is returned.
     */
-    
+
     /** @type {number} */
     this.Width = undefined; // (int) (read)
 
@@ -1447,7 +1470,7 @@ function Fb2kWindow() {
         /*
         check: boolean.
         bypos: boolean, default false.
-        */        
+        */
 
         /**
          * @param {number} first
@@ -1461,7 +1484,7 @@ function Fb2kWindow() {
         bypos: boolean, default false.
         */
 
-                this.Dispose = function () {}; // (void)
+        this.Dispose = function () {}; // (void)
 
         /**
          * @param {number} id_or_pos
@@ -1472,7 +1495,7 @@ function Fb2kWindow() {
         /*
         enable: boolean.
         bypos: boolean, default false
-        */     
+        */
 
         /**
          * @param {number} x
@@ -1546,7 +1569,7 @@ function Fb2kWindow() {
         /*
         This will be used in the examples below.
         var tooltip = window.CreateTooltip();
-        */    
+        */
 
         /** @type {string} */
         this.Text = undefined; // (string) (read, write)
@@ -1690,7 +1713,7 @@ function Fb2kWindow() {
     id: See flags.txt > Used in window.SetCursor()
     This would usually be used inside the on_mouse_move callback. Use -1 if you want to hide the cursor.
     */
-    
+
     /**
      * @param {string} name
      * @param {*=} defaultval
@@ -1721,6 +1744,7 @@ function Fb2kWindow() {
     this.ShowProperties = function () {}; // (void)
     // Show properties window of current panel
 }
+
 // Idea does not recognize this object if it has var =(
 window = new Fb2kWindow();
 
@@ -2166,7 +2190,7 @@ function IGdiGraphics() {
             var temp = gr.MeasureString(text, font, 0, 0, window.Width, 10000, sf);
             // If we want to calculate height, we must set the height to be far larger than what
             // the text could possibly be.
-            
+
             console.log(temp.Height); // 2761.2421875 // far larger than my panel height!
             console.log(temp.Chars); // 7967
         }
@@ -2206,6 +2230,7 @@ function IGdiGraphics() {
     this.GdiAlphaBlend = function (img, dstX, dstY, dstW, dstH, srcX, srcY, srcW, srcH, alpha) {}; // (void) [, alpha]
     // alpha: default 255. valid values 0-255.
 }
+
 var gr = IGdiGraphics();
 
 /**
@@ -2325,7 +2350,7 @@ function IFbMetadbHandle() {
         /*
         The case of the tag name returned can be different depending on tag type
         so using toLowerCase() or toUpperCase() on the result is recommended
-        
+
         Example:
         for (var i = 0; i < f.MetaCount; i++) {
             console.log(f.MetaName(i).toUpperCase());
@@ -2382,7 +2407,7 @@ function IFbMetadbHandleList() {
      */
     this.Add = function (handle) {}; // (uint)
     /*
-    Example: 
+    Example:
     handle_list.Add(fb.GetNowPlaying());
     */
 
@@ -2415,7 +2440,10 @@ function IFbMetadbHandleList() {
      * @return {number}
      */
     this.CalcTotalSize = function () {}; // (LONGLONG)
-    // Returns total in bytes. For display purposes, consider using utils.FormatFileSize() on the result.
+    /*
+    Requires a system with IE9 or later to work properly.
+    Returns total in bytes. For display purposes, consider using utils.FormatFileSize() on the result.
+    */
 
     /**
      * @return {IFbMetadbHandleList}
@@ -2497,7 +2525,7 @@ function IFbMetadbHandleList() {
     one.MakeIntersection(two);
     // "one" now only contains handles that were in BOTH "one" AND "two"
     */
-    
+
     /**
      * @param {IFbMetadbHandleList} handle
      */
@@ -2558,14 +2586,15 @@ function IFbMetadbHandleList() {
     Example:
     handle_list.RemoveRange(10, 20);
     */
-    
+
     this.Sort = function () {}; // (void)
     // Remove duplicates and optimise for other handle list operations
 
     /**
      * @param {string} str
      */
-    this.UpdateFileInfoFromJSON = function (str) {}; // (void)    
+    this.UpdateFileInfoFromJSON = function (str) {}; // (void)
+    // See https://github.com/marc2k3/foo_jscript_panel/wiki/Breaking-Changes#v130
 }
 
 /**
