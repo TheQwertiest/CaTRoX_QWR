@@ -167,7 +167,7 @@ function BottomPanel() {
                 seekbar_time_1 = ((fb.IsPlaying && fb.PlaybackTime) ? _.tfe('%playback_time%') : '0:00');
 
                 if (g_properties.show_remaining_time && fb.IsPlaying) {
-                    var is_radio = _.startsWith(fb.GetNowPlaying().RawPath, 'http://');
+                    var is_radio = fb.GetNowPlaying() && _.startsWith(fb.GetNowPlaying().RawPath, 'http://');
 
                     var remaining_time = _.tfe('[%playback_time_remaining%]');
                     if (!remaining_time) {
