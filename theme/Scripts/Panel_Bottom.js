@@ -16,9 +16,9 @@ g_properties.add_properties(
     {
         show_remaining_time: ['user.seekbar.show_remaining_time', true],
 
-        enable_volume_bar: ['system.volume_bar.enable', !g_is_mini_panel],
-        minify_seekbar:    ['system.seekbar.minify', g_is_mini_panel],
-        has_spectrum:      ['system.spectrum.has', !g_is_mini_panel]
+        enable_volume_bar:     ['system.volume_bar.enable', !g_is_mini_panel],
+        minify_seekbar:        ['system.seekbar.minify', g_is_mini_panel],
+        is_spectrum_available: ['system.spectrum.available', !g_is_mini_panel]
     }
 );
 
@@ -291,7 +291,7 @@ function BottomPanel() {
             {is_checked: g_properties.show_remaining_time}
         );
 
-        if (g_properties.has_spectrum) {
+        if (g_properties.is_spectrum_available) {
             cmm.append_item(
                 'Show music spectrum',
                 function () {
@@ -390,6 +390,13 @@ function BottomPanel() {
     this.repaint = function () {
         throttled_repaint();
     };
+
+    function initialize() {
+        create_button_images();
+        if (g_properties.is_spectrum_available) {
+            pss_switch.spectrum.refresh();
+        }
+    }
 
     function create_buttons(wx, wy, ww, wh) {
         if (buttons)
@@ -676,8 +683,7 @@ function BottomPanel() {
     var volume_bar_obj = null;
     var seekbar_obj = null;
 
-    create_button_images();
-    pss_switch.spectrum.refresh();
+    initialize();
 }
 
 

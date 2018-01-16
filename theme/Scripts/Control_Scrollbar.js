@@ -289,21 +289,6 @@ function ScrollBar(x, y, w, h, row_h, fn_redraw) {
         this.stop_shift_timer();
     };
 
-    this.rbtn_up = function (x, y) {
-        if (!this.trace(x, y) || !utils.IsKeyPressed(VK_SHIFT)) {
-            return true;
-        }
-
-        var cmm = new Context.MainMenu();
-
-        qwr_utils.append_default_context_menu_to(cmm);
-
-        cmm.execute(x,y);
-        cmm.dispose();
-
-        return true;
-    };
-
     this.shift_line = function (direction) {
         var newScroll = this.nearestScroll(direction);
         this.scroll_to(newScroll);

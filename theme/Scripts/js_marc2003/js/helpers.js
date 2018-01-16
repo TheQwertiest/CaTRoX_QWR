@@ -495,6 +495,14 @@ _.mixin({
     isFolder:                  function (folder) {
         return _.isString(folder) ? fso.FolderExists(folder) : false;
     },
+    /**
+     * @param a
+     * @param b
+     * @return {boolean} a instanceof b
+     */
+    isInstanceOf:              function(a,b) {
+        return (a instanceof b);
+    },
     isUUID:                    function (value) {
         var re = /^[0-9a-f]{8}-[0-9a-f]{4}-[345][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
         return re.test(value);

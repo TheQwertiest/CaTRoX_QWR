@@ -69,7 +69,7 @@ Context.Menu = function (text_arg, optional_args) {
      * @param{Context.BaseObject} item
      */
     this.append = function (item) {
-        if (!(item instanceof Context.BaseObject)) {
+        if (!_.isInstanceOf(item, Context.BaseObject)) {
             throw new TypeError('context_item', typeof item, 'instanceof Context.BaseObject');
         }
 
@@ -106,7 +106,7 @@ Context.Menu = function (text_arg, optional_args) {
             throw new ArgumentError('start_idx', start_idx, 'Value is out of bounds');
         }
 
-        if ('MenuSeparator' === item.type) {
+        if (_.isInstanceOf(item, Context.Separator)) {
             throw new ArgumentError('check_idx', check_idx, 'Index points to MenuSeparator');
         }
 
@@ -182,9 +182,6 @@ Context.Menu = function (text_arg, optional_args) {
             }
         }
     };
-
-    /** @const{string} */
-    this.type = 'Context.Menu';
 
     /** @const{boolean} */
     var is_grayed_out = !!(optional_args && optional_args.is_grayed_out);
@@ -271,11 +268,6 @@ Context.Item = function(text_arg, callback_fn_arg, optional_args) {
 
     // const
 
-    /** @const{string} */
-    this.type = 'Context.Item';
-
-    // const
-
     /** @const{function} */
     var callback_fn = callback_fn_arg;
 
@@ -321,9 +313,6 @@ Context.Separator = function () {
     this.execute_menu = function (idx) {
         return false;
     };
-
-    /** @const{string} */
-    this.type = 'Context.Separator';
 };
 Context.Separator.prototype = Object.create(Context.BaseObject.prototype);
 Context.Separator.prototype.constructor = Context.Separator;
@@ -368,9 +357,6 @@ Context.FoobarMenu = function (metadb_handles_arg) {
     this.execute_menu = function (idx) {
         this.cm.ExecuteByID(idx - this.idx);
     };
-
-    /** @const{string} */
-    this.type = 'Context.FoobarMenu';
 
     /** @private{IContextMenuManager} */
     this.cm = fb.CreateContextMenuManager();

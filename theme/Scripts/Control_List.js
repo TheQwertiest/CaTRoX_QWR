@@ -255,6 +255,40 @@ List.prototype.on_mouse_lbtn_up = function (x, y, m) {
     return false;
 };
 
+/**
+ * Shows context menu on scrollbar if available.
+ * Also handles the case when mouse is out of the list.
+ *
+ * @param {number} x
+ * @param {number} y
+ * @param {number} m
+ * @return {boolean} true, if handled
+ */
+List.prototype.on_mouse_rbtn_up = function (x, y, m) {
+    if (!this.trace(x,y)) {
+        return true;
+    }
+
+    if (!this.is_scrollbar_available
+        || !this.is_scrollbar_visible
+        || !this.scrollbar.trace(x,y) ) {
+        return false;
+    }
+
+    var cmm = new Context.MainMenu();
+
+    this.append_scrollbar_visibility_context_menu_to(cmm);
+
+    if (utils.IsKeyPressed(VK_SHIFT)) {
+        qwr_utils.append_default_context_menu_to(cmm);
+    }
+
+    cmm.execute(x,y);
+    cmm.dispose();
+
+    return true;
+};
+
 List.prototype.on_mouse_wheel = function (delta) {
     if (this.is_scrollbar_available) {
         this.scrollbar.wheel(delta);

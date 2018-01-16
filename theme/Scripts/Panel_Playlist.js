@@ -610,13 +610,13 @@ function Playlist(x,y) {
 
         // TODO: consider moving to selection_handler
         if (item) {
-            if (ctrl_pressed && shift_pressed && item.type === 'Header') {
+            if (ctrl_pressed && shift_pressed && _.isInstanceOf(item, Header) ) {
                 collapse_handler.toggle_collapse(item);
                 this.mouse_down = false;
             }
             else if (!ctrl_pressed && !shift_pressed
-                && (item.type === 'Row' && item.is_selected_dynamic()
-                    || item.type === 'Header' && item.is_completely_selected())) {
+                && (_.isInstanceOf(item, Row) && item.is_selected_dynamic()
+                    || _.isInstanceOf(item, Header) && item.is_completely_selected())) {
                 mouse_on_item = true;
             }
             else {
@@ -645,7 +645,7 @@ function Playlist(x,y) {
             return true;
         }
 
-        if (item.type === 'Header') {
+        if (_.isInstanceOf(item, Header)) {
             plman.ExecutePlaylistDefaultAction(cur_playlist_idx, item.rows[0].idx);
         }
         else {
@@ -716,8 +716,8 @@ function Playlist(x,y) {
             selection_handler.sync_items_with_selection();
 
         }
-        else if (item.type === 'Row' && !item.is_selected_dynamic()
-            || item.type === 'Header' && !item.is_completely_selected() ) {
+        else if (_.isInstanceOf(item, Row)&& !item.is_selected_dynamic()
+            || _.isInstanceOf(item, Header) && !item.is_completely_selected() ) {
             selection_handler.update_selection(item);
             selection_handler.sync_items_with_selection();
         }
@@ -726,11 +726,7 @@ function Playlist(x,y) {
     };
 
     this.on_mouse_rbtn_up = function (x, y, m) {
-        if (this.is_scrollbar_visible && this.scrollbar.trace(x, y)) {
-            return this.scrollbar.rbtn_up(x, y);
-        }
-
-        if (!this.trace(x,y)) {
+        if (List.prototype.on_mouse_rbtn_up.apply(this, [x, y, m])) {
             return true;
         }
 
@@ -908,7 +904,7 @@ function Playlist(x,y) {
 
                 if (!focused_item) {
                     var first_item = _.head(this.items_to_draw);
-                    focused_item = first_item.type === 'Header' ? _.head(first_item.rows) : first_item;
+                    focused_item = _.isInstanceOf(first_item, Header) ? _.head(first_item.rows) : first_item;
                 }
 
                 var header = focused_item.header;
@@ -933,7 +929,7 @@ function Playlist(x,y) {
 
                 if (!focused_item) {
                     var first_item = _.head(this.items_to_draw);
-                    focused_item = first_item.type === 'Header' ? _.head(first_item.rows) : first_item;
+                    focused_item = _.isInstanceOf(first_item, Header)  ? _.head(first_item.rows) : first_item;
                 }
 
                 var header = focused_item.header;
@@ -958,7 +954,7 @@ function Playlist(x,y) {
 
                 if (!focused_item) {
                     var first_item = _.head(this.items_to_draw);
-                    focused_item = first_item.type === 'Header' ? _.head(first_item.rows) : first_item;
+                    focused_item = _.isInstanceOf(first_item, Header)  ? _.head(first_item.rows) : first_item;
                 }
 
                 collapse_handler.collapse(focused_item.header);
@@ -976,7 +972,7 @@ function Playlist(x,y) {
 
                 if (!focused_item) {
                     var first_item = _.head(this.items_to_draw);
-                    focused_item = first_item.type === 'Header' ? _.head(first_item.rows) : first_item;
+                    focused_item = _.isInstanceOf(first_item, Header)  ? _.head(first_item.rows) : first_item;
                 }
 
                 var header = focused_item.header;
@@ -999,13 +995,13 @@ function Playlist(x,y) {
 
                 if (!focused_item) {
                     var first_item = _.head(this.items_to_draw);
-                    focused_item = first_item.type === 'Header' ? _.head(first_item.rows) : first_item;
+                    focused_item = _.isInstanceOf(first_item, Header)  ? _.head(first_item.rows) : first_item;
                 }
 
                 var new_focus_item;
                 if (this.is_scrollbar_available) {
                     new_focus_item = _.head(this.items_to_draw);
-                    if (new_focus_item.type === 'Header') {
+                    if (_.isInstanceOf(new_focus_item , Header)) {
                         new_focus_item = this.cnt.rows[new_focus_item.rows[0].idx];
                     }
                     if (new_focus_item.y < this.list_y && new_focus_item.y + new_focus_item.h > this.list_y) {
@@ -1015,7 +1011,7 @@ function Playlist(x,y) {
                         this.scrollbar.shift_page(-1);
 
                         new_focus_item = _.head(this.items_to_draw);
-                        if (new_focus_item.type === 'Header') {
+                        if (_.isInstanceOf(new_focus_item , Header)) {
                             new_focus_item = this.cnt.rows[new_focus_item.rows[0].idx];
                         }
                     }
@@ -1037,13 +1033,13 @@ function Playlist(x,y) {
 
                 if (!focused_item) {
                     var first_item = _.head(this.items_to_draw);
-                    focused_item = first_item.type === 'Header' ? _.head(first_item.rows) : first_item;
+                    focused_item = _.isInstanceOf(first_item , Header) ? _.head(first_item.rows) : first_item;
                 }
 
                 var new_focus_item;
                 if (this.is_scrollbar_available) {
                     new_focus_item = _.last(this.items_to_draw);
-                    if (new_focus_item.type === 'Header') {
+                    if (_.isInstanceOf(new_focus_item , Header)) {
                         new_focus_item = _.last(this.cnt.headers[new_focus_item.idx - 1].rows);
                     }
                     if (new_focus_item.y < this.list_y + this.list_h && new_focus_item.y + new_focus_item.h > this.list_y + this.list_h) {
@@ -1053,7 +1049,7 @@ function Playlist(x,y) {
                         this.scrollbar.shift_page(1);
 
                         new_focus_item = _.last(this.items_to_draw);
-                        if (new_focus_item.type === 'Header') {
+                        if (_.isInstanceOf(new_focus_item , Header)) {
                             new_focus_item = _.last(this.cnt.headers[new_focus_item.idx - 1].rows);
                         }
                     }
@@ -1321,7 +1317,7 @@ function Playlist(x,y) {
         /** @type {Array<Row>|Array<Header>} */
         var items = this.items_to_draw;
         items.forEach(function (item) {
-            if (item.type === 'Header' && !item.has_art() && item.rows[0].metadb.Compare(metadb)) {
+            if (_.isInstanceOf(item, Header) && !item.has_art() && item.rows[0].metadb.Compare(metadb)) {
                 item.assign_art(image);
                 item.repaint();
             }
@@ -1469,7 +1465,7 @@ function Playlist(x,y) {
 
     var debounced_get_album_art = _.debounce(function (items, force) {
         items.forEach(function (item) {
-            if (item.type === 'Header' && (force || !item.has_art() )) {
+            if (_.isInstanceOf(item, Header) && (force || !item.has_art() )) {
                 utils.GetAlbumArtAsync(window.ID, item.rows[0].metadb, g_album_art_id.front);
             }
         });
@@ -1959,7 +1955,7 @@ function Playlist(x,y) {
 
         var is_above = y < (item.y + item.h / 2);
 
-        if (item.type === 'Header') {
+        if (_.isInstanceOf(item, Header)) {
             if (is_above) {
                 if (item.idx === 0) {
                     drop_info.row = _.head(item.rows);
@@ -2182,7 +2178,7 @@ function Playlist(x,y) {
     function get_item_draw_row_idx(item) {
         var draw_row_idx = -1;
         var cur_row = 0;
-        if (item.type === 'Header') {
+        if (_.isInstanceOf(item, Header)) {
             _.forEach(that.cnt.headers, function (header, i) {
                 if (item.idx === i) {
                     draw_row_idx = cur_row;
@@ -2240,7 +2236,7 @@ function Playlist(x,y) {
                             that.scrollbar.shift_line(-1);
 
                             cur_marked_item = _.head(that.items_to_draw);
-                            if (cur_marked_item.type === 'Header') {
+                            if (_.isInstanceOf(cur_marked_item, Header)) {
                                 collapse_handler.expand(cur_marked_item);
                                 if (collapse_handler.changed) {
                                     that.scrollbar.scroll_to(g_properties.scroll_pos + cur_marked_item.rows.length);
@@ -2256,7 +2252,7 @@ function Playlist(x,y) {
                             that.scrollbar.shift_line(1);
 
                             cur_marked_item = _.last(that.items_to_draw);
-                            if (cur_marked_item.type === 'Header') {
+                            if (_.isInstanceOf(cur_marked_item, Header)) {
                                 collapse_handler.expand(cur_marked_item);
                                 if (collapse_handler.changed) {
                                     that.repaint();
@@ -2923,8 +2919,6 @@ function Header(x, y, w, h, idx, row_h_arg) {
     }
 
     //public:
-    /** @const {string} */
-    this.type = 'Header';
     /** @const {number} */
     this.idx = idx;
 
@@ -3159,8 +3153,6 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
     }
 
     //public:
-    /** @const {string} */
-    this.type = 'Row';
     /** @const {number} */
     this.idx = idx;
     /** @const {IFbMetadbHandle} */
@@ -3314,7 +3306,7 @@ function SelectionHandler(rows_arg, headers_arg, cur_playlist_idx_arg) {
             last_single_selected_index = undefined;
         }
 
-        if (item.type === 'Header') {
+        if (_.isInstanceOf(item, Header)) {
             update_selection_with_header(item, ctrl_pressed, shift_pressed);
         }
         else {

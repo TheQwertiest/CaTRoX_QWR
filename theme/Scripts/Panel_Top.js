@@ -12,7 +12,7 @@ g_script_list.push('Panel_Top.js');
 g_properties.add_properties(
     {
         show_logo:        ['user.fb2k_logo.show', true],
-        show_btn_ellipse: ['user.buttons.eclipse.show_always', false]
+        show_btn_ellipse: ['user.buttons.ellipse.show_always', false]
     }
 );
 
@@ -419,7 +419,7 @@ function TopPanel() {
     this.w = 0;
     this.h = 0;
 
-    var buttons = {};
+    var buttons = null;
     var button_images = [];
 
     var show_tooltips = false;

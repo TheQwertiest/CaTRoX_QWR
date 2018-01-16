@@ -309,11 +309,13 @@ function TrackInfoList() {
     };
 
     this.on_mouse_rbtn_up = function (x, y, m) {
-        if (this.is_scrollbar_visible && this.scrollbar.trace(x, y)) {
-            return this.scrollbar.rbtn_up(x, y);
+        var hover_item = last_hover_item;
+
+        if (List.prototype.on_mouse_rbtn_up.apply(this, [x, y, m])) {
+            clear_last_hover_item();
+            return true;
         }
 
-        var hover_item = last_hover_item;
         clear_last_hover_item();
 
         var cmm = new Context.MainMenu();
