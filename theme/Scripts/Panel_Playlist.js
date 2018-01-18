@@ -2346,71 +2346,16 @@ PlaylistContent = function() {
     List.RowContent.call(this);
 
     this.generate_items_to_draw = function (wy, wh, row_shift, pixel_shift, row_h) {
+        if (!this.rows.length) {
+            return [];
+        }
+
         if (!g_properties.show_header) {
             return List.RowContent.prototype.generate_items_to_draw.apply(this, [wy, wh, row_shift, pixel_shift, row_h]);
         }
 
-        var items_to_draw = [];
-        var start_y = wy + pixel_shift;
-        var cur_y = 0;
-        var cur_row = 0;
-        var first = true;
-
-        _.forEach(this.headers, function (header) {
-            if (cur_row + header_h_in_rows - 1 >= row_shift) {
-                if (first) {
-                    header.set_y(start_y + (cur_row - row_shift) * row_h);
-                    cur_y = header.y;
-                    first = false;
-                }
-                else {
-                    header.set_y(cur_y);
-                }
-                items_to_draw.push(header);
-                cur_y += header_h_in_rows * row_h;
-
-                if (cur_y >= wy + wh) {
-                    return false;
-                }
-            }
-
-            cur_row += header_h_in_rows;
-
-            if (header.is_collapsed) {
-                return true;
-            }
-
-            var header_rows = header.rows;
-            if (cur_row + header_rows.length - 1 >= row_shift) {
-                var header_row_start_idx = (cur_row > row_shift) ? 0 : row_shift - cur_row;
-                cur_row += header_row_start_idx;
-
-                for (var j = header_row_start_idx; j < header_rows.length; ++j) {
-                    if (cur_row >= row_shift) {
-                        if (first) {
-                            header_rows[j].set_y(start_y + (cur_row - row_shift) * row_h);
-                            cur_y = header_rows[j].y;
-                            first = false;
-                        }
-                        else {
-                            header_rows[j].set_y(cur_y);
-                        }
-                        items_to_draw.push(header_rows[j]);
-                        cur_y += row_h;
-                        if (cur_y >= wy + wh) {
-                            return false;
-                        }
-                    }
-
-                    ++cur_row;
-                }
-            }
-            else {
-                cur_row += header_rows.length;
-            }
-        });
-
-        return items_to_draw;
+        var first_item = generate_first_item_to_draw(wy, wh, row_shift, pixel_shift, row_h);
+        return generate_all_items_to_draw(wy, wh, first_item);
     };
 
     this.update_items_w_size = function(w) {
@@ -2447,8 +2392,111 @@ PlaylistContent = function() {
         header_h_in_rows = header_h_in_rows_arg;
     };
 
+    function generate_first_item_to_draw(wy, wh, row_shift, pixel_shift, row_h) {
+        var first_item = null;
+
+        var start_y = wy + pixel_shift;
+        var cur_row = 0;
+
+        for (var i = 0; i < that.headers.length; ++i) {
+            var header = that.headers[i];
+            if (cur_row + header_h_in_rows - 1 >= row_shift) {
+                header.set_y(start_y + (cur_row - row_shift) * row_h);
+
+                first_item = header;
+                break;
+            }
+
+            cur_row += header_h_in_rows;
+
+            if (header.is_collapsed) {
+                continue;
+            }
+
+            if (cur_row + header.rows.length - 1 >= row_shift) {
+                var header_row_start_idx = (cur_row > row_shift) ? 0 : row_shift - cur_row;
+                cur_row += header_row_start_idx;
+
+                var header_row = header.rows[header_row_start_idx];
+                header_row.set_y(start_y + (cur_row - row_shift) * row_h);
+
+                first_item = header_row;
+                break;
+            }
+
+            cur_row += header.rows.length;
+        }
+
+        if (!first_item) {
+            throw new LogicError('first_item_to_draw cant be null!');
+        }
+
+        return first_item;
+    }
+
+    function generate_all_items_to_draw(wy, wh, first_item) {
+        var items_to_draw = [];
+
+        var is_first_item_header = _.isInstanceOf(first_item, Header);
+        var is_first = true;
+        var cur_y = first_item.y + first_item.h;
+
+        items_to_draw.push(first_item);
+
+        var header_start_idx = is_first_item_header ? first_item.idx : first_item.header.idx;
+        for (var i = header_start_idx; i < that.headers.length; ++i) {
+            var header = that.headers[i];
+            if (!is_first) {
+                header.set_y(cur_y);
+
+                items_to_draw.push(header);
+                cur_y += header.h;
+            }
+            if (is_first && is_first_item_header) {
+                is_first = false;
+            }
+
+            if (cur_y >= wy + wh) {
+                break;
+            }
+
+            if (header.is_collapsed) {
+                continue;
+            }
+
+            var header_rows = header.rows;
+            var header_row_start_idx = is_first ? (first_item.num_in_header - 1) : 0;
+
+            var should_break = false;
+            for (var j = header_row_start_idx; j < header_rows.length; ++j) {
+                var header_row = header_rows[j];
+                if (!is_first) {
+                    header_row.set_y(cur_y);
+                    items_to_draw.push(header_row);
+
+                    cur_y += header_row.h;
+                }
+                if (is_first) {
+                    is_first = false;
+                }
+
+                if (cur_y >= wy + wh) {
+                    should_break = true;
+                    break;
+                }
+            }
+            if (should_break) {
+                break;
+            }
+        }
+
+        return items_to_draw;
+    }
+
     /** @type {Array<Header>} */
     this.headers = [];
+
+    var that = this;
 
     var header_h_in_rows = 0;
 };
