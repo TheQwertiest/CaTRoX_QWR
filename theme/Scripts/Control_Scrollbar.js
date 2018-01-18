@@ -576,7 +576,7 @@ function ScrollBar(x, y, w, h, row_h, fn_redraw) {
             var downOutStep = 50;
 
             if (!alpha_timer_internal) {
-                alpha_timer_internal = window.SetInterval(_.bind(function () {
+                alpha_timer_internal = setInterval(_.bind(function () {
                     _.forEach(that.sb_parts, function (item, i) {
                         switch (item.state) {
                             case 'normal':
@@ -630,7 +630,7 @@ function ScrollBar(x, y, w, h, row_h, fn_redraw) {
 
         this.stop = function () {
             if (alpha_timer_internal) {
-                window.ClearInterval(alpha_timer_internal);
+                clearInterval(alpha_timer_internal);
                 alpha_timer_internal = null;
             }
         };

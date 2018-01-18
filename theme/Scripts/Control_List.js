@@ -96,9 +96,15 @@ List = function (x, y, w, h, content) {
 
     // Scrollbar props
 
-    /** @protected {number} */
+    /**
+     * Row shift is always non-negative
+     * @protected {number}
+     */
     this.row_shift = 0;
-    /** @protected {number} */
+    /**
+     * Pixel shift is always non-positive
+     * @protected {number}
+     */
     this.pixel_shift = 0;
     /** @protected {boolean} */
     this.is_scrollbar_visible = g_properties.show_scrollbar;
@@ -109,7 +115,6 @@ List = function (x, y, w, h, content) {
 
     /** @protected {?ScrollBar} */
     this.scrollbar = undefined;
-
     /** @protected {List.Content} */
     this.cnt = content;
 };
@@ -582,6 +587,10 @@ List.RowContent.prototype = Object.create(List.Content.prototype);
 List.RowContent.prototype.constructor = List.RowContent;
 
 List.RowContent.prototype.generate_items_to_draw = function (wy, wh, row_shift, pixel_shift, row_h) {
+    if (!this.rows.length) {
+        return [];
+    }
+
     var items_to_draw = [];
     var cur_y = wy + pixel_shift;
 

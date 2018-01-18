@@ -18,10 +18,17 @@ g_properties.add_properties(
     g_properties.track_mode = Math.max(1, Math.min(3, g_properties.track_mode));
 })();
 
-function ArtModule(features_arg) {//(Most of the art handling code was done by eXtremeHunter)
+/**
+ * @param{object=} [optional_args={}]
+ * @param{boolean=} [optional_args.border=false]
+ * @param{boolean=} [optional_args.thumbs=false]
+ * @param{boolean=} [optional_args.auto_cycle=false]
+ * @constructor
+ */
+function ArtModule(optional_args) {//(Most of the art handling code was done by eXtremeHunter)
 //public:
-    /////////////////////////////////////
-    // Callback methods implementation
+
+    //<editor-fold desc="Callback Implementation">
     this.paint = function (g) {
         var SF = g_string_format.align_center | g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
         var art = art_arr[cur_art_id];
@@ -30,31 +37,30 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
         g.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
 
         if (art) {
-            var x = this.x + art_x,
-                y = this.y + art_y,
-                w = art_w,
-                h = art_h;
-            var art_img_w = art.img.Width,
-                art_img_h = art.img.Height;
+            var x = this.x + art_x;
+            var y = this.y + art_y;
+            var w = art_w;
+            var h = art_h;
 
-            if (w + h > 10) {
-                var p = border_size;
-                if (cur_art_id === artType.cd) {
+            var art_img_w = art.img.Width;
+            var art_img_h = art.img.Height;
+
+            var p = border_size;
+            if (cur_art_id === artType.cd) {
+                g.DrawImage(art.img, x + p, y + p, w - 2 * p, h - 2 * p, 0, 0, art_img_w, art_img_h);
+
+                if (g_properties.use_disc_mask) {
+                    g.SetSmoothingMode(SmoothingMode.HighQuality);
+                    g.DrawEllipse(x, y, w - 1, h - 1, 1, frame_color);
+                }
+            }
+            else {
+                if (feature_border) {
                     g.DrawImage(art.img, x + p, y + p, w - 2 * p, h - 2 * p, 0, 0, art_img_w, art_img_h);
-
-                    if (g_properties.use_disc_mask) {
-                        g.SetSmoothingMode(SmoothingMode.HighQuality);
-                        g.DrawEllipse(x, y, w - 1, h - 1, 1, frame_color);
-                    }
+                    g.DrawRect(x, y, w - 1, h - 1, 1, frame_color);
                 }
                 else {
-                    if (feature_border) {
-                        g.DrawImage(art.img, x + p, y + p, w - 2 * p, h - 2 * p, 0, 0, art_img_w, art_img_h);
-                        g.DrawRect(x, y, w - 1, h - 1, 1, frame_color);
-                    }
-                    else {
-                        g.DrawImage(art.img, x, y, w, h, 0, 0, art_img_w, art_img_h);
-                    }
+                    g.DrawImage(art.img, x, y, w, h, 0, 0, art_img_w, art_img_h);
                 }
             }
         }
@@ -224,6 +230,7 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
             thumbs.btns.leave();
         }
     };
+    //</editor-fold>
 
     // End of Callback methods implementation
     /////////////////////////////////////
@@ -659,10 +666,10 @@ function ArtModule(features_arg) {//(Most of the art handling code was done by e
 
     var border_size = 2;
 
-    var features = features_arg || [];
-    var feature_border = _.includes(features, 'borders');
-    var feature_thumbs = _.includes(features, 'thumbs');
-    var feature_cycle = _.includes(features, 'auto_cycle');
+    var feature_border = optional_args && optional_args.border;
+    var feature_thumbs = optional_args && optional_args.thumbs;
+    var feature_cycle = optional_args && optional_args.auto_cycle;
+
     var frame_color = g_theme.colors.panel_line;
 
     /** @type {?string} */

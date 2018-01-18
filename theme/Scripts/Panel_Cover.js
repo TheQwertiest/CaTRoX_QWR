@@ -13,7 +13,7 @@ g_properties.add_properties(
 
 var mouse_move_suppress = new qwr_utils.MouseMoveSuppress();
 var key_down_suppress = new qwr_utils.KeyModifiersSuppress();
-var artModule = new ArtModule(['borders', 'thumbs', 'auto_cycle']);
+var artModule = new ArtModule({border:true, thumbs:true, auto_cycle:true});
 
 var ww;
 var wh;

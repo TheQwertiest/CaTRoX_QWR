@@ -10,40 +10,45 @@ function on_script_unload() {
 
 // timeout and interval shims
 var g_trace_timer = false;
+var g_trace_zero_timer = false;
 function setInterval(func, wait){
     var id = window.SetInterval(func, wait);
     g_trace_timer && console.log("setInterval",id);
+    g_trace_zero_timer && !id && console.log(window.Name,"setInterval failed");
     return id;
 }
 function clearInterval(id) {
     g_trace_timer && console.log("clearInterval",id);
+    g_trace_zero_timer && !id && console.log(window.Name,"clearInterval failed");
     window.ClearInterval(id);
 }
 function setTimeout(func, wait){
     var id = window.SetTimeout(func, wait);
     g_trace_timer && console.log("setTimeout",id);
+    g_trace_zero_timer && !id && console.log(window.Name,"setTimeout failed");
     return id;
 }
 function clearTimeout(id) {
     g_trace_timer && console.log("clearTimeout",id);
+    g_trace_zero_timer && !id && console.log(window.Name,"clearTimeout failed");
     window.ClearTimeout(id);
 }
 
 _.mixin({
     alpha_timer:          function (items_arg, hover_predicate_arg) {
         this.start = function () {
-            var buttonHoverInStep = 50;
-            var buttonHoverOutStep = 15;
+            var hover_in_step = 50;
+            var hover_out_step = 15;
 
             if (!alpha_timer_internal) {
                 alpha_timer_internal = window.SetInterval(_.bind(function () {
                     _.forEach(items, function (item) {
                         var saved_alpha = item.hover_alpha;
                         if (hover_predicate(item)) {
-                            item.hover_alpha = Math.min(255, item.hover_alpha += buttonHoverInStep);
+                            item.hover_alpha = Math.min(255, item.hover_alpha += hover_in_step);
                         }
                         else {
-                            item.hover_alpha = Math.max(0, item.hover_alpha -= buttonHoverOutStep);
+                            item.hover_alpha = Math.max(0, item.hover_alpha -= hover_out_step);
                         }
 
                         if (saved_alpha !== item.hover_alpha) {
@@ -711,7 +716,7 @@ _.mixin({
         }
     },
     save:                 function (file, value) {
-        if (!_.isFolder(utils.FileTest(file, 'split').toArray()[0])) {
+        if (_.isNil(value) || !_.isFolder(utils.FileTest(file, 'split').toArray()[0])) {
             return;
         }
         if (!utils.WriteTextFile(file, value)) {

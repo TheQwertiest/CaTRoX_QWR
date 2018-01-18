@@ -150,6 +150,7 @@ function on_notify_data(name, info) {
  * @constructor
  */
 function UltraMini() {
+    //<editor-fold desc="Callback Implementation">
     this.on_paint = function (gr) {
         gr.FillSolidRect(0, 0, this.w, this.h, g_theme.colors.panel_back);
         gr.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
@@ -404,8 +405,7 @@ function UltraMini() {
             }
         }
     };
-
-    ///// EOF callbacks
+    //</editor-fold>
 
     var throttled_repaint = _.throttle(_.bind(function () {
         window.RepaintRect(this.x, this.y, this.w, this.h);
