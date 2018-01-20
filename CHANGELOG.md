@@ -8,6 +8,7 @@
   - Added tooltips on hover, which display full tag value.
   - Made possible to hide file info tags and show only metadata tags.
   - Added animation on mouse click.
+- Playlist Panel: added CTRL-SHIFT-up/down hotkeys - moves selection up/down.
 - Context Menus: developer context menu (accessible via SHIFT-right-click) now contains all base panel scripts in it's 'Edit panel scripts' sub-menu. 
 
 ### Changed
@@ -17,6 +18,7 @@
   - Added compatibility fixes for vanilla JScript v2.0.0 component.
   - Added new script files.
   - Changed default panel properties.
+- Major internal changes.
 
 ### Fixed
 - Playlist Panel:
@@ -24,8 +26,8 @@
   - Fixed incorrect scroll position that appeared in some cases.
   - Fixed invalid drag-n-drop position.
   - Fixed various errors with drag-n-drop on empty playlist area.  
-  - Fixed invalid position of ctrl-v pasted items.
-  - Fixed ctrl-x not removing cut item.
+  - Fixed invalid position of CTRL-V pasted items.
+  - Fixed CTRL-X not removing cut item.
   - Fixed various crashes during playlist navigation while focused track is not set.
 - Cover Panel:
   - Fixed 'Loading' text being stuck on script load.
@@ -42,8 +44,7 @@
 ### Fixed
 - Playlist Panel: fixed various errors with custom grouping query.
 - Menu Panel: fixed pseudo caption not always working.
-- Fixed wrong window sizes on player Mode change when FrameStyle is
-other than NoBorder.
+- Fixed wrong window sizes on player Mode change when FrameStyle is other than NoBorder.
 - Removed unneeded resizes on mode change.
 
 ## [4.0.4] - 2017-12-24
