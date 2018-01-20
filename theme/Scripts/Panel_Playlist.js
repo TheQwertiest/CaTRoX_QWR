@@ -901,6 +901,16 @@ function Playlist(x,y) {
                     return;
                 }
 
+                if (ctrl_pressed && shift_pressed) {
+                    if (!selection_handler.has_selected_items()) {
+                        return;
+                    }
+
+                    selection_handler.move_selection_up();
+
+                    break;
+                }
+
                 if (!focused_item) {
                     var first_item = _.head(this.items_to_draw);
                     focused_item = _.isInstanceOf(first_item, Header) ? _.head(first_item.rows) : first_item;
@@ -924,6 +934,16 @@ function Playlist(x,y) {
                 if (!this.cnt.rows.length) {
                     // skip repaint
                     return;
+                }
+
+                if (ctrl_pressed && shift_pressed) {
+                    if (!selection_handler.has_selected_items()) {
+                        return;
+                    }
+
+                    selection_handler.move_selection_down();
+
+                    break;
                 }
 
                 if (!focused_item) {
@@ -3370,6 +3390,8 @@ function SelectionHandler(rows_arg, headers_arg, cur_playlist_idx_arg) {
                 update_selection_with_row(item, ctrl_pressed, shift_pressed);
             }
         }
+
+        selected_indexes.sort(numeric_ascending_sort);
     };
 
     this.select_all = function () {
@@ -3540,30 +3562,7 @@ function SelectionHandler(rows_arg, headers_arg, cur_playlist_idx_arg) {
 
         clear_last_hover_row();
 
-        plman.UndoBackup(cur_playlist_idx);
-        if (is_selection_contiguous()) {
-            var focus_idx = plman.GetPlaylistFocusItemIndex(cur_playlist_idx);
-            var move_delta;
-            if (drop_idx < focus_idx) {
-                move_delta = - (_.head(selected_indexes) - drop_idx);
-            }
-            else {
-                move_delta = drop_idx - (_.last(selected_indexes) + 1);
-            }
-
-            plman.MovePlaylistSelection(cur_playlist_idx, move_delta);
-        }
-        else {
-            var item_count_before_drop_idx = _.count(selected_indexes, function(idx) {
-                return idx < drop_idx;
-            });
-
-            move_delta = - (plman.PlaylistItemCount(cur_playlist_idx) - selected_indexes.length - (drop_idx - item_count_before_drop_idx));
-
-            // Move to the end to make it contiguous, then back to drop_idx
-            plman.MovePlaylistSelection(cur_playlist_idx, plman.PlaylistItemCount(cur_playlist_idx));
-            plman.MovePlaylistSelection(cur_playlist_idx, move_delta);
-        }
+        move_selection(drop_idx);
     };
 
     this.prepare_drop_external = function () {
@@ -3645,6 +3644,22 @@ function SelectionHandler(rows_arg, headers_arg, cur_playlist_idx_arg) {
         plman.InsertPlaylistItems(playlist_idx, plman.PlaylistItemCount(playlist_idx), plman.GetPlaylistSelectedItems(cur_playlist_idx), true);
     };
 
+    this.move_selection_up = function() {
+        if (!selected_indexes.length) {
+            return;
+        }
+
+        move_selection(Math.max(0, _.head(selected_indexes) - 1));
+    };
+
+    this.move_selection_down = function() {
+        if (!selected_indexes.length) {
+            return;
+        }
+
+        move_selection(Math.min(rows.length, _.last(selected_indexes) + 2));
+    };
+
     // changes focus and selection
     function update_selection_with_row(row, ctrl_pressed, shift_pressed) {
         if (ctrl_pressed) {
@@ -3668,8 +3683,6 @@ function SelectionHandler(rows_arg, headers_arg, cur_playlist_idx_arg) {
         else if (shift_pressed) {
             var a = 0,
                 b = 0;
-
-            selected_indexes.sort(numeric_ascending_sort);
 
             if (_.isNil(last_single_selected_index)) {
                 last_single_selected_index = plman.GetPlaylistFocusItemIndex(cur_playlist_idx);
@@ -3722,8 +3735,6 @@ function SelectionHandler(rows_arg, headers_arg, cur_playlist_idx_arg) {
             var a = 0,
                 b = 0;
 
-            selected_indexes.sort(numeric_ascending_sort);
-
             if (_.isNil(last_single_selected_index)) {
                 last_single_selected_index = plman.GetPlaylistFocusItemIndex(cur_playlist_idx);
             }
@@ -3761,9 +3772,35 @@ function SelectionHandler(rows_arg, headers_arg, cur_playlist_idx_arg) {
         }
     }
 
-    function is_selection_contiguous() {
-        selected_indexes.sort(numeric_ascending_sort);
+    function move_selection(new_idx) {
+        plman.UndoBackup(cur_playlist_idx);
 
+        if (is_selection_contiguous()) {
+            var focus_idx = plman.GetPlaylistFocusItemIndex(cur_playlist_idx);
+            var move_delta;
+            if (new_idx < focus_idx) {
+                move_delta = - (_.head(selected_indexes) - new_idx);
+            }
+            else {
+                move_delta = new_idx - (_.last(selected_indexes) + 1);
+            }
+
+            plman.MovePlaylistSelection(cur_playlist_idx, move_delta);
+        }
+        else {
+            var item_count_before_drop_idx = _.count(selected_indexes, function(idx) {
+                return idx < new_idx;
+            });
+
+            move_delta = - (plman.PlaylistItemCount(cur_playlist_idx) - selected_indexes.length - (new_idx - item_count_before_drop_idx));
+
+            // Move to the end to make it contiguous, then back to drop_idx
+            plman.MovePlaylistSelection(cur_playlist_idx, plman.PlaylistItemCount(cur_playlist_idx));
+            plman.MovePlaylistSelection(cur_playlist_idx, move_delta);
+        }
+    }
+
+    function is_selection_contiguous() {
         var is_contiguous = true;
         _.forEach(selected_indexes, function (item, i) {
             if (i === 0) {
