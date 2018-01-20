@@ -9,28 +9,16 @@ function on_script_unload() {
 }
 
 // timeout and interval shims
-var g_trace_timer = false;
-var g_trace_zero_timer = false;
 function setInterval(func, wait){
-    var id = window.SetInterval(func, wait);
-    g_trace_timer && console.log("setInterval",id);
-    g_trace_zero_timer && !id && console.log(window.Name,"setInterval failed");
-    return id;
+    return window.SetInterval(func, wait);
 }
 function clearInterval(id) {
-    g_trace_timer && console.log("clearInterval",id);
-    g_trace_zero_timer && !id && console.log(window.Name,"clearInterval failed");
     window.ClearInterval(id);
 }
 function setTimeout(func, wait){
-    var id = window.SetTimeout(func, wait);
-    g_trace_timer && console.log("setTimeout",id);
-    g_trace_zero_timer && !id && console.log(window.Name,"setTimeout failed");
-    return id;
+    return window.SetTimeout(func, wait);
 }
 function clearTimeout(id) {
-    g_trace_timer && console.log("clearTimeout",id);
-    g_trace_zero_timer && !id && console.log(window.Name,"clearTimeout failed");
     window.ClearTimeout(id);
 }
 
@@ -167,102 +155,101 @@ _.mixin({
         this.set_image(img_src);
     },
     /** @constructor */
-    buttons:
-                          function () {
-                              this.reset = function () {
-                                  alpha_timer.stop();
-                              };
+    buttons:              function () {
+        this.reset = function () {
+            alpha_timer.stop();
+        };
 
-                              this.paint = function (gr, alpha) {
-                                  _.forEach(this.buttons, function (item) {
-                                      if (!item.hide) {
-                                          item.paint(gr, alpha);
-                                      }
-                                  });
-                              };
+        this.paint = function (gr, alpha) {
+            _.forEach(this.buttons, function (item) {
+                if (!item.hide) {
+                    item.paint(gr, alpha);
+                }
+            });
+        };
 
-                              this.move = function (x, y) {
-                                  var hover_btn = _.find(this.buttons, function (item) {
-                                      return item.trace(x, y);
-                                  });
+        this.move = function (x, y) {
+            var hover_btn = _.find(this.buttons, function (item) {
+                return item.trace(x, y);
+            });
 
-                                  if (hover_btn && hover_btn.hide) {// Button is hidden, ignore
-                                      if (cur_btn) {
-                                          cur_btn.cs("normal");
-                                          alpha_timer.start();
-                                      }
-                                      cur_btn = null;
-                                      return null;
-                                  }
+            if (hover_btn && hover_btn.hide) {// Button is hidden, ignore
+                if (cur_btn) {
+                    cur_btn.cs("normal");
+                    alpha_timer.start();
+                }
+                cur_btn = null;
+                return null;
+            }
 
-                                  if (cur_btn === hover_btn) {// Same button
-                                      return cur_btn;
-                                  }
+            if (cur_btn === hover_btn) {// Same button
+                return cur_btn;
+            }
 
-                                  if (cur_btn) {// Return prev button to normal state
-                                      cur_btn.cs("normal");
-                                      alpha_timer.start();
-                                  }
+            if (cur_btn) {// Return prev button to normal state
+                cur_btn.cs("normal");
+                alpha_timer.start();
+            }
 
-                                  if (hover_btn) {// Select current button
-                                      hover_btn.cs("hover");
-                                      if (this.show_tt) {
-                                          hover_btn.tt.showDelayed(hover_btn.tiptext);
-                                      }
-                                      alpha_timer.start();
-                                  }
+            if (hover_btn) {// Select current button
+                hover_btn.cs("hover");
+                if (this.show_tt) {
+                    hover_btn.tt.showDelayed(hover_btn.tiptext);
+                }
+                alpha_timer.start();
+            }
 
-                                  cur_btn = hover_btn;
-                                  return cur_btn;
-                              };
+            cur_btn = hover_btn;
+            return cur_btn;
+        };
 
-                              this.leave = function () {
-                                  if (cur_btn) {
-                                      cur_btn.cs("normal");
-                                      if (!cur_btn.hide) {
-                                          alpha_timer.start();
-                                      }
-                                  }
-                                  cur_btn = null;
-                              };
+        this.leave = function () {
+            if (cur_btn) {
+                cur_btn.cs("normal");
+                if (!cur_btn.hide) {
+                    alpha_timer.start();
+                }
+            }
+            cur_btn = null;
+        };
 
-                              this.lbtn_down = function (x, y) {
-                                  if (!cur_btn) {
-                                      // Needed when pressing on button with context menu open
-                                      this.move(x, y);
-                                  }
+        this.lbtn_down = function (x, y) {
+            if (!cur_btn) {
+                // Needed when pressing on button with context menu open
+                this.move(x, y);
+            }
 
-                                  if (!cur_btn || cur_btn.hide) {
-                                      return false;
-                                  }
+            if (!cur_btn || cur_btn.hide) {
+                return false;
+            }
 
-                                  cur_btn.cs("pressed");
-                                  return true;
-                              };
+            cur_btn.cs("pressed");
+            return true;
+        };
 
-                              this.lbtn_up = function (x, y) {
-                                  if (!cur_btn || cur_btn.hide || cur_btn.state !== "pressed") {
-                                      return false;
-                                  }
+        this.lbtn_up = function (x, y) {
+            if (!cur_btn || cur_btn.hide || cur_btn.state !== "pressed") {
+                return false;
+            }
 
-                                  if (cur_btn.trace(x, y)) {
-                                      cur_btn.cs("hover");
-                                  }
-                                  cur_btn.lbtn_up(x, y);
+            if (cur_btn.trace(x, y)) {
+                cur_btn.cs("hover");
+            }
+            cur_btn.lbtn_up(x, y);
 
-                                  return true;
-                              };
+            return true;
+        };
 
-                              this.buttons = {};
-                              this.show_tt = false;
+        this.buttons = {};
+        this.show_tt = false;
 
-                              var that = this;
+        var that = this;
 
-                              var cur_btn = null;
-                              var alpha_timer = new _.alpha_timer(that.buttons, function (item) {
-                                  return item.state !== 'normal';
-                              });
-                          },
+        var cur_btn = null;
+        var alpha_timer = new _.alpha_timer(that.buttons, function (item) {
+            return item.state !== 'normal';
+        });
+    },
     cc:                   function (name) {
         return utils.CheckComponent(name, true);
     },
