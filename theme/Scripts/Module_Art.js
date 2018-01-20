@@ -264,7 +264,7 @@ function ArtModule(optional_args) {//(Most of the art handling code was done by 
         cur_art_id = artType.defaultVal; // TODO: consider not changing art type when using reload
 
         art_arr.forEach(function (item, i) {
-            art_arr[i] = null;
+            art_arr[i] = undefined;
         });
 
         if (thumbs) {
