@@ -476,10 +476,10 @@ _.mixin({
         }
     },
     input:                function (prompt, title, value) {
-        var tmp = _.input2(prompt, title, value);
+        var tmp = _.input_cancellable(prompt, title, value);
         return _.isString(tmp) ? tmp : value;
     },
-    input2:               function (prompt, title, value) {
+    input_cancellable:    function (prompt, title, value) {
         var p = prompt.replace(/"/g, _.q(' + Chr(34) + ')).replace(/\n/g, _.q(' + Chr(13) + '));
         var t = title.replace(/"/g, _.q(' + Chr(34) + '));
         var v = value.replace(/"/g, _.q(' + Chr(34) + '));

@@ -13,6 +13,7 @@ g_script_list.push('Panel_Playlist.js');
 // Should be used only for default panel properties
 var g_is_mini_panel = (window.name.toLowerCase().indexOf('mini') !== -1);
 
+// TODO: consider making custom header text when custom grouping is used
 // TODO: consider making registration for on_key handlers
 // TODO: research the source of hangs with big art image loading (JScript? fb2k?)
 // TODO: measure draw vs backend performance (don't forget to disable playlist in other mode before testing)
@@ -40,9 +41,9 @@ g_properties.add_properties(
         collapse_on_playlist_switch: ['user.header.collapse.on_playlist_switch', false],
         collapse_on_start:           ['user.header.collapse.on_start', false],
 
-        group_query_list:           ['system.header.group.list', JSON.stringify([['artist_album_disc', '']])],
+        group_query_list:           ['system.header.group.list', JSON.stringify([['artist_album_disc', '', '']])],
         last_used_group_query_name: ['system.header.group.last_used_name', 'artist_album_disc'],
-        user_group_query:           ['system.header.group.user_defined_query', ''],
+        user_group_query:           ['system.header.group.user_defined_query', JSON.stringify(['',''])],
 
         is_selection_dynamic: ['system.selection.dynamic', true]
     }
@@ -779,6 +780,7 @@ function Playlist(x,y) {
             Header.group_query_handler.append_menu_to(cmm, _.bind(function(){
                 this.initialize_list();
                 scroll_to_focused_or_now_playing();
+                this.repaint();
             },this));
 
             append_sort_menu_to(cmm);
@@ -2669,9 +2671,17 @@ function Header(x, y, w, h, idx, row_h_arg) {
                 artist_w -= part2_right_pad + 5;
                 artist_h -= 5;
             }
-            var artist_text = _.tf('$if($greater($len(%album artist%),0),%album artist%,%artist%)', metadb);
-            if (artist_text === '?' && is_radio) {
-                artist_text = 'Radio Stream';
+
+            var artist_text;
+            if (group_query_handler.get_query_name() === 'user_defined' && group_query_handler.get_title_query())
+            {
+                artist_text = _.tf(group_query_handler.get_title_query(),metadb);
+            }
+            else {
+                artist_text = _.tf('$if($greater($len(%album artist%),0),%album artist%,%artist%)', metadb);
+                if (artist_text === '?' && is_radio) {
+                    artist_text = 'Radio Stream';
+                }
             }
 
             var artist_text_format = g_string_format.v_align_far | g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
@@ -2844,19 +2854,22 @@ function Header(x, y, w, h, idx, row_h_arg) {
         //---> DATE
         if (group_query_handler.get_query_name() !== 'artist') {
             var date_text = _.tf('%date%', metadb);
-            if (date_text === '?' && is_radio) {
+            if (date_text === '?') {
                 date_text = '';
             }
-            var date_w = Math.ceil(gr.MeasureString(date_text, date_font, 0, 0, 0, 0).Width + 5);
-            var date_x = this.w - date_w - 5;
-            var date_y = 0;
-            var date_h = this.h;
 
-            if (date_x > left_pad) {
-                grClip.DrawString(date_text, date_font, date_color, date_x, date_y, date_w, date_h, g_string_format.v_align_center);
+            if ( date_text ) {
+                var date_w = Math.ceil(gr.MeasureString(date_text, date_font, 0, 0, 0, 0).Width + 5);
+                var date_x = this.w - date_w - 5;
+                var date_y = 0;
+                var date_h = this.h;
+
+                if (date_x > left_pad) {
+                    grClip.DrawString(date_text, date_font, date_color, date_x, date_y, date_w, date_h, g_string_format.v_align_center);
+                }
+
+                right_pad += this.w - date_x;
             }
-
-            right_pad += this.w - date_x;
         }
 
         //---> ARTIST
@@ -2865,9 +2878,16 @@ function Header(x, y, w, h, idx, row_h_arg) {
             var artist_w = this.w - artist_x - (right_pad + 5);
             var artist_h = this.h;
 
-            var artist_text = _.tf('$if($greater($len(%album artist%),0),%album artist%,%artist%)', metadb);
-            if (artist_text === '?' && is_radio) {
-                artist_text = 'Radio Stream';
+            var artist_text;
+            if (group_query_handler.get_query_name() === 'user_defined' && group_query_handler.get_title_query())
+            {
+                artist_text = _.tf(group_query_handler.get_title_query(),metadb);
+            }
+            else {
+                artist_text = _.tf('$if($greater($len(%album artist%),0),%album artist%,%artist%)', metadb);
+                if (artist_text === '?' && is_radio) {
+                    artist_text = 'Radio Stream';
+                }
             }
 
             var artist_text_format = g_string_format.v_align_center | g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
@@ -2881,19 +2901,21 @@ function Header(x, y, w, h, idx, row_h_arg) {
 
         //---> ALBUM
         if (group_query_handler.get_query_name() !== 'artist') {
-            var album_h = this.h;
-            var album_x = cur_x;
-            var album_w = this.w - album_x - (right_pad + 5);
-
             var album_text = _.tf(' - %album%[ - %ALBUMSUBTITLE%]', metadb);
-            if (album_text === '?' && is_radio) {
+            if (album_text === ' - ?') {
                 album_text = '';
             }
 
-            var album_text_format = g_string_format.v_align_center | g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
-            grClip.DrawString(album_text, g_pl_fonts.album, album_color, album_x, 0, album_w, album_h, album_text_format);
+            if (album_text) {
+                var album_h = this.h;
+                var album_x = cur_x;
+                var album_w = this.w - album_x - (right_pad + 5);
 
-            //cur_x += gr.MeasureString(album_text, g_pl_fonts.album, 0, 0, 0, 0).Width;
+                var album_text_format = g_string_format.v_align_center | g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
+                grClip.DrawString(album_text, g_pl_fonts.album, album_color, album_x, 0, album_w, album_h, album_text_format);
+
+                //cur_x += gr.MeasureString(album_text, g_pl_fonts.album, 0, 0, 0, 0).Width;
+            }
         }
 
         clipImg.ReleaseGraphics(grClip);
@@ -4224,13 +4246,25 @@ function GroupQueryHandler () {
             set_query_by_name(query_name, true);
         }
         else {
-            cur_query = _.isNil(saved_query_property) ? g_properties.user_group_query : saved_query_property[1];
             cur_query_name = query_name;
+            if (!_.isNil(saved_query_property)) {
+                cur_query = saved_query_property[1];
+                cur_title_query = saved_query_property[2];
+            }
+            else {
+                var parsed_query = JSON.parse(g_properties.user_group_query);
+                cur_query = parsed_query[0];
+                cur_title_query = parsed_query[1];
+            }
         }
     };
 
     this.get_query = function () {
         return cur_query;
+    };
+
+    this.get_title_query = function () {
+        return cur_title_query;
     };
 
     this.get_query_name = function () {
@@ -4302,12 +4336,8 @@ function GroupQueryHandler () {
 
         switch (idx) {
             case 0:
-                if (request_user_query()) {
-                    set_query_by_name('user_defined');
-                }
-                else {
-                    need_notify = false;
-                }
+                request_user_query(on_execute_callback_fn);
+                need_notify = false;
                 break;
             case 1:
                 set_query_by_name('artist');
@@ -4330,27 +4360,32 @@ function GroupQueryHandler () {
 
         if (need_notify) {
             // Sync with other playlists
-            var syncData = {
-                name:                         cur_query_name,
-                g_user_group_query:           g_properties.user_group_query,
-                g_last_used_group_query_name: g_properties.last_used_group_query_name
-            };
-
-            window.NotifyOthers('sync_group_query_state', syncData);
+            notify_others();
             on_execute_callback_fn();
         }
     }
 
     /**
+     * @param {function} on_execute_callback_fn
      * @return {boolean}
      */
-    function request_user_query() {
-        var query = _.input2('Enter group query', 'Header group query', g_properties.user_group_query);
-        if (!_.isNil(query)) {
-            g_properties.user_group_query = query;
-        }
+    function request_user_query(on_execute_callback_fn) {
+        var on_finish_fn = function(ret_val) {
+            if (!ret_val[0]) {
+                return;
+            }
 
-        return !_.isNil(query);
+            g_properties.user_group_query = JSON.stringify([ret_val[0],ret_val[1]]);
+            set_query_by_name('user_defined');
+
+            notify_others();
+            on_execute_callback_fn();
+        };
+
+        var parsed_query = JSON.parse(g_properties.user_group_query);
+        if (!input_multiple(['Group','Title'], 'Header group query', [parsed_query[0],parsed_query[1]],on_finish_fn)) {
+            fb.ShowPopupMessage('Failed to create \'Customize Grouping\' Dialog', 'Theme Error');
+        }
     }
 
     function set_query_by_name(name, preserve_last_used_query) {
@@ -4365,12 +4400,17 @@ function GroupQueryHandler () {
         group_query_list[cur_playlist_idx][0] = name;
 
         if (name === 'user_defined') {
-            cur_query = g_properties.user_group_query;
+            var parsed_query = JSON.parse(g_properties.user_group_query);
+            cur_query = parsed_query[0];
+            cur_title_query = parsed_query[1];
             group_query_list[cur_playlist_idx][1] = cur_query;
+            group_query_list[cur_playlist_idx][2] = cur_title_query;
         }
         else {
             cur_query = query_item.val;
+            cur_title_query = '';
             group_query_list[cur_playlist_idx][1] = '';
+            group_query_list[cur_playlist_idx][2] = '';
         }
 
         if (!preserve_last_used_query) {
@@ -4378,6 +4418,38 @@ function GroupQueryHandler () {
         }
 
         g_properties.group_query_list = JSON.stringify(group_query_list);
+    }
+
+    function input_multiple(prompt, title, value, on_finish_fn) {
+        var prompt_copy = _.cloneDeep(prompt);
+        var value_copy = _.cloneDeep(value);
+
+        var replace_fn = function(str) {
+            return str.replace(/"/g, _.q(' + Chr(34) + '));
+        };
+
+        prompt_copy.forEach(function(item,i){
+            prompt_copy[i] = replace_fn(item).replace(/\n/g, _.q(' + Chr(13) + '));
+        });
+
+        title = replace_fn(title);
+
+        value_copy.forEach(function(item,i){
+            value_copy[i] = replace_fn(item);
+        });
+
+        return msg_box_multiple(prompt_copy, title, value_copy, on_finish_fn);
+    }
+
+    function notify_others() {
+        // Sync with other playlists
+        var syncData = {
+            name:                         cur_query_name,
+            g_user_group_query:           g_properties.user_group_query,
+            g_last_used_group_query_name: g_properties.last_used_group_query_name
+        };
+
+        window.NotifyOthers('sync_group_query_state', syncData);
     }
 
     var queries = [
@@ -4420,6 +4492,7 @@ function GroupQueryHandler () {
     var cur_playlist_idx = undefined;
 
     var cur_query = '';
+    var cur_title_query = '';
     var cur_query_name = '';
 
     var group_query_list = JSON.parse(g_properties.group_query_list);
