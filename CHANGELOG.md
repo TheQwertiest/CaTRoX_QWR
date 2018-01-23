@@ -8,11 +8,14 @@
   - Added tooltips on hover, which display full tag value.
   - Made possible to hide file info tags and show only metadata tags.
   - Added animation on mouse click.
-- Playlist Panel: added CTRL-SHIFT-up/down hotkeys - moves selection up/down.
+- Playlist Panel:
+  - Added ESplaylist-like ability to set custom header title query when user-defined grouping is used. 
+  - Added CTRL-SHIFT-up/down hotkeys - moves selection up/down.
 - Context Menus: developer context menu (accessible via SHIFT-right-click) now contains all base panel scripts in it's 'Edit panel scripts' sub-menu. 
 
 ### Changed
 - Track Info Panel: rewritten from scratch.
+- Playlist Panel: date and album are not displayed now in compact header if empty.
 - Various performance improvements.
 - Updated theme.fcl:
   - Added compatibility fixes for vanilla JScript v2.0.0 component.
