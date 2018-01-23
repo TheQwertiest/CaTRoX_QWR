@@ -51,6 +51,7 @@ g_properties.add_properties(
 
 var g_component_playcount = _.cc('foo_playcount');
 var g_component_utils = _.cc('foo_utils');
+var g_has_modded_jscript = qwr_utils.has_modded_jscript();
 
 // Fixup properties
 (function() {
@@ -4281,41 +4282,41 @@ function GroupQueryHandler () {
         }
         group.append_item(
             group_by_text,
-            function() {
+            function () {
                 execute_menu(0, on_execute_callback_fn);
             }
         );
 
         group.append_item(
             'by artist',
-            function() {
+            function () {
                 execute_menu(1, on_execute_callback_fn);
             }
         );
 
         group.append_item(
             'by artist / album',
-            function() {
+            function () {
                 execute_menu(2, on_execute_callback_fn);
             }
         );
         group.append_item(
-           'by artist / album / disc number',
-            function() {
+            'by artist / album / disc number',
+            function () {
                 execute_menu(3, on_execute_callback_fn);
             }
         );
 
         group.append_item(
             'by path',
-            function() {
+            function () {
                 execute_menu(4, on_execute_callback_fn);
             }
         );
 
         group.append_item(
             'by date',
-            function() {
+            function () {
                 execute_menu(5, on_execute_callback_fn);
             }
         );
@@ -4324,7 +4325,7 @@ function GroupQueryHandler () {
         group.radio_check(0, query_idx);
     };
 
-    this.sync_state = function(value) {
+    this.sync_state = function (value) {
         g_properties.user_group_query = value.g_user_group_query;
         g_properties.last_used_group_query_name = value.g_last_used_group_query_name;
 
@@ -4370,20 +4371,24 @@ function GroupQueryHandler () {
      * @return {boolean}
      */
     function request_user_query(on_execute_callback_fn) {
-        var on_finish_fn = function(ret_val) {
+        var on_finish_fn = function (ret_val) {
             if (!ret_val[0]) {
                 return;
             }
 
-            g_properties.user_group_query = JSON.stringify([ret_val[0],ret_val[1]]);
+            g_properties.user_group_query = JSON.stringify([ret_val[0], ret_val[1]]);
             set_query_by_name('user_defined');
 
             notify_others();
             on_execute_callback_fn();
         };
 
+        var fb_handle = g_has_modded_jscript ? wsh_utils.GetWndByHandle(window.ID) : undefined;
+        var x = fb_handle ? fb_handle.Left - 150 : 400;
+        var y = fb_handle ? fb_handle.Top + 100 : 300;
+
         var parsed_query = JSON.parse(g_properties.user_group_query);
-        if (!input_multiple(['Group','Title'], 'Header group query', [parsed_query[0],parsed_query[1]],on_finish_fn)) {
+        if (!input_multiple(x, y, ['Group', 'Title'], 'Header group query', [parsed_query[0], parsed_query[1]], on_finish_fn)) {
             fb.ShowPopupMessage('Failed to create \'Customize Grouping\' Dialog', 'Theme Error');
         }
     }
@@ -4420,25 +4425,25 @@ function GroupQueryHandler () {
         g_properties.group_query_list = JSON.stringify(group_query_list);
     }
 
-    function input_multiple(prompt, title, value, on_finish_fn) {
+    function input_multiple(x, y, prompt, title, value, on_finish_fn) {
         var prompt_copy = _.cloneDeep(prompt);
         var value_copy = _.cloneDeep(value);
 
-        var replace_fn = function(str) {
+        var replace_fn = function (str) {
             return str.replace(/"/g, _.q(' + Chr(34) + '));
         };
 
-        prompt_copy.forEach(function(item,i){
+        prompt_copy.forEach(function (item, i) {
             prompt_copy[i] = replace_fn(item).replace(/\n/g, _.q(' + Chr(13) + '));
         });
 
         title = replace_fn(title);
 
-        value_copy.forEach(function(item,i){
+        value_copy.forEach(function (item, i) {
             value_copy[i] = replace_fn(item);
         });
 
-        return msg_box_multiple(prompt_copy, title, value_copy, on_finish_fn);
+        return msg_box_multiple(x, y, prompt_copy, title, value_copy, on_finish_fn);
     }
 
     function notify_others() {
@@ -4484,7 +4489,7 @@ function GroupQueryHandler () {
             val:  '%date%'
         }
     ];
-    var query_map_by_name = queries.map(function(item) {
+    var query_map_by_name = queries.map(function (item) {
         return item.name;
     });
 

@@ -1,3 +1,18 @@
+// ==PREPROCESSOR==
+// @name 'Common'
+// @author 'Hta Message Box Control'
+// ==/PREPROCESSOR==
+
+/**
+ * @param {number} x
+ * @param {number} y
+ * @param {number} w
+ * @param {number} h
+ * @param {string} title
+ * @param {string} content
+ * @param {string} features
+ * @return {*}
+ */
 function create_hta_window(x, y, w, h, title, content, features) {
     var hta_wnd_id = "a" + Math.floor(Math.random() * 10000000);
     var CodeForLinking = "<script>moveTo(-1000,-1000);resizeTo(0,0);</script>" +
@@ -12,7 +27,7 @@ function create_hta_window(x, y, w, h, title, content, features) {
     var wnd;
     // Dirty hack to simulate sleep
     var now = new Date().getTime();
-    while(!wnd && new Date().getTime() < now + 1000) {
+    while (!wnd && new Date().getTime() < now + 1000) {
         for (var i = windows.Count; --i >= 0;) {
             try {
                 if (windows.Item(i).id === hta_wnd_id) {
@@ -41,7 +56,20 @@ function create_hta_window(x, y, w, h, title, content, features) {
     return wnd;
 }
 
-function msg_box_multiple(prompt,title,defval,on_finish_fn) {
+/**
+ * @param {number} x
+ * @param {number} y
+ * @param {Array<string>} prompt
+ * @param {string} title
+ * @param {Array<string>} defval
+ * @param {function} on_finish_fn
+ * @return {boolean}
+ */
+function msg_box_multiple(x,y,prompt,title,defval,on_finish_fn) {
+    if (prompt.length !== defval.length) {
+        throw new ArgumentError('Prompts and default values', prompt.length + ' and ' + defval.length, 'Array sizes must be equal');
+    }
+
     var content, wnd;
 
     var val_count = prompt.length;
@@ -70,13 +98,13 @@ function msg_box_multiple(prompt,title,defval,on_finish_fn) {
         '<style type="text/css">' +
         'div { overflow: hidden; }' +
         'span { display: block; overflow: hidden; padding-right:10px; }' +
-        'label { float:left; width: 80px; text-align: right; padding-right:7px; }' +
+        'label { float:left; width: 60px; text-align: right; padding-right:7px; }' +
         'input { width: 100%; }' +
         'button { width: 75px; margin: 5px; padding: 3px; float: right; }' +
         '.input_line { padding-bottom:7px; }' +
         '</style>' +
         '</head>' +
-        '<body background="buttonface">' +
+        '<body bgcolor="#FOFOFO">' +
         '<div>' +
         input_text +
         '<button id="hta_cancel">Cancel</button>' +
@@ -93,27 +121,27 @@ function msg_box_multiple(prompt,title,defval,on_finish_fn) {
         'showIntaskbar=yes ' +
         'contextMenu=yes ' +
         'selection=no ' +
-        'innerBorder=no';
-        //+ 'icon=\"' + fb.FoobarPath + '\\' + 'foobar2000.exe' + '\"';
+        'innerBorder=no ';
+        //'icon=\"' + fb.FoobarPath + 'foobar2000.exe' + '\"';
 
     var window_h = 29 * val_count + 83;
-    wnd = create_hta_window(100, 100, 370, window_h, title, content, hta_features);
+    wnd = create_hta_window(x, y, 370, window_h, title, content, hta_features);
     if (!wnd) {
         return false;
     }
 
     wnd.hta_ok.focus();
 
-    wnd.document.body.onunload = function() {
+    wnd.document.body.onunload = function () {
         on_finish_fn([]);
     };
 
-    wnd.hta_cancel.onclick = function() {
+    wnd.hta_cancel.onclick = function () {
         wnd.close();
         on_finish_fn([]);
     };
 
-    wnd.hta_ok.onclick = function() {
+    wnd.hta_ok.onclick = function () {
         var vals = [];
         for (var i = 0; i < val_count; ++i) {
             vals.push(wnd['input_val_' + i].value);

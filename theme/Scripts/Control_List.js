@@ -81,8 +81,6 @@ List = function (x, y, w, h, content) {
     this.rows_to_draw_precise = 0;
 
     /** @protected {Array<List.Item>} */
-    this.rows = [];
-    /** @protected {Array<List.Item>} */
     this.items_to_draw = [];
 
     // Mouse and key state
@@ -354,7 +352,7 @@ List.prototype.on_w_size = function (w) {
 };
 
 /**
- * Called when this.rows content is changed.
+ * Called when data in Content is changed.
  * @protected
  */
 List.prototype.on_list_items_change = function () {
