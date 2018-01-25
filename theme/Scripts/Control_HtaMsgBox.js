@@ -3,6 +3,8 @@
 // @author 'Hta Message Box Control'
 // ==/PREPROCESSOR==
 
+g_script_list.push('Control_HtaMsgBox.js');
+
 /**
  * @param {number} x
  * @param {number} y
@@ -69,6 +71,7 @@ function msg_box_multiple(x,y,prompt,title,defval,on_finish_fn) {
     if (prompt.length !== defval.length) {
         throw new ArgumentError('Prompts and default values', prompt.length + ' and ' + defval.length, 'Array sizes must be equal');
     }
+    title = title.replace(/"/g, '\'');
 
     var content, wnd;
 
@@ -93,36 +96,40 @@ function msg_box_multiple(x,y,prompt,title,defval,on_finish_fn) {
 
     content =
         '<html>' +
-        '<head>' +
-        '<meta http-equiv="x-ua-compatible" content="IE=9"/>' +
-        '<style type="text/css">' +
-        'div { overflow: hidden; }' +
-        'span { display: block; overflow: hidden; padding-right:10px; }' +
-        'label { float:left; width: 60px; text-align: right; padding-right:7px; }' +
-        'input { width: 100%; }' +
-        'button { width: 75px; margin: 5px; padding: 3px; float: right; }' +
-        '.input_line { padding-bottom:7px; }' +
-        '</style>' +
-        '</head>' +
-        '<body bgcolor="#FOFOFO">' +
-        '<div>' +
-        input_text +
-        '<button id="hta_cancel">Cancel</button>' +
-        '<button id="hta_ok">OK</button>' +
-        '</div>' +
-        '</body>' +
+            '<head>' +
+            '<meta http-equiv="x-ua-compatible" content="IE=9"/>' +
+                '<style type="text/css">' +
+                    'body { color: WindowText; background-color: Menu; }' +
+                    'div { overflow: hidden; }' +
+                    'span { display: block; overflow: hidden; padding-right:10px; }' +
+                    'label { font:caption; float:left; width: 50px; text-align: right; padding-right:7px; padding-top: 2px; }' +
+                    'input { font:caption;  border: 1px solid #7A7A7A; width: 100%; }' +
+                    'input:focus { outline: none !important; border:1px solid #0078D7; }' +
+                    'button { font:caption; background:#E1E1E1; color:ButtonText; border: 1px solid #ADADAD; width: 70px; margin: 5px; padding: 3px; float: right; }' +
+                    'button:focus { outline: none !important; border:2px solid #0078D7; }' +
+                    '.input_line { padding-bottom:7px; }' +
+                '</style>' +
+            '</head>' +
+            '<body>' +
+                '<div>' +
+                    input_text +
+                    '<button id="hta_cancel">Cancel</button>' +
+                    '<button id="hta_ok">OK</button>' +
+                '</div>' +
+            '</body>' +
         '</html>';
 
     var hta_features =
+        'singleinstance=yes ' +
         'border=dialog ' +
         'minimizeButton=no ' +
         'maximizeButton=no ' +
         'scroll=no ' +
-        'showIntaskbar=yes ' +
+        'showintaskbar=yes ' +
         'contextMenu=yes ' +
         'selection=no ' +
         'innerBorder=no ';
-        //'icon=\"' + fb.FoobarPath + 'foobar2000.exe' + '\"';
+    //'icon=\"' + fb.FoobarPath + 'foobar2000.exe' + '\"';
 
     var window_h = 29 * val_count + 83;
     wnd = create_hta_window(x, y, 370, window_h, title, content, hta_features);
