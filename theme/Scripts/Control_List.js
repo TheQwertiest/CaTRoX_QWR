@@ -289,6 +289,8 @@ List.prototype.on_mouse_rbtn_up = function (x, y, m) {
     cmm.execute(x,y);
     cmm.dispose();
 
+    this.repaint();
+
     return true;
 };
 

@@ -1024,7 +1024,7 @@ function WindowModeHandler() {
         UIHacks.MaxSize.Height = maxH;
     }
 
-    var fb_handle = g_has_modded_jscript ? wsh_utils.GetWndByHandle(window.ID).GetAncestor(1) : undefined;
+    var fb_handle = g_has_modded_jscript ? qwr_utils.get_top_theme_window() : undefined;
 }
 
 /**

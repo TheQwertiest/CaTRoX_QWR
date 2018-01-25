@@ -369,7 +369,50 @@ var qwr_utils = {
         };
 
         var saved_key;
-    }
+    },
+    /**
+     * @return {IWindow}
+     */
+    get_fb2k_window:  _.once(function () {
+        if (!qwr_utils.has_modded_jscript())
+        {
+            throw new LogicError('Can\'t use extensions with vanilla JScript')
+        }
+
+        // fb2k main window class
+        var ret_wnd = wsh_utils.GetWndByHandle(window.id);
+        while (ret_wnd && ret_wnd.GetAncestor(1) && ret_wnd.className !== '{E7076D1C-A7BF-4f39-B771-BCBE88F2A2A8}')
+        {// We might have multiple instances of fb2k, thus getting the parent one instead of global search
+            ret_wnd = ret_wnd.GetAncestor(1);
+        }
+
+        if (!ret_wnd || ret_wnd.className !== '{E7076D1C-A7BF-4f39-B771-BCBE88F2A2A8}') {
+            throw new LogicError('Failed to get top theme window')
+        }
+
+        return ret_wnd;
+    }),
+    /**
+     * @return {IWindow}
+     */
+    get_top_theme_window:  _.once(function () {
+        if (!qwr_utils.has_modded_jscript())
+        {
+            throw new LogicError('Can\'t use extensions with vanilla JScript')
+        }
+
+        var ret_wnd = wsh_utils.GetWndByHandle(window.id);
+        while (ret_wnd && ret_wnd.GetAncestor(1) && ret_wnd.GetAncestor(1).id !== qwr_utils.get_fb2k_window().id)
+        {
+            ret_wnd = ret_wnd.GetAncestor(1);
+        }
+
+        if (!ret_wnd || ret_wnd.GetAncestor(1).id !== qwr_utils.get_fb2k_window().id) {
+            throw new LogicError('Failed to get top theme window')
+        }
+
+        return ret_wnd;
+    })
 };
 
 /**

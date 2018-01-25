@@ -4383,12 +4383,12 @@ function GroupQueryHandler () {
             on_execute_callback_fn();
         };
 
-        var fb_handle = g_has_modded_jscript ? wsh_utils.GetWndByHandle(window.ID) : undefined;
-        var x = fb_handle ? fb_handle.Left - 150 : 400;
-        var y = fb_handle ? fb_handle.Top + 100 : 300;
+        var fb_handle = g_has_modded_jscript ? qwr_utils.get_fb2k_window() : undefined;
+        var x = fb_handle ? fb_handle.Left + fb_handle.Width/3 : 400;
+        var y = fb_handle ? fb_handle.Top + fb_handle.Height/3 : 300;
 
         var parsed_query = JSON.parse(g_properties.user_group_query);
-        if (!input_multiple(x, y, ['Group', 'Title'], 'Header group query', [parsed_query[0], parsed_query[1]], on_finish_fn)) {
+        if (!msg_box_multiple(x, y, ['Group', 'Title'], 'Header group query', [parsed_query[0], parsed_query[1]], on_finish_fn)) {
             fb.ShowPopupMessage('Failed to create \'Customize Grouping\' Dialog', 'Theme Error');
         }
     }
@@ -4423,27 +4423,6 @@ function GroupQueryHandler () {
         }
 
         g_properties.group_query_list = JSON.stringify(group_query_list);
-    }
-
-    function input_multiple(x, y, prompt, title, value, on_finish_fn) {
-        var prompt_copy = _.cloneDeep(prompt);
-        var value_copy = _.cloneDeep(value);
-
-        var replace_fn = function (str) {
-            return str.replace(/"/g, _.q(' + Chr(34) + '));
-        };
-
-        prompt_copy.forEach(function (item, i) {
-            prompt_copy[i] = replace_fn(item).replace(/\n/g, _.q(' + Chr(13) + '));
-        });
-
-        title = replace_fn(title);
-
-        value_copy.forEach(function (item, i) {
-            value_copy[i] = replace_fn(item);
-        });
-
-        return msg_box_multiple(x, y, prompt_copy, title, value_copy, on_finish_fn);
     }
 
     function notify_others() {
