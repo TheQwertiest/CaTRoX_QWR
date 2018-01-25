@@ -696,10 +696,12 @@ _.mixin({
             return false;
         }
     },
-    runCmd:               function (command, wait) {
+    runCmd:               function (command, wait, hide) {
         try {
-            WshShell.Run(command, 0, !_.isNil(wait) ? wait : false);
+            WshShell.Run(command, hide ? 0 : 1 , !_.isNil(wait) ? wait : false);
+            return true;
         } catch (e) {
+            return false;
         }
     },
     save:                 function (file, value) {
