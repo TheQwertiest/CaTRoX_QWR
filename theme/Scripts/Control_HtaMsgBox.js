@@ -106,7 +106,7 @@ function msg_box_multiple(x,y,prompt,title,defval,on_finish_fn) {
                     'input { font:caption;  border: 1px solid #7A7A7A; width: 100%; }' +
                     'input:focus { outline: none !important; border:1px solid #0078D7; }' +
                     'button { font:caption; background:#E1E1E1; color:ButtonText; border: 1px solid #ADADAD; width: 70px; margin: 5px; padding: 3px; float: right; }' +
-                    'button:focus { outline: none !important; border:2px solid #0078D7; }' +
+                    'button:focus { outline: none !important; border:2px solid #0078D7; padding: 2px }' +
                     '.input_line { padding-bottom:7px; }' +
                 '</style>' +
             '</head>' +

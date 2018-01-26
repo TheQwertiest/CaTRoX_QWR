@@ -7,6 +7,9 @@ var trace_call = false;
 var trace_on_paint = false;
 var trace_on_move = false;
 
+// Performance
+// TODO: instead of always generating row images, it should be generated only on mouse click
+
 g_script_list.push('Panel_Info.js');
 
 g_properties.add_properties(

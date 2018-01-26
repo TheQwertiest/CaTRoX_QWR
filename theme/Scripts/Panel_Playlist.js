@@ -13,7 +13,11 @@ g_script_list.push('Panel_Playlist.js');
 // Should be used only for default panel properties
 var g_is_mini_panel = (window.name.toLowerCase().indexOf('mini') !== -1);
 
-// TODO: consider making custom header text when custom grouping is used
+// Niceties:
+// TODO: add press animation on playlist manager
+// TODO: add grouping manager (HTA based) with ability to add/rename/remove/up/down
+// TODO: grouping manager (HTA based): consider adding other EsPlaylist grouping features - sorting, playlist association
+// Low priority:
 // TODO: consider making registration for on_key handlers
 // TODO: research the source of hangs with big art image loading (JScript? fb2k?)
 // TODO: measure draw vs backend performance (don't forget to disable playlist in other mode before testing)
@@ -41,11 +45,11 @@ g_properties.add_properties(
         collapse_on_playlist_switch: ['user.header.collapse.on_playlist_switch', false],
         collapse_on_start:           ['user.header.collapse.on_start', false],
 
-        group_query_list:           ['system.header.group.list', JSON.stringify([['artist_album_disc', '', '']])],
-        last_used_group_query_name: ['system.header.group.last_used_name', 'artist_album_disc'],
-        user_group_query:           ['system.header.group.user_defined_query', JSON.stringify(['',''])],
+        is_selection_dynamic: ['system.selection.dynamic', true],
 
-        is_selection_dynamic: ['system.selection.dynamic', true]
+        playlist_group_data:        ['system.playlist.grouping.data_list', ''],
+        playlist_custom_group_data: ['system.playlist.grouping.custom_data_list', ''],
+        last_used_group_name:       ['system.playlist.grouping.last_used_group', '']
     }
 );
 
@@ -60,10 +64,7 @@ var g_has_modded_jscript = qwr_utils.has_modded_jscript();
     g_properties.show_rating = g_properties.show_rating && g_component_playcount;
     g_properties.show_playcount = g_properties.show_playcount && g_component_playcount;
 
-    var group_query_list = JSON.parse(g_properties.group_query_list);
-    if (!_.isArray(group_query_list) || !_.isArray(group_query_list[0])) {
-        g_properties.group_query_list = JSON.stringify([[]]);
-    }
+    // Grouping data is validated in it's class ctor
 })();
 
 //---> Fonts
@@ -400,6 +401,9 @@ function PlaylistPanel() {
     };
 
     this.on_playlists_changed = function () {
+        if (g_properties.show_playlist_info) {
+            playlist_info.on_playlist_modified();
+        }
         playlist.on_playlists_changed();
     };
 
@@ -778,7 +782,7 @@ function Playlist(x,y) {
 
             append_appearance_menu_to(cmm);
 
-            Header.group_query_handler.append_menu_to(cmm, _.bind(function(){
+            Header.grouping_handler.append_menu_to(cmm, _.bind(function(){
                 this.initialize_list();
                 scroll_to_focused_or_now_playing();
                 this.repaint();
@@ -1228,6 +1232,13 @@ function Playlist(x,y) {
             || plman.ActivePlaylist === -1) {
             plman.ActivePlaylist = plman.PlaylistCount - 1;
         }
+
+        Header.grouping_handler.on_playlists_changed();
+        Header.grouping_handler.set_active_playlist(plman.GetPlaylistName(plman.ActivePlaylist));
+
+        if (plman.ActivePlaylist !== cur_playlist_idx) {
+            this.initialize_and_repaint_list();
+        }
     };
 
     this.on_playlist_switch = function () {
@@ -1246,7 +1257,7 @@ function Playlist(x,y) {
         if (selection_handler.is_external_drop()) {
             selection_handler.drop_external();
         }
-        this.initialize_and_repaint_list(playlist_idx);
+        this.initialize_and_repaint_list();
     };
 
     this.on_playlist_items_reordered = function (playlist_idx) {
@@ -1348,7 +1359,7 @@ function Playlist(x,y) {
 
     this.on_notify_data = function (name, info) {
         if ( name === 'sync_group_query_state') {
-            Header.group_query_handler.sync_state(info);
+            Header.grouping_handler.sync_state(info);
             this.initialize_list();
             scroll_to_focused_or_now_playing();
         }
@@ -1394,7 +1405,7 @@ function Playlist(x,y) {
 
         // Initialize headers
 
-        Header.group_query_handler.initialize(cur_playlist_idx);
+        Header.grouping_handler.set_active_playlist(plman.GetPlaylistName(cur_playlist_idx));
         this.cnt.headers = create_headers(this.cnt.rows);
         collapse_handler.initialize(this.cnt.headers);
 
@@ -1769,7 +1780,7 @@ function Playlist(x,y) {
         parent_menu.append(sort);
 
         sort.append_item(
-            'Sort by...',
+            'by...',
             function () {
                 if (has_multiple_selected_items) {
                     fb.RunMainMenuCommand('Edit/Selection/Sort/Sort by...');
@@ -1779,6 +1790,76 @@ function Playlist(x,y) {
                 }
             }
         );
+
+        sort.append_item(
+            'by album',
+            function () {
+                if (has_multiple_selected_items) {
+                    fb.RunMainMenuCommand('Edit/Selection/Sort/Sort by album');
+                }
+                else {
+                    fb.RunMainMenuCommand('Edit/Sort/Sort by album');
+                }
+            }
+        );
+
+        sort.append_item(
+            'by artist',
+            function () {
+                if (has_multiple_selected_items) {
+                    fb.RunMainMenuCommand('Edit/Selection/Sort/Sort by artist');
+                }
+                else {
+                    fb.RunMainMenuCommand('Edit/Sort/Sort by artist');
+                }
+            }
+        );
+
+        sort.append_item(
+            'by file path',
+            function () {
+                if (has_multiple_selected_items) {
+                    fb.RunMainMenuCommand('Edit/Selection/Sort/Sort by file path');
+                }
+                else {
+                    fb.RunMainMenuCommand('Edit/Sort/Sort by file path');
+                }
+            }
+        );
+
+        sort.append_item(
+            'by title',
+            function () {
+                if (has_multiple_selected_items) {
+                    fb.RunMainMenuCommand('Edit/Selection/Sort/Sort by title');
+                }
+                else {
+                    fb.RunMainMenuCommand('Edit/Sort/Sort by title');
+                }
+            }
+        );
+
+        sort.append_item(
+            'by track number',
+            function () {
+                if (has_multiple_selected_items) {
+                    fb.RunMainMenuCommand('Edit/Selection/Sort/Sort by track number');
+                }
+                else {
+                    fb.RunMainMenuCommand('Edit/Sort/Sort by track number');
+                }
+            }
+        );
+
+        sort.append_item(
+            'by date',
+            function () {
+                plman.UndoBackup(cur_playlist_idx);
+                plman.SortByFormat(cur_playlist_idx, '%date%', has_multiple_selected_items);
+            }
+        );
+
+        sort.append_separator();
 
         sort.append_item(
             'Randomize',
@@ -1801,74 +1882,6 @@ function Playlist(x,y) {
                 else {
                     fb.RunMainMenuCommand('Edit/Sort/Reverse')
                 }
-            }
-        );
-
-        sort.append_item(
-            'Sort by album',
-            function () {
-                if (has_multiple_selected_items) {
-                    fb.RunMainMenuCommand('Edit/Selection/Sort/Sort by album');
-                }
-                else {
-                    fb.RunMainMenuCommand('Edit/Sort/Sort by album');
-                }
-            }
-        );
-
-        sort.append_item(
-            'Sort by artist',
-            function () {
-                if (has_multiple_selected_items) {
-                    fb.RunMainMenuCommand('Edit/Selection/Sort/Sort by artist');
-                }
-                else {
-                    fb.RunMainMenuCommand('Edit/Sort/Sort by artist');
-                }
-            }
-        );
-
-        sort.append_item(
-            'Sort by file path',
-            function () {
-                if (has_multiple_selected_items) {
-                    fb.RunMainMenuCommand('Edit/Selection/Sort/Sort by file path');
-                }
-                else {
-                    fb.RunMainMenuCommand('Edit/Sort/Sort by file path');
-                }
-            }
-        );
-
-        sort.append_item(
-            'Sort by title',
-            function () {
-                if (has_multiple_selected_items) {
-                    fb.RunMainMenuCommand('Edit/Selection/Sort/Sort by title');
-                }
-                else {
-                    fb.RunMainMenuCommand('Edit/Sort/Sort by title');
-                }
-            }
-        );
-
-        sort.append_item(
-            'Sort by track number',
-            function () {
-                if (has_multiple_selected_items) {
-                    fb.RunMainMenuCommand('Edit/Selection/Sort/Sort by track number');
-                }
-                else {
-                    fb.RunMainMenuCommand('Edit/Sort/Sort by track number');
-                }
-            }
-        );
-
-        sort.append_item(
-            'Sort by date',
-            function () {
-                plman.UndoBackup(cur_playlist_idx);
-                plman.SortByFormat(cur_playlist_idx, '%date%', has_multiple_selected_items);
             }
         );
     }
@@ -2643,7 +2656,7 @@ function Header(x, y, w, h, idx, row_h_arg) {
         var part2_right_pad = 0;
 
         //---> DATE
-        if (group_query_handler.get_query_name() !== 'artist') {
+        if (grouping_handler.show_date()) {
             var date_text = _.tf('%date%', metadb);
             if (date_text === '?') {
                 date_text = '';
@@ -2674,9 +2687,9 @@ function Header(x, y, w, h, idx, row_h_arg) {
             }
 
             var artist_text;
-            if (group_query_handler.get_query_name() === 'user_defined' && group_query_handler.get_title_query())
+            if (grouping_handler.get_query_name() === 'user_defined' && grouping_handler.get_title_query())
             {
-                artist_text = _.tf(group_query_handler.get_title_query(),metadb);
+                artist_text = _.tf(grouping_handler.get_title_query(),metadb);
             }
             else {
                 artist_text = _.tf('$if($greater($len(%album artist%),0),%album artist%,%artist%)', metadb);
@@ -2692,7 +2705,7 @@ function Header(x, y, w, h, idx, row_h_arg) {
         }
 
         //---> ALBUM
-        if (group_query_handler.get_query_name() !== 'artist') {
+        if (grouping_handler.show_album()) {
 
             var album_text = _.tf('%album%[ - %ALBUMSUBTITLE%]', metadb);
             if (album_text === '?') {
@@ -2766,8 +2779,8 @@ function Header(x, y, w, h, idx, row_h_arg) {
             }
 
             var track_count = this.rows.length;
-            var genre = is_radio ? '' : (group_query_handler.get_query_name() !== 'artist' ? '[%genre% | ]' : '');
-            var disc_number = (group_query_handler.get_query_name() === 'artist_album_disc' && _.tf('[%totaldiscs%]', metadb) !== '1') ? _.tf('[ | Disc: %discnumber%/%totaldiscs%]', metadb) : '';
+            var genre = is_radio ? '' : (grouping_handler.get_query_name() !== 'artist' ? '[%genre% | ]' : '');
+            var disc_number = (grouping_handler.show_cd() && _.tf('[%totaldiscs%]', metadb) !== '1') ? _.tf('[ | Disc: %discnumber%/%totaldiscs%]', metadb) : '';
             var info_text = _.tf(genre + codec + disc_number + '[ | %replaygain_album_gain%]', metadb) + (is_radio ? '' : ' | ' + track_count + (track_count === 1 ? ' Track' : ' Tracks'));
             if (get_duration()) {
                 info_text += ' | Time: ' + get_duration();
@@ -2853,7 +2866,7 @@ function Header(x, y, w, h, idx, row_h_arg) {
         var cur_x = left_pad;
 
         //---> DATE
-        if (group_query_handler.get_query_name() !== 'artist') {
+        if (grouping_handler.show_date()) {
             var date_text = _.tf('%date%', metadb);
             if (date_text === '?') {
                 date_text = '';
@@ -2880,9 +2893,9 @@ function Header(x, y, w, h, idx, row_h_arg) {
             var artist_h = this.h;
 
             var artist_text;
-            if (group_query_handler.get_query_name() === 'user_defined' && group_query_handler.get_title_query())
+            if (grouping_handler.get_query_name() === 'user_defined' && grouping_handler.get_title_query())
             {
-                artist_text = _.tf(group_query_handler.get_title_query(),metadb);
+                artist_text = _.tf(grouping_handler.get_title_query(),metadb);
             }
             else {
                 artist_text = _.tf('$if($greater($len(%album artist%),0),%album artist%,%artist%)', metadb);
@@ -2901,7 +2914,7 @@ function Header(x, y, w, h, idx, row_h_arg) {
         }
 
         //---> ALBUM
-        if (group_query_handler.get_query_name() !== 'artist') {
+        if (grouping_handler.show_album()) {
             var album_text = _.tf(' - %album%[ - %ALBUMSUBTITLE%]', metadb);
             if (album_text === ' - ?') {
                 album_text = '';
@@ -2953,7 +2966,7 @@ function Header(x, y, w, h, idx, row_h_arg) {
             return;
         }
 
-        var query = group_query_handler.get_query();
+        var query = grouping_handler.get_query();
         var group = _.tf(query, rows_to_process[0].metadb);
         _.forEach(rows_to_process, _.bind(function (item, i) {
             var cur_group = _.tf(query, item.metadb);
@@ -3031,11 +3044,10 @@ function Header(x, y, w, h, idx, row_h_arg) {
 
     var metadb;
     var art = undefined;
-    var group_query_handler = Header.group_query_handler;
+    var grouping_handler = Header.grouping_handler;
 }
 Header.prototype = Object.create(List.Item.prototype);
 Header.prototype.constructor = Header;
-Header.group_query_handler = new GroupQueryHandler();
 
 /**
  * @constructor
@@ -4236,150 +4248,175 @@ PlaylistManager.append_playlist_info_visibility_context_menu_to = function(paren
 /**
  * @constructor
  */
-function GroupQueryHandler () {
-    this.initialize = function (cur_playlist_idx_arg) {
-        cur_playlist_idx = cur_playlist_idx_arg;
+function GroupingHandler () {
+    this.on_playlists_changed = function() {
+        var playlist_count = plman.PlaylistCount;
+        var new_playlists = [];
+        for (var i = 0; i < playlist_count; ++i) {
+            new_playlists.push(plman.GetPlaylistName(i));
+        }
 
-        var saved_query_property = group_query_list[cur_playlist_idx];
-        var query_name = _.isNil(saved_query_property) ? g_properties.last_used_group_query_name : saved_query_property[0];
+        var save_needed = false;
 
-        if (query_name !== 'user_defined') {
-            set_query_by_name(query_name, true);
+        if (playlists.length > playlist_count) {
+            // removed
+
+            var playlists_to_remove = _.difference(playlists, new_playlists);
+            playlists_to_remove.forEach(function(playlist_name){
+                delete settings.playlist_group_data[playlist_name];
+                delete settings.playlist_custom_group_data[playlist_name];
+            });
+
+            save_needed = true;
+        }
+        else if (playlists.length === playlist_count) {
+            // may be renamed?
+
+            var playlist_difference_new = _.difference(new_playlists, playlists);
+            var playlist_difference_old = _.difference(playlists, new_playlists);
+            if (playlist_difference_old.length === 1) {
+                // playlist_difference_new.length > 0 and playlist_difference_old.length === 0 means that
+                // playlists contained multiple items of the same name (one of which was changed)
+                var old_name = playlist_difference_old[0];
+                var new_name = playlist_difference_new[0];
+
+                var group_name = settings.playlist_group_data[old_name];
+                var custom_group = settings.playlist_custom_group_data[old_name];
+
+                settings.playlist_group_data[new_name] = group_name;
+                if (custom_group) {
+                    settings.playlist_custom_group_data[new_name] = custom_group;
+                }
+
+                delete settings.playlist_group_data[old_name];
+                delete settings.playlist_custom_group_data[old_name];
+
+                save_needed = true;
+            }
+        }
+
+        playlists = new_playlists;
+        if (save_needed) {
+            settings.save();
+        }
+    };
+
+    this.set_active_playlist = function (cur_playlist_name_arg) {
+        cur_playlist_name = cur_playlist_name_arg;
+        var group_name = settings.playlist_group_data[cur_playlist_name];
+        if (!group_name) {
+            group_name = settings.last_used_group_name;
+        }
+
+        if (group_name === 'user_defined') {
+            cur_group = settings.playlist_custom_group_data[cur_playlist_name];
         }
         else {
-            cur_query_name = query_name;
-            if (!_.isNil(saved_query_property)) {
-                cur_query = saved_query_property[1];
-                cur_title_query = saved_query_property[2];
-            }
-            else {
-                var parsed_query = JSON.parse(g_properties.user_group_query);
-                cur_query = parsed_query[0];
-                cur_title_query = parsed_query[1];
-            }
+            cur_group = settings.group_data_list[group_by_name.indexOf(group_name)];
+        }
+
+        if (!cur_group) {
+            throw new ArgumentError('group_name', group_name);
         }
     };
 
     this.get_query = function () {
-        return cur_query;
+        return cur_group.group_query;
     };
 
     this.get_title_query = function () {
-        return cur_title_query;
+        return cur_group.title_query;
     };
 
     this.get_query_name = function () {
-        return cur_query_name;
+        return cur_group.name;
+    };
+
+    this.show_cd = function() {
+        return cur_group.show_cd;
+    };
+
+    this.show_date = function() {
+        return cur_group.show_date;
+    };
+
+    this.show_album = function() {
+        return cur_group.show_album;
     };
 
     this.append_menu_to = function (parent_menu, on_execute_callback_fn) {
         var group = new Context.Menu('Grouping');
         parent_menu.append(group);
 
+        group.append_item(
+            'Reset',
+            function () {
+                delete settings.playlist_custom_group_data[cur_playlist_name];
+                delete settings.playlist_group_data[cur_playlist_name];
+
+                cur_group = settings.group_data_list[group_by_name.indexOf(settings.last_used_group_name)];
+
+                settings.save();
+                settings.send_sync();
+
+                on_execute_callback_fn();
+            },
+            {is_radio_checked: cur_group.name === 'user_defined'}
+        );
+
+        group.append_separator();
+
         var group_by_text = 'by...';
-        if (this.get_query_name() === 'user_defined') {
+        if (cur_group.name === 'user_defined') {
             group_by_text += ' [' + this.get_query() + ']';
         }
         group.append_item(
             group_by_text,
             function () {
-                execute_menu(0, on_execute_callback_fn);
-            }
+                request_user_query(on_execute_callback_fn);
+            },
+            {is_radio_checked: cur_group.name === 'user_defined'}
         );
 
-        group.append_item(
-            'by artist',
-            function () {
-                execute_menu(1, on_execute_callback_fn);
-            }
-        );
+        settings.group_data_list.forEach(function(group_item) {
+            group.append_item(
+                'by ' + group_item.description,
+                function () {
+                    cur_group = group_item;
 
-        group.append_item(
-            'by artist / album',
-            function () {
-                execute_menu(2, on_execute_callback_fn);
-            }
-        );
-        group.append_item(
-            'by artist / album / disc number',
-            function () {
-                execute_menu(3, on_execute_callback_fn);
-            }
-        );
+                    delete settings.playlist_custom_group_data[cur_playlist_name];
 
-        group.append_item(
-            'by path',
-            function () {
-                execute_menu(4, on_execute_callback_fn);
-            }
-        );
+                    settings.playlist_group_data[cur_playlist_name] = group_item.name;
+                    settings.last_used_group_name = group_item.name;
+                    settings.save();
+                    settings.send_sync();
 
-        group.append_item(
-            'by date',
-            function () {
-                execute_menu(5, on_execute_callback_fn);
-            }
-        );
-
-        var query_idx = queries[query_map_by_name.indexOf(cur_query_name)].idx;
-        group.radio_check(0, query_idx);
+                    on_execute_callback_fn();
+                },
+                {is_radio_checked: cur_group.name === group_item.name}
+            );
+        })
     };
 
     this.sync_state = function (value) {
-        g_properties.user_group_query = value.g_user_group_query;
-        g_properties.last_used_group_query_name = value.g_last_used_group_query_name;
-
-        set_query_by_name(value.name);
+        settings.recieve_sync(value);
+        this.set_active_playlist(cur_playlist_name);
     };
-
-    function execute_menu(idx, on_execute_callback_fn) {
-        var need_notify = true;
-
-        switch (idx) {
-            case 0:
-                request_user_query(on_execute_callback_fn);
-                need_notify = false;
-                break;
-            case 1:
-                set_query_by_name('artist');
-                break;
-            case 2:
-                set_query_by_name('artist_album');
-                break;
-            case 3:
-                set_query_by_name('artist_album_disc');
-                break;
-            case 4:
-                set_query_by_name('artist_path');
-                break;
-            case 5:
-                set_query_by_name('artist_date');
-                break;
-            default:
-                throw new ArgumentError('menu_idx', idx)
-        }
-
-        if (need_notify) {
-            // Sync with other playlists
-            notify_others();
-            on_execute_callback_fn();
-        }
-    }
 
     /**
      * @param {function} on_execute_callback_fn
      * @return {boolean}
      */
     function request_user_query(on_execute_callback_fn) {
-        var on_finish_fn = function (ret_val) {
-            if (!ret_val[0]) {
-                return;
-            }
+        var on_ok_fn = function (ret_val) {
+            var custom_group = new GroupingHandler.Settings.Group('user_defined', '', ret_val[0], ret_val[1]);
+            cur_group = custom_group;
 
-            g_properties.user_group_query = JSON.stringify([ret_val[0], ret_val[1]]);
-            set_query_by_name('user_defined');
+            settings.playlist_group_data[cur_playlist_name] = 'user_defined';
+            settings.playlist_custom_group_data[cur_playlist_name] = custom_group;
+            settings.save();
+            settings.send_sync();
 
-            notify_others();
             on_execute_callback_fn();
         };
 
@@ -4387,100 +4424,148 @@ function GroupQueryHandler () {
         var x = fb_handle ? fb_handle.Left + fb_handle.Width/3 : 400;
         var y = fb_handle ? fb_handle.Top + fb_handle.Height/3 : 300;
 
-        var parsed_query = JSON.parse(g_properties.user_group_query);
-        if (!msg_box_multiple(x, y, ['Group', 'Title'], 'Header group query', [parsed_query[0], parsed_query[1]], on_finish_fn)) {
+        var parsed_query = cur_group.name === 'user_defined' ? [cur_group.group_query, cur_group.title_query] : ['',''];
+        if (!msg_box_multiple(x, y, ['Group', 'Title'], 'Header group query', [parsed_query[0], parsed_query[1]], on_ok_fn)) {
             fb.ShowPopupMessage('Failed to create \'Customize Grouping\' Dialog', 'Theme Error');
         }
     }
 
-    function set_query_by_name(name, preserve_last_used_query) {
-        var query_item = queries[query_map_by_name.indexOf(name)];
-        if (!query_item) {
-            throw new ArgumentError('query_name', name);
+    function initialize_playlists() {
+        playlists = [];
+        var playlist_count = plman.PlaylistCount;
+        for (var i = 0; i < playlist_count; ++i) {
+            playlists.push(plman.GetPlaylistName(i));
         }
-
-        cur_query_name = name;
-
-        group_query_list[cur_playlist_idx] = [];
-        group_query_list[cur_playlist_idx][0] = name;
-
-        if (name === 'user_defined') {
-            var parsed_query = JSON.parse(g_properties.user_group_query);
-            cur_query = parsed_query[0];
-            cur_title_query = parsed_query[1];
-            group_query_list[cur_playlist_idx][1] = cur_query;
-            group_query_list[cur_playlist_idx][2] = cur_title_query;
-        }
-        else {
-            cur_query = query_item.val;
-            cur_title_query = '';
-            group_query_list[cur_playlist_idx][1] = '';
-            group_query_list[cur_playlist_idx][2] = '';
-        }
-
-        if (!preserve_last_used_query) {
-            g_properties.last_used_group_query_name = cur_query_name;
-        }
-
-        g_properties.group_query_list = JSON.stringify(group_query_list);
     }
 
-    function notify_others() {
-        // Sync with other playlists
-        var syncData = {
-            name:                         cur_query_name,
-            g_user_group_query:           g_properties.user_group_query,
-            g_last_used_group_query_name: g_properties.last_used_group_query_name
-        };
+    function cleanup_settings() {
+        _.forEach(settings.playlist_group_data,function(item,i){
+            if (playlists.indexOf(item.name) === -1){
+                delete settings.playlist_group_data[i];
+            }
+        });
 
-        window.NotifyOthers('sync_group_query_state', syncData);
+        _.forEach(settings.playlist_custom_group_data,function(item,i){
+            if (playlists.indexOf(item.name) === -1){
+                delete settings.playlist_custom_group_data[i];
+            }
+        });
+
+        settings.save();
     }
 
-    var queries = [
-        {
-            idx:  0,
-            name: 'user_defined',
-            val:  ''
-        },
-        {
-            idx:  1,
-            name: 'artist',
-            val:  '%album artist%'
-        },
-        {
-            idx:  2,
-            name: 'artist_album',
-            val:  '%album artist%%album%'
-        },
-        {
-            idx:  3,
-            name: 'artist_album_disc',
-            val:  '%album artist%%album%%discnumber%'
-        },
-        {
-            idx:  4,
-            name: 'artist_path',
-            val:  '$directory_path(%path%)'
-        },
-        {
-            idx:  5,
-            name: 'artist_date',
-            val:  '%date%'
-        }
-    ];
-    var query_map_by_name = queries.map(function (item) {
+    var playlists = [];
+
+    var settings = new GroupingHandler.Settings();
+    var cur_playlist_name = '';
+    var cur_group = undefined;
+    var group_by_name = settings.group_data_list.map(function (item) {
         return item.name;
     });
 
-    /** @type {?number} */
-    var cur_playlist_idx = undefined;
-
-    var cur_query = '';
-    var cur_title_query = '';
-    var cur_query_name = '';
-
-    var group_query_list = JSON.parse(g_properties.group_query_list);
+    initialize_playlists();
+    cleanup_settings();
 }
+
+GroupingHandler.Settings = function() {
+    this.load = function () {
+        this.playlist_group_data = JSON.parse(g_properties.playlist_group_data);
+        this.playlist_custom_group_data = JSON.parse(g_properties.playlist_custom_group_data);
+        this.last_used_group_name = g_properties.last_used_group_name;
+    };
+
+    this.save = function () {
+        g_properties.playlist_group_data = JSON.stringify(this.playlist_group_data);
+        g_properties.playlist_custom_group_data = JSON.stringify(this.playlist_custom_group_data);
+        g_properties.last_used_group_name = this.last_used_group_name;
+    };
+
+    this.send_sync = function () {
+        var syncData = {
+            g_playlist_group_data:        g_properties.playlist_group_data,
+            g_playlist_custom_group_data: g_properties.playlist_custom_group_data,
+            g_last_used_group_name:       g_properties.last_used_group_name
+        };
+
+        window.NotifyOthers('sync_group_query_state', syncData);
+    };
+
+    this.recieve_sync = function (settings_data) {
+        g_properties.playlist_group_data = settings_data.g_playlist_group_data;
+        g_properties.playlist_custom_group_data = settings_data.g_playlist_custom_group_data;
+        g_properties.last_used_group_name = settings_data.g_last_used_group_name;
+
+        this.load();
+    };
+
+    function fixup_g_properties() {
+        if (!g_properties.playlist_group_data || !_.isObject(JSON.parse(g_properties.playlist_group_data))) {
+            g_properties.playlist_group_data = JSON.stringify({});
+        }
+
+        if (!g_properties.playlist_custom_group_data || !_.isObject(JSON.parse(g_properties.playlist_custom_group_data))) {
+            g_properties.playlist_custom_group_data = JSON.stringify({});
+        }
+
+        if (!g_properties.last_used_group_name || !_.isString(g_properties.last_used_group_name)) {
+            g_properties.last_used_group_name = 'artist_album_disc';
+        }
+    }
+
+    // Alias
+    var CtorGroupData = GroupingHandler.Settings.Group;
+
+    this.playlist_group_data = {};
+    this.playlist_custom_group_data = {};
+    this.last_used_group_name = '';
+    this.group_data_list = [
+        new CtorGroupData('artist', 'artist', '%album artist%'),
+        new CtorGroupData('artist_album', 'artist / album', '%album artist%%album%', undefined, {
+            show_date:  true,
+            show_album: true
+        }),
+        new CtorGroupData('artist_album_disc', 'artist / album / disc number', '%album artist%%album%%discnumber%', undefined, {
+            show_date:  true,
+            show_cd:    true,
+            show_album: true
+        }),
+        new CtorGroupData('artist_path', 'path', '$directory_path(%path%)', undefined, {
+            show_date:  true,
+            show_album: true
+        }),
+        new CtorGroupData('artist_date', 'date', '%date%', undefined, {
+            show_date:  true,
+            show_album: true
+        })
+    ];
+
+    fixup_g_properties();
+    this.load();
+};
+
+/**
+ * @param {string} name
+ * @param {string} description
+ * @param {string} group_query
+ * @param {?string=} [title_query=%ARTIST%]
+ * @param {object=}  [options={}]
+ * @param {boolean=} [options.show_date=false]
+ * @param {boolean=} [options.show_cd=false]
+ * @param {boolean=} [options.show_album=false]
+ * @constructor
+ * @struct
+ */
+GroupingHandler.Settings.Group = function(name, description, group_query, title_query, options) {
+    this.name = name;
+    this.description = description;
+    this.group_query = group_query;
+    this.title_query = title_query ? title_query : '%ARTIST%';
+    this.show_date = !!(options && options.show_date);
+    this.show_cd = !!(options && options.show_cd);
+    this.show_album = !!(options && options.show_album);
+};
+
+Header.grouping_handler = new GroupingHandler();
 
 var playlist = new PlaylistPanel();
 playlist.initialize();
