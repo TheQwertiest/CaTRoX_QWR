@@ -15,7 +15,6 @@ var g_is_mini_panel = (window.name.toLowerCase().indexOf('mini') !== -1);
 
 // Niceties:
 // TODO: add press animation on playlist manager
-// TODO: add grouping manager (HTA based) with ability to add/rename/remove/up/down
 // TODO: grouping manager (HTA based): consider adding other EsPlaylist grouping features - sorting, playlist association
 // Low priority:
 // TODO: consider making registration for on_key handlers
@@ -4306,19 +4305,23 @@ function GroupingHandler () {
         cur_playlist_name = cur_playlist_name_arg;
         var group_name = settings.playlist_group_data[cur_playlist_name];
 
-        if (group_name === 'user_defined') {
-            cur_group = settings.playlist_custom_group_data[cur_playlist_name];
-        }
-        else {
-            if (!group_by_name.indexOf(group_name)) {
+        cur_group = null;
+        if (group_name) {
+            if (group_name === 'user_defined') {
+                cur_group = settings.playlist_custom_group_data[cur_playlist_name];
+            }
+            else if (group_by_name.indexOf(group_name)){
+                cur_group = settings.group_presets[group_by_name.indexOf(group_name)];
+            }
+
+            if (!cur_group) {
                 delete settings.playlist_group_data[cur_playlist_name];
                 group_name = '';
             }
+        }
 
-            if (!group_name) {
-                group_name = settings.default_group_name;
-            }
-
+        if (!cur_group) {
+            group_name = settings.default_group_name;
             cur_group = settings.group_presets[group_by_name.indexOf(group_name)];
         }
 
@@ -4356,7 +4359,7 @@ function GroupingHandler () {
         parent_menu.append(group);
 
         group.append_item(
-            'Manage Presets',
+            'Manage presets',
             function () {
                 manage_groupings(on_execute_callback_fn);
             }
@@ -4365,7 +4368,7 @@ function GroupingHandler () {
         group.append_separator();
 
         group.append_item(
-            'Reset to Default',
+            'Reset to default',
             function () {
                 delete settings.playlist_custom_group_data[cur_playlist_name];
                 delete settings.playlist_group_data[cur_playlist_name];
@@ -4443,7 +4446,7 @@ function GroupingHandler () {
         var y = fb_handle ? fb_handle.Top + fb_handle.Height / 3 : 300;
 
         var parsed_query = cur_group.name === 'user_defined' ? [cur_group.group_query, cur_group.title_query] : ['', ''];
-        if (!msg_box_multiple(x, y, ['Group', 'Title'], 'Foobar2000: Header group query', [parsed_query[0], parsed_query[1]], on_ok_fn)) {
+        if (!HtaWindow.msg_box_multiple(x, y, ['Group', 'Title'], 'Foobar2000: Header group query', [parsed_query[0], parsed_query[1]], on_ok_fn)) {
             fb.ShowPopupMessage('Failed to create \'Customize Grouping\' Dialog', 'Theme Error');
         }
     }
@@ -4474,7 +4477,7 @@ function GroupingHandler () {
         var x = fb_handle ? fb_handle.Left + fb_handle.Width / 3 : 400;
         var y = fb_handle ? fb_handle.Top + fb_handle.Height / 3 : 300;
 
-        if (!hta_manage_grouping(x, y, settings.group_presets, cur_group.name, settings.default_group_name, on_ok_fn)) {
+        if (!HtaWindow.group_presets_mngr(x, y, settings.group_presets, cur_group.name, settings.default_group_name, on_ok_fn)) {
             fb.ShowPopupMessage('Failed to create \'Manage Grouping Presets\' Dialog', 'Theme Error');
         }
     }
@@ -4611,9 +4614,9 @@ GroupingHandler.Settings = function() {
 GroupingHandler.Settings.Group = function(name, description, group_query, title_query, sub_title_query, options) {
     this.name = name;
     this.description = description;
-    this.group_query = group_query;
+    this.group_query = group_query ? group_query : '';
     this.title_query = title_query ? title_query : '%ARTIST%';
-    this.sub_title_query = title_query ? title_query : '';
+    this.sub_title_query = sub_title_query ? sub_title_query : '';
     this.show_date = !!(options && options.show_date);
     this.show_cd = !!(options && options.show_cd);
 };

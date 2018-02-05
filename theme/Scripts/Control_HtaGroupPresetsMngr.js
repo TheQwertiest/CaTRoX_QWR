@@ -14,35 +14,24 @@ g_script_list.push('Control_HtaGroupPresetsMngr.js');
  * @param {function} on_finish_fn
  * @return {boolean}
  */
-function hta_manage_grouping(x, y, group_presets, cur_group_name, default_group_name, on_finish_fn) {
-    var wrap = function (tag, value, options) {
-        var opt_string = options ? (' ' + options) : '';
-        return '<' + tag + opt_string + '>' + value + '</' + tag + '>';
-    };
-
+HtaWindow.group_presets_mngr = function(x, y, group_presets, cur_group_name, default_group_name, on_finish_fn) {
     var group_data_list_copy = _.cloneDeep(group_presets);
     _.find(group_data_list_copy, function (item) { return item.name === default_group_name; }).is_default = true;
 
     var style =
         '<style type="text/css">' +
         '<meta http-equiv="x-ua-compatible" content="IE=9"/>' +
-        '     body { color: WindowText; background-color: Menu; }' +
+        HtaWindow.styles.body +
+        HtaWindow.styles.label +
+        HtaWindow.styles.input +
+        HtaWindow.styles.button +
         '     div { overflow: hidden; }' +
         '     span { display:block; overflow: hidden; padding-right:10px; }' +
-        '     label { font:caption; }' +
-        '     input { font:caption; border: 1px solid #7A7A7A; width: 100%; }' +
-        '     input:focus { outline: none !important; border:1px solid #0078D7; }' +
-        '     input:hover:focus { outline: none !important; border:1px solid #0078D7; }' +
-        '     input:hover { outline: none !important; border:1px solid #000000; }' +
         '     input[type="checkbox"] { display: inline; position: relative; width: 15px; border: 0; padding: 2px 1px;}' +
         '     input[type="checkbox"]:focus { border:1px solid #0078D7; padding: 1px 0;}' +
         '     input[type="checkbox"]:hover:focus { border:1px solid #0078D7; padding: 1px 0;}' +
         '     input[type="checkbox"]:hover { border:1px solid #000000; padding: 1px 0;}' +
         '     select { font:caption; border: 1px solid #646464; vertical-align: top; width: 100%; }' +
-        '     button { font:caption; background: #E1E1E1; color:ButtonText; border: 1px solid #ADADAD; margin: 5px; padding: 3px; width: 70px; }' +
-        '     button:focus { outline: none !important; border:2px solid #0078D7; padding: 2px; }' +
-        '     button:focus:hover { background: #e5f1fb; outline: none !important; border:2px solid #0078D7; padding: 2px; }' +
-        '     button:hover { background: #e5f1fb; outline: none !important; border:1px solid #0078D7; padding: 3px; }' +
         '     .label_for_checkbox { float:left; margin-top: 1px; width: 60px }' +
         '     .cnt { margin: 10px; }' +
         '     .select_cnt { float: left; width: 230px; }' +
@@ -54,15 +43,17 @@ function hta_manage_grouping(x, y, group_presets, cur_group_name, default_group_
         '     .normal_button { width: 70px; float: right; }' +
         '     .select_button { width: 98px; float: left; margin: 2px;}' +
         '     .move_button { width:25px; height:35px; float: left; }' +
-        '     .button_ok { position: absolute; right:88px; bottom:8px; }' +
-        '     .button_cancel { position: absolute; right:8px; bottom:8px; }' +
+        '     .button_ok { position: absolute; right:168px; bottom:8px; }' +
+        '     .button_cancel { position: absolute; right:88px; bottom:8px; }' +
+        '     .button_apply { position: absolute; right:8px; bottom:8px; }' +
         '</style>';
 
-    var head = wrap('head',
-        '<meta http-equiv="x-ua-compatible" content="IE=9"/>' + style);
-
-    var content = wrap('html',
-        head +
+    var content =
+        '<html>' +
+        '<head>' +
+        '   <meta http-equiv="x-ua-compatible" content="IE=9"/>' +
+        style +
+        '</head>' +
         '<body>' +
         '     <div class="cnt">' +
         '          <div class="select_cnt">' +
@@ -125,8 +116,9 @@ function hta_manage_grouping(x, y, group_presets, cur_group_name, default_group_
         '     </div>' +
         '     <button class="normal_button button_ok" id="btn_ok">OK</button>' +
         '     <button class="normal_button button_cancel" id="btn_cancel">Cancel</button>' +
-        '</body>'
-    );
+        '     <button class="normal_button button_apply" id="btn_apply">Apply</button>' +
+        '</body>' +
+        '</html>';
 
     var hta_features =
         'singleinstance=yes ' +
@@ -140,7 +132,7 @@ function hta_manage_grouping(x, y, group_presets, cur_group_name, default_group_
         'innerBorder=no ';//+
     //'icon=\"' + fb.FoobarPath + 'foobar2000.exe' + '\"';
 
-    var wnd = create_hta_window(x, y, 650, 425, 'Foobar2000: Manage grouping presets', content, hta_features);
+    var wnd = HtaWindow.manager.open(x, y, 650, 425, 'Foobar2000: Manage grouping presets', content, hta_features);
     if (!wnd) {
         return false;
     }
@@ -176,6 +168,7 @@ function hta_manage_grouping(x, y, group_presets, cur_group_name, default_group_
         wnd.input_group_name.value = cur_data.name;
         wnd.input_group_query.value = cur_data.group_query;
         wnd.input_title_query.value = cur_data.title_query;
+        wnd.input_sub_title_query.value = cur_data.sub_title_query;
         wnd.input_description.value = cur_data.description;
         wnd.input_show_cd.checked = cur_data.show_cd;
         wnd.input_show_date.checked = cur_data.show_date;
@@ -229,6 +222,7 @@ function hta_manage_grouping(x, y, group_presets, cur_group_name, default_group_
         cur_data.name = wnd.input_group_name.value;
         cur_data.group_query = wnd.input_group_query.value;
         cur_data.title_query = wnd.input_title_query.value;
+        cur_data.sub_title_query = wnd.input_sub_title_query.value;
         cur_data.description = wnd.input_description.value;
         cur_data.show_cd = wnd.input_show_cd.checked;
         cur_data.show_date = wnd.input_show_date.checked;
@@ -258,31 +252,45 @@ function hta_manage_grouping(x, y, group_presets, cur_group_name, default_group_
         populate_select(selected_idx + 1);
     };
 
-    wnd.document.body.onunload = function () {
-        //on_finish_fn([]);
+    wnd.document.body.onbeforeunload = function () {
+        HtaWindow.manager.close();
     };
 
     wnd.btn_cancel.onclick = function () {
-        wnd.close();
-        //on_finish_fn([]);
+        HtaWindow.manager.close();
+    };
+
+    wnd.btn_apply.onclick = function () {
+        wnd.btn_update.onclick();
+
+        var output_copy = _.cloneDeep(group_data_list_copy);
+        var default_name = get_default_data(output_copy).name;
+        var selected_name = output_copy[wnd.input_select.selectedIndex].name;
+        output_copy.forEach(function (item) {
+            delete item.is_default;
+        });
+
+        on_finish_fn([output_copy, selected_name, default_name]);
     };
 
     wnd.btn_ok.onclick = function () {
         wnd.btn_update.onclick();
 
-        var def_name = get_default_data(group_data_list_copy).name;
+        var default_name = get_default_data(group_data_list_copy).name;
+        var selected_name = group_data_list_copy[wnd.input_select.selectedIndex].name;
         group_data_list_copy.forEach(function (item) {
             delete item.is_default;
         });
 
-        wnd.close();
-        on_finish_fn([group_data_list_copy, group_data_list_copy[wnd.input_select.selectedIndex].name, def_name]);
+        HtaWindow.manager.close();
+        on_finish_fn([group_data_list_copy, selected_name, default_name]);
     };
 
     wnd.btn_ok.focus();
 
     populate_select(_.findIndex(group_data_list_copy, function (item) { return item.name === cur_group_name; }));
     populate_data();
+    wnd.document.body.focus();
 
     return true;
-}
+};

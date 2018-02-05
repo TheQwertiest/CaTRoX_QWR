@@ -5,6 +5,8 @@
 
 g_script_list.push('Control_HtaMsgBox.js');
 
+var HtaWindow = {};
+
 /**
  * @param {number} x
  * @param {number} y
@@ -15,7 +17,7 @@ g_script_list.push('Control_HtaMsgBox.js');
  * @param {string} features
  * @return {*}
  */
-function create_hta_window(x, y, w, h, title, content, features) {
+HtaWindow.create = function(x, y, w, h, title, content, features) {
     var hta_wnd_id = "a" + Math.floor(Math.random() * 10000000);
     var CodeForLinking = "<script>moveTo(-1000,-1000);resizeTo(0,0);</script>" +
         "<hta:application id=app " + features + " />" +
@@ -56,7 +58,25 @@ function create_hta_window(x, y, w, h, title, content, features) {
         "", "</script>"].join(""));
 
     return wnd;
-}
+};
+
+HtaWindow.styles = {};
+
+HtaWindow.styles.body = 'body { color: WindowText; background-color: Menu; }';
+
+HtaWindow.styles.input =
+    'input { font:caption; border: 1px solid #7A7A7A; width: 100%; }' +
+    'input:focus { outline: none !important; border:1px solid #0078D7; }' +
+    'input:hover:focus { outline: none !important; border:1px solid #0078D7; }' +
+    'input:hover { outline: none !important; border:1px solid #000000; }';
+
+HtaWindow.styles.label = 'label { font:caption; }';
+
+HtaWindow.styles.button =
+    'button { font:caption; background: #E1E1E1; color:ButtonText; border: 1px solid #ADADAD; margin: 5px; padding: 3px; width: 70px; }' +
+    'button:focus { outline: none !important; border:2px solid #0078D7; padding: 2px; }' +
+    'button:focus:hover { background: #e5f1fb; outline: none !important; border:2px solid #0078D7; padding: 2px; }' +
+    'button:hover { background: #e5f1fb; outline: none !important; border:1px solid #0078D7; padding: 3px; }';
 
 /**
  * @param {number} x
@@ -67,56 +87,48 @@ function create_hta_window(x, y, w, h, title, content, features) {
  * @param {function} on_finish_fn
  * @return {boolean}
  */
-function msg_box_multiple(x,y,prompt,title,defval,on_finish_fn) {
+HtaWindow.msg_box_multiple = function(x,y,prompt,title,defval,on_finish_fn) {
     if (prompt.length !== defval.length) {
         throw new ArgumentError('Prompts and default values', prompt.length + ' and ' + defval.length, 'Array sizes must be equal');
     }
     title = title.replace(/"/g, '\'');
 
-    var content, wnd;
-
     var val_count = prompt.length;
-
-    var block_wrap_beg = "<div class='input_line'>";
-
-    var prompt_wrap_beg = "<label for='a'>";
-    var prompt_wrap_end = "</label>";
-
-    var defval_wrap_beg1 = "<span><input id='input_val_";
-    var defval_wrap_beg2 = "' type='text' value='";
-    var defval_wrap_end = "'/></span>";
-
-    var block_wrap_end = "</div>";
-
     var input_text = '';
 
     for (var i = 0; i < val_count; ++i) {
-        input_text += block_wrap_beg + prompt_wrap_beg + prompt[i] + prompt_wrap_end + defval_wrap_beg1 + i + defval_wrap_beg2 + defval[i] + defval_wrap_end + block_wrap_end;
+        input_text +=
+            '<div class="input_line">' +
+            '   <label>' + prompt[i] + '</label>' +
+            '   <span>' +
+            '       <input id="input_val_' + i + '" type="text" value="' +  defval[i] + '"/>' +
+            '   </span>' +
+            '</div>';
     }
 
-    content =
+    var content =
         '<html>' +
-            '<head>' +
-            '<meta http-equiv="x-ua-compatible" content="IE=9"/>' +
-                '<style type="text/css">' +
-                    'body { color: WindowText; background-color: Menu; }' +
-                    'div { overflow: hidden; }' +
-                    'span { display: block; overflow: hidden; padding-right:10px; }' +
-                    'label { font:caption; float:left; width: 50px; text-align: right; padding-right:7px; padding-top: 2px; }' +
-                    'input { font:caption;  border: 1px solid #7A7A7A; width: 100%; }' +
-                    'input:focus { outline: none !important; border:1px solid #0078D7; }' +
-                    'button { font:caption; background:#E1E1E1; color:ButtonText; border: 1px solid #ADADAD; width: 70px; margin: 5px; padding: 3px; float: right; }' +
-                    'button:focus { outline: none !important; border:2px solid #0078D7; padding: 2px }' +
-                    '.input_line { padding-bottom:7px; }' +
-                '</style>' +
-            '</head>' +
-            '<body>' +
-                '<div>' +
-                    input_text +
-                    '<button id="hta_cancel">Cancel</button>' +
-                    '<button id="hta_ok">OK</button>' +
-                '</div>' +
-            '</body>' +
+        '   <head>' +
+        '   <meta http-equiv="x-ua-compatible" content="IE=9"/>' +
+        '   <style type="text/css">' +
+        HtaWindow.styles.body +
+        HtaWindow.styles.label +
+        HtaWindow.styles.input +
+        HtaWindow.styles.button +
+        '       div { overflow: hidden; }' +
+        '       span { display: block; overflow: hidden; padding-right:10px; }' +
+        '       label { float:left; width: 50px; text-align: right; padding-right:7px; padding-top: 2px; }' +
+        '       button { float: right; }' +
+        '       .input_line { padding-bottom:7px; }' +
+        '   </style>' +
+        '</head>' +
+        '   <body>' +
+        '       <div>' +
+        input_text +
+        '           <button id="hta_cancel">Cancel</button>' +
+        '           <button id="hta_ok">OK</button>' +
+        '       </div>' +
+        '   </body>' +
         '</html>';
 
     var hta_features =
@@ -132,20 +144,19 @@ function msg_box_multiple(x,y,prompt,title,defval,on_finish_fn) {
     //'icon=\"' + fb.FoobarPath + 'foobar2000.exe' + '\"';
 
     var window_h = 29 * val_count + 83;
-    wnd = create_hta_window(x, y, 370, window_h, title, content, hta_features);
+    var wnd = HtaWindow.manager.open(x, y, 370, window_h, title, content, hta_features);
     if (!wnd) {
         return false;
     }
 
     wnd.hta_ok.focus();
 
-    wnd.document.body.onunload = function () {
-        on_finish_fn([]);
+    wnd.document.body.onbeforeunload = function () {
+        HtaWindow.manager.close();
     };
 
     wnd.hta_cancel.onclick = function () {
-        wnd.close();
-        on_finish_fn([]);
+        HtaWindow.manager.close();
     };
 
     wnd.hta_ok.onclick = function () {
@@ -154,9 +165,54 @@ function msg_box_multiple(x,y,prompt,title,defval,on_finish_fn) {
             vals.push(wnd['input_val_' + i].value);
         }
 
-        wnd.close();
+        HtaWindow.manager.close();
         on_finish_fn(vals);
     };
+    wnd.document.body.focus();
 
     return true;
+};
+
+HtaWindow.manager = new function() {
+    /**
+     * @param {number} x
+     * @param {number} y
+     * @param {number} w
+     * @param {number} h
+     * @param {string} title
+     * @param {string} content
+     * @param {string} features
+     * @return {*}
+     */
+    this.open = function (x, y, w, h, title, content, features) {
+        if (wnd) {
+            wnd.focus();
+            return wnd;
+        }
+
+        on_top = fb.AlwaysOnTop;
+        if (fb.AlwaysOnTop) {
+            fb.AlwaysOnTop = false;
+        }
+        wnd = HtaWindow.create(x, y, w, h, title, content, features);
+
+        return wnd;
+    };
+
+    this.close = function () {
+        if (wnd) {
+            wnd.close();
+            wnd = null;
+            if (fb.AlwaysOnTop !== on_top) {
+                fb.AlwaysOnTop = on_top;
+            }
+        }
+    };
+
+    var on_top;
+    var wnd = null;
+};
+
+function on_script_unload() {
+    HtaWindow.manager.close();
 }
