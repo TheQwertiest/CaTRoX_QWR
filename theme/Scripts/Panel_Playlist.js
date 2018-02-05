@@ -782,11 +782,13 @@ function Playlist(x,y) {
 
             append_appearance_menu_to(cmm);
 
-            Header.grouping_handler.append_menu_to(cmm, _.bind(function(){
-                this.initialize_list();
-                scroll_to_focused_or_now_playing();
-                this.repaint();
-            },this));
+            if (g_properties.show_header) {
+                Header.grouping_handler.append_menu_to(cmm, _.bind(function(){
+                    this.initialize_list();
+                    scroll_to_focused_or_now_playing();
+                    this.repaint();
+                },this));
+            }
 
             append_sort_menu_to(cmm);
 
