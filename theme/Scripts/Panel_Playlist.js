@@ -49,7 +49,8 @@ g_properties.add_properties(
 
         playlist_group_data:        ['system.playlist.grouping.data_list', ''],
         playlist_custom_group_data: ['system.playlist.grouping.custom_data_list', ''],
-        last_used_group_name:       ['system.playlist.grouping.last_used_group', '']
+        default_group_name:         ['system.playlist.grouping.default_preset_name', ''],
+        group_presets:              ['system.playlist.grouping.presets', '']
     }
 );
 
@@ -2676,7 +2677,7 @@ function Header(x, y, w, h, idx, row_h_arg) {
             }
         }
 
-        //---> ARTIST
+        //---> TITLE (default artist)
         {
             var artist_x = part1_cur_x;
             var artist_w = this.w - artist_x;
@@ -2687,7 +2688,7 @@ function Header(x, y, w, h, idx, row_h_arg) {
             }
 
             var artist_text;
-            if (grouping_handler.get_query_name() === 'user_defined' && grouping_handler.get_title_query())
+            if (grouping_handler.get_query_name() === 'user_defined' || grouping_handler.get_title_query())
             {
                 artist_text = _.tf(grouping_handler.get_title_query(),metadb);
             }
@@ -2704,10 +2705,9 @@ function Header(x, y, w, h, idx, row_h_arg) {
             //part1_cur_x += artist_w;
         }
 
-        //---> ALBUM
-        if (grouping_handler.show_album()) {
-
-            var album_text = _.tf('%album%[ - %ALBUMSUBTITLE%]', metadb);
+        //---> SUB TITLE (default album)
+        if (grouping_handler.get_sub_title_query()) {
+            var album_text = _.tf(grouping_handler.get_sub_title_query(), metadb);
             if (album_text === '?') {
                 album_text = '';
             }
@@ -2886,14 +2886,14 @@ function Header(x, y, w, h, idx, row_h_arg) {
             }
         }
 
-        //---> ARTIST
+        //---> TITLE (default artist)
         {
             var artist_x = cur_x;
             var artist_w = this.w - artist_x - (right_pad + 5);
             var artist_h = this.h;
 
             var artist_text;
-            if (grouping_handler.get_query_name() === 'user_defined' && grouping_handler.get_title_query())
+            if (grouping_handler.get_query_name() === 'user_defined' || grouping_handler.get_title_query())
             {
                 artist_text = _.tf(grouping_handler.get_title_query(),metadb);
             }
@@ -2913,9 +2913,9 @@ function Header(x, y, w, h, idx, row_h_arg) {
             );
         }
 
-        //---> ALBUM
-        if (grouping_handler.show_album()) {
-            var album_text = _.tf(' - %album%[ - %ALBUMSUBTITLE%]', metadb);
+        //---> SUB TITLE (default album)
+        if (grouping_handler.get_sub_title_query()) {
+            var album_text = _.tf(' - ' + grouping_handler.get_sub_title_query(), metadb);
             if (album_text === ' - ?') {
                 album_text = '';
             }
@@ -4249,7 +4249,7 @@ PlaylistManager.append_playlist_info_visibility_context_menu_to = function(paren
  * @constructor
  */
 function GroupingHandler () {
-    this.on_playlists_changed = function() {
+    this.on_playlists_changed = function () {
         var playlist_count = plman.PlaylistCount;
         var new_playlists = [];
         for (var i = 0; i < playlist_count; ++i) {
@@ -4262,8 +4262,9 @@ function GroupingHandler () {
             // removed
 
             var playlists_to_remove = _.difference(playlists, new_playlists);
-            playlists_to_remove.forEach(function(playlist_name){
+            playlists_to_remove.forEach(function (playlist_name) {
                 delete settings.playlist_group_data[playlist_name];
+                console.log(1)
                 delete settings.playlist_custom_group_data[playlist_name];
             });
 
@@ -4304,15 +4305,21 @@ function GroupingHandler () {
     this.set_active_playlist = function (cur_playlist_name_arg) {
         cur_playlist_name = cur_playlist_name_arg;
         var group_name = settings.playlist_group_data[cur_playlist_name];
-        if (!group_name) {
-            group_name = settings.last_used_group_name;
-        }
 
         if (group_name === 'user_defined') {
             cur_group = settings.playlist_custom_group_data[cur_playlist_name];
         }
         else {
-            cur_group = settings.group_data_list[group_by_name.indexOf(group_name)];
+            if (!group_by_name.indexOf(group_name)) {
+                delete settings.playlist_group_data[cur_playlist_name];
+                group_name = '';
+            }
+
+            if (!group_name) {
+                group_name = settings.default_group_name;
+            }
+
+            cur_group = settings.group_presets[group_by_name.indexOf(group_name)];
         }
 
         if (!cur_group) {
@@ -4328,20 +4335,20 @@ function GroupingHandler () {
         return cur_group.title_query;
     };
 
+    this.get_sub_title_query = function () {
+        return cur_group.sub_title_query;
+    };
+
     this.get_query_name = function () {
         return cur_group.name;
     };
 
-    this.show_cd = function() {
+    this.show_cd = function () {
         return cur_group.show_cd;
     };
 
-    this.show_date = function() {
+    this.show_date = function () {
         return cur_group.show_date;
-    };
-
-    this.show_album = function() {
-        return cur_group.show_album;
     };
 
     this.append_menu_to = function (parent_menu, on_execute_callback_fn) {
@@ -4349,19 +4356,27 @@ function GroupingHandler () {
         parent_menu.append(group);
 
         group.append_item(
-            'Reset',
+            'Manage Presets',
+            function () {
+                manage_groupings(on_execute_callback_fn);
+            }
+        );
+
+        group.append_separator();
+
+        group.append_item(
+            'Reset to Default',
             function () {
                 delete settings.playlist_custom_group_data[cur_playlist_name];
                 delete settings.playlist_group_data[cur_playlist_name];
 
-                cur_group = settings.group_data_list[group_by_name.indexOf(settings.last_used_group_name)];
+                cur_group = settings.group_presets[group_by_name.indexOf(settings.default_group_name)];
 
                 settings.save();
                 settings.send_sync();
 
                 on_execute_callback_fn();
-            },
-            {is_radio_checked: cur_group.name === 'user_defined'}
+            }
         );
 
         group.append_separator();
@@ -4378,16 +4393,20 @@ function GroupingHandler () {
             {is_radio_checked: cur_group.name === 'user_defined'}
         );
 
-        settings.group_data_list.forEach(function(group_item) {
+        settings.group_presets.forEach(function (group_item) {
+            var group_by_text =  group_item.description;
+            if (group_item.name === settings.default_group_name) {
+                group_by_text += ' [default]';
+            }
+
             group.append_item(
-                'by ' + group_item.description,
+                group_by_text,
                 function () {
                     cur_group = group_item;
 
                     delete settings.playlist_custom_group_data[cur_playlist_name];
 
                     settings.playlist_group_data[cur_playlist_name] = group_item.name;
-                    settings.last_used_group_name = group_item.name;
                     settings.save();
                     settings.send_sync();
 
@@ -4405,7 +4424,6 @@ function GroupingHandler () {
 
     /**
      * @param {function} on_execute_callback_fn
-     * @return {boolean}
      */
     function request_user_query(on_execute_callback_fn) {
         var on_ok_fn = function (ret_val) {
@@ -4421,12 +4439,43 @@ function GroupingHandler () {
         };
 
         var fb_handle = g_has_modded_jscript ? qwr_utils.get_fb2k_window() : undefined;
-        var x = fb_handle ? fb_handle.Left + fb_handle.Width/3 : 400;
-        var y = fb_handle ? fb_handle.Top + fb_handle.Height/3 : 300;
+        var x = fb_handle ? fb_handle.Left + fb_handle.Width / 3 : 400;
+        var y = fb_handle ? fb_handle.Top + fb_handle.Height / 3 : 300;
 
-        var parsed_query = cur_group.name === 'user_defined' ? [cur_group.group_query, cur_group.title_query] : ['',''];
-        if (!msg_box_multiple(x, y, ['Group', 'Title'], 'Header group query', [parsed_query[0], parsed_query[1]], on_ok_fn)) {
+        var parsed_query = cur_group.name === 'user_defined' ? [cur_group.group_query, cur_group.title_query] : ['', ''];
+        if (!msg_box_multiple(x, y, ['Group', 'Title'], 'Foobar2000: Header group query', [parsed_query[0], parsed_query[1]], on_ok_fn)) {
             fb.ShowPopupMessage('Failed to create \'Customize Grouping\' Dialog', 'Theme Error');
+        }
+    }
+
+    /**
+     * @param {function} on_execute_callback_fn
+     */
+    function manage_groupings(on_execute_callback_fn) {
+        var on_ok_fn = function (ret_val) {
+            settings.group_presets = ret_val[0];
+            group_by_name = settings.group_presets.map(function (item) {
+                return item.name;
+            });
+            settings.default_group_name = ret_val[2];
+
+            cur_group = settings.group_presets[group_by_name.indexOf(ret_val[1])];
+            settings.playlist_group_data[cur_playlist_name] = ret_val[1];
+
+            delete settings.playlist_custom_group_data[cur_playlist_name];
+
+            settings.save();
+            settings.send_sync();
+
+            on_execute_callback_fn();
+        };
+
+        var fb_handle = g_has_modded_jscript ? qwr_utils.get_fb2k_window() : undefined;
+        var x = fb_handle ? fb_handle.Left + fb_handle.Width / 3 : 400;
+        var y = fb_handle ? fb_handle.Top + fb_handle.Height / 3 : 300;
+
+        if (!hta_manage_grouping(x, y, settings.group_presets, cur_group.name, settings.default_group_name, on_ok_fn)) {
+            fb.ShowPopupMessage('Failed to create \'Manage Grouping Presets\' Dialog', 'Theme Error');
         }
     }
 
@@ -4439,14 +4488,14 @@ function GroupingHandler () {
     }
 
     function cleanup_settings() {
-        _.forEach(settings.playlist_group_data,function(item,i){
-            if (playlists.indexOf(item.name) === -1){
+        _.forEach(settings.playlist_group_data, function (item, i) {
+            if (playlists.indexOf(i) === -1) {
                 delete settings.playlist_group_data[i];
             }
         });
 
-        _.forEach(settings.playlist_custom_group_data,function(item,i){
-            if (playlists.indexOf(item.name) === -1){
+        _.forEach(settings.playlist_custom_group_data, function (item, i) {
+            if (playlists.indexOf(item.name) === -1) {
                 delete settings.playlist_custom_group_data[i];
             }
         });
@@ -4454,12 +4503,294 @@ function GroupingHandler () {
         settings.save();
     }
 
+    /**
+     * @param {number} x
+     * @param {number} y
+     * @param {Array<GroupingHandler.Settings.Group>} group_presets
+     * @param {string} cur_group_name
+     * @param {string} default_group_name
+     * @param {function} on_finish_fn
+     * @return {boolean}
+     */
+    function hta_manage_grouping(x, y, group_presets, cur_group_name, default_group_name, on_finish_fn) {
+        var wrap = function (tag, value, options) {
+            var opt_string = options ? (' ' + options) : '';
+            return '<' + tag + opt_string + '>' + value + '</' + tag + '>';
+        };
+
+        var group_data_list_copy = _.cloneDeep(group_presets);
+        _.find(group_data_list_copy, function (item) { return item.name === default_group_name; }).is_default = true;
+
+        var style =
+            '<style type="text/css">' +
+            '<meta http-equiv="x-ua-compatible" content="IE=9"/>' +
+            '     body { color: WindowText; background-color: Menu; }' +
+            '     div { overflow: hidden; }' +
+            '     span { display:block; overflow: hidden; padding-right:10px; }' +
+            '     label { font:caption; }' +
+            '     input { font:caption; border: 1px solid #7A7A7A; width: 100%; }' +
+            '     input:focus { outline: none !important; border:1px solid #0078D7; }' +
+            '     input:hover:focus { outline: none !important; border:1px solid #0078D7; }' +
+            '     input:hover { outline: none !important; border:1px solid #000000; }' +
+            '     input[type="checkbox"] { display: inline; position: relative; width: 15px; border: 0; padding: 2px 1px;}' +
+            '     input[type="checkbox"]:focus { border:1px solid #0078D7; padding: 1px 0;}' +
+            '     input[type="checkbox"]:hover:focus { border:1px solid #0078D7; padding: 1px 0;}' +
+            '     input[type="checkbox"]:hover { border:1px solid #000000; padding: 1px 0;}' +
+            '     select { font:caption; border: 1px solid #646464; vertical-align: top; width: 100%; }' +
+            '     button { font:caption; background: #E1E1E1; color:ButtonText; border: 1px solid #ADADAD; margin: 5px; padding: 3px; width: 70px; }' +
+            '     button:focus { outline: none !important; border:2px solid #0078D7; padding: 2px; }' +
+            '     button:focus:hover { background: #e5f1fb; outline: none !important; border:2px solid #0078D7; padding: 2px; }' +
+            '     button:hover { background: #e5f1fb; outline: none !important; border:1px solid #0078D7; padding: 3px; }' +
+            '     .label_for_checkbox { float:left; margin-top: 1px; width: 60px }' +
+            '     .cnt { margin: 10px; }' +
+            '     .select_cnt { float: left; width: 230px; }' +
+            '     .select_cnt_list { width: 200px; float: left; }' +
+            '     .select_cnt_btn { width: 30px; margin-top: 40px; margin-left: 200px; position: relative; }' +
+            '     .input_cnt {  }' +
+            '     .input_cnt_block { margin-left: 20px; margin-bottom: 10px; }' +
+            '     .input_cnt_block_checkbox { margin-bottom: 2px; }' +
+            '     .normal_button { width: 70px; float: right; }' +
+            '     .select_button { width: 98px; float: left; margin: 2px;}' +
+            '     .move_button { width:25px; height:35px; float: left; }' +
+            '     .button_ok { position: absolute; right:88px; bottom:8px; }' +
+            '     .button_cancel { position: absolute; right:8px; bottom:8px; }' +
+            '</style>';
+
+        var head = wrap('head',
+            '<meta http-equiv="x-ua-compatible" content="IE=9"/>' + style);
+
+        var content = wrap('html',
+            head +
+            '<body>' +
+            '     <div class="cnt">' +
+            '          <div class="select_cnt">' +
+            '               <div class="select_cnt_list">' +
+            '                    <select id="input_select" size="20">' + '</select>' +
+            '                    <button class="select_button" id="btn_new" style="margin-top: 5px; margin-left: 0;" >New</button>' +
+            '                    <button class="select_button" id="btn_update" style="margin-top: 5px; margin-right: 0;" >Update</button>' +
+            '                    <button class="select_button" id="btn_remove" style="margin-left: 0;" >Remove</button>' +
+            '                    <button class="select_button" id="btn_default" style="margin-right: 0;" >Make Default</button>' +
+            '               </div>' +
+            '               <div class="select_cnt_btn">' +
+            '                    <button class="move_button" id="btn_up">&#9650</button>' +
+            '                    <button class="move_button" id="btn_down">&#9660</button>' +
+            '               </div>' +
+            '          </div>' +
+            '          <div class="input_cnt">' +
+            '               <div class="input_cnt_block">' +
+            '                    <label>Group Name:</label>' +
+            '                    <span>' +
+            '                    <input id="input_group_name"/>' +
+            '                    </span>' +
+            '               </div>' +
+            '               <div class="input_cnt_block">' +
+            '                    <label>Group Query:</label>' +
+            '                    <span>' +
+            '                    <input id="input_group_query"/>' +
+            '                    </span>' +
+            '               </div>' +
+            '               <div class="input_cnt_block">' +
+            '                    <label>Title Query:</label>' +
+            '                    <span>' +
+            '                    <input id="input_title_query"/>' +
+            '                    </span>' +
+            '               </div>' +
+            '               <div class="input_cnt_block">' +
+            '                    <label>Sub-title Query:</label>' +
+            '                    <span>' +
+            '                    <input id="input_sub_title_query"/>' +
+            '                    </span>' +
+            '               </div>' +
+            '               <div class="input_cnt_block">' +
+            '                    <label>Description:</label>' +
+            '                    <span>' +
+            '                    <input id="input_description"/>' +
+            '                    </span>' +
+            '               </div>' +
+            '               <div class="input_cnt_block input_cnt_block_checkbox">' +
+            '                    <label class="label_for_checkbox">Show Date:</label>' +
+            '                    <span>' +
+            '                    <input id="input_show_date" class="input_box" type="checkbox"/>' +
+            '                    </span>' +
+            '               </div>' +
+            '               <div class="input_cnt_block input_cnt_block_checkbox">' +
+            '                    <label class="label_for_checkbox">Show CD#:</label>' +
+            '                    <span>' +
+            '                    <input id="input_show_cd" class="input_box" type="checkbox"/>' +
+            '                    </span>' +
+            '               </div>' +
+            '          </div>' +
+            '     </div>' +
+            '     <button class="normal_button button_ok" id="btn_ok">OK</button>' +
+            '     <button class="normal_button button_cancel" id="btn_cancel">Cancel</button>' +
+            '</body>'
+        );
+
+        var hta_features =
+            'singleinstance=yes ' +
+            'border=dialog ' +
+            'minimizeButton=no ' +
+            'maximizeButton=no ' +
+            'scroll=no ' +
+            'showintaskbar=yes ' +
+            'contextMenu=yes ' +
+            'selection=no ' +
+            'innerBorder=no ';//+
+        //'icon=\"' + fb.FoobarPath + 'foobar2000.exe' + '\"';
+
+        var wnd = create_hta_window(x, y, 650, 425, 'Foobar2000: Manage grouping presets', content, hta_features);
+        if (!wnd) {
+            return false;
+        }
+
+        function get_default_data(arr) {
+            return _.find(arr, function (item) { return item.is_default; });
+        }
+
+        function populate_select(selected_idx) {
+            var select = wnd.input_select;
+            select.options.length = 0;
+
+            group_data_list_copy.forEach(function (item, i) {
+                var option = wnd.document.createElement('option');
+                option.setAttribute('value', item.name);
+
+                var text = item.name;
+                if (item.is_default) {
+                    text += ' [default]'
+                }
+                option.appendChild(wnd.document.createTextNode(text));
+
+                select.appendChild(option);
+            });
+            if (!_.isNil(selected_idx)) {
+                select.selectedIndex = selected_idx;
+            }
+        }
+
+        function populate_data() {
+            var select = wnd.input_select;
+            var cur_data = group_data_list_copy[select.selectedIndex];
+            wnd.input_group_name.value = cur_data.name;
+            wnd.input_group_query.value = cur_data.group_query;
+            wnd.input_title_query.value = cur_data.title_query;
+            wnd.input_description.value = cur_data.description;
+            wnd.input_show_cd.checked = cur_data.show_cd;
+            wnd.input_show_date.checked = cur_data.show_date;
+        }
+
+        function move_array_element(array, from, to) {
+            array.splice(to, 0, array.splice(from, 1)[0]);
+        }
+
+        wnd.input_select.onchange = populate_data;
+
+        wnd.btn_default.onclick = function () {
+            var select = wnd.input_select;
+            get_default_data(group_data_list_copy).is_default = false;
+            group_data_list_copy[select.selectedIndex].is_default = true;
+            populate_select(select.selectedIndex);
+        };
+
+        wnd.btn_remove.onclick = function () {
+            var select = wnd.input_select;
+            if (select.options.length > 1) {
+                group_data_list_copy.splice(select.selectedIndex, 1);
+                if (!get_default_data(group_data_list_copy)) {
+                    group_data_list_copy[0].is_default = true;
+                }
+
+                populate_select(Math.max(0, select.selectedIndex - 1));
+                populate_data();
+            }
+        };
+
+        wnd.btn_new.onclick = function () {
+            var select = wnd.input_select;
+
+            var new_data = _.cloneDeep(group_data_list_copy[select.selectedIndex]);
+            new_data.is_default = false;
+            var new_name_idx = 2;
+            while (_.find(group_data_list_copy, function (item) {return item.name === new_data.name + '(' + new_name_idx + ')';})) {
+                ++new_name_idx;
+            }
+            new_data.name += '(' + new_name_idx + ')';
+
+            group_data_list_copy.push(new_data);
+
+            populate_select(group_data_list_copy.length - 1);
+            populate_data();
+        };
+
+        wnd.btn_update.onclick = function () {
+            var cur_data = group_data_list_copy[wnd.input_select.selectedIndex];
+            cur_data.name = wnd.input_group_name.value;
+            cur_data.group_query = wnd.input_group_query.value;
+            cur_data.title_query = wnd.input_title_query.value;
+            cur_data.description = wnd.input_description.value;
+            cur_data.show_cd = wnd.input_show_cd.checked;
+            cur_data.show_date = wnd.input_show_date.checked;
+
+            populate_select(wnd.input_select.selectedIndex);
+        };
+
+        wnd.btn_up.onclick = function () {
+            var selected_idx = wnd.input_select.selectedIndex;
+            if (!selected_idx) {
+                return;
+            }
+
+            move_array_element(group_data_list_copy, selected_idx, selected_idx - 1);
+
+            populate_select(selected_idx - 1);
+        };
+
+        wnd.btn_down.onclick = function () {
+            var selected_idx = wnd.input_select.selectedIndex;
+            if (selected_idx === wnd.input_select.options.length) {
+                return;
+            }
+
+            move_array_element(group_data_list_copy, selected_idx, selected_idx + 1);
+
+            populate_select(selected_idx + 1);
+        };
+
+        wnd.document.body.onunload = function () {
+            //on_finish_fn([]);
+        };
+
+        wnd.btn_cancel.onclick = function () {
+            wnd.close();
+            //on_finish_fn([]);
+        };
+
+        wnd.btn_ok.onclick = function () {
+            wnd.btn_update.onclick();
+
+            var def_name = get_default_data(group_data_list_copy).name;
+            group_data_list_copy.forEach(function (item) {
+                delete item.is_default;
+            });
+
+            wnd.close();
+            on_finish_fn([group_data_list_copy, group_data_list_copy[wnd.input_select.selectedIndex].name, def_name]);
+        };
+
+        wnd.btn_ok.focus();
+
+        populate_select(_.findIndex(group_data_list_copy, function (item) { return item.name === cur_group_name; }));
+        populate_data();
+
+        return true;
+    }
+
     var playlists = [];
 
     var settings = new GroupingHandler.Settings();
     var cur_playlist_name = '';
     var cur_group = undefined;
-    var group_by_name = settings.group_data_list.map(function (item) {
+    var group_by_name = settings.group_presets.map(function (item) {
         return item.name;
     });
 
@@ -4471,20 +4802,23 @@ GroupingHandler.Settings = function() {
     this.load = function () {
         this.playlist_group_data = JSON.parse(g_properties.playlist_group_data);
         this.playlist_custom_group_data = JSON.parse(g_properties.playlist_custom_group_data);
-        this.last_used_group_name = g_properties.last_used_group_name;
+        this.default_group_name = g_properties.default_group_name;
+        this.group_presets = JSON.parse(g_properties.group_presets);
     };
 
     this.save = function () {
         g_properties.playlist_group_data = JSON.stringify(this.playlist_group_data);
         g_properties.playlist_custom_group_data = JSON.stringify(this.playlist_custom_group_data);
-        g_properties.last_used_group_name = this.last_used_group_name;
+        g_properties.default_group_name = this.default_group_name;
+        g_properties.group_presets = JSON.stringify(this.group_presets);
     };
 
     this.send_sync = function () {
         var syncData = {
             g_playlist_group_data:        g_properties.playlist_group_data,
             g_playlist_custom_group_data: g_properties.playlist_custom_group_data,
-            g_last_used_group_name:       g_properties.last_used_group_name
+            g_default_group_name:         g_properties.default_group_name,
+            g_group_presets:              g_properties.group_presets
         };
 
         window.NotifyOthers('sync_group_query_state', syncData);
@@ -4493,7 +4827,8 @@ GroupingHandler.Settings = function() {
     this.recieve_sync = function (settings_data) {
         g_properties.playlist_group_data = settings_data.g_playlist_group_data;
         g_properties.playlist_custom_group_data = settings_data.g_playlist_custom_group_data;
-        g_properties.last_used_group_name = settings_data.g_last_used_group_name;
+        g_properties.default_group_name = settings_data.g_default_group_name;
+        g_properties.group_presets = settings_data.g_group_presets;
 
         this.load();
     };
@@ -4507,8 +4842,27 @@ GroupingHandler.Settings = function() {
             g_properties.playlist_custom_group_data = JSON.stringify({});
         }
 
-        if (!g_properties.last_used_group_name || !_.isString(g_properties.last_used_group_name)) {
-            g_properties.last_used_group_name = 'artist_album_disc';
+        if (!g_properties.group_presets || !_.isArray(JSON.parse(g_properties.group_presets))) {
+            g_properties.group_presets = JSON.stringify([
+                new CtorGroupData('artist', 'by artist', '%album artist%'),
+                new CtorGroupData('artist_album', 'by artist / album', '%album artist%%album%', undefined, '%album%[ - %ALBUMSUBTITLE%]', {
+                    show_date:  true
+                }),
+                new CtorGroupData('artist_album_disc', 'by artist / album / disc number', '%album artist%%album%%discnumber%', undefined, '%album%[ - %ALBUMSUBTITLE%]', {
+                    show_date:  true,
+                    show_cd:    true
+                }),
+                new CtorGroupData('artist_path', 'by path', '$directory_path(%path%)', undefined, '%album%[ - %ALBUMSUBTITLE%]', {
+                    show_date:  true
+                }),
+                new CtorGroupData('artist_date', 'by date', '%date%', undefined, '%album%[ - %ALBUMSUBTITLE%]', {
+                    show_date:  true
+                })
+            ]);
+        }
+
+        if (!g_properties.default_group_name || !_.isString(g_properties.default_group_name)) {
+            g_properties.default_group_name = 'artist_album_disc';
         }
     }
 
@@ -4517,27 +4871,8 @@ GroupingHandler.Settings = function() {
 
     this.playlist_group_data = {};
     this.playlist_custom_group_data = {};
-    this.last_used_group_name = '';
-    this.group_data_list = [
-        new CtorGroupData('artist', 'artist', '%album artist%'),
-        new CtorGroupData('artist_album', 'artist / album', '%album artist%%album%', undefined, {
-            show_date:  true,
-            show_album: true
-        }),
-        new CtorGroupData('artist_album_disc', 'artist / album / disc number', '%album artist%%album%%discnumber%', undefined, {
-            show_date:  true,
-            show_cd:    true,
-            show_album: true
-        }),
-        new CtorGroupData('artist_path', 'path', '$directory_path(%path%)', undefined, {
-            show_date:  true,
-            show_album: true
-        }),
-        new CtorGroupData('artist_date', 'date', '%date%', undefined, {
-            show_date:  true,
-            show_album: true
-        })
-    ];
+    this.default_group_name = '';
+    this.group_presets = [];
 
     fixup_g_properties();
     this.load();
@@ -4547,22 +4882,22 @@ GroupingHandler.Settings = function() {
  * @param {string} name
  * @param {string} description
  * @param {string} group_query
- * @param {?string=} [title_query=%ARTIST%]
+ * @param {?string=} [title_query='%ARTIST%']
+ * @param {?string=} [sub_title_query='']
  * @param {object=}  [options={}]
  * @param {boolean=} [options.show_date=false]
  * @param {boolean=} [options.show_cd=false]
- * @param {boolean=} [options.show_album=false]
  * @constructor
  * @struct
  */
-GroupingHandler.Settings.Group = function(name, description, group_query, title_query, options) {
+GroupingHandler.Settings.Group = function(name, description, group_query, title_query, sub_title_query, options) {
     this.name = name;
     this.description = description;
     this.group_query = group_query;
     this.title_query = title_query ? title_query : '%ARTIST%';
+    this.sub_title_query = title_query ? title_query : '';
     this.show_date = !!(options && options.show_date);
     this.show_cd = !!(options && options.show_cd);
-    this.show_album = !!(options && options.show_album);
 };
 
 Header.grouping_handler = new GroupingHandler();
