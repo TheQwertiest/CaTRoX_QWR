@@ -396,6 +396,9 @@ function BottomPanel() {
         if (g_properties.is_spectrum_available) {
             pss_switch.spectrum.refresh();
         }
+        if (!window.IsVisible) {
+            that.on_size(1, 1);
+        }
     }
 
     function create_buttons(wx, wy, ww, wh) {
@@ -664,6 +667,8 @@ function BottomPanel() {
     this.w = 0;
     this.h = 0;
 
+    var that = this;
+
     /** @const {number} */
     var seekbar_h = 14;
     /** @const {number} */
@@ -681,7 +686,7 @@ function BottomPanel() {
     var button_images = [];
     var show_tooltips = false;
     var volume_bar_obj = null;
-    var seekbar_obj = null;
+    var seekbar_obj = new _.seekbar(0, 0, 0, 0);
 
     initialize();
 }

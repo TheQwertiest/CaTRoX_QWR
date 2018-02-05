@@ -281,6 +281,13 @@ function PlaybackPanel() {
         throttled_repaint();
     };
 
+    function initialize() {
+        create_button_images();
+        if (!window.IsVisible) {
+            that.on_size(1, 1);
+        }
+    }
+
     function create_buttons(wx, wy, ww, wh) {
         if (buttons) {
             buttons.reset();
@@ -477,6 +484,8 @@ function PlaybackPanel() {
     this.w = 0;
     this.h = 0;
 
+    var that = this;
+
     /** @const {number} */
     var volume_bar_h = 14;
 
@@ -490,5 +499,5 @@ function PlaybackPanel() {
     var buttons = null;
     var button_images = [];
 
-    create_button_images();
+    initialize();
 }

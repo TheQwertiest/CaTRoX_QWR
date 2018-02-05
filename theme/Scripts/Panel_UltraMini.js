@@ -414,6 +414,15 @@ function UltraMini() {
         throttled_repaint();
     };
 
+    function initialize() {
+        create_button_images();
+        // Set tracking mode in ArtModule to NowPlaying
+        art_module.set_track_mode(1);
+        if (!window.IsVisible) {
+            that.on_size(1, 1);
+        }
+    }
+
     function create_buttons(wx, wy, ww, wh) {
         if (buttons) {
             buttons.reset();
@@ -635,9 +644,7 @@ function UltraMini() {
     /** @type {?seekbar} */
     var seekbar_obj = undefined;
 
-    create_button_images();
-    // Set tracking mode in ArtModule to NowPlaying
-    art_module.set_track_mode(1);
+    initialize();
 }
 
 /**
