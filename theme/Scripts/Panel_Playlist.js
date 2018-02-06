@@ -4112,8 +4112,7 @@ function PlaylistManager(x, y, w, h) {
             draw_on_image(gr,this.x,this.y,this.w, this.h, false);
         }
         else {
-            if (!image_normal || !image_pressed) {
-                // normal
+            if (!image_normal) {
                 var image = gdi.CreateImage(this.w, this.h);
                 var image_gr = image.GetGraphics();
 
@@ -4121,10 +4120,11 @@ function PlaylistManager(x, y, w, h) {
 
                 image.ReleaseGraphics(image_gr);
                 image_normal = image;
+            }
 
-                // pressed
-                image = gdi.CreateImage(this.w, this.h);
-                image_gr = image.GetGraphics();
+            if (!image_pressed) {
+                var image = gdi.CreateImage(this.w, this.h);
+                var image_gr = image.GetGraphics();
 
                 draw_on_image(image_gr, 0, 0, this.w, this.h, true);
 
