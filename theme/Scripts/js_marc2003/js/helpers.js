@@ -707,9 +707,9 @@ _.mixin({
             return false;
         }
     },
-    runCmd:               function (command, wait, hide) {
+    runCmd:               function (command, wait, show) {
         try {
-            WshShell.Run(command, hide ? 0 : 1, !_.isNil(wait) ? wait : false);
+            WshShell.Run(command, show ? 1 : 0, !_.isNil(wait) ? wait : false);
             return true;
         } catch (e) {
             return false;

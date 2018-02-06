@@ -440,8 +440,8 @@ _.mixin(qwr_utils, {
         cm.append(edit);
 
         var edit_fn = function (script_path) {
-            if (!_.runCmd("notepad++.exe " + script_path, undefined, false)) {
-                _.runCmd("notepad.exe " + script_path, undefined, false);
+            if (!_.runCmd("notepad++.exe " + script_path, undefined, true)) {
+                _.runCmd("notepad.exe " + script_path, undefined, true);
             }
         };
 
