@@ -253,6 +253,16 @@ _.mixin({
     cc:                   function (name) {
         return utils.CheckComponent(name, true);
     },
+    chrToImg:             function (chr, colour) {
+        var size = 96;
+        var temp_bmp = gdi.CreateImage(size, size);
+        var temp_gr = temp_bmp.GetGraphics();
+        temp_gr.SetTextRenderingHint(4);
+        temp_gr.DrawString(chr, fontawesome, colour, 0, 0, size, size, SF_CENTRE);
+        temp_bmp.ReleaseGraphics(temp_gr);
+        temp_gr = null;
+        return temp_bmp;
+    },
     count:                function (collection, predicate) {
         var count = 0;
         collection.forEach(function (item) {
@@ -638,19 +648,20 @@ _.mixin({
         this.set = function (value) {
             this.value = value;
             window.SetProperty(this.property, this.value);
-        }
+        };
 
         this.toggle = function () {
             this.enabled = !this.enabled;
             window.SetProperty(this.property, this.enabled);
-        }
+        };
 
         this.property = property;
-        if (_.isBoolean(default_)) {
-            this.enabled = window.GetProperty(this.property, default_);
+        this.default_ = default_;
+        if (_.isBoolean(this.default_)) {
+            this.enabled = window.GetProperty(this.property, this.default_);
         }
         else {
-            this.value = window.GetProperty(this.property, default_);
+            this.value = window.GetProperty(this.property, this.default_);
         }
     },
     q:                    function (value) {
@@ -698,7 +709,7 @@ _.mixin({
     },
     runCmd:               function (command, wait, hide) {
         try {
-            WshShell.Run(command, hide ? 0 : 1 , !_.isNil(wait) ? wait : false);
+            WshShell.Run(command, hide ? 0 : 1, !_.isNil(wait) ? wait : false);
             return true;
         } catch (e) {
             return false;
@@ -714,15 +725,15 @@ _.mixin({
     },
     sb:                   function (t, x, y, w, h, v, fn) {
         this.paint = function (gr, colour) {
-            gr.SetTextRenderingHint(TextRenderingHint.AntiAlias);
+            gr.SetTextRenderingHint(4);
             if (this.v()) {
-                gr.DrawString(this.t, this.guifx_font, colour, this.x, this.y, this.w, this.h, SF_CENTRE);
+                gr.DrawString(this.t, this.font, colour, this.x, this.y, this.w, this.h, SF_CENTRE);
             }
-        };
+        }
 
         this.trace = function (x, y) {
             return x > this.x && x < this.x + this.w && y > this.y && y < this.y + this.h && this.v();
-        };
+        }
 
         this.move = function (x, y) {
             if (this.trace(x, y)) {
@@ -730,10 +741,10 @@ _.mixin({
                 return true;
             }
             else {
-                window.SetCursor(IDC_ARROW);
+                //window.SetCursor(IDC_ARROW);
                 return false;
             }
-        };
+        }
 
         this.lbtn_up = function (x, y) {
             if (this.trace(x, y)) {
@@ -745,7 +756,7 @@ _.mixin({
             else {
                 return false;
             }
-        };
+        }
 
         this.t = t;
         this.x = x;
@@ -754,7 +765,7 @@ _.mixin({
         this.h = h;
         this.v = v;
         this.fn = fn;
-        this.guifx_font = gdi.Font(guifx.font, this.h, 0);
+        this.font = gdi.Font('FontAwesome', this.h);
     },
     setClipboardData:     function (value) {
         doc.parentWindow.clipboardData.setData('Text', value.toString());
@@ -1098,12 +1109,28 @@ folders.data = fb.ProfilePath + 'js_data\\';
 folders.artists = folders.data + 'artists\\';
 folders.lastfm = folders.data + 'lastfm\\';
 
-var guifx = {
-    font:  'Guifx v2 Transports',
-    up:    '.',
-    down:  ',',
-    close: 'x',
-    star:  'b'
+var fontawesome = gdi.Font('FontAwesome', 48);
+var chars = {
+	up : '\uF077',
+	down : '\uF078',
+	close : '\uF00D',
+	rating_on : '\uF005',
+	rating_off : '\uF006',
+	heart_on : '\uF004',
+	heart_off : '\uF08A',
+	prev : '\uF049',
+	next : '\uF050',
+	play : '\uF04B',
+	pause : '\uF04C',
+	stop : '\uF04D',
+	preferences : '\uF013',
+	search : '\uF002',
+	console : '\uF120',
+	info : '\uF05A',
+	audioscrobbler : '\uF202',
+	minus : '\uF068',
+	music : '\uF001',
+	menu : '\uF0C9'
 };
 
 var popup = {
