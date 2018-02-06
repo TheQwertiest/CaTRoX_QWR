@@ -12,9 +12,9 @@
 })();
 
 (function check_jscript_version() {
-    if (utils.Version < 2000) {
+    if (utils.Version < 2010) {
         var versionStr = utils.Version.toString();
-        var error_msg = 'JScript (modded or vanilla) v2.0.0.0 or higher is required!\n';
+        var error_msg = 'JScript (modded or vanilla) v2.0.1.0 or higher is required!\n';
         error_msg += 'Your JScript version: ' + versionStr[0] + '.' + versionStr[1] + '.' + versionStr[2] + '.' + versionStr[3];
 
         throw new ThemeError(error_msg);
@@ -63,6 +63,7 @@ g_properties.add_properties(
     msg += '\nDisabled features:\n';
     msg += '    - Persistent window size for Full Mode and Playlist Mode.\n';
     msg += '    - Top Panel: dynamic button state for \'YouTube Video Toggle\' and \'Last.FM Scrobbling Toggle\' buttons.\n';
+    msg += '  Also some dialog windows may spawn outside of the main fb2k window.\n';
     msg += '\nSources for modded JScript are available at https://github.com/TheQwertiest/foo-jscript-panel\n';
     msg += '\nTo disable this warning set \'system.jscript_incompatibility.notified\' to \'true\' in Panel Properties (SHIFT-right-click on Menu Panel).\n';
 

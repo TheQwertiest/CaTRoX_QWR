@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+
+## [4.1.0] - 2018-02-06
 ### Added
 - Added compatibility fixes for vanilla JScript v2.0.0 component.
 - Track Info Panel:
@@ -9,11 +11,17 @@
   - Made possible to hide file info tags and show only metadata tags.
   - Added animation on mouse click.
 - Playlist Panel:
-  - Added ESplaylist-like ability to set custom header title query when user-defined grouping is used. 
+  - Added ESplaylist-like ability to customize grouping presets:
+    - Presets can be added, changed, moved and removed. 
+    - Customizable title and sub-title queries in group header. 
   - Added CTRL-SHIFT-up/down hotkeys - moves selection up/down.
+  - Added 'pressed' animation to playlist manager.
 - Context Menus: developer context menu (accessible via SHIFT-right-click) now contains all base panel scripts in it's 'Edit panel scripts' sub-menu. 
 
 ### Changed
+- Updated WilB's scripts:
+  - Library Tree 1.3.9.2.
+  - YouTube Track Manager 3.9.4.
 - Track Info Panel: rewritten from scratch.
 - Playlist Panel: date and album are not displayed now in compact header if empty.
 - Various performance improvements.
@@ -24,6 +32,7 @@
 - Major internal changes.
 
 ### Fixed
+- Fixed crashes when starting fb2k in minimized state.
 - Playlist Panel:
   - List padding (set via panel properties) is respected now.
   - Fixed incorrect scroll position that appeared in some cases.
@@ -32,6 +41,7 @@
   - Fixed invalid position of CTRL-V pasted items.
   - Fixed CTRL-X not removing cut item.
   - Fixed various crashes during playlist navigation while focused track is not set.
+  - Fixed grouping settings not respecting playlist changes.
 - Cover Panel:
   - Fixed 'Loading' text being stuck on script load.
   - Fixed crashes when track is deleted during art load. 
@@ -175,7 +185,8 @@
 ### Fixed
 - Fixed various crashes caused by incompatibility with JScript.
 
-[Unreleased]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.0.5...HEAD
+[Unreleased]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.1.0...HEAD
+[4.1.0]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.0.5...v4.1.0
 [4.0.5]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.0.4...v4.0.5
 [4.0.4]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.0.3...v4.0.4
 [4.0.3]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.0.2b...v4.0.3
