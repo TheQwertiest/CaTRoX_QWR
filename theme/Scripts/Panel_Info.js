@@ -832,7 +832,7 @@ function Row(x, y, w, h, metadb_arg, tag_name_arg, value_text_arg) {
     };
 
     this.edit_metadata = function () {
-        var new_value = _.input2('Enter new ' + tag_name + ' value', 'Change metadata value', value_text);
+        var new_value = _.input_cancellable('Enter new ' + tag_name + ' value', 'Change metadata value', value_text);
         if (!_.isNil(new_value)) {
             value_text = new_value;
 

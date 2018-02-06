@@ -260,30 +260,30 @@ HtaWindow.group_presets_mngr = function(x, y, group_presets, cur_group_name, def
         HtaWindow.manager.close();
     };
 
-    wnd.btn_apply.onclick = function () {
-        wnd.btn_update.onclick();
-
-        var output_copy = _.cloneDeep(group_data_list_copy);
+    function prepare_output_data(arr) {
+        var output_copy = _.cloneDeep(arr);
         var default_name = get_default_data(output_copy).name;
         var selected_name = output_copy[wnd.input_select.selectedIndex].name;
         output_copy.forEach(function (item) {
             delete item.is_default;
         });
 
-        on_finish_fn([output_copy, selected_name, default_name]);
+        return [output_copy, selected_name, default_name];
+    }
+
+    wnd.btn_apply.onclick = function () {
+        wnd.btn_update.onclick();
+
+        on_finish_fn(prepare_output_data(group_data_list_copy));
     };
 
     wnd.btn_ok.onclick = function () {
         wnd.btn_update.onclick();
 
-        var default_name = get_default_data(group_data_list_copy).name;
-        var selected_name = group_data_list_copy[wnd.input_select.selectedIndex].name;
-        group_data_list_copy.forEach(function (item) {
-            delete item.is_default;
-        });
+        var output_data = prepare_output_data(group_data_list_copy);
 
         HtaWindow.manager.close();
-        on_finish_fn([group_data_list_copy, selected_name, default_name]);
+        on_finish_fn(output_data);
     };
 
     wnd.btn_ok.focus();
