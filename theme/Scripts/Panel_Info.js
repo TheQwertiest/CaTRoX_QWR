@@ -7,8 +7,6 @@ var trace_call = false;
 var trace_on_paint = false;
 var trace_on_move = false;
 
-// Performance
-// TODO: instead of always generating row images, it should be generated only on mouse click
 
 g_script_list.push('Panel_Info.js');
 
@@ -800,28 +798,42 @@ function Row(x, y, w, h, metadb_arg, tag_name_arg, value_text_arg) {
 
     //public:
     this.draw = function (gr) {
-        if (!row_normal_image) {
-            var image = gdi.CreateImage(this.w, this.h);
-            var image_gr = image.GetGraphics();
+        if (!this.is_pressed && !this.hover_alpha) {
+            if (row_normal_image) {
+                row_normal_image.Dispose();
+                row_normal_image = null;
+            }
+            if (row_pressed_image) {
+                row_pressed_image.Dispose();
+                row_pressed_image = null;
+            }
 
-            draw_on_image(image_gr, false);
-
-            image.ReleaseGraphics(image_gr);
-            row_normal_image = image;
+            draw_on_image(gr, this.x,this.y, this.w, this.h, false);
         }
+        else {
+            if (!row_normal_image) {
+                var image = gdi.CreateImage(this.w, this.h);
+                var image_gr = image.GetGraphics();
 
-        if (!row_pressed_image) {
-            var image = gdi.CreateImage(this.w, this.h);
-            var image_gr = image.GetGraphics();
+                draw_on_image(image_gr, 0, 0, this.w, this.h, false);
 
-            draw_on_image(image_gr, true);
+                image.ReleaseGraphics(image_gr);
+                row_normal_image = image;
+            }
 
-            image.ReleaseGraphics(image_gr);
-            row_pressed_image = image;
+            if (!row_pressed_image) {
+                var image = gdi.CreateImage(this.w, this.h);
+                var image_gr = image.GetGraphics();
+
+                draw_on_image(image_gr, 0, 0, this.w, this.h, true);
+
+                image.ReleaseGraphics(image_gr);
+                row_pressed_image = image;
+            }
+
+            gr.DrawImage(row_normal_image, this.x, this.y, this.w, this.h, 0, 0, this.w, this.h, 0, 255);
+            gr.DrawImage(row_pressed_image, this.x, this.y, this.w, this.h, 0, 0, this.w, this.h, 0, this.hover_alpha);
         }
-
-        gr.DrawImage(row_normal_image, this.x, this.y, this.w, this.h, 0, 0, this.w, this.h, 0, 255);
-        gr.DrawImage(row_pressed_image, this.x, this.y, this.w, this.h, 0, 0, this.w, this.h, 0, this.hover_alpha);
     };
 
     /** @override */
@@ -859,38 +871,38 @@ function Row(x, y, w, h, metadb_arg, tag_name_arg, value_text_arg) {
         clear_image();
     };
 
-    function draw_on_image(g, is_pressed) {
-        g.FillSolidRect(0, 0, that.w, that.h, g_tr_i_colors.background);
+    function draw_on_image(g, x,y,w,h, is_pressed) {
+        g.FillSolidRect(x, y, w, h, g_tr_i_colors.background);
         g.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
 
         if (that.is_odd && g_properties.alternate_row_color) {
-            g.FillSolidRect(0, 1, that.w, that.h - 1, g_tr_i_colors.row_alternate);
+            g.FillSolidRect(x, y + 1, w, h - 1, g_tr_i_colors.row_alternate);
         }
 
         if (is_pressed) {
             if (g_properties.alternate_row_color) {
-                g.DrawRect(0, 0, that.w - 1, that.h - 1, 1, g_tr_i_colors.row_pressed_rect);
+                g.DrawRect(x, y, w - 1, h - 1, 1, g_tr_i_colors.row_pressed_rect);
             }
             else {
-                g.FillSolidRect(0, 0, that.w, that.h, g_tr_i_colors.row_pressed);
+                g.FillSolidRect(x, y, w, h, g_tr_i_colors.row_pressed);
             }
         }
 
         var info_text_format = g_string_format.v_align_center | g_string_format.trim_ellipsis_char | g_string_format.line_limit;
 
         var p = 5;
-        var cur_x = p;
+        var cur_x = x + p;
         {
             var name_text = /** @type{string} */ [((tag_name === 'www') ? tag_name : _.capitalize(tag_name.toLowerCase()) + ':')];
             var name_text_w = Math.ceil(/** @type{number} */ g.MeasureString(name_text, g_tr_i_fonts.info_name, 0, 0, 0, 0).Width) + 5;
-            g.DrawString(name_text, g_tr_i_fonts.info_name, g_tr_i_colors.info_name, cur_x, 0, name_text_w, that.h, info_text_format);
+            g.DrawString(name_text, g_tr_i_fonts.info_name, g_tr_i_colors.info_name, cur_x, y, name_text_w, h, info_text_format);
 
             cur_x += name_text_w;
         }
 
         {
-            var value_text_w = (that.w - p) - cur_x;
-            g.DrawString(value_text, g_tr_i_fonts.info_value, g_tr_i_colors.info_value, cur_x, 0, value_text_w, that.h, info_text_format);
+            var value_text_w = (w - p) - cur_x;
+            g.DrawString(value_text, g_tr_i_fonts.info_value, g_tr_i_colors.info_value, cur_x, y, value_text_w, h, info_text_format);
         }
     }
 
