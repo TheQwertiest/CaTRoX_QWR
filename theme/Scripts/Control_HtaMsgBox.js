@@ -42,7 +42,8 @@ HtaWindow.create = function(x, y, w, h, title, content, features) {
         }
     }
     if (!wnd) {
-        return null;
+        fb.ShowPopupMessage('Failed to create HTA Dialog', 'Theme Error');
+        return wnd;
     }
 
     wnd.document.open();
@@ -76,7 +77,10 @@ HtaWindow.styles.button =
     'button { font:caption; background: #E1E1E1; color:ButtonText; border: 1px solid #ADADAD; margin: 5px; padding: 3px; width: 70px; }' +
     'button:focus { outline: none !important; border:2px solid #0078D7; padding: 2px; }' +
     'button:focus:hover { background: #e5f1fb; outline: none !important; border:2px solid #0078D7; padding: 2px; }' +
-    'button:hover { background: #e5f1fb; outline: none !important; border:1px solid #0078D7; padding: 3px; }';
+    'button:hover { background: #e5f1fb; outline: none !important; border:1px solid #0078D7; padding: 3px; }' +
+    'button[disabled] { background: #CCCCCC; color:#EBEBE4; }' +
+    // Suppress button:hover manually, since not() is not working =(
+    'button[disabled]:hover { border: 1px solid #ADADAD; padding: 3px; }';
 
 /**
  * @param {number} x
@@ -187,7 +191,7 @@ HtaWindow.manager = new function() {
     this.open = function (x, y, w, h, title, content, features) {
         if (wnd) {
             wnd.focus();
-            return wnd;
+            return null;
         }
 
         on_top = fb.AlwaysOnTop;

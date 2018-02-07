@@ -4560,9 +4560,7 @@ function GroupingHandler () {
         var y = fb_handle ? fb_handle.Top + fb_handle.Height / 3 : 300;
 
         var parsed_query = cur_group.name === 'user_defined' ? [cur_group.group_query, cur_group.title_query] : ['', ''];
-        if (!HtaWindow.msg_box_multiple(x, y, ['Group', 'Title'], 'Foobar2000: Header group query', [parsed_query[0], parsed_query[1]], on_ok_fn)) {
-            fb.ShowPopupMessage('Failed to create \'Customize Grouping\' Dialog', 'Theme Error');
-        }
+        HtaWindow.msg_box_multiple(x, y, ['Group', 'Title'], 'Foobar2000: Header group query', [parsed_query[0], parsed_query[1]], on_ok_fn);
     }
 
     /**
@@ -4591,9 +4589,7 @@ function GroupingHandler () {
         var x = fb_handle ? fb_handle.Left + fb_handle.Width / 3 : 400;
         var y = fb_handle ? fb_handle.Top + fb_handle.Height / 3 : 300;
 
-        if (!HtaWindow.group_presets_mngr(x, y, settings.group_presets, cur_group.name, settings.default_group_name, on_ok_fn)) {
-            fb.ShowPopupMessage('Failed to create \'Manage Grouping Presets\' Dialog', 'Theme Error');
-        }
+        HtaWindow.group_presets_mngr(x, y, settings.group_presets, cur_group.name, settings.default_group_name, on_ok_fn);
     }
 
     function initialize_playlists() {

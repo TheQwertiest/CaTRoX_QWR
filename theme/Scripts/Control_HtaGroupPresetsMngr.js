@@ -59,10 +59,10 @@ HtaWindow.group_presets_mngr = function(x, y, group_presets, cur_group_name, def
         '          <div class="select_cnt">' +
         '               <div class="select_cnt_list">' +
         '                    <select id="input_select" size="20">' + '</select>' +
-        '                    <button class="select_button" id="btn_new" style="margin-top: 5px; margin-left: 0;" >New</button>' +
-        '                    <button class="select_button" id="btn_update" style="margin-top: 5px; margin-right: 0;" >Update</button>' +
-        '                    <button class="select_button" id="btn_remove" style="margin-left: 0;" >Remove</button>' +
-        '                    <button class="select_button" id="btn_default" style="margin-right: 0;" >Make Default</button>' +
+        '                    <button class="select_button" id="btn_new" style="margin-top: 5px; margin-left: 0;">New</button>' +
+        '                    <button class="select_button" id="btn_update" style="margin-top: 5px; margin-right: 0;" disabled>Update</button>' +
+        '                    <button class="select_button" id="btn_remove" style="margin-left: 0;">Remove</button>' +
+        '                    <button class="select_button" id="btn_default" style="margin-right: 0;">Make Default</button>' +
         '               </div>' +
         '               <div class="select_cnt_btn">' +
         '                    <button class="move_button" id="btn_up">&#9650</button>' +
@@ -116,7 +116,7 @@ HtaWindow.group_presets_mngr = function(x, y, group_presets, cur_group_name, def
         '     </div>' +
         '     <button class="normal_button button_ok" id="btn_ok">OK</button>' +
         '     <button class="normal_button button_cancel" id="btn_cancel">Cancel</button>' +
-        '     <button class="normal_button button_apply" id="btn_apply">Apply</button>' +
+        '     <button class="normal_button button_apply" id="btn_apply" disabled>Apply</button>' +
         '</body>' +
         '</html>';
 
@@ -178,13 +178,58 @@ HtaWindow.group_presets_mngr = function(x, y, group_presets, cur_group_name, def
         array.splice(to, 0, array.splice(from, 1)[0]);
     }
 
+    function prepare_output_data(arr) {
+        var output_copy = _.cloneDeep(arr);
+        var default_name = get_default_data(output_copy).name;
+        var selected_name = output_copy[wnd.input_select.selectedIndex].name;
+        output_copy.forEach(function (item) {
+            delete item.is_default;
+        });
+
+        return [output_copy, selected_name, default_name];
+    }
+
+    function on_input_change() {
+        wnd.btn_apply.removeAttribute('disabled');
+        wnd.btn_update.removeAttribute('disabled');
+    }
+
     wnd.input_select.onchange = populate_data;
+
+    var input_fields = [
+        wnd.input_group_name,
+        wnd.input_group_query,
+        wnd.input_title_query,
+        wnd.input_sub_title_query,
+        wnd.input_description,
+        wnd.input_show_cd,
+        wnd.input_show_date
+    ];
+
+    var input_box = [
+        wnd.input_show_cd,
+        wnd.input_show_date
+    ];
+
+    input_fields.forEach(function(item){
+        item.onchange = on_input_change;
+        item.onkeypress = on_input_change;
+        item.onpaste = on_input_change;
+        item.oncut = on_input_change;
+    });
+
+    input_box.forEach(function(item){
+        item.onchange = on_input_change;
+        item.onclick = on_input_change;
+    });
 
     wnd.btn_default.onclick = function () {
         var select = wnd.input_select;
         get_default_data(group_data_list_copy).is_default = false;
         group_data_list_copy[select.selectedIndex].is_default = true;
         populate_select(select.selectedIndex);
+
+            wnd.btn_apply.removeAttribute('disabled');
     };
 
     wnd.btn_remove.onclick = function () {
@@ -198,6 +243,8 @@ HtaWindow.group_presets_mngr = function(x, y, group_presets, cur_group_name, def
             populate_select(Math.max(0, select.selectedIndex - 1));
             populate_data();
         }
+
+            wnd.btn_apply.removeAttribute('disabled');
     };
 
     wnd.btn_new.onclick = function () {
@@ -215,9 +262,15 @@ HtaWindow.group_presets_mngr = function(x, y, group_presets, cur_group_name, def
 
         populate_select(group_data_list_copy.length - 1);
         populate_data();
+
+            wnd.btn_apply.removeAttribute('disabled');
     };
 
     wnd.btn_update.onclick = function () {
+        if (wnd.btn_update.hasAttribute('disabled')) {
+            return;
+        }
+
         var cur_data = group_data_list_copy[wnd.input_select.selectedIndex];
         cur_data.name = wnd.input_group_name.value;
         cur_data.group_query = wnd.input_group_query.value;
@@ -228,6 +281,8 @@ HtaWindow.group_presets_mngr = function(x, y, group_presets, cur_group_name, def
         cur_data.show_date = wnd.input_show_date.checked;
 
         populate_select(wnd.input_select.selectedIndex);
+
+        wnd.btn_update.setAttribute('disabled');
     };
 
     wnd.btn_up.onclick = function () {
@@ -239,6 +294,8 @@ HtaWindow.group_presets_mngr = function(x, y, group_presets, cur_group_name, def
         move_array_element(group_data_list_copy, selected_idx, selected_idx - 1);
 
         populate_select(selected_idx - 1);
+
+            wnd.btn_apply.removeAttribute('disabled');
     };
 
     wnd.btn_down.onclick = function () {
@@ -250,6 +307,8 @@ HtaWindow.group_presets_mngr = function(x, y, group_presets, cur_group_name, def
         move_array_element(group_data_list_copy, selected_idx, selected_idx + 1);
 
         populate_select(selected_idx + 1);
+
+            wnd.btn_apply.removeAttribute('disabled');
     };
 
     wnd.document.body.onbeforeunload = function () {
@@ -260,24 +319,23 @@ HtaWindow.group_presets_mngr = function(x, y, group_presets, cur_group_name, def
         HtaWindow.manager.close();
     };
 
-    function prepare_output_data(arr) {
-        var output_copy = _.cloneDeep(arr);
-        var default_name = get_default_data(output_copy).name;
-        var selected_name = output_copy[wnd.input_select.selectedIndex].name;
-        output_copy.forEach(function (item) {
-            delete item.is_default;
-        });
-
-        return [output_copy, selected_name, default_name];
-    }
-
     wnd.btn_apply.onclick = function () {
+        if (wnd.btn_apply.hasAttribute('disabled')) {
+            return;
+        }
+
         wnd.btn_update.onclick();
 
         on_finish_fn(prepare_output_data(group_data_list_copy));
+
+        wnd.btn_apply.setAttribute('disabled');
     };
 
     wnd.btn_ok.onclick = function () {
+        if (wnd.btn_apply.hasAttribute('disabled')) {
+            return;
+        }
+
         wnd.btn_update.onclick();
 
         var output_data = prepare_output_data(group_data_list_copy);
