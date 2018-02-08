@@ -92,7 +92,9 @@ var g_pl_colors = {};
 //---> Common
 g_pl_colors.background = g_theme.colors.panel_back;
 //---> Playlist Manager
-g_pl_colors.playlist_mgr_pressed = g_theme.colors.panel_line_selected;
+g_pl_colors.playlist_mgr_text_normal = _.RGB(150, 152, 154);
+g_pl_colors.playlist_mgr_text_hovered = _.RGB(200, 202, 204);
+g_pl_colors.playlist_mgr_text_pressed = _.RGB(120, 122, 124);
 //---> Header
 g_pl_colors.group_title = _.RGB(180, 182, 184);
 g_pl_colors.group_title_selected = g_pl_colors.group_title;
@@ -325,6 +327,10 @@ function PlaylistPanel() {
 
     this.on_mouse_move = function (x, y, m) {
         playlist.on_mouse_move(x, y, m);
+
+        if (g_properties.show_playlist_info) {
+            playlist_info.on_mouse_move(x, y, m);
+        }
     };
 
     this.on_mouse_lbtn_down = function (x, y, m) {
@@ -1123,7 +1129,7 @@ function Playlist(x,y) {
                     selection_handler.sync_items_with_selection();
                 }
                 plman.UndoBackup(cur_playlist_idx);
-                plman.RemovePlaylistSelection(cur_playlist_idx, false);
+                plman.RemovePlaylistSelection(cur_playlist_idx);
 
                 break;
             }
@@ -4099,41 +4105,43 @@ function PlaylistManager(x, y, w, h) {
             }
         }
 
-        if (!this.is_pressed && !this.hover_alpha) {
+        if (this.panel_state === state.pressed
+            || (this.panel_state === state.normal && !this.hover_alpha)
+            || (this.panel_state === state.hovered && this.hover_alpha === 255)) {
             if (image_normal) {
                 image_normal.Dispose();
                 image_normal = null;
             }
-            if (image_pressed) {
-                image_pressed.Dispose();
-                image_pressed = null;
+            if (image_hovered) {
+                image_hovered.Dispose();
+                image_hovered = null;
             }
 
-            draw_on_image(gr,this.x,this.y,this.w, this.h, false);
+            draw_on_image(gr, this.x, this.y, this.w, this.h, this.panel_state);
         }
         else {
             if (!image_normal) {
                 var image = gdi.CreateImage(this.w, this.h);
                 var image_gr = image.GetGraphics();
 
-                draw_on_image(image_gr, 0, 0, this.w, this.h, false);
+                draw_on_image(image_gr, 0, 0, this.w, this.h, state.normal);
 
                 image.ReleaseGraphics(image_gr);
                 image_normal = image;
             }
 
-            if (!image_pressed) {
+            if (!image_hovered) {
                 var image = gdi.CreateImage(this.w, this.h);
                 var image_gr = image.GetGraphics();
 
-                draw_on_image(image_gr, 0, 0, this.w, this.h, true);
+                draw_on_image(image_gr, 0, 0, this.w, this.h, state.hovered);
 
                 image.ReleaseGraphics(image_gr);
-                image_pressed = image;
+                image_hovered = image;
             }
 
             gr.DrawImage(image_normal, this.x, this.y, this.w, this.h, 0, 0, this.w, this.h, 0, 255);
-            gr.DrawImage(image_pressed, this.x, this.y, this.w, this.h, 0, 0, this.w, this.h, 0, this.hover_alpha);
+            gr.DrawImage(image_hovered, this.x, this.y, this.w, this.h, 0, 0, this.w, this.h, 0, this.hover_alpha);
         }
     };
 
@@ -4142,23 +4150,34 @@ function PlaylistManager(x, y, w, h) {
         this.repaint();
     };
 
+    this.on_mouse_move = function (x, y, m) {
+        if (this.panel_state === state.pressed) {
+            return;
+        }
+
+        change_state(this.trace(x, y) ? state.hovered : state.normal);
+    };
+
     this.on_mouse_lbtn_down = function (x, y, m) {
         if (!this.trace(x, y)) {
             return;
         }
 
-        mouse_down = true;
-        start_animation(true);
+        change_state(state.pressed);
     };
 
     this.on_mouse_lbtn_up = function (x, y, m) {
-        start_animation(false);
-        if (!mouse_down) {
+        var was_pressed = this.panel_state === state.pressed;
+
+        if (!this.trace(x, y)) {
+            change_state(state.normal);
             return;
         }
-        mouse_down = false;
-        if (!this.trace(x, y)) {
-            return true;
+        else {
+            change_state(state.hover);
+            if (!was_pressed) {
+                return;
+            }
         }
 
         var cpm = window.CreatePopupMenu();
@@ -4207,18 +4226,21 @@ function PlaylistManager(x, y, w, h) {
             return true;
         }
 
-        mouse_down = true;
-        start_animation(true);
+        change_state(state.pressed);
     };
 
     this.on_mouse_rbtn_up = function (x, y, m) {
-        start_animation(false);
-        if (!mouse_down) {
-            return;
-        }
-        mouse_down = false;
+        var was_pressed = this.panel_state === state.pressed;
+
         if (!this.trace(x, y)) {
+            change_state(state.normal);
             return true;
+        }
+        else {
+            change_state(state.hover);
+            if (!was_pressed) {
+                return true;
+            }
         }
 
         var cmm = new Context.MainMenu();
@@ -4236,9 +4258,7 @@ function PlaylistManager(x, y, w, h) {
     };
 
     this.on_mouse_leave = function() {
-        mouse_down = false;
-        this.is_pressed = false;
-        start_animation(false);
+        change_state(state.normal);
     };
 
     this.on_key_down = function (vkey) {
@@ -4283,14 +4303,30 @@ function PlaylistManager(x, y, w, h) {
         throttled_repaint();
     };
 
-    function draw_on_image(gr,x,y,w,h, is_pressed) {
-        if (is_pressed) {
-            gr.FillSolidRect(x, y, w, h, g_pl_colors.playlist_mgr_pressed);
-        }
-        else {
-            gr.FillSolidRect(x, y, w, h, g_theme.colors.panel_front);
+    function draw_on_image(gr,x,y,w,h, panel_state) {
+
+        var text_color;
+        var bg_color;
+
+        switch (panel_state){
+            case state.normal: {
+                text_color = g_pl_colors.playlist_mgr_text_normal;
+                bg_color = g_theme.colors.panel_front;
+                break;
+            }
+            case state.hovered: {
+                text_color = g_pl_colors.playlist_mgr_text_hovered;
+                bg_color = g_theme.colors.panel_front;
+                break
+            }
+            case state.pressed: {
+                text_color = g_pl_colors.playlist_mgr_text_pressed;
+                bg_color = g_theme.colors.panel_back;
+                break
+            }
         }
 
+        gr.FillSolidRect(x, y, w, h, bg_color);
         gr.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
 
         var p = 10;
@@ -4304,7 +4340,7 @@ function PlaylistManager(x, y, w, h) {
                 /** @type {!number} */
                 gr.MeasureString(lock_text, gdi.font('FontAwesome', 12), 0, 0, 0, 0).Width
             );
-            gr.DrawString(lock_text, gdi.font('FontAwesome', 12), _.RGB(150, 152, 154), sbar_x + Math.round((g_properties.scrollbar_w - lock_w) / 2), 0, 8, h, g_string_format.align_center);
+            gr.DrawString(lock_text, gdi.font('FontAwesome', 12), text_color, sbar_x + Math.round((g_properties.scrollbar_w - lock_w) / 2), 0, 8, h, g_string_format.align_center);
 
             right_pad += lock_w;
         }
@@ -4315,12 +4351,26 @@ function PlaylistManager(x, y, w, h) {
         var info_h = h - 2;
 
         var info_text_format = g_string_format.align_center | g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
-        gr.DrawString(info_text, g_pl_fonts.title_selected, _.RGB(150, 152, 154), info_x, info_y, info_w, info_h, info_text_format);
+        gr.DrawString(info_text, g_pl_fonts.title_selected, text_color, info_x, info_y, info_w, info_h, info_text_format);
     }
 
-    function start_animation(is_pressed) {
-        that.is_pressed = is_pressed;
-        alpha_timer.start()
+    function change_state(new_state){
+        if (that.panel_state === new_state) {
+            return;
+        }
+
+        var old_state = that.panel_state;
+        that.panel_state = new_state;
+
+        if (old_state === state.pressed) {
+            // Mouse click action opens context menu, which triggers on_mouse_leave, thus causing weird hover animation
+            that.hover_alpha = 0;
+        }
+        if (new_state === state.hovered || new_state === state.normal) {
+            alpha_timer.start()
+        }
+
+        that.repaint();
     }
 
     //public:
@@ -4329,8 +4379,15 @@ function PlaylistManager(x, y, w, h) {
     this.w = w;
     this.h = h;
 
-    this.is_pressed = false;
-    // actually is press_alpha, needed by alpha_timer
+    /** @enum {number} */
+    var state = {
+        normal: 0,
+        hovered: 1,
+        pressed: 2
+    };
+
+    /** @type {state} */
+    this.panel_state = state.normal;
     this.hover_alpha = 0;
 
     //private:
@@ -4340,13 +4397,11 @@ function PlaylistManager(x, y, w, h) {
     var info_text = undefined;
 
     var alpha_timer = new _.alpha_timer([this], function(item){
-        return item.is_pressed;
+        return item.panel_state === state.hovered;
     });
 
     var image_normal = null;
-    var image_pressed = null;
-
-    var mouse_down = false;
+    var image_hovered = null;
 }
 PlaylistManager.append_playlist_info_visibility_context_menu_to = function(parent_menu){
     parent_menu.append_item(
@@ -4377,7 +4432,6 @@ function GroupingHandler () {
             var playlists_to_remove = _.difference(playlists, new_playlists);
             playlists_to_remove.forEach(function (playlist_name) {
                 delete settings.playlist_group_data[playlist_name];
-                console.log(1)
                 delete settings.playlist_custom_group_data[playlist_name];
             });
 
