@@ -99,10 +99,10 @@ var g_hta_window = {
         };
 
         /**
-         * @param {?number} x
-         * @param {?number} y
-         * @param {?number} w
-         * @param {?number} h
+         * @param {?number=} [x=undefined]
+         * @param {?number=} [y=undefined]
+         * @param {?number=} [w=undefined]
+         * @param {?number=} [h=undefined]
          */
         this.center = function (x,y,w,h) {
             if (!wnd) {
