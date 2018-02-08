@@ -224,7 +224,7 @@ function ArgumentError(arg_name, arg_value, additional_msg) {
 ArgumentError.prototype = Object.create(Error.prototype);
 
 var qwr_utils = {
-    EnableSizing:        function (m) {
+    EnableSizing:         function (m) {
         try {
             if (UIHacks.FrameStyle === 3 && UIHacks.DisableSizing) {
                 UIHacks.DisableSizing = false;
@@ -234,7 +234,7 @@ var qwr_utils = {
             console.log(e)
         }
     },
-    DisableSizing:       function (m) {
+    DisableSizing:        function (m) {
         try {
             if (m && UIHacks.FrameStyle === 3 && !UIHacks.DisableSizing) {
                 UIHacks.DisableSizing = true;
@@ -247,21 +247,21 @@ var qwr_utils = {
     /**
      * @return {string}
      */
-    caller:              function () {
+    caller:               function () {
         var caller = /^function\s+([^(]+)/.exec(/** @type{string} */ arguments.callee.caller.caller);
         return caller ? caller[1] : '';
     },
     /**
      * @return {string}
      */
-    function_name:       function () {
+    function_name:        function () {
         var caller = /^function\s+([^(]+)/.exec(/** @type{string} */ arguments.callee.caller);
         return caller ? caller[1] : '';
     },
     /**
      * @param{Array<string>} fonts
      */
-    check_fonts:         function (fonts) {
+    check_fonts:          function (fonts) {
         var msg = '';
         var failCounter = 0;
 
@@ -281,7 +281,7 @@ var qwr_utils = {
     /**
      * @return{boolean}
      */
-    has_modded_jscript:  _.once(function () {
+    has_modded_jscript:   _.once(function () {
         var ret = _.attempt(function () {
             // Methods from modded JScript
             wsh_utils.GetWndByHandle(666);
@@ -294,7 +294,7 @@ var qwr_utils = {
      * @param{string} site
      * @param{IFbMetadbHandle} metadb
      */
-    link:                function (site, metadb) {
+    link:                 function (site, metadb) {
         if (!metadb) {
             return;
         }
@@ -340,8 +340,7 @@ var qwr_utils = {
     },
     MouseMoveSuppress:    function () {
         this.is_supressed = function (x, y, m) {
-            if (saved_x === x && saved_y === y && saved_m === m)
-            {
+            if (saved_x === x && saved_y === y && saved_m === m) {
                 return true;
             }
 
@@ -358,8 +357,7 @@ var qwr_utils = {
     },
     KeyModifiersSuppress: function () {
         this.is_supressed = function (key) {
-            if ((VK_SHIFT === key || VK_CONTROL === key || VK_MENU === key) && saved_key === key)
-            {
+            if ((VK_SHIFT === key || VK_CONTROL === key || VK_MENU === key) && saved_key === key) {
                 return true;
             }
 
@@ -373,16 +371,14 @@ var qwr_utils = {
     /**
      * @return {IWindow}
      */
-    get_fb2k_window:  _.once(function () {
-        if (!qwr_utils.has_modded_jscript())
-        {
+    get_fb2k_window:      _.once(function () {
+        if (!qwr_utils.has_modded_jscript()) {
             throw new LogicError('Can\'t use extensions with vanilla JScript')
         }
 
         // fb2k main window class
         var ret_wnd = wsh_utils.GetWndByHandle(window.id);
-        while (ret_wnd && ret_wnd.GetAncestor(1) && ret_wnd.className !== '{E7076D1C-A7BF-4f39-B771-BCBE88F2A2A8}')
-        {// We might have multiple instances of fb2k, thus getting the parent one instead of global search
+        while (ret_wnd && ret_wnd.GetAncestor(1) && ret_wnd.className !== '{E7076D1C-A7BF-4f39-B771-BCBE88F2A2A8}') {// We might have multiple instances of fb2k, thus getting the parent one instead of global search
             ret_wnd = ret_wnd.GetAncestor(1);
         }
 
@@ -395,15 +391,13 @@ var qwr_utils = {
     /**
      * @return {IWindow}
      */
-    get_top_theme_window:  _.once(function () {
-        if (!qwr_utils.has_modded_jscript())
-        {
+    get_top_theme_window: _.once(function () {
+        if (!qwr_utils.has_modded_jscript()) {
             throw new LogicError('Can\'t use extensions with vanilla JScript')
         }
 
         var ret_wnd = wsh_utils.GetWndByHandle(window.id);
-        while (ret_wnd && ret_wnd.GetAncestor(1) && ret_wnd.GetAncestor(1).id !== qwr_utils.get_fb2k_window().id)
-        {
+        while (ret_wnd && ret_wnd.GetAncestor(1) && ret_wnd.GetAncestor(1).id !== qwr_utils.get_fb2k_window().id) {
             ret_wnd = ret_wnd.GetAncestor(1);
         }
 
@@ -412,6 +406,31 @@ var qwr_utils = {
         }
 
         return ret_wnd;
+    }),
+    /**
+     * @return {string}
+     */
+    get_windows_version:  _.once(function () {
+        var version = '';
+        var ret = _.attempt(function () {
+            version = (WshShell.RegRead('HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\CurrentMajorVersionNumber')).toString();
+            version += '.';
+            version += (WshShell.RegRead('HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\CurrentMinorVersionNumber')).toString();
+        });
+
+        if (!_.isError(ret)){
+            return version;
+        }
+
+        ret = _.attempt(function () {
+            version = WshShell.RegRead('HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\CurrentVersion');
+        });
+
+        if (!_.isError(ret)){
+            return version;
+        }
+
+        return '6.1';
     })
 };
 

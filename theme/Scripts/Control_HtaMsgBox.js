@@ -74,10 +74,23 @@ HtaWindow.styles.input =
 HtaWindow.styles.label = 'label { font:caption; }';
 
 HtaWindow.styles.button =
-    'button { font:caption; background: #E1E1E1; color:ButtonText; border: 1px solid #ADADAD; margin: 5px; padding: 3px; width: 70px; }' +
-    'button:focus { outline: none !important; border:2px solid #0078D7; padding: 2px; }' +
-    'button:focus:hover { background: #e5f1fb; outline: none !important; border:2px solid #0078D7; padding: 2px; }' +
-    'button:hover { background: #e5f1fb; outline: none !important; border:1px solid #0078D7; padding: 3px; }' +
+    'button { font:caption; background: #E1E1E1; color:ButtonText; border: 1px solid #ADADAD; margin: 5px; padding: 3px; width: 70px; }';
+
+if ( qwr_utils.get_windows_version() === '6.1' ) {
+    // Workaround for weird borders on focused buttons in Windows 7
+    HtaWindow.styles.button +=
+        'button:focus { border: 1px solid #0078D7; padding: 3px; }' +
+        'button:hover { background: #e5f1fb; border: 1px solid #0078D7; padding: 3px; }' +
+        'button:focus:hover { background: #e5f1fb; border:1px solid #0078D7; padding: 3px; }';
+}
+else {
+    HtaWindow.styles.button +=
+        'button:focus { outline: none !important; border:2px solid #0078D7; padding: 2px; }' +
+        'button:hover { background: #e5f1fb; outline: none !important; border:1px solid #0078D7; padding: 3px; }' +
+        'button:focus:hover { background: #e5f1fb; outline: none !important; border:2px solid #0078D7; padding: 2px; }';
+}
+
+HtaWindow.styles.button +=
     'button[disabled] { background: #CCCCCC; color:#EBEBE4; }' +
     // Suppress button:hover manually, since not() is not working =(
     'button[disabled]:hover { border: 1px solid #ADADAD; padding: 3px; }';
