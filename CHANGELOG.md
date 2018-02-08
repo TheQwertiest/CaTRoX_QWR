@@ -1,6 +1,13 @@
 # Changelog
 
 ## [Unreleased]
+### Changed
+Playlist Panel:
+- Playlist Manager: changed animations style for better consistency with the rest of the theme.
+- Grouping Dialogs:
+  - Dialog windows are now centered.
+  - Added workaround for borked buttons in Windows 7.
+  - 'Apply' and 'Update' buttons are now active only when there are pending changes.
 
 ## [4.1.0] - 2018-02-06
 ### Added
