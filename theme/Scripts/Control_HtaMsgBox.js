@@ -5,106 +5,174 @@
 
 g_script_list.push('Control_HtaMsgBox.js');
 
-var HtaWindow = {};
+var g_hta_window = {
+    /**
+     * @param {number} x
+     * @param {number} y
+     * @param {number} w
+     * @param {number} h
+     * @param {string} title
+     * @param {string} content
+     * @param {string} features
+     * @return {*}
+     */
+    create : function(x, y, w, h, title, content, features) {
+        var hta_wnd_id = 'a' + Math.floor(Math.random() * 10000000);
+        var CodeForLinking = "<script>moveTo(-1000,-1000);resizeTo(0,0);</script>" +
+            "<hta:application id=app " + features + " />" +
+            "<object id=" + hta_wnd_id + " style='display:none' classid='clsid:8856F961-340A-11D0-A96B-00C04FD705A2'>" +
+            "<param name=RegisterAsBrowser value=1>" +
+            "</object>";
 
-/**
- * @param {number} x
- * @param {number} y
- * @param {number} w
- * @param {number} h
- * @param {string} title
- * @param {string} content
- * @param {string} features
- * @return {*}
- */
-HtaWindow.create = function(x, y, w, h, title, content, features) {
-    var hta_wnd_id = "a" + Math.floor(Math.random() * 10000000);
-    var CodeForLinking = "<script>moveTo(-1000,-1000);resizeTo(0,0);</script>" +
-        "<hta:application id=app " + features + " />" +
-        "<object id=" + hta_wnd_id + " style='display:none' classid='clsid:8856F961-340A-11D0-A96B-00C04FD705A2'>" +
-        "<param name=RegisterAsBrowser value=1>" +
-        "</object>";
+        var windows = app.Windows();
+        WshShell.Run('mshta.exe "about:' + CodeForLinking + '"');
 
-    var windows = app.Windows();
-    WshShell.Run("mshta.exe \"about:" + CodeForLinking + "\"");
+        var wnd;
+        // Dirty hack to simulate sleep
+        var now = new Date().getTime();
+        while (!wnd && new Date().getTime() < now + 1000) {
+            for (var i = windows.Count; --i >= 0;) {
+                try {
+                    if (windows.Item(i).id === hta_wnd_id) {
+                        wnd = windows.Item(i).parent.parentWindow;
+                    }
+                }
+                catch (e) {}
+            }
+        }
+        if (!wnd) {
+            fb.ShowPopupMessage('Failed to create HTA Dialog', 'Theme Error');
+            return null;
+        }
 
-    var wnd;
-    // Dirty hack to simulate sleep
-    var now = new Date().getTime();
-    while (!wnd && new Date().getTime() < now + 1000) {
-        for (var i = windows.Count; --i >= 0;) {
-            try {
-                if (windows.Item(i).id === hta_wnd_id) {
-                    wnd = windows.Item(i).parent.parentWindow;
+        wnd.document.open();
+        wnd.Host = this;
+
+        wnd.document.write([content,
+            '<script language="JScript" id="a' + hta_wnd_id + '"\>' +
+            'eval; ' +
+            'document.title="' + title + '";' +
+            'var width = ' + (w || 200) + ';' +
+            'var height = ' + (h || 200) + ';' +
+            'resizeTo(width, height);' +
+            'moveTo(' + (x || '(screen.width-width)/2') + ',' + (y || '(screen.height-height)/2') + ');' +
+            'document.getElementById("a' + hta_wnd_id + '").removeNode();' +
+            '</script>'].join(''));
+
+        return wnd;
+    },
+
+    manager : new function() {
+        /**
+         * @param {number} x
+         * @param {number} y
+         * @param {number} w
+         * @param {number} h
+         * @param {string} title
+         * @param {string} content
+         * @param {string} features
+         * @return {*}
+         */
+        this.open = function (x, y, w, h, title, content, features) {
+            if (wnd) {
+                wnd.focus();
+                return null;
+            }
+
+            on_top = fb.AlwaysOnTop;
+            if (fb.AlwaysOnTop) {
+                fb.AlwaysOnTop = false;
+            }
+            wnd = g_hta_window.create(x, y, w, h, title, content, features);
+
+            return wnd;
+        };
+
+        this.close = function () {
+            if (wnd) {
+                wnd.close();
+                wnd = null;
+                if (fb.AlwaysOnTop !== on_top) {
+                    fb.AlwaysOnTop = on_top;
                 }
             }
-            catch (e) {}
-        }
-    }
-    if (!wnd) {
-        fb.ShowPopupMessage('Failed to create HTA Dialog', 'Theme Error');
-        return wnd;
-    }
+        };
 
-    wnd.document.open();
-    wnd.Host = this;
+        /**
+         * @param {?number} x
+         * @param {?number} y
+         * @param {?number} w
+         * @param {?number} h
+         */
+        this.center = function (x,y,w,h) {
+            if (!wnd) {
+                return;
+            }
 
-    wnd.document.write([content,
-        "<script language='JScript' id=\"a", hta_wnd_id, "\">" +
-        "eval; " +
-        "document.title=\"" + title + "\";" +
-        "moveTo(", x || 0, ",", y || 0, "); " +
-        "resizeTo(", w || 200, ",", h || 200, ");" +
-        "document.getElementById(\"a", hta_wnd_id, "\").removeNode();" +
-        "", "</script>"].join(""));
+            var new_x = 0;
+            var new_y = 0;
 
-    return wnd;
+            if (_.isNil(x) || _.isNil(y) || _.isNil(w) || _.isNil(h)) {
+                new_x = Math.max(0, Math.ceil((wnd.screen.availWidth - wnd.document.documentElement.clientWidth)/2));
+                new_y = Math.max(0, Math.ceil((wnd.screen.availHeight - wnd.document.documentElement.clientHeight)/2));
+            }
+            else {
+                new_x = Math.max(0, Math.ceil(x + (w - wnd.document.documentElement.clientWidth)/2));
+                new_y = Math.max(0, Math.ceil(y + (h - wnd.document.documentElement.clientHeight)/2));
+            }
+
+            wnd.moveTo(new_x, new_y);
+        };
+
+        var on_top;
+        var wnd = null;
+    },
+
+    styles : {}
 };
 
-HtaWindow.styles = {};
+g_hta_window.styles.body = 'body { color: WindowText; background-color: Menu; }';
 
-HtaWindow.styles.body = 'body { color: WindowText; background-color: Menu; }';
-
-HtaWindow.styles.input =
+g_hta_window.styles.input =
     'input { font:caption; border: 1px solid #7A7A7A; width: 100%; }' +
     'input:focus { outline: none !important; border:1px solid #0078D7; }' +
     'input:hover:focus { outline: none !important; border:1px solid #0078D7; }' +
     'input:hover { outline: none !important; border:1px solid #000000; }';
 
-HtaWindow.styles.label = 'label { font:caption; }';
+g_hta_window.styles.label = 'label { font:caption; }';
 
-HtaWindow.styles.button =
+g_hta_window.styles.button =
     'button { font:caption; background: #E1E1E1; color:ButtonText; border: 1px solid #ADADAD; margin: 5px; padding: 3px; width: 70px; }';
 
 if ( qwr_utils.get_windows_version() === '6.1' ) {
     // Workaround for weird borders on focused buttons in Windows 7
-    HtaWindow.styles.button +=
+    g_hta_window.styles.button +=
         'button:focus { border: 1px solid #0078D7; padding: 3px; }' +
         'button:hover { background: #e5f1fb; border: 1px solid #0078D7; padding: 3px; }' +
         'button:focus:hover { background: #e5f1fb; border:1px solid #0078D7; padding: 3px; }';
 }
 else {
-    HtaWindow.styles.button +=
+    g_hta_window.styles.button +=
         'button:focus { outline: none !important; border:2px solid #0078D7; padding: 2px; }' +
         'button:hover { background: #e5f1fb; outline: none !important; border:1px solid #0078D7; padding: 3px; }' +
         'button:focus:hover { background: #e5f1fb; outline: none !important; border:2px solid #0078D7; padding: 2px; }';
 }
 
-HtaWindow.styles.button +=
+g_hta_window.styles.button +=
     'button[disabled] { background: #CCCCCC; color:#EBEBE4; }' +
     // Suppress button:hover manually, since not() is not working =(
     'button[disabled]:hover { border: 1px solid #ADADAD; padding: 3px; }';
 
 /**
- * @param {number} x
- * @param {number} y
+ * @param {?number} x
+ * @param {?number} y
  * @param {Array<string>} prompt
  * @param {string} title
  * @param {Array<string>} defval
  * @param {function} on_finish_fn
  * @return {boolean}
  */
-HtaWindow.msg_box_multiple = function(x,y,prompt,title,defval,on_finish_fn) {
+g_hta_window.msg_box_multiple = function(x,y,prompt,title,defval,on_finish_fn) {
     if (prompt.length !== defval.length) {
         throw new ArgumentError('Prompts and default values', prompt.length + ' and ' + defval.length, 'Array sizes must be equal');
     }
@@ -128,10 +196,10 @@ HtaWindow.msg_box_multiple = function(x,y,prompt,title,defval,on_finish_fn) {
         '   <head>' +
         '   <meta http-equiv="x-ua-compatible" content="IE=9"/>' +
         '   <style type="text/css">' +
-        HtaWindow.styles.body +
-        HtaWindow.styles.label +
-        HtaWindow.styles.input +
-        HtaWindow.styles.button +
+        g_hta_window.styles.body +
+        g_hta_window.styles.label +
+        g_hta_window.styles.input +
+        g_hta_window.styles.button +
         '       div { overflow: hidden; }' +
         '       span { display: block; overflow: hidden; padding-right:10px; }' +
         '       label { float:left; width: 50px; text-align: right; padding-right:7px; padding-top: 2px; }' +
@@ -161,7 +229,7 @@ HtaWindow.msg_box_multiple = function(x,y,prompt,title,defval,on_finish_fn) {
     //'icon=\"' + fb.FoobarPath + 'foobar2000.exe' + '\"';
 
     var window_h = 29 * val_count + 83;
-    var wnd = HtaWindow.manager.open(x, y, 370, window_h, title, content, hta_features);
+    var wnd = g_hta_window.manager.open(x, y, 370, window_h, title, content, hta_features);
     if (!wnd) {
         return false;
     }
@@ -169,11 +237,11 @@ HtaWindow.msg_box_multiple = function(x,y,prompt,title,defval,on_finish_fn) {
     wnd.hta_ok.focus();
 
     wnd.document.body.onbeforeunload = function () {
-        HtaWindow.manager.close();
+        g_hta_window.manager.close();
     };
 
     wnd.hta_cancel.onclick = function () {
-        HtaWindow.manager.close();
+        g_hta_window.manager.close();
     };
 
     wnd.hta_ok.onclick = function () {
@@ -182,7 +250,7 @@ HtaWindow.msg_box_multiple = function(x,y,prompt,title,defval,on_finish_fn) {
             vals.push(wnd['input_val_' + i].value);
         }
 
-        HtaWindow.manager.close();
+        g_hta_window.manager.close();
         on_finish_fn(vals);
     };
     wnd.document.body.focus();
@@ -190,46 +258,6 @@ HtaWindow.msg_box_multiple = function(x,y,prompt,title,defval,on_finish_fn) {
     return true;
 };
 
-HtaWindow.manager = new function() {
-    /**
-     * @param {number} x
-     * @param {number} y
-     * @param {number} w
-     * @param {number} h
-     * @param {string} title
-     * @param {string} content
-     * @param {string} features
-     * @return {*}
-     */
-    this.open = function (x, y, w, h, title, content, features) {
-        if (wnd) {
-            wnd.focus();
-            return null;
-        }
-
-        on_top = fb.AlwaysOnTop;
-        if (fb.AlwaysOnTop) {
-            fb.AlwaysOnTop = false;
-        }
-        wnd = HtaWindow.create(x, y, w, h, title, content, features);
-
-        return wnd;
-    };
-
-    this.close = function () {
-        if (wnd) {
-            wnd.close();
-            wnd = null;
-            if (fb.AlwaysOnTop !== on_top) {
-                fb.AlwaysOnTop = on_top;
-            }
-        }
-    };
-
-    var on_top;
-    var wnd = null;
-};
-
 function on_script_unload() {
-    HtaWindow.manager.close();
+    g_hta_window.manager.close();
 }

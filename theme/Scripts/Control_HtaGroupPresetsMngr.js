@@ -6,25 +6,25 @@
 g_script_list.push('Control_HtaGroupPresetsMngr.js');
 
 /**
- * @param {number} x
- * @param {number} y
+ * @param {?number} x
+ * @param {?number} y
  * @param {Array<GroupingHandler.Settings.Group>} group_presets
  * @param {string} cur_group_name
  * @param {string} default_group_name
  * @param {function} on_finish_fn
  * @return {boolean}
  */
-HtaWindow.group_presets_mngr = function(x, y, group_presets, cur_group_name, default_group_name, on_finish_fn) {
+g_hta_window.group_presets_mngr = function(x, y, group_presets, cur_group_name, default_group_name, on_finish_fn) {
     var group_data_list_copy = _.cloneDeep(group_presets);
     _.find(group_data_list_copy, function (item) { return item.name === default_group_name; }).is_default = true;
 
     var style =
         '<style type="text/css">' +
         '<meta http-equiv="x-ua-compatible" content="IE=9"/>' +
-        HtaWindow.styles.body +
-        HtaWindow.styles.label +
-        HtaWindow.styles.input +
-        HtaWindow.styles.button +
+        g_hta_window.styles.body +
+        g_hta_window.styles.label +
+        g_hta_window.styles.input +
+        g_hta_window.styles.button +
         '     div { overflow: hidden; }' +
         '     span { display:block; overflow: hidden; padding-right:10px; }' +
         '     input[type="checkbox"] { display: inline; position: relative; width: 15px; border: 0; padding: 2px 1px;}' +
@@ -132,7 +132,7 @@ HtaWindow.group_presets_mngr = function(x, y, group_presets, cur_group_name, def
         'innerBorder=no ';//+
     //'icon=\"' + fb.FoobarPath + 'foobar2000.exe' + '\"';
 
-    var wnd = HtaWindow.manager.open(x, y, 650, 425, 'Foobar2000: Manage grouping presets', content, hta_features);
+    var wnd = g_hta_window.manager.open(x, y, 650, 425, 'Foobar2000: Manage grouping presets', content, hta_features);
     if (!wnd) {
         return false;
     }
@@ -312,11 +312,11 @@ HtaWindow.group_presets_mngr = function(x, y, group_presets, cur_group_name, def
     };
 
     wnd.document.body.onbeforeunload = function () {
-        HtaWindow.manager.close();
+        g_hta_window.manager.close();
     };
 
     wnd.btn_cancel.onclick = function () {
-        HtaWindow.manager.close();
+        g_hta_window.manager.close();
     };
 
     wnd.btn_apply.onclick = function () {
@@ -340,7 +340,7 @@ HtaWindow.group_presets_mngr = function(x, y, group_presets, cur_group_name, def
 
         var output_data = prepare_output_data(group_data_list_copy);
 
-        HtaWindow.manager.close();
+        g_hta_window.manager.close();
         on_finish_fn(output_data);
     };
 
