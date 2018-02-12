@@ -933,6 +933,7 @@ var MK_XBUTTON1 = 0x0020;
 var MK_XBUTTON2 = 0x0040;
 
 //--->
+var VK_BACKSPACE = 0x08;
 var VK_SHIFT = 0x10;
 var VK_CONTROL = 0x11;
 var VK_MENU = 0x12; // ALT

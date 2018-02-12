@@ -184,7 +184,7 @@ g_hta_window.msg_box_multiple = function(x,y,prompt,title,defval,on_finish_fn) {
     for (var i = 0; i < val_count; ++i) {
         input_text +=
             '<div class="input_line">' +
-            '   <label>' + prompt[i] + '</label>' +
+            '   <label id="label_' + i + '">' + prompt[i] + '</label>' +
             '   <span>' +
             '       <input id="input_val_' + i + '" type="text" value="' +  defval[i] + '"/>' +
             '   </span>' +
@@ -202,7 +202,7 @@ g_hta_window.msg_box_multiple = function(x,y,prompt,title,defval,on_finish_fn) {
         g_hta_window.styles.button +
         '       div { overflow: hidden; }' +
         '       span { display: block; overflow: hidden; padding-right:10px; }' +
-        '       label { float:left; width: 50px; text-align: right; padding-right:7px; padding-top: 2px; }' +
+        '       label { float:left; width: 50px; text-align: right; padding-right:7px; padding-top: 2px; white-space: nowrap; }' +
         '       button { float: right; }' +
         '       .input_line { padding-bottom:7px; }' +
         '   </style>' +
@@ -233,6 +233,18 @@ g_hta_window.msg_box_multiple = function(x,y,prompt,title,defval,on_finish_fn) {
     if (!wnd) {
         return false;
     }
+
+    var labels = [];
+    var label_max_width = 0;
+    for (var i = 0; i < val_count; ++i) {
+        var cur_label = wnd['label_' + i];
+        labels.push(cur_label);
+        label_max_width = Math.max(label_max_width, cur_label.scrollWidth);
+    }
+
+    labels.forEach(function(item){
+        item.style.width = label_max_width + 'px';
+    });
 
     wnd.hta_ok.focus();
 

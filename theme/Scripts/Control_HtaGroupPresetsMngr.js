@@ -194,6 +194,20 @@ g_hta_window.group_presets_mngr = function(x, y, group_presets, cur_group_name, 
         wnd.btn_update.removeAttribute('disabled');
     }
 
+    function on_input_key_down() {
+        if (wnd.event.keyCode === VK_BACKSPACE || wnd.event.keyCode === VK_DELETE) {
+            on_input_change();
+        }
+    }
+
+    function make_unique_name(new_name) {
+        var new_name_idx = 2;
+        while (_.find(group_data_list_copy, function (item) {return item.name === new_name + '(' + new_name_idx + ')';})) {
+            ++new_name_idx;
+        }
+        return new_name + '(' + new_name_idx + ')';
+    }
+
     wnd.input_select.onchange = populate_data;
 
     var input_fields = [
@@ -211,14 +225,15 @@ g_hta_window.group_presets_mngr = function(x, y, group_presets, cur_group_name, 
         wnd.input_show_date
     ];
 
-    input_fields.forEach(function(item){
+    input_fields.forEach(function (item) {
         item.onchange = on_input_change;
         item.onkeypress = on_input_change;
+        item.onkeydown = on_input_key_down;
         item.onpaste = on_input_change;
         item.oncut = on_input_change;
     });
 
-    input_box.forEach(function(item){
+    input_box.forEach(function (item) {
         item.onchange = on_input_change;
         item.onclick = on_input_change;
     });
@@ -229,7 +244,7 @@ g_hta_window.group_presets_mngr = function(x, y, group_presets, cur_group_name, 
         group_data_list_copy[select.selectedIndex].is_default = true;
         populate_select(select.selectedIndex);
 
-            wnd.btn_apply.removeAttribute('disabled');
+        wnd.btn_apply.removeAttribute('disabled');
     };
 
     wnd.btn_remove.onclick = function () {
@@ -244,7 +259,7 @@ g_hta_window.group_presets_mngr = function(x, y, group_presets, cur_group_name, 
             populate_data();
         }
 
-            wnd.btn_apply.removeAttribute('disabled');
+        wnd.btn_apply.removeAttribute('disabled');
     };
 
     wnd.btn_new.onclick = function () {
@@ -252,18 +267,15 @@ g_hta_window.group_presets_mngr = function(x, y, group_presets, cur_group_name, 
 
         var new_data = _.cloneDeep(group_data_list_copy[select.selectedIndex]);
         new_data.is_default = false;
-        var new_name_idx = 2;
-        while (_.find(group_data_list_copy, function (item) {return item.name === new_data.name + '(' + new_name_idx + ')';})) {
-            ++new_name_idx;
-        }
-        new_data.name += '(' + new_name_idx + ')';
+
+        new_data.name = make_unique_name(new_data.name);
 
         group_data_list_copy.push(new_data);
 
         populate_select(group_data_list_copy.length - 1);
         populate_data();
 
-            wnd.btn_apply.removeAttribute('disabled');
+        wnd.btn_apply.removeAttribute('disabled');
     };
 
     wnd.btn_update.onclick = function () {
@@ -272,7 +284,17 @@ g_hta_window.group_presets_mngr = function(x, y, group_presets, cur_group_name, 
         }
 
         var cur_data = group_data_list_copy[wnd.input_select.selectedIndex];
-        cur_data.name = wnd.input_group_name.value;
+
+        var new_name = wnd.input_group_name.value;
+        if (cur_data.name !== new_name && _.find(group_data_list_copy, function (item) {return item.name === new_name;})) {
+            // Hide old name from unique name generation
+            cur_data.name = new_name;
+
+            new_name = make_unique_name(new_name);
+            wnd.input_group_name.value = new_name;
+        }
+
+        cur_data.name = new_name;
         cur_data.group_query = wnd.input_group_query.value;
         cur_data.title_query = wnd.input_title_query.value;
         cur_data.sub_title_query = wnd.input_sub_title_query.value;
@@ -295,7 +317,7 @@ g_hta_window.group_presets_mngr = function(x, y, group_presets, cur_group_name, 
 
         populate_select(selected_idx - 1);
 
-            wnd.btn_apply.removeAttribute('disabled');
+        wnd.btn_apply.removeAttribute('disabled');
     };
 
     wnd.btn_down.onclick = function () {
@@ -308,7 +330,7 @@ g_hta_window.group_presets_mngr = function(x, y, group_presets, cur_group_name, 
 
         populate_select(selected_idx + 1);
 
-            wnd.btn_apply.removeAttribute('disabled');
+        wnd.btn_apply.removeAttribute('disabled');
     };
 
     wnd.document.body.onbeforeunload = function () {
@@ -333,6 +355,7 @@ g_hta_window.group_presets_mngr = function(x, y, group_presets, cur_group_name, 
 
     wnd.btn_ok.onclick = function () {
         if (wnd.btn_apply.hasAttribute('disabled')) {
+            g_hta_window.manager.close();
             return;
         }
 

@@ -4610,7 +4610,7 @@ function GroupingHandler () {
         };
 
         var parsed_query = cur_group.name === 'user_defined' ? [cur_group.group_query, cur_group.title_query] : ['', ''];
-        g_hta_window.msg_box_multiple(-1000, -1000, ['Group', 'Title'], 'Foobar2000: Header group query', [parsed_query[0], parsed_query[1]], on_ok_fn);
+        g_hta_window.msg_box_multiple(-10000, -10000, ['Group Query', 'Title Query'], 'Foobar2000: Group by', [parsed_query[0], parsed_query[1]], on_ok_fn);
 
         var fb_handle = g_has_modded_jscript ? qwr_utils.get_fb2k_window() : undefined;
         if (fb_handle) {
@@ -4643,7 +4643,7 @@ function GroupingHandler () {
             on_execute_callback_fn();
         };
 
-        g_hta_window.group_presets_mngr(-1000, -1000, settings.group_presets, cur_group.name, settings.default_group_name, on_ok_fn);
+        g_hta_window.group_presets_mngr(-10000, -10000, settings.group_presets, cur_group.name, settings.default_group_name, on_ok_fn);
 
         var fb_handle = g_has_modded_jscript ? qwr_utils.get_fb2k_window() : undefined;
         if (fb_handle) {
