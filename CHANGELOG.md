@@ -8,6 +8,7 @@ Playlist Panel:
   - Dialog windows are now centered.
   - Added workaround for borked buttons in Windows 7.
   - 'Apply' and 'Update' buttons are now active only when there are pending changes.
+  - Added fb2k icon to the window.
 
 ## [4.1.0] - 2018-02-06
 ### Added
