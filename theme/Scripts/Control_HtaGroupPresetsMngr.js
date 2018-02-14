@@ -129,8 +129,11 @@ g_hta_window.group_presets_mngr = function(x, y, group_presets, cur_group_name, 
         'showintaskbar=yes ' +
         'contextMenu=yes ' +
         'selection=no ' +
-        'innerBorder=no ';//+
-    //'icon=\"' + fb.FoobarPath + 'foobar2000.exe' + '\"';
+        'innerBorder=no';
+    if (_.isFile(fb.FoobarPath + '\\foobar2000.exe')) {
+        hta_features += ' ';
+        hta_features += 'icon="' + fb.FoobarPath + '\\foobar2000.exe"';
+    }
 
     var wnd = g_hta_window.manager.open(x, y, 650, 425, 'Foobar2000: Manage grouping presets', content, hta_features);
     if (!wnd) {

@@ -18,15 +18,16 @@ var g_hta_window = {
      */
     create : function(x, y, w, h, title, content, features) {
         var hta_wnd_id = 'a' + Math.floor(Math.random() * 10000000);
-        var CodeForLinking = "<script>moveTo(-1000,-1000);resizeTo(0,0);</script>" +
-            "<hta:application id=app " + features + " />" +
-            "<object id=" + hta_wnd_id + " style='display:none' classid='clsid:8856F961-340A-11D0-A96B-00C04FD705A2'>" +
-            "<param name=RegisterAsBrowser value=1>" +
-            "</object>";
+        var hta_code =
+            '<script>moveTo(-1000,-1000);resizeTo(0,0);</script>' +
+            '<hta:application id=app ' + features + ' />' +
+            '<object id="' + hta_wnd_id + '" style="display:none" classid="clsid:8856F961-340A-11D0-A96B-00C04FD705A2">' +
+            '    <param name=RegisterAsBrowser value=1>' +
+            '</object>';
+
+        WshShell.Run('mshta.exe "about:' + hta_code.replace(/"/g, '\'') + '"');
 
         var windows = app.Windows();
-        WshShell.Run('mshta.exe "about:' + CodeForLinking + '"');
-
         var wnd;
         // Dirty hack to simulate sleep
         var now = new Date().getTime();
@@ -50,13 +51,13 @@ var g_hta_window = {
 
         wnd.document.write([content,
             '<script language="JScript" id="a' + hta_wnd_id + '"\>' +
-            'eval; ' +
-            'document.title="' + title + '";' +
-            'var width = ' + (w || 200) + ';' +
-            'var height = ' + (h || 200) + ';' +
-            'resizeTo(width, height);' +
-            'moveTo(' + (x || '(screen.width-width)/2') + ',' + (y || '(screen.height-height)/2') + ');' +
-            'document.getElementById("a' + hta_wnd_id + '").removeNode();' +
+            '    eval; ' +
+            '    document.title="' + title.replace(/"/g, '\'') + '";' +
+            '    var width = ' + (w || 200) + ';' +
+            '    var height = ' + (h || 200) + ';' +
+            '    resizeTo(width, height);' +
+            '    moveTo(' + (x || '(screen.width-width)/2') + ',' + (y || '(screen.height-height)/2') + ');' +
+            '    document.getElementById("a' + hta_wnd_id + '").removeNode();' +
             '</script>'].join(''));
 
         return wnd;
@@ -176,7 +177,6 @@ g_hta_window.msg_box_multiple = function(x,y,prompt,title,defval,on_finish_fn) {
     if (prompt.length !== defval.length) {
         throw new ArgumentError('Prompts and default values', prompt.length + ' and ' + defval.length, 'Array sizes must be equal');
     }
-    title = title.replace(/"/g, '\'');
 
     var val_count = prompt.length;
     var input_text = '';
@@ -225,8 +225,11 @@ g_hta_window.msg_box_multiple = function(x,y,prompt,title,defval,on_finish_fn) {
         'showintaskbar=yes ' +
         'contextMenu=yes ' +
         'selection=no ' +
-        'innerBorder=no ';
-    //'icon=\"' + fb.FoobarPath + 'foobar2000.exe' + '\"';
+        'innerBorder=no';
+    if (_.isFile(fb.FoobarPath + '\\foobar2000.exe')) {
+        hta_features += ' ';
+        hta_features += 'icon="' + fb.FoobarPath + '\\foobar2000.exe"';
+    }
 
     var window_h = 29 * val_count + 83;
     var wnd = g_hta_window.manager.open(x, y, 370, window_h, title, content, hta_features);
