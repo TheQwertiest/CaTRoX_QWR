@@ -879,8 +879,8 @@ _.mixin({
     ts:                   function () {
         return Math.floor(_.now() / 1000);
     },
-    tt:                   function (value) {
-        if (tooltip.Text !== _.toString(value)) {
+    tt:                   function (value, force) {
+        if (tooltip.Text !== _.toString(value) || force) {
             tooltip.Text = value;
             tooltip.Activate();
         }
@@ -911,10 +911,11 @@ _.tt_handler.tt_timer = new function () {
     var tt_caller = undefined;
 
     this.start = function (id, text) {
+        var old_caller = tt_caller;
         tt_caller = id;
 
         if (!tooltip_timer && tooltip.Text) {
-            _.tt(text);
+            _.tt(text, old_caller !== tt_caller );
         }
         else {
             this.force_stop(); /// < There can be only one tooltip present at all times, so we can kill the timer w/o any worries
