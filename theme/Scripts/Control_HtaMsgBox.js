@@ -273,6 +273,4 @@ g_hta_window.msg_box_multiple = function(x,y,prompt,title,defval,on_finish_fn) {
     return true;
 };
 
-function on_script_unload() {
-    g_hta_window.manager.close();
-}
+g_callbacks.register('on_script_unload', function(){g_hta_window.manager.close();});

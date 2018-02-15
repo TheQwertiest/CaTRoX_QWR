@@ -4,10 +4,6 @@ this.sort(function(a,b){for(var x=0,aa,bb;(aa=a[x])&&(bb=b[x]);x++){aa=aa.toLowe
 return a.length-b.length;});for(var z=0;z<this.length;z++)
 this[z]=this[z].join('');};
 
-function on_script_unload() {
-    _.tt('');
-}
-
 // timeout and interval shims
 function setInterval(func, wait){
     return window.SetInterval(func, wait);
@@ -20,6 +16,51 @@ function setTimeout(func, wait){
 }
 function clearTimeout(id) {
     window.ClearTimeout(id);
+}
+
+g_callbacks = {
+    /**
+     * @param {string} event_name
+     * @param {...*} var_args
+     */
+    invoke:                 function (event_name, var_args) {
+        this.validate_event_name(event_name);
+
+        var callbacks = this[event_name];
+        if (!callbacks || !_.isArray(callbacks)) {
+            return;
+        }
+
+        var args = _.drop([].slice.call(arguments));
+        _.over(callbacks)(args);
+    },
+    register:               function (event_name, callback) {
+        if (!_.isFunction(callback)) {
+            throw Error('Type Error: callback is not a function');
+        }
+
+        this.validate_event_name(event_name);
+
+        if (!this[event_name]) {
+            this[event_name] = [];
+        }
+        this[event_name].push(callback);
+    },
+    validate_event_name: function (event_name) {
+        if (!_.isString(event_name)) {
+            throw Error('Type Error: event name is not a string');
+        }
+
+        if (event_name === 'invoke'
+            || event_name === 'register'
+            || event_name === 'unregister') {
+            throw Error('Argument Error: event name is occupied "' + event_name + '"');
+        }
+    }
+};
+
+function on_script_unload() {
+    g_callbacks.invoke('on_script_unload');
 }
 
 _.mixin({
@@ -901,6 +942,8 @@ _.tt_handler.tt_timer = new function () {
         }
     };
 };
+
+g_callbacks.register('on_script_unload', function(){_.tt('');});
 
 var doc = new ActiveXObject('htmlfile');
 var app = new ActiveXObject('Shell.Application');
