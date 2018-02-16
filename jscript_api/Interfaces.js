@@ -1,7 +1,6 @@
 /*
-You can use console.log(something) to output variables/strings/properties to the
-Console. It will be used in some examples below. Any parameters in [] are
-optional and may be omitted.
+Last Updated: 16.02.2018
+Corresponding JScript Commit: 04d5bceee36cfa114e508f006455dd753c555a4e
 */
 
 /**
