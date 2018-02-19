@@ -1,14 +1,16 @@
 # Changelog
 
 ## [Unreleased]
+
+## [4.1.1] - 2018-02-19
 ### Changed
 Playlist Panel:
-- Playlist Manager: changed animations style for better consistency with the rest of the theme.
+- Playlist Manager: changed button animation style for better consistency with the rest of the theme.
 - Grouping Dialogs:
-  - Dialog windows are now centered.
-  - Added workaround for borked buttons in Windows 7.
-  - 'Apply' and 'Update' buttons are now active only when there are pending changes.
+  - Added workaround for borked buttons in Windows 7.  
   - Added fb2k icon to the window.
+  - 'Apply' and 'Update' buttons are now active only when there are pending changes.
+  - Dialog windows are now centered.
 
 ## [4.1.0] - 2018-02-06
 ### Added
@@ -193,7 +195,8 @@ Playlist Panel:
 ### Fixed
 - Fixed various crashes caused by incompatibility with JScript.
 
-[Unreleased]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.1.0...HEAD
+[Unreleased]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.1.1...HEAD
+[4.1.0]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.1.0...v4.1.1
 [4.1.0]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.0.5...v4.1.0
 [4.0.5]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.0.4...v4.0.5
 [4.0.4]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.0.3...v4.0.4
