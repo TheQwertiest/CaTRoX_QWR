@@ -62,7 +62,7 @@ g_hta_window.group_presets_mngr = function(x, y, group_presets, cur_group_name, 
         '                    <button class="select_button" id="btn_new" style="margin-top: 5px; margin-left: 0;">New</button>' +
         '                    <button class="select_button" id="btn_update" style="margin-top: 5px; margin-right: 0;" disabled>Update</button>' +
         '                    <button class="select_button" id="btn_remove" style="margin-left: 0;">Remove</button>' +
-        '                    <button class="select_button" id="btn_default" style="margin-right: 0;">Make Default</button>' +
+        '                    <button class="select_button" id="btn_default" style="margin-right: 0;">Set as Default</button>' +
         '               </div>' +
         '               <div class="select_cnt_btn">' +
         '                    <button class="move_button" id="btn_up">&#9650</button>' +
@@ -71,13 +71,13 @@ g_hta_window.group_presets_mngr = function(x, y, group_presets, cur_group_name, 
         '          </div>' +
         '          <div class="input_cnt">' +
         '               <div class="input_cnt_block">' +
-        '                    <label>Group Name:</label>' +
+        '                    <label>Preset Name:</label>' +
         '                    <span>' +
-        '                    <input id="input_group_name"/>' +
+        '                    <input id="input_preset_name"/>' +
         '                    </span>' +
         '               </div>' +
         '               <div class="input_cnt_block">' +
-        '                    <label>Group Query:</label>' +
+        '                    <label>Grouping Query:</label>' +
         '                    <span>' +
         '                    <input id="input_group_query"/>' +
         '                    </span>' +
@@ -168,7 +168,7 @@ g_hta_window.group_presets_mngr = function(x, y, group_presets, cur_group_name, 
     function populate_data() {
         var select = wnd.input_select;
         var cur_data = group_data_list_copy[select.selectedIndex];
-        wnd.input_group_name.value = cur_data.name;
+        wnd.input_preset_name.value = cur_data.name;
         wnd.input_group_query.value = cur_data.group_query;
         wnd.input_title_query.value = cur_data.title_query;
         wnd.input_sub_title_query.value = cur_data.sub_title_query;
@@ -214,7 +214,7 @@ g_hta_window.group_presets_mngr = function(x, y, group_presets, cur_group_name, 
     wnd.input_select.onchange = populate_data;
 
     var input_fields = [
-        wnd.input_group_name,
+        wnd.input_preset_name,
         wnd.input_group_query,
         wnd.input_title_query,
         wnd.input_sub_title_query,
@@ -288,13 +288,13 @@ g_hta_window.group_presets_mngr = function(x, y, group_presets, cur_group_name, 
 
         var cur_data = group_data_list_copy[wnd.input_select.selectedIndex];
 
-        var new_name = wnd.input_group_name.value;
+        var new_name = wnd.input_preset_name.value;
         if (cur_data.name !== new_name && _.find(group_data_list_copy, function (item) {return item.name === new_name;})) {
             // Hide old name from unique name generation
             cur_data.name = new_name;
 
             new_name = make_unique_name(new_name);
-            wnd.input_group_name.value = new_name;
+            wnd.input_preset_name.value = new_name;
         }
 
         cur_data.name = new_name;

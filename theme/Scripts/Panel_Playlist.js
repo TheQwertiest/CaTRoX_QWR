@@ -1275,10 +1275,12 @@ function Playlist(x,y) {
             return;
         }
 
-        if (selection_handler.is_external_drop()) {
+        var is_external_drop = selection_handler.is_external_drop();
+        if (is_external_drop) {
             selection_handler.drop_external();
         }
-        this.initialize_and_repaint_list();
+
+        this.initialize_and_repaint_list(is_external_drop);
     };
 
     this.on_playlist_items_reordered = function (playlist_idx) {
@@ -1286,10 +1288,7 @@ function Playlist(x,y) {
             return;
         }
 
-        this.initialize_list();
-        // Needed after drag-drop, because it might cause dropped (i.e. focused) item to be outside of drawn list
-        scroll_to_focused();
-        this.repaint();
+        this.initialize_and_repaint_list(true);
     };
 
     this.on_playlist_items_removed = function (playlist_idx) {
@@ -1297,7 +1296,7 @@ function Playlist(x,y) {
             return;
         }
 
-        this.initialize_and_repaint_list(playlist_idx);
+        this.initialize_and_repaint_list();
     };
 
     this.on_playlist_items_selection_change = function () {
@@ -1387,8 +1386,12 @@ function Playlist(x,y) {
     };
     //</editor-fold>
 
-    this.initialize_and_repaint_list = function () {
+    this.initialize_and_repaint_list = function (refocus) {
         this.initialize_list();
+        if (refocus) {
+            // Needed after drag-drop, because it might cause dropped (i.e. focused) item to be outside of drawn list
+            scroll_to_focused();
+        }
         this.repaint();
     };
 
@@ -2697,41 +2700,32 @@ function Header(x, y, w, h, idx, row_h_arg) {
             }
         }
 
-        //---> TITLE (default artist)
+        //---> TITLE
+        if (grouping_handler.get_title_query())
         {
-            var artist_x = part1_cur_x;
-            var artist_w = this.w - artist_x;
-            var artist_h = part_h;
-            if (!g_properties.show_group_info) {
-                artist_w -= part2_right_pad + 5;
-                artist_h -= 5;
+            var artist_text = _.tf(grouping_handler.get_title_query(),metadb);
+            if (!artist_text && is_radio) {
+                artist_text = 'Radio Stream';
             }
-
-            var artist_text;
-            if (grouping_handler.get_query_name() === 'user_defined' || grouping_handler.get_title_query())
-            {
-                artist_text = _.tf(grouping_handler.get_title_query(),metadb);
-            }
-            else {
-                artist_text = _.tf('$if($greater($len(%album artist%),0),%album artist%,%artist%)', metadb);
-                if (artist_text === '?' && is_radio) {
-                    artist_text = 'Radio Stream';
+            if (artist_text) {
+                var artist_x = part1_cur_x;
+                var artist_w = this.w - artist_x;
+                var artist_h = part_h;
+                if (!g_properties.show_group_info) {
+                    artist_w -= part2_right_pad + 5;
+                    artist_h -= 5;
                 }
+
+                var artist_text_format = g_string_format.v_align_far | g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
+                grClip.DrawString(artist_text, artist_font, artist_color, artist_x, 0, artist_w, artist_h, artist_text_format);
+
+                //part1_cur_x += artist_w;
             }
-
-            var artist_text_format = g_string_format.v_align_far | g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
-            grClip.DrawString(artist_text, artist_font, artist_color, artist_x, 0, artist_w, artist_h, artist_text_format);
-
-            //part1_cur_x += artist_w;
         }
 
-        //---> SUB TITLE (default album)
+        //---> SUB TITLE
         if (grouping_handler.get_sub_title_query()) {
             var album_text = _.tf(grouping_handler.get_sub_title_query(), metadb);
-            if (album_text === '?') {
-                album_text = '';
-            }
-
             if (album_text) {
                 var album_h = part_h;
                 var album_y = part_h;
@@ -2906,41 +2900,36 @@ function Header(x, y, w, h, idx, row_h_arg) {
             }
         }
 
-        //---> TITLE (default artist)
+        //---> TITLE
+        if (grouping_handler.get_title_query())
         {
-            var artist_x = cur_x;
-            var artist_w = this.w - artist_x - (right_pad + 5);
-            var artist_h = this.h;
-
-            var artist_text;
-            if (grouping_handler.get_query_name() === 'user_defined' || grouping_handler.get_title_query())
-            {
-                artist_text = _.tf(grouping_handler.get_title_query(),metadb);
-            }
-            else {
-                artist_text = _.tf('$if($greater($len(%album artist%),0),%album artist%,%artist%)', metadb);
-                if (artist_text === '?' && is_radio) {
-                    artist_text = 'Radio Stream';
-                }
+            var artist_text = _.tf(grouping_handler.get_title_query(),metadb);
+            if (!artist_text) {
+                artist_text = is_radio ? 'Radio Stream' : '?';
             }
 
-            var artist_text_format = g_string_format.v_align_center | g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
-            grClip.DrawString(artist_text, artist_font, artist_color, artist_x, 0, artist_w, artist_h, artist_text_format);
+            if (artist_text) {
+                var artist_x = cur_x;
+                var artist_w = this.w - artist_x - (right_pad + 5);
+                var artist_h = this.h;
 
-            cur_x += Math.ceil(
-                /** @type {!number} */
-                gr.MeasureString(artist_text, artist_font, 0, 0, 0, 0).Width
-            );
+                var artist_text_format = g_string_format.v_align_center | g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
+                grClip.DrawString(artist_text, artist_font, artist_color, artist_x, 0, artist_w, artist_h, artist_text_format);
+
+                cur_x += Math.ceil(
+                    /** @type {!number} */
+                    gr.MeasureString(artist_text, artist_font, 0, 0, 0, 0).Width
+                );
+            }
         }
 
-        //---> SUB TITLE (default album)
+        //---> SUB TITLE
         if (grouping_handler.get_sub_title_query()) {
-            var album_text = _.tf(' - ' + grouping_handler.get_sub_title_query(), metadb);
-            if (album_text === ' - ?') {
-                album_text = '';
-            }
 
+            var album_text = _.tf(grouping_handler.get_sub_title_query(), metadb);
             if (album_text) {
+                album_text = ' - ' + album_text;
+
                 var album_h = this.h;
                 var album_x = cur_x;
                 var album_w = this.w - album_x - (right_pad + 5);
@@ -4609,8 +4598,8 @@ function GroupingHandler () {
             on_execute_callback_fn();
         };
 
-        var parsed_query = cur_group.name === 'user_defined' ? [cur_group.group_query, cur_group.title_query] : ['', ''];
-        g_hta_window.msg_box_multiple(-10000, -10000, ['Group Query', 'Title Query'], 'Foobar2000: Group by', [parsed_query[0], parsed_query[1]], on_ok_fn);
+        var parsed_query = cur_group.name === 'user_defined' ? [cur_group.group_query, cur_group.title_query] : ['', '$if($greater($len(%album artist%),0),%album artist%,[%artist%])'];
+        g_hta_window.msg_box_multiple(-10000, -10000, ['Grouping Query', 'Title Query'], 'Foobar2000: Group by', [parsed_query[0], parsed_query[1]], on_ok_fn);
 
         var fb_handle = g_has_modded_jscript ? qwr_utils.get_fb2k_window() : undefined;
         if (fb_handle) {
@@ -4737,18 +4726,18 @@ GroupingHandler.Settings = function() {
 
         if (!g_properties.group_presets || !_.isArray(JSON.parse(g_properties.group_presets))) {
             g_properties.group_presets = JSON.stringify([
-                new CtorGroupData('artist', 'by artist', '%album artist%'),
-                new CtorGroupData('artist_album', 'by artist / album', '%album artist%%album%', undefined, '%album%[ - %ALBUMSUBTITLE%]', {
+                new CtorGroupData('artist', 'by artist', '%album artist%', undefined, ''),
+                new CtorGroupData('artist_album', 'by artist / album', '%album artist%%album%', undefined, undefined, {
                     show_date:  true
                 }),
-                new CtorGroupData('artist_album_disc', 'by artist / album / disc number', '%album artist%%album%%discnumber%', undefined, '%album%[ - %ALBUMSUBTITLE%]', {
+                new CtorGroupData('artist_album_disc', 'by artist / album / disc number', '%album artist%%album%%discnumber%', undefined, undefined, {
                     show_date:  true,
                     show_cd:    true
                 }),
-                new CtorGroupData('artist_path', 'by path', '$directory_path(%path%)', undefined, '%album%[ - %ALBUMSUBTITLE%]', {
+                new CtorGroupData('path', 'by path', '$directory_path(%path%)', undefined, undefined, {
                     show_date:  true
                 }),
-                new CtorGroupData('artist_date', 'by date', '%date%', undefined, '%album%[ - %ALBUMSUBTITLE%]', {
+                new CtorGroupData('date', 'by date', '%date%', undefined, undefined, {
                     show_date:  true
                 })
             ]);
@@ -4774,9 +4763,9 @@ GroupingHandler.Settings = function() {
 /**
  * @param {string} name
  * @param {string} description
- * @param {string} group_query
- * @param {?string=} [title_query='%ARTIST%']
- * @param {?string=} [sub_title_query='']
+ * @param {?string=} [group_query='']
+ * @param {?string=} [title_query='$if($greater($len(%album artist%),0),%album artist%,[%artist%])']
+ * @param {?string=} [sub_title_query='$if($greater($len(%album%),0),%album%[ - %ALBUMSUBTITLE%],[%ALBUMSUBTITLE%])']
  * @param {object=}  [options={}]
  * @param {boolean=} [options.show_date=false]
  * @param {boolean=} [options.show_cd=false]
@@ -4786,9 +4775,9 @@ GroupingHandler.Settings = function() {
 GroupingHandler.Settings.Group = function(name, description, group_query, title_query, sub_title_query, options) {
     this.name = name;
     this.description = description;
-    this.group_query = group_query ? group_query : '';
-    this.title_query = title_query ? title_query : '%ARTIST%';
-    this.sub_title_query = sub_title_query ? sub_title_query : '';
+    this.group_query = !_.isNil(group_query) ? group_query : '';
+    this.title_query =  !_.isNil(title_query) ? title_query : '$if($greater($len(%album artist%),0),%album artist%,[%artist%])';
+    this.sub_title_query =  !_.isNil(sub_title_query) ? sub_title_query : '$if($greater($len(%album%),0),%album%[ - %ALBUMSUBTITLE%],[%ALBUMSUBTITLE%])';
     this.show_date = !!(options && options.show_date);
     this.show_cd = !!(options && options.show_cd);
 };
