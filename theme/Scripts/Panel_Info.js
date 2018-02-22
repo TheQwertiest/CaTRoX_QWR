@@ -22,6 +22,9 @@ g_properties.add_properties(
         first_launch: ['system.script_first_launch', true]
     }
 );
+
+var g_has_modded_jscript = qwr_utils.has_modded_jscript();
+
 // Fixup properties
 (function() {
     g_properties.track_mode = Math.max(1, Math.min(3, g_properties.track_mode));
@@ -336,24 +339,9 @@ function TrackInfoList() {
 
         cmm.append_item(
             'Add',
-            _.bind(function () {
-                var new_tag = _.input2('Enter metadata name', 'Add new metadata', '');
-                if (!new_tag) {
-                    return;
-                }
-
-                var new_value = _.input2('Enter value for ' + new_tag, 'Add new metadata', '');
-                if (!_.isNil(new_value)) {
-                    var handle = fb.CreateHandleList();
-                    handle.Add(cur_metadb);
-
-                    var meta_obj = {};
-                    meta_obj[new_tag] = new_value;
-                    handle.UpdateFileInfoFromJSON(JSON.stringify(meta_obj));
-
-                    this.initialize_list();
-                }
-            }, this)
+            function () {
+                request_new_tag(cur_metadb);
+            }
         );
 
         if (hover_item) {
@@ -759,7 +747,37 @@ function TrackInfoList() {
         last_hover_item = null;
     }
 
+    function request_new_tag(metadb) {
+        var on_ok_fn = function (ret_val) {
+            if (!ret_val[0]) {
+                return;
+            }
+
+            var handle = fb.CreateHandleList();
+            handle.Add(cur_metadb);
+
+            var meta_obj = {};
+            meta_obj[ret_val[0]] = ret_val[1];
+            handle.UpdateFileInfoFromJSON(JSON.stringify(meta_obj));
+
+            if (cur_metadb === metadb) {
+                that.initialize_list();
+            }
+        };
+
+        g_hta_window.msg_box_multiple(-10000, -10000, ['Tag Name', 'Value'], 'Foobar2000: Add new metadata tag', ['', ''], on_ok_fn);
+
+        var fb_handle = g_has_modded_jscript ? qwr_utils.get_fb2k_window() : undefined;
+        if (fb_handle) {
+            g_hta_window.manager.center(fb_handle.Left, fb_handle.Top, fb_handle.Width, fb_handle.Height);
+        }
+        else {
+            g_hta_window.manager.center();
+        }
+    }
+
     // private:
+    var that = this;
 
     /** @enum {number} */
     var track_modes =

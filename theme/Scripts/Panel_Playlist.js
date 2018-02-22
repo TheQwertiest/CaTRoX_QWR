@@ -14,7 +14,6 @@ g_script_list.push('Panel_Playlist.js');
 var g_is_mini_panel = (window.name.toLowerCase().indexOf('mini') !== -1);
 
 // Niceties:
-// TODO: add press animation on playlist manager
 // TODO: grouping manager (HTA based): consider adding other EsPlaylist grouping features - sorting, playlist association
 // Low priority:
 // TODO: consider making registration for on_key handlers
