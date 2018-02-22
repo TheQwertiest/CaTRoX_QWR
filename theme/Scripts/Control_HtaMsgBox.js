@@ -1,6 +1,6 @@
 // ==PREPROCESSOR==
-// @name 'Common'
-// @author 'Hta Message Box Control'
+// @name 'Hta Message Box Control'
+// @author 'TheQwertiest'
 // ==/PREPROCESSOR==
 
 g_script_list.push('Control_HtaMsgBox.js');
@@ -129,8 +129,24 @@ var g_hta_window = {
         var wnd = null;
     },
 
+    default_features : '',
     styles : {}
 };
+
+g_hta_window.default_features =
+    'singleinstance=yes ' +
+    'border=dialog ' +
+    'minimizeButton=no ' +
+    'maximizeButton=no ' +
+    'scroll=no ' +
+    'showintaskbar=yes ' +
+    'contextMenu=yes ' +
+    'selection=no ' +
+    'innerBorder=no';
+if (_.isFile(fb.FoobarPath + '\\foobar2000.exe')) {
+    g_hta_window.default_features += ' ';
+    g_hta_window.default_features += 'icon="' + fb.FoobarPath + '\\foobar2000.exe"';
+}
 
 g_hta_window.styles.body = 'body { color: WindowText; background-color: Menu; }';
 
@@ -216,23 +232,8 @@ g_hta_window.msg_box_multiple = function(x,y,prompt,title,defval,on_finish_fn) {
         '   </body>' +
         '</html>';
 
-    var hta_features =
-        'singleinstance=yes ' +
-        'border=dialog ' +
-        'minimizeButton=no ' +
-        'maximizeButton=no ' +
-        'scroll=no ' +
-        'showintaskbar=yes ' +
-        'contextMenu=yes ' +
-        'selection=no ' +
-        'innerBorder=no';
-    if (_.isFile(fb.FoobarPath + '\\foobar2000.exe')) {
-        hta_features += ' ';
-        hta_features += 'icon="' + fb.FoobarPath + '\\foobar2000.exe"';
-    }
-
     var window_h = 29 * val_count + 83;
-    var wnd = g_hta_window.manager.open(x, y, 370, window_h, title, content, hta_features);
+    var wnd = g_hta_window.manager.open(x, y, 370, window_h, title, content, g_hta_window.default_features);
     if (!wnd) {
         return false;
     }
@@ -248,8 +249,6 @@ g_hta_window.msg_box_multiple = function(x,y,prompt,title,defval,on_finish_fn) {
     labels.forEach(function(item){
         item.style.width = label_max_width + 'px';
     });
-
-    wnd.hta_ok.focus();
 
     wnd.document.body.onbeforeunload = function () {
         g_hta_window.manager.close();
@@ -268,7 +267,9 @@ g_hta_window.msg_box_multiple = function(x,y,prompt,title,defval,on_finish_fn) {
         g_hta_window.manager.close();
         on_finish_fn(vals);
     };
+
     wnd.document.body.focus();
+    wnd.hta_ok.focus();
 
     return true;
 };

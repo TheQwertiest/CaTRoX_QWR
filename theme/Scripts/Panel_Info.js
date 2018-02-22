@@ -749,7 +749,7 @@ function TrackInfoList() {
 
     function request_new_tag(metadb) {
         var on_ok_fn = function (ret_val) {
-            if (!ret_val[0]) {
+            if (!ret_val[0] || !ret_val[1]) {
                 return;
             }
 

@@ -1,6 +1,6 @@
 // ==PREPROCESSOR==
-// @name 'Common'
-// @author 'Hta Message Box Control'
+// @name 'Hta Grouping Presets Manager'
+// @author 'TheQwertiest'
 // ==/PREPROCESSOR==
 
 g_script_list.push('Control_HtaGroupPresetsMngr.js');
@@ -103,13 +103,13 @@ g_hta_window.group_presets_mngr = function(x, y, group_presets, cur_group_name, 
         '               <div class="input_cnt_block input_cnt_block_checkbox">' +
         '                    <label class="label_for_checkbox">Show Date:</label>' +
         '                    <span>' +
-        '                    <input id="input_show_date" class="input_box" type="checkbox"/>' +
+        '                    <input id="input_show_date" type="checkbox"/>' +
         '                    </span>' +
         '               </div>' +
         '               <div class="input_cnt_block input_cnt_block_checkbox">' +
         '                    <label class="label_for_checkbox">Show CD#:</label>' +
         '                    <span>' +
-        '                    <input id="input_show_cd" class="input_box" type="checkbox"/>' +
+        '                    <input id="input_show_cd" type="checkbox"/>' +
         '                    </span>' +
         '               </div>' +
         '          </div>' +
@@ -120,22 +120,7 @@ g_hta_window.group_presets_mngr = function(x, y, group_presets, cur_group_name, 
         '</body>' +
         '</html>';
 
-    var hta_features =
-        'singleinstance=yes ' +
-        'border=dialog ' +
-        'minimizeButton=no ' +
-        'maximizeButton=no ' +
-        'scroll=no ' +
-        'showintaskbar=yes ' +
-        'contextMenu=yes ' +
-        'selection=no ' +
-        'innerBorder=no';
-    if (_.isFile(fb.FoobarPath + '\\foobar2000.exe')) {
-        hta_features += ' ';
-        hta_features += 'icon="' + fb.FoobarPath + '\\foobar2000.exe"';
-    }
-
-    var wnd = g_hta_window.manager.open(x, y, 650, 425, 'Foobar2000: Manage grouping presets', content, hta_features);
+    var wnd = g_hta_window.manager.open(x, y, 650, 425, 'Foobar2000: Manage grouping presets', content, g_hta_window.default_features);
     if (!wnd) {
         return false;
     }
@@ -370,11 +355,11 @@ g_hta_window.group_presets_mngr = function(x, y, group_presets, cur_group_name, 
         on_finish_fn(output_data);
     };
 
-    wnd.btn_ok.focus();
-
     populate_select(_.findIndex(group_data_list_copy, function (item) { return item.name === cur_group_name; }));
     populate_data();
+
     wnd.document.body.focus();
+    wnd.btn_ok.focus();
 
     return true;
 };

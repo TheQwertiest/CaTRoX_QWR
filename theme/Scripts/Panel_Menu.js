@@ -59,15 +59,21 @@ g_properties.add_properties(
     g_properties.incompatibility_version = utils.Version;
     g_properties.incompatibility_notified = false;
 
-    var msg = 'Warning: Vanilla JScript component detected, so some features will be unavailable!\n';
-    msg += '\nDisabled features:\n';
+    var msg = 'Warning: Vanilla JScript component detected, so some features will be unavailable!\n\n';
+    msg += 'Disabled features:\n';
     msg += '    - Persistent window size for Full Mode and Playlist Mode.\n';
     msg += '    - Top Panel: dynamic button state for \'YouTube Video Toggle\' and \'Last.FM Scrobbling Toggle\' buttons.\n';
-    msg += '  Also some dialog windows may spawn outside of the main fb2k window.\n';
-    msg += '\nSources for modded JScript are available at https://github.com/TheQwertiest/foo-jscript-panel\n';
-    msg += '\nTo disable this warning set \'system.jscript_incompatibility.notified\' to \'true\' in Panel Properties (SHIFT-right-click on Menu Panel).\n';
+    msg += '\nAlso some dialog windows (like this one) may spawn outside of the main fb2k window.\n';
+    msg += '\nSources for modded JScript are available at <a href="https://github.com/TheQwertiest/foo-jscript-panel">https://github.com/TheQwertiest/foo-jscript-panel</a>\n';
 
-    fb.ShowPopupMessage(msg, 'CaTRoX (QWR Edition)');
+    function on_ok_fn(do_not_remind) {
+        if (do_not_remind) {
+            g_properties.incompatibility_notified = true;
+        }
+    }
+
+    g_hta_window.popup_with_checkbox(-10000,-10000, 'JScript incompatibility warning', msg, 'Do not show this dialog again', false, on_ok_fn );
+    g_hta_window.manager.center();
 })();
 
 qwr_utils.check_fonts(['Segoe Ui', 'Segoe Ui Semibold', 'Segoe Ui Symbol', 'Consolas', 'Marlett', 'Guifx v2 Transports', 'FontAwesome']);
