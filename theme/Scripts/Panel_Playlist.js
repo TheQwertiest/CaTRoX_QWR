@@ -1281,7 +1281,7 @@ function Playlist(x,y) {
             return;
         }
 
-        var row = this.cnt.rows[playlistItemIndex]
+        var row = this.cnt.rows[playlistItemIndex];
         if (!row) {
             return;
         }
@@ -1485,7 +1485,7 @@ function Playlist(x,y) {
         if (g_properties.show_queue_position) {
             queue_handler = new QueueHandler(this.cnt.rows, cur_playlist_idx);
         }
-        selection_handler = new SelectionHandler(this.cnt.rows, this.cnt.headers, cur_playlist_idx);
+        selection_handler = new SelectionHandler(this.cnt.rows, cur_playlist_idx);
 
         trace_initialize_list_performance && console.log('Playlist initialized in ' + profiler.Time + 'ms');
     };
@@ -2910,7 +2910,6 @@ function Header(x, y, w, h, idx, row_h_arg) {
 
         //************************************************************//
 
-        var path = _.tf('%path%', metadb);
         var is_radio = _.startsWith(metadb.RawPath, 'http');
 
         var left_pad = 10;
@@ -3442,7 +3441,7 @@ function Rating(x, y, w, h, metadb) {
 /**
  * @constructor
  */
-function SelectionHandler(rows_arg, headers_arg, cur_playlist_idx_arg) {
+function SelectionHandler(rows_arg, cur_playlist_idx_arg) {
     this.initialize_selection = function () {
         selected_indexes = [];
         rows.forEach(function (item, i) {
@@ -3875,7 +3874,6 @@ function SelectionHandler(rows_arg, headers_arg, cur_playlist_idx_arg) {
     }
 
     var rows = rows_arg;
-    var headers = headers_arg;
     var cur_playlist_idx = cur_playlist_idx_arg;
     var selected_indexes = [];
     /** @type {?number} */
