@@ -300,6 +300,7 @@ function Menu() {
             'Default',
             _.bind(function () {
                 frame_handler.change_style(FrameStyle.Default);
+                frame_handler.toggle_shadow(false);
                 create_buttons(this.x, this.y, this.w, this.h);
             }, this)
         );
@@ -308,6 +309,7 @@ function Menu() {
             'Small caption',
             _.bind(function () {
                 frame_handler.change_style(FrameStyle.SmallCaption);
+                frame_handler.toggle_shadow(false);
                 create_buttons(this.x, this.y, this.w, this.h);
             }, this)
         );
@@ -316,6 +318,7 @@ function Menu() {
             'No caption',
             _.bind(function () {
                 frame_handler.change_style(FrameStyle.NoCaption);
+                frame_handler.toggle_shadow(false);
                 create_buttons(this.x, this.y, this.w, this.h);
                 frame_handler.set_caption(left_pad, this.y, right_pad - left_pad, this.h);
             }, this)
@@ -325,6 +328,7 @@ function Menu() {
             'No border',
             _.bind(function () {
                 frame_handler.change_style(FrameStyle.NoBorder);
+                frame_handler.toggle_shadow(g_properties.show_window_shadow);
                 create_buttons(this.x, this.y, this.w, this.h);
                 frame_handler.set_caption(left_pad, this.y, right_pad - left_pad, this.h);
             }, this)
@@ -1043,24 +1047,20 @@ function FrameStyleHandler() {
             case FrameStyle.Default:
                 UIHacks.FrameStyle = FrameStyle.Default;
                 UIHacks.MoveStyle = MoveStyle.Default;
-                UIHacks.Aero.Effect = 0;
                 this.disable_caption();
                 break;
             case FrameStyle.SmallCaption:
                 UIHacks.FrameStyle = FrameStyle.SmallCaption;
                 UIHacks.MoveStyle = MoveStyle.Default;
-                UIHacks.Aero.Effect = 0;
                 this.disable_caption();
                 break;
             case FrameStyle.NoCaption:
                 UIHacks.FrameStyle = FrameStyle.NoCaption;
-                UIHacks.MoveStyle = MoveStyle.Both;
-                UIHacks.Aero.Effect = 0;
+                UIHacks.MoveStyle = MoveStyle.Default;
                 break;
             case FrameStyle.NoBorder:
                 UIHacks.FrameStyle = FrameStyle.NoBorder;
-                UIHacks.MoveStyle = MoveStyle.Both;
-                UIHacks.Aero.Effect = 2;
+                UIHacks.MoveStyle = MoveStyle.Default;
                 break;
             default:
                 throw new ArgumentError('frame_style', style);
