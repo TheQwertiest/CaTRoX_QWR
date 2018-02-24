@@ -115,6 +115,11 @@ function on_playback_seek() {
     bottom_panel.on_playback_seek();
 }
 
+function on_playback_time(time) {
+    trace_call && console.log(qwr_utils.function_name());
+    bottom_panel.on_playback_time(time);
+}
+
 function on_playback_order_changed(id) {
     trace_call && console.log(qwr_utils.function_name());
     bottom_panel.on_playback_order_changed(id);
@@ -353,6 +358,12 @@ function BottomPanel() {
     };
 
     this.on_playback_seek = function () {
+        seekbar_obj.playback_seek();
+        // For seekbar_time refresh
+        this.repaint();
+    };
+
+    this.on_playback_time = function (time) {
         seekbar_obj.playback_seek();
         // For seekbar_time refresh
         this.repaint();

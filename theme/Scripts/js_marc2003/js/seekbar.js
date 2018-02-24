@@ -13,19 +13,15 @@ _.mixin({
         };
 
         this.playback_stop = function () {
-            repaint_timer.stop();
             this.playback_seek();
         };
 
         this.playback_start = function () {
-            repaint_timer.start();
+            this.playback_seek();
         };
 
         this.playback_pause = function (isPlaying) {
-            if (isPlaying)
-                repaint_timer.stop();
-            else
-                repaint_timer.start();
+            this.playback_seek();
         };
 
         this.trace = function (x, y) {
@@ -126,29 +122,5 @@ _.mixin({
         var alpha_timer = new _.alpha_timer([that], function (item) {
             return item.hover;
         });
-
-        // Expose static methods
-        var repaint_timer = _.seekbar.repaint_timer;
     }
 });
-
-_.seekbar.repaint_timer = new function()
-{
-    var seekbar_timer = null;
-
-    this.start = function() {
-        if (!seekbar_timer) {
-            seekbar_timer = setInterval(function () {
-                if (fb.IsPlaying && !fb.IsPaused && fb.PlaybackLength > 0)
-                    on_playback_seek();
-            }, 100);
-        }
-    };
-
-    this.stop = function() {
-        if (seekbar_timer) {
-            clearInterval(seekbar_timer);
-            seekbar_timer = null;
-        }
-    };
-};
