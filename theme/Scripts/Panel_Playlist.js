@@ -1505,13 +1505,17 @@ function Playlist(x,y) {
      * @return {Array<Header>}
      */
     function create_headers(rows) {
-        var playlist_copy = rows;
+        var playlist_copy = _.clone(rows);
         var head_nr = 0;
         var headers = [];
         while (playlist_copy.length) {
             var header = new Header(that.list_x, 0, that.list_w, that.row_h * header_h_in_rows, head_nr, that.row_h);
             header.init_rows(playlist_copy);
-            playlist_copy = _.drop(playlist_copy, header.rows.length);
+
+            playlist_copy.reverse();
+            playlist_copy.length = playlist_copy.length - header.rows.length; ///< much faster then _.drop or slice, since it does not create a new array
+            playlist_copy.reverse();
+
             headers.push(header);
             ++head_nr;
         }
