@@ -575,17 +575,11 @@ function ArtModule(optional_args) {//(Most of the art handling code was done by 
                 }
                 else {
                     metadb = fb.GetFocusItem();
-                    if (!metadb) {
-                        metadb = get_selected_metadb();
-                    }
                 }
                 break;
             }
             case track_modes.selected: {
                 metadb = fb.GetFocusItem();
-                if (!metadb) {
-                    metadb = get_selected_metadb();
-                }
                 break;
             }
             case track_modes.playing: {
@@ -597,12 +591,6 @@ function ArtModule(optional_args) {//(Most of the art handling code was done by 
         }
 
         return metadb;
-    }
-
-    function get_selected_metadb() {
-        var selected_metadb_list = plman.GetPlaylistSelectedItems(plman.ActivePlaylist);
-
-        return selected_metadb_list.Count > 0 ? selected_metadb_list.Item(0) : null;
     }
 
     function trigger_cycle_timer(enable_cycle, artLength, restartCycle) {
