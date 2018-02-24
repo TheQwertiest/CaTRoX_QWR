@@ -2107,7 +2107,7 @@ function IGdiGraphics() {
     this.SetTextRenderingHint = function (mode) {}; // (void)
 }
 
-var gr = IGdiGraphics();
+var gr = new IGdiGraphics();
 
 /**
  * @constructor
