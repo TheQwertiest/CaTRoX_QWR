@@ -7,6 +7,7 @@
 var trace_call = false;
 var trace_on_paint = false;
 var trace_on_move = false;
+var trace_initialize_list_performance = false;
 
 g_script_list.push('Panel_Playlist.js');
 
@@ -42,8 +43,6 @@ g_properties.add_properties(
         auto_colapse:                ['user.header.collapse.auto', g_is_mini_panel],
         collapse_on_playlist_switch: ['user.header.collapse.on_playlist_switch', false],
         collapse_on_start:           ['user.header.collapse.on_start', false],
-
-        is_selection_dynamic: ['system.selection.dynamic', true],
 
         playlist_group_data:        ['system.playlist.grouping.data_list', ''],
         playlist_custom_group_data: ['system.playlist.grouping.custom_data_list', ''],
@@ -245,6 +244,11 @@ function on_playlist_switch() {
     playlist.on_playlist_switch();
 }
 
+function on_playlist_item_ensure_visible(playlistIndex, playlistItemIndex) {
+    trace_call && console.log(qwr_utils.function_name());
+    playlist.on_playlist_item_ensure_visible(playlistIndex,playlistItemIndex);
+}
+
 function on_playlist_items_added(playlistIndex) {
     trace_call && console.log(qwr_utils.function_name());
     playlist.on_playlist_items_added(playlistIndex);
@@ -263,6 +267,11 @@ function on_playlist_items_removed(playlistIndex) {
 function on_playlist_items_selection_change() {
     trace_call && console.log(qwr_utils.function_name());
     playlist.on_playlist_items_selection_change();
+}
+
+function on_playback_dynamic_info_track() {
+    trace_call && console.log(qwr_utils.function_name());
+    playlist.on_playback_dynamic_info_track();
 }
 
 function on_playback_new_track(metadb) {
@@ -432,7 +441,14 @@ function PlaylistPanel() {
         playlist.on_playlist_switch();
     };
 
+    this.on_playlist_item_ensure_visible = function (playlistIndex, playlistItemIndex) {
+        playlist.on_playlist_item_ensure_visible(playlistIndex, playlistItemIndex);
+    };
+
     this.on_playlist_items_added = function (playlist_idx) {
+        if (g_properties.show_playlist_info) {
+            playlist_info.on_playlist_modified();
+        }
         playlist.on_playlist_items_added(playlist_idx);
     };
 
@@ -441,6 +457,9 @@ function PlaylistPanel() {
     };
 
     this.on_playlist_items_removed = function (playlist_idx) {
+        if (g_properties.show_playlist_info) {
+            playlist_info.on_playlist_modified();
+        }
         playlist.on_playlist_items_removed(playlist_idx);
     };
 
@@ -449,6 +468,10 @@ function PlaylistPanel() {
         if (g_properties.show_playlist_info) {
             playlist_info.on_playlist_modified();
         }
+    };
+
+    this.on_playback_dynamic_info_track = function () {
+        playlist.on_playback_dynamic_info_track();
     };
 
     this.on_playback_new_track = function (metadb) {
@@ -644,13 +667,10 @@ function Playlist(x,y) {
             }
             else {
                 selection_handler.update_selection(this.get_item_under_mouse(x, y), ctrl_pressed, shift_pressed);
-                selection_handler.sync_items_with_selection();
             }
         }
         else {
             selection_handler.clear_selection();
-            selection_handler.sync_items_with_selection();
-            plman.SetPlaylistFocusItem(cur_playlist_idx, -1);
         }
 
         this.repaint();
@@ -714,7 +734,6 @@ function Playlist(x,y) {
             var item = this.get_item_under_mouse(x, y);
             if (item) {
                 selection_handler.update_selection(item, ctrl_pressed, shift_pressed);
-                selection_handler.sync_items_with_selection();
             }
         }
 
@@ -736,13 +755,11 @@ function Playlist(x,y) {
         var item = this.trace_list(x, y) ? this.get_item_under_mouse(x, y) : undefined;
         if (!item) {
             selection_handler.clear_selection();
-            selection_handler.sync_items_with_selection();
 
         }
         else if (_.isInstanceOf(item, Row)&& !item.is_selected_dynamic()
             || _.isInstanceOf(item, Header) && !item.is_completely_selected() ) {
             selection_handler.update_selection(item);
-            selection_handler.sync_items_with_selection();
         }
 
         this.repaint();
@@ -953,7 +970,6 @@ function Playlist(x,y) {
                 }
 
                 selection_handler.update_selection(this.cnt.rows[new_focus_idx], null, shift_pressed);
-                selection_handler.sync_items_with_selection();
 
                 break;
             }
@@ -988,7 +1004,6 @@ function Playlist(x,y) {
                 }
 
                 selection_handler.update_selection(this.cnt.rows[new_focus_idx], null, shift_pressed);
-                selection_handler.sync_items_with_selection();
 
                 break;
             }
@@ -1006,7 +1021,6 @@ function Playlist(x,y) {
                 collapse_handler.collapse(focused_item.header);
 
                 selection_handler.update_selection(focused_item.header, null, null);
-                selection_handler.sync_items_with_selection();
 
                 break;
             }
@@ -1028,7 +1042,6 @@ function Playlist(x,y) {
                     scroll_to_row(focused_item, new_focus_item);
 
                     selection_handler.update_selection(new_focus_item, null, null);
-                    selection_handler.sync_items_with_selection();
                 }
 
                 break;
@@ -1067,7 +1080,6 @@ function Playlist(x,y) {
                 }
 
                 selection_handler.update_selection(new_focus_item, null, shift_pressed);
-                selection_handler.sync_items_with_selection();
 
                 break;
             }
@@ -1105,19 +1117,16 @@ function Playlist(x,y) {
                 }
 
                 selection_handler.update_selection(new_focus_item, null, shift_pressed);
-                selection_handler.sync_items_with_selection();
 
                 break;
             }
             case VK_HOME: {
                 selection_handler.update_selection(_.head(this.cnt.rows), null, shift_pressed);
-                selection_handler.sync_items_with_selection();
 
                 break;
             }
             case VK_END: {
                 selection_handler.update_selection(_.last(this.cnt.rows), null, shift_pressed);
-                selection_handler.sync_items_with_selection();
 
                 break;
             }
@@ -1125,7 +1134,6 @@ function Playlist(x,y) {
                 if (!selection_handler.has_selected_items() && focused_item)
                 {
                     selection_handler.update_selection(focused_item);
-                    selection_handler.sync_items_with_selection();
                 }
                 plman.UndoBackup(cur_playlist_idx);
                 plman.RemovePlaylistSelection(cur_playlist_idx);
@@ -1135,7 +1143,6 @@ function Playlist(x,y) {
             case VK_KEY_A: {
                 if (ctrl_pressed) {
                     selection_handler.select_all();
-                    selection_handler.sync_items_with_selection();
                 }
 
                 break;
@@ -1164,7 +1171,7 @@ function Playlist(x,y) {
             }
             case VK_KEY_O: {
                 if (shift_pressed) {
-                    fb.RunContextCommandWithMetadb('Open Containing Folder', focused_item);
+                    fb.RunContextCommandWithMetadb('Open Containing Folder', focused_item.metadb);
                 }
                 break;
             }
@@ -1269,17 +1276,29 @@ function Playlist(x,y) {
         this.initialize_and_repaint_list();
     };
 
+    this.on_playlist_item_ensure_visible = function (playlist_idx, playlistItemIndex) {
+        if (playlist_idx !== cur_playlist_idx) {
+            return;
+        }
+
+        var row = this.cnt.rows[playlistItemIndex]
+        if (!row) {
+            return;
+        }
+
+        scroll_to_row(null, row);
+    };
+
     this.on_playlist_items_added = function (playlist_idx) {
         if (playlist_idx !== cur_playlist_idx) {
             return;
         }
 
-        var is_external_drop = selection_handler.is_external_drop();
-        if (is_external_drop) {
+        if (selection_handler.is_external_drop()) {
             selection_handler.drop_external();
         }
 
-        this.initialize_and_repaint_list(is_external_drop);
+        this.initialize_and_repaint_list();
     };
 
     this.on_playlist_items_reordered = function (playlist_idx) {
@@ -1304,6 +1323,14 @@ function Playlist(x,y) {
         }
     };
 
+    this.on_playback_dynamic_info_track = function (handles, fromhook) {
+        this.cnt.rows.forEach(function (item) {
+            item.reset_queried_data();
+        });
+
+        this.repaint();
+    };
+
     this.on_playback_new_track = function (metadb) {
         if (playing_item) {
             playing_item.is_playing = false;
@@ -1317,7 +1344,6 @@ function Playlist(x,y) {
 
             if (fb.CursorFollowPlayback) {
                 selection_handler.clear_selection();
-                selection_handler.sync_items_with_selection();
 
                 if (g_properties.auto_colapse) {
                     collapse_handler.collapse_all_but_now_playing();
@@ -1354,11 +1380,7 @@ function Playlist(x,y) {
     };
 
     this.on_metadb_changed = function (handles, fromhook) {
-        this.cnt.rows.forEach(function (item) {
-            item.reset_queried_data();
-        });
-
-        this.repaint();
+        this.on_playback_dynamic_info_track();
     };
 
     this.on_get_album_art_done = function (metadb, art_id, image, image_path) {
@@ -1399,6 +1421,9 @@ function Playlist(x,y) {
      */
     this.initialize_list = function () {
         trace_call && console.log('initialize_list');
+        if (trace_initialize_list_performance) {
+            var profiler = fb.CreateProfiler();
+        }
 
         cur_playlist_idx = plman.ActivePlaylist;
 
@@ -1430,6 +1455,7 @@ function Playlist(x,y) {
 
         Header.grouping_handler.set_active_playlist(plman.GetPlaylistName(cur_playlist_idx));
         this.cnt.headers = create_headers(this.cnt.rows);
+
         collapse_handler.initialize(this.cnt.headers);
 
         if (!was_on_size_called) {
@@ -1460,6 +1486,8 @@ function Playlist(x,y) {
             queue_handler = new QueueHandler(this.cnt.rows, cur_playlist_idx);
         }
         selection_handler = new SelectionHandler(this.cnt.rows, this.cnt.headers, cur_playlist_idx);
+
+        trace_initialize_list_performance && console.log('Playlist initialized in ' + profiler.Time + 'ms');
     };
 
     /**
@@ -1489,7 +1517,7 @@ function Playlist(x,y) {
      * @return {Array<Row>}
      */
     function initialize_rows(playlist_items, playlist_size) {
-        // For some reason using array[i] instead of IFbMetadbHandleList.Item(i) greatly increases performance :\
+        // Magic! For some reason using array[i] instead of IFbMetadbHandleList.Item(i) greatly increases performance :\
         var playlist_items_arr = [];
         for (var i = 0; i < playlist_size; ++i) {
             playlist_items_arr.push(playlist_items.Item(i));
@@ -2071,7 +2099,6 @@ function Playlist(x,y) {
         }
 
         selection_handler.update_selection(that.cnt.rows[playing_item_location.PlaylistItemIndex]);
-        selection_handler.sync_items_with_selection();
 
         scroll_to_now_playing();
     }
@@ -2368,6 +2395,7 @@ function Playlist(x,y) {
     /** @type {?number} */
     var cur_playlist_idx = undefined;
     var playing_item = undefined;
+    /** @type {?Row} */
     var focused_item = undefined;
 
     // Mouse and key state
@@ -2676,7 +2704,7 @@ function Header(x, y, w, h, idx, row_h_arg) {
 
         //************************************************************//
         var path = _.tf('%path%', metadb);
-        var is_radio = _.startsWith(path, 'http');
+        var is_radio = _.startsWith(metadb.RawPath, 'http');
 
         // part1: artist
         // part2: album + line + Date OR line
@@ -2784,21 +2812,22 @@ function Header(x, y, w, h, idx, row_h_arg) {
                 codec = _.tf('$ext($Info(referenced_file))', metadb);
             }
             else if (codec === 'mpc') {
-                codec = codec + '-' + _.tf('$Info(codec_profile)', metadb).replace('quality ', 'q');
+                codec += _.tf('[-$Info(codec_profile)]', metadb).replace('quality ', 'q');
             }
             else if (_.tf('$Info(encoding)', metadb) === 'lossy') {
                 if (_.tf('$Info(codec_profile)', metadb) === 'CBR') {
-                    codec = codec + '-' + _.tf('%bitrate%', metadb) + ' kbps';
+                    codec += _.tf('[-%bitrate% kbps]', metadb);
                 }
                 else {
-                    codec = codec + '-' + _.tf('$Info(codec_profile)', metadb);
+                    codec += _.tf('[-$Info(codec_profile)]', metadb);
                 }
             }
             if (codec) {
                 codec = codec + sample;
             }
             else {
-                codec = (_.startsWith(path, 'www.youtube.com') || _.startsWith(path, 'youtube.com')) ? 'yt' : path;
+                // 'fy' means foo_youtube
+                codec = _.startsWith(metadb.RawPath, 'fy+') ? 'yt' : path;
             }
 
             var track_count = this.rows.length;
@@ -2882,7 +2911,7 @@ function Header(x, y, w, h, idx, row_h_arg) {
         //************************************************************//
 
         var path = _.tf('%path%', metadb);
-        var is_radio = _.startsWith(path, 'http');
+        var is_radio = _.startsWith(metadb.RawPath, 'http');
 
         var left_pad = 10;
         var right_pad = 0;
@@ -3052,7 +3081,6 @@ function Header(x, y, w, h, idx, row_h_arg) {
     /** @type{Array<Row>} */
     this.rows = [];
 
-    this.is_selected_static = false;
     this.is_collapsed = false;
 
     //private:
@@ -3068,6 +3096,13 @@ Header.prototype = Object.create(List.Item.prototype);
 Header.prototype.constructor = Header;
 
 /**
+ * @param {number} x
+ * @param {number} y
+ * @param {number} w
+ * @param {number} h
+ * @param {IFbMetadbHandle} metadb
+ * @param {number} idx
+ * @param {number} cur_playlist_idx_arg
  * @constructor
  * @extends {List.Item}
  */
@@ -3129,6 +3164,8 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
 
         ////////////////////////////////////////////////////////////
 
+        var is_radio = _.startsWith(this.metadb.RawPath, 'http');
+
         var cur_x = this.x + 10;
         var right_pad = 0;
         var testRect = false;
@@ -3160,7 +3197,6 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
         //---> COUNT
         if (g_properties.show_playcount) {
             if (_.isNil(count_text)) {
-                var is_radio = (_.tf('%path%', this.metadb).indexOf('http') === 0);
                 count_text = (is_radio ? '' : _.tf('%play_count%', this.metadb));
                 if (count_text) {
                     count_text = _.toNumber(count_text) === 0 ? '' : (count_text + ' |');
@@ -3192,17 +3228,25 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
             }
         }
 
-        //---> TITLE
+        // TODO: try to fix spacing issues between title and title artist
+
+        // We need to draw 'queue' text with title text, it will cause weird spacing if drawn separately
+
+        //---> TITLE init
+        if (_.isNil(title_text)) {
+            var track_num_query = '$if(%tracknumber%,%tracknumber%,$pad_right(' + this.num_in_header + ',2,0))';
+            var title_query = track_num_query + '.  %title%';
+            title_text = ( fb.IsPlaying && this.is_playing && is_radio ) ? _.tfe(title_query) : _.tf(title_query, metadb);
+        }
+
+        //---> TITLE ARTIST init
+        if (_.isNil(title_artist_text)) {
+            title_artist_text = _.tf('[  \u25AA  %track artist%]', metadb);
+        }
+
+        //---> TITLE draw
         {
             var title_w = this.w - right_pad - 10;
-
-            if (_.isNil(title_text)) {
-                var gic = this.num_in_header;
-                var track_num = (((gic) < 10) ? ('0' + (gic)) : (gic));
-                var path = _.tf('%path%', metadb);
-                var title_query = '$if(%tracknumber%,%tracknumber%.,' + track_num + '.)  %title%';
-                title_text = ( fb.IsPlaying && _.startsWith(path, 'http') && this.is_playing ) ? _.tfe(title_query) : _.tf(title_query, metadb);
-            }
 
             var title_text_format = g_string_format.v_align_center | g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
             gr.DrawString(title_text + (title_artist_text ? '' : queue_text), title_font, title_color, cur_x, this.y, title_w, this.h, title_text_format);
@@ -3211,23 +3255,17 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
 
             cur_x += Math.ceil(
                 /** @type {!number} */
-                gr.MeasureString(title_text, title_font, 0, 0, 0, 0, title_text_format | g_string_format.measure_trailing_spaces).Width
+                gr.MeasureString(title_text, title_font, 0, 0, title_w, this.h, title_text_format | g_string_format.measure_trailing_spaces).Width
             );
         }
 
-        //---> TITLE ARTIST
-        {
-            if (_.isNil(title_artist_text)) {
-                title_artist_text = _.tf('[  \u25AA  $if($greater($len(%album artist%),1),$if($greater($len(%track artist%),1),%track artist%))]', metadb);
-            }
+        //---> TITLE ARTIST draw
+        if (title_artist_text) {
+            var title_artist_x = cur_x;
+            var title_artist_w = this.w - (title_artist_x - this.x) - right_pad;
 
-            if (title_artist_text) {
-                var title_artist_x = cur_x;
-                var title_artist_w = this.w - (title_artist_x - this.x) - right_pad;
-
-                var title_artist_text_format = g_string_format.v_align_center | g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
-                gr.DrawString(title_artist_text + queue_text, title_artist_font, title_artist_color, title_artist_x, this.y, title_artist_w, this.h, title_artist_text_format);
-            }
+            var title_artist_text_format = g_string_format.v_align_center | g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
+            gr.DrawString(title_artist_text + queue_text, title_artist_font, title_artist_color, title_artist_x, this.y, title_artist_w, this.h, title_artist_text_format);
         }
     };
 
@@ -3267,10 +3305,7 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
     };
 
     this.is_selected_dynamic = function () {
-        if (g_properties.is_selection_dynamic) {
-            return plman.IsPlaylistItemSelected(cur_playlist_idx, this.idx);
-        }
-        return this.is_selected_static;
+        return plman.IsPlaylistItemSelected(cur_playlist_idx, this.idx);
     };
 
     function initialize_rating() {
@@ -3295,7 +3330,6 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
     //state
     this.is_playing = false;
     this.is_focused = false;
-    this.is_selected_static = false;
     this.is_drop_boundary_reached = false;
     this.is_drop_bottom_selected = false;
     this.is_drop_top_selected = false;
@@ -3413,9 +3447,6 @@ function SelectionHandler(rows_arg, headers_arg, cur_playlist_idx_arg) {
         selected_indexes = [];
         rows.forEach(function (item, i) {
             if (plman.IsPlaylistItemSelected(cur_playlist_idx, item.idx)) {
-                item.is_selected_static = true;
-            }
-            if (item.is_selected_static) {
                 selected_indexes.push(i);
             }
         });
@@ -3465,35 +3496,6 @@ function SelectionHandler(rows_arg, headers_arg, cur_playlist_idx_arg) {
         selected_indexes = [];
         last_single_selected_index = undefined;
         plman.ClearPlaylistSelection(cur_playlist_idx);
-    };
-
-    this.sync_items_with_selection = function () {
-        if (g_properties.is_selection_dynamic) {
-            return;
-        }
-
-        // This code has O(playlist_size) complexity.
-        headers.forEach(function (item) {
-            item.is_selected_static = false;
-        });
-        rows.forEach(function (item) {
-            item.is_selected_static = false;
-        });
-
-        if (selected_indexes.length !== 0) {
-            selected_indexes.forEach(function (idx) {
-                rows[idx].is_selected_static = true;
-            });
-
-            headers.forEach(function (item) {
-                var row_indexes = [];
-                item.rows.forEach(function (item) {
-                    row_indexes.push(item.idx);
-                });
-
-                item.is_selected_static = _.difference(row_indexes, selected_indexes).length === 0;
-            });
-        }
     };
 
     this.has_selected_items = function () {
@@ -3989,11 +3991,13 @@ function QueueHandler(rows_arg, cur_playlist_idx_arg) {
             return;
         }
 
+        var playlist_items =  plman.GetPlaylistItems(cur_playlist_idx);
+
         for (var i = 0; i < queue_contents.Count; ++i) {
-            // Because of JScript v2 changes we can't differentiate between tracks with the same metadb,
+            // Because of JScript v2 changes we can't differentiate between queued tracks with the same metadb,
             // even if they are different items in one playlist or actually in different playlists altogether.
 
-            var cur_queue_item_idx = plman.GetPlaylistItems(cur_playlist_idx).Find(queue_contents.Item(i));
+            var cur_queue_item_idx = playlist_items.Find(queue_contents.Item(i));
             if (cur_queue_item_idx === -1) {
                 continue;
             }
@@ -4773,8 +4777,8 @@ GroupingHandler.Settings = function() {
  * @param {string} name
  * @param {string} description
  * @param {?string=} [group_query='']
- * @param {?string=} [title_query='$if($greater($len(%album artist%),0),%album artist%,[%artist%])']
- * @param {?string=} [sub_title_query='$if($greater($len(%album%),0),%album%[ - %ALBUMSUBTITLE%],[%ALBUMSUBTITLE%])']
+ * @param {?string=} [title_query='[%album artist%]']
+ * @param {?string=} [sub_title_query='[%album%[ - %albumsubtitle%]]']
  * @param {object=}  [options={}]
  * @param {boolean=} [options.show_date=false]
  * @param {boolean=} [options.show_cd=false]
@@ -4785,8 +4789,8 @@ GroupingHandler.Settings.Group = function(name, description, group_query, title_
     this.name = name;
     this.description = description;
     this.group_query = !_.isNil(group_query) ? group_query : '';
-    this.title_query =  !_.isNil(title_query) ? title_query : '$if($greater($len(%album artist%),0),%album artist%,[%artist%])';
-    this.sub_title_query =  !_.isNil(sub_title_query) ? sub_title_query : '$if($greater($len(%album%),0),%album%[ - %ALBUMSUBTITLE%],[%ALBUMSUBTITLE%])';
+    this.title_query =  !_.isNil(title_query) ? title_query : '[%album artist%]';
+    this.sub_title_query =  !_.isNil(sub_title_query) ? sub_title_query : '[%album%[ - %albumsubtitle%]]';
     this.show_date = !!(options && options.show_date);
     this.show_cd = !!(options && options.show_cd);
 };
