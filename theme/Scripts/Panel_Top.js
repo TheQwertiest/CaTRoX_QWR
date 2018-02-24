@@ -86,6 +86,11 @@ function on_item_focus_change(playlist_arg, from, to) {
     top_panel.on_item_focus_change(playlist_arg, from, to);
 }
 
+function on_playback_dynamic_info_track() {
+    trace_call && console.log(qwr_utils.function_name());
+    top_panel.on_playback_dynamic_info_track();
+}
+
 function on_playback_stop(reason) {
     trace_call && console.log(qwr_utils.function_name());
     top_panel.on_playback_stop(reason);
@@ -94,6 +99,11 @@ function on_playback_stop(reason) {
 function on_playback_new_track() {
     trace_call && console.log(qwr_utils.function_name());
     top_panel.on_playback_new_track();
+}
+
+function on_metadb_changed(handles, fromhook) {
+    trace_call && console.log(qwr_utils.function_name());
+    top_panel.on_metadb_changed(handles, fromhook);
 }
 
 function on_notify_data(name, info) {
@@ -135,7 +145,7 @@ function TopPanel() {
             var info_w = this.w - (cur_x - this.x) - (10 + right_pad);
             var info_h = this.h;
 
-            var info_query = "[%tracknumber%. ][%title%] ['('%length%')'][  \u25AA  $if($greater($len(%artist%),1),%artist%,%album artist%)][  \u25AA  %album%]";
+            var info_query = "[%tracknumber%. ][%title%] ['('%length%')'][  \u25AA  %album artist%][  \u25AA  %album%]";
             var info_text = (fb.IsPlaying ? _.tfe(info_query) : _.tf(info_query, metadb));
 
             var info_font = gdi.font('Segoe Ui Semibold', 14);
@@ -208,7 +218,15 @@ function TopPanel() {
         this.repaint();
     };
 
+    this.on_playback_dynamic_info_track = function () {
+        this.repaint();
+    };
+
     this.on_playback_stop = function (reason) {
+        this.repaint();
+    };
+
+    this.on_metadb_changed = function () {
         this.repaint();
     };
 
