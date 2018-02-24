@@ -1489,9 +1489,15 @@ function Playlist(x,y) {
      * @return {Array<Row>}
      */
     function initialize_rows(playlist_items, playlist_size) {
+        // For some reason using array[i] instead of IFbMetadbHandleList.Item(i) greatly increases performance :\
+        var playlist_items_arr = [];
+        for (var i = 0; i < playlist_size; ++i) {
+            playlist_items_arr.push(playlist_items.Item(i));
+        }
+
         var rows = [];
         for (var i = 0; i < playlist_size; ++i) {
-            rows.push(new Row(that.list_x, 0, that.list_w, that.row_h, playlist_items.Item(i), i, cur_playlist_idx));
+            rows.push(new Row(that.list_x, 0, that.list_w, that.row_h, playlist_items_arr[i], i, cur_playlist_idx));
             if (!g_properties.show_header) {
                 rows[i].is_odd = (i + 1) % 2;
             }
