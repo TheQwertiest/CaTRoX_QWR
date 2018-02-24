@@ -533,6 +533,8 @@ function TrackInfoList() {
 
         cur_metadb = get_current_metadb();
         if (cur_metadb) {
+            var is_radio = _.startsWith(cur_metadb.RawPath, 'http');
+
             var fileInfo = cur_metadb.GetFileInfo();
 
             var tag_name;
@@ -543,13 +545,13 @@ function TrackInfoList() {
                     var is_readonly;
 
                     tag_name = fileInfo.MetaName(i);
-                    if (tag_name === 'title' && (fb.IsPlaying && _.startsWith(cur_metadb.RawPath, 'http://'))) {
-                        value_text = fb.TitleFormat('%title%').Eval();
+                    if (tag_name === 'title' && fb.IsPlaying && is_radio) {
+                        value_text = _.tfe('%title%');
                         is_readonly = true;
                     }
                     else {
-                        value_text = fileInfo.MetaValue(fileInfo.MetaFind(tag_name), 0);
-                        is_readonly = _.startsWith(_.tf('%path%', cur_metadb), 'http');
+                        value_text = fileInfo.MetaValue(i, 0);
+                        is_readonly = is_radio;
                     }
 
                     this.cnt.rows.push(new Row(this.list_x, 0, this.list_w, this.row_h, cur_metadb, tag_name, value_text));
@@ -566,6 +568,7 @@ function TrackInfoList() {
 
                     this.cnt.rows.push(new Row(this.list_x, 0, this.list_w, this.row_h, cur_metadb, tag_name, value_text));
                     _.last(this.cnt.rows).is_odd = ((cur_rows_count + i) + 1) % 2;
+                    _.last(this.cnt.rows).is_readonly = true;
                 }
             }
 
