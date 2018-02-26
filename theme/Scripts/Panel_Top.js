@@ -264,7 +264,8 @@ function TopPanel() {
         buttons.show_tt = show_tooltips;
 
         var metadb = get_current_metadb();
-        var is_youtube = is_youtube_track(metadb);
+        // '3dydfy' means foo_youtube
+        var is_youtube = metadb && _.startsWith(metadb.RawPath, '3dydfy:');
 
         // Search YT
         var button_count = 1;
@@ -420,16 +421,7 @@ function TopPanel() {
     }
 
     function get_current_metadb() {
-        return (fb.IsPlaying ? fb.GetNowPlaying() : fb.GetFocusItem());
-    }
-
-    function is_youtube_track(metadb) {
-        if (!metadb) {
-            return false;
-        }
-
-        var path = _.tf('%path%', metadb);
-        return _.startsWith(path, 'youtube.com') || _.startsWith(path, 'www.youtube.com');
+        return (fb.IsPlaying ? fb.GetNowPlaying() : null);
     }
 
     this.x = 0;

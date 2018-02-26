@@ -2703,7 +2703,6 @@ function Header(x, y, w, h, idx, row_h_arg) {
         }
 
         //************************************************************//
-        var path = _.tf('%path%', metadb);
         var is_radio = _.startsWith(metadb.RawPath, 'http');
 
         // part1: artist
@@ -2826,8 +2825,8 @@ function Header(x, y, w, h, idx, row_h_arg) {
                 codec = codec + sample;
             }
             else {
-                // 'fy' means foo_youtube
-                codec = _.startsWith(metadb.RawPath, 'fy+') ? 'yt' : path;
+                // '3dydfy' means foo_youtube
+                codec = _.startsWith(metadb.RawPath, '3dydfy:') ? 'yt' : metadb.Path;
             }
 
             var track_count = this.rows.length;
@@ -3386,7 +3385,7 @@ function Rating(x, y, w, h, metadb) {
         var current_rating = this.get_rating();
 
         if (g_properties.use_rating_from_tags) {
-            if (!_.startsWith(_.tf('%path%', this.metadb), 'http')) {
+            if (!_.startsWith(this.metadb.RawPath, 'http')) {
                 var handle = fb.CreateHandleList();
                 handle.Add(this.metadb);
                 handle.UpdateFileInfoFromJSON(
