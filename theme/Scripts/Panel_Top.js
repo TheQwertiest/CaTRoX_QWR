@@ -118,7 +118,7 @@ function on_notify_data(name, info) {
 function TopPanel() {
     //<editor-fold desc="Callback Implementation">
     this.on_paint = function (gr) {
-        var metadb = get_current_metadb();
+        var metadb = fb.GetNowPlaying();
 
         gr.FillSolidRect(this.x, this.y, this.w, this.h, g_theme.colors.pss_back);
         gr.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
@@ -263,7 +263,7 @@ function TopPanel() {
         buttons = new _.buttons();
         buttons.show_tt = show_tooltips;
 
-        var metadb = get_current_metadb();
+        var metadb = fb.GetNowPlaying();
         var is_youtube = metadb && (_.startsWith(metadb.RawPath, '3dydfy:') || _.startsWith(metadb.RawPath, 'fy+'));
 
         // Search YT
@@ -417,10 +417,6 @@ function TopPanel() {
                     pressed: state_images[2]
                 };
         });
-    }
-
-    function get_current_metadb() {
-        return (fb.IsPlaying ? fb.GetNowPlaying() : null);
     }
 
     this.x = 0;
