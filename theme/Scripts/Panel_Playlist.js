@@ -3011,10 +3011,11 @@ function Header(x, y, w, h, idx, row_h_arg) {
             return;
         }
 
-        var query = grouping_handler.get_query();
-        var group = _.tf(query, rows_to_process[0].metadb);
+        var tfo = fb.TitleFormat(grouping_handler.get_query());
+
+        var group = tfo.EvalWithMetadb(rows_to_process[0].metadb);
         _.forEach(rows_to_process, _.bind(function (item, i) {
-            var cur_group = _.tf(query, item.metadb);
+            var cur_group = tfo.EvalWithMetadb(item.metadb);
             if (group !== cur_group) {
                 return false;
             }
@@ -3025,6 +3026,8 @@ function Header(x, y, w, h, idx, row_h_arg) {
             item.header = this;
             this.rows.push(item);
         }, this));
+
+        _.dispose(tfo);
 
         metadb = this.rows[0].metadb;
     };
