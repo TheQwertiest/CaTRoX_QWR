@@ -15,8 +15,9 @@ g_script_list.push('Panel_Playlist.js');
 var g_is_mini_panel = (window.name.toLowerCase().indexOf('mini') !== -1);
 
 // Niceties:
-// TODO: grouping manager (HTA based): consider adding other EsPlaylist grouping features - sorting, playlist association
+// TODO: grouping presets manager: consider adding other EsPlaylist grouping features - sorting, playlist association
 // Low priority:
+// TODO: detect somehow panel visibility change and disable/reinitialize playlist accordingly (i.e. playlist in other mode)
 // TODO: consider making registration for on_key handlers
 // TODO: research the source of hangs with big art image loading (JScript? fb2k?)
 // TODO: measure draw vs backend performance (don't forget to disable playlist in other mode before testing)
@@ -3009,7 +3010,8 @@ function Header(x, y, w, h, idx, row_h_arg) {
             return;
         }
 
-        var tfo = fb.TitleFormat(grouping_handler.get_query());
+        var query = grouping_handler.get_query();
+        var tfo = fb.TitleFormat(query ? query : ''); // workaround a bug, because of which '' is sometimes treated as null :\
 
         var group = tfo.EvalWithMetadb(rows_to_process[0].metadb);
         _.forEach(rows_to_process, _.bind(function (item, i) {
@@ -4603,6 +4605,7 @@ function GroupingHandler () {
 
             settings.playlist_group_data[cur_playlist_name] = 'user_defined';
             settings.playlist_custom_group_data[cur_playlist_name] = custom_group;
+
             settings.save();
             settings.send_sync();
 
@@ -4670,7 +4673,7 @@ function GroupingHandler () {
         });
 
         _.forEach(settings.playlist_custom_group_data, function (item, i) {
-            if (playlists.indexOf(item.name) === -1) {
+            if (playlists.indexOf(i) === -1) {
                 delete settings.playlist_custom_group_data[i];
             }
         });
