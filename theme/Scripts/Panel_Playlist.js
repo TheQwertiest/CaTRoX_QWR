@@ -2722,7 +2722,7 @@ function Header(x, y, w, h, idx, row_h_arg) {
                 date_text = '';
             }
 
-            if ( date_text ) {
+            if (date_text) {
                 var date_w = Math.ceil(gr.MeasureString(date_text, date_font, 0, 0, 0, 0).Width + 5);
                 var date_x = this.w - date_w - 5;
                 var date_y = 0;
@@ -2737,9 +2737,8 @@ function Header(x, y, w, h, idx, row_h_arg) {
         }
 
         //---> TITLE
-        if (grouping_handler.get_title_query())
-        {
-            var artist_text = _.tf(grouping_handler.get_title_query(),metadb);
+        if (grouping_handler.get_title_query()) {
+            var artist_text = _.tf(grouping_handler.get_title_query(), metadb);
             if (!artist_text && is_radio) {
                 artist_text = 'Radio Stream';
             }
@@ -2825,8 +2824,7 @@ function Header(x, y, w, h, idx, row_h_arg) {
                 codec = codec + sample;
             }
             else {
-                // '3dydfy' means foo_youtube
-                codec = _.startsWith(metadb.RawPath, '3dydfy:') ? 'yt' : metadb.Path;
+                codec = (_.startsWith(metadb.RawPath, '3dydfy:') || _.startsWith(metadb.RawPath, 'fy+')) ? 'yt' : metadb.Path;
             }
 
             var track_count = this.rows.length;

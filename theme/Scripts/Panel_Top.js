@@ -264,8 +264,7 @@ function TopPanel() {
         buttons.show_tt = show_tooltips;
 
         var metadb = get_current_metadb();
-        // '3dydfy' means foo_youtube
-        var is_youtube = metadb && _.startsWith(metadb.RawPath, '3dydfy:');
+        var is_youtube = metadb && (_.startsWith(metadb.RawPath, '3dydfy:') || _.startsWith(metadb.RawPath, 'fy+'));
 
         // Search YT
         var button_count = 1;
