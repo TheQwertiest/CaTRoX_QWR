@@ -162,6 +162,15 @@ g_hta_window.group_presets_mngr = function(x, y, group_presets, cur_group_name, 
         wnd.input_show_date.checked = cur_data.show_date;
     }
 
+    function update_buttons_on_populate() {
+        if (group_data_list_copy[wnd.input_select.selectedIndex].is_default) {
+            wnd.btn_default.setAttribute('disabled');
+        }
+        else {
+            wnd.btn_default.removeAttribute('disabled');
+        }
+    }
+
     function move_array_element(array, from, to) {
         array.splice(to, 0, array.splice(from, 1)[0]);
     }
@@ -196,7 +205,10 @@ g_hta_window.group_presets_mngr = function(x, y, group_presets, cur_group_name, 
         return new_name + '(' + new_name_idx + ')';
     }
 
-    wnd.input_select.onchange = populate_data;
+    wnd.input_select.onchange = function () {
+        populate_data();
+        update_buttons_on_populate();
+    };
 
     var input_fields = [
         wnd.input_preset_name,
@@ -232,20 +244,26 @@ g_hta_window.group_presets_mngr = function(x, y, group_presets, cur_group_name, 
         group_data_list_copy[select.selectedIndex].is_default = true;
         populate_select(select.selectedIndex);
 
+        wnd.btn_default.setAttribute('disabled');
         wnd.btn_apply.removeAttribute('disabled');
     };
 
     wnd.btn_remove.onclick = function () {
         var select = wnd.input_select;
-        if (select.options.length > 1) {
-            group_data_list_copy.splice(select.selectedIndex, 1);
-            if (!get_default_data(group_data_list_copy)) {
-                group_data_list_copy[0].is_default = true;
-            }
 
-            populate_select(Math.max(0, select.selectedIndex - 1));
-            populate_data();
+        if (select.options.length <= 1) {
+            return;
         }
+
+        var was_default = group_data_list_copy[select.selectedIndex].is_default;
+        group_data_list_copy.splice(select.selectedIndex, 1);
+        if (was_default) {
+            group_data_list_copy[0].is_default = true;
+        }
+
+        populate_select(Math.max(0, select.selectedIndex - 1));
+        populate_data();
+        update_buttons_on_populate();
 
         wnd.btn_apply.removeAttribute('disabled');
     };
@@ -262,6 +280,7 @@ g_hta_window.group_presets_mngr = function(x, y, group_presets, cur_group_name, 
 
         populate_select(group_data_list_copy.length - 1);
         populate_data();
+        update_buttons_on_populate();
 
         wnd.btn_apply.removeAttribute('disabled');
     };
@@ -357,6 +376,7 @@ g_hta_window.group_presets_mngr = function(x, y, group_presets, cur_group_name, 
 
     populate_select(_.findIndex(group_data_list_copy, function (item) { return item.name === cur_group_name; }));
     populate_data();
+    update_buttons_on_populate();
 
     wnd.document.body.focus();
     wnd.btn_ok.focus();
