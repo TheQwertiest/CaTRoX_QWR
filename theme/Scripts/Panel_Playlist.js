@@ -17,7 +17,7 @@ var g_is_mini_panel = (window.name.toLowerCase().indexOf('mini') !== -1);
 // Niceties:
 // TODO: grouping presets manager: consider adding other EsPlaylist grouping features - sorting, playlist association
 // Low priority:
-// TODO: detect somehow panel visibility change and disable/reinitialize playlist accordingly (i.e. playlist in other mode)
+// TODO: bug marc2003 about on_visibility_change callback
 // TODO: consider making registration for on_key handlers
 // TODO: research the source of hangs with big art image loading (JScript? fb2k?)
 // TODO: measure draw vs backend performance (don't forget to disable playlist in other mode before testing)
@@ -319,6 +319,15 @@ function PlaylistPanel() {
 
     //<editor-fold desc="Callback Implementation">
     this.on_paint = function (gr) {
+        if (!is_activated) {
+            is_activated = true;
+
+            if (g_properties.show_playlist_info) {
+                playlist_info.reinitialize();
+            }
+            playlist.reinitialize();
+        }
+
         playlist.on_paint(gr);
         if (g_properties.show_playlist_info) {
             gr.FillSolidRect(0, playlist_info.y + playlist_info.h, playlist_info.w, 2, g_theme.colors.pss_back);
@@ -332,6 +341,8 @@ function PlaylistPanel() {
 
         playlist.on_size(w, h - (g_properties.show_playlist_info ? playlist_info_and_gap_h : 0));
         playlist_info.set_w(w);
+
+        is_activated = window.IsVisible;
     };
 
     this.on_mouse_move = function (x, y, m) {
@@ -425,10 +436,18 @@ function PlaylistPanel() {
     };
 
     this.on_item_focus_change = function (playlist_idx, from_idx, to_idx) {
+        if (!is_activated) {
+            return;
+        }
+
         playlist.on_item_focus_change(playlist_idx, from_idx, to_idx);
     };
 
     this.on_playlists_changed = function () {
+        if (!is_activated) {
+            return;
+        }
+
         if (g_properties.show_playlist_info) {
             playlist_info.on_playlist_modified();
         }
@@ -436,6 +455,10 @@ function PlaylistPanel() {
     };
 
     this.on_playlist_switch = function () {
+        if (!is_activated) {
+            return;
+        }
+
         if (g_properties.show_playlist_info) {
             playlist_info.on_playlist_modified();
         }
@@ -443,10 +466,18 @@ function PlaylistPanel() {
     };
 
     this.on_playlist_item_ensure_visible = function (playlistIndex, playlistItemIndex) {
+        if (!is_activated) {
+            return;
+        }
+
         playlist.on_playlist_item_ensure_visible(playlistIndex, playlistItemIndex);
     };
 
     this.on_playlist_items_added = function (playlist_idx) {
+        if (!is_activated) {
+            return;
+        }
+
         if (g_properties.show_playlist_info) {
             playlist_info.on_playlist_modified();
         }
@@ -454,10 +485,18 @@ function PlaylistPanel() {
     };
 
     this.on_playlist_items_reordered = function (playlist_idx) {
+        if (!is_activated) {
+            return;
+        }
+
         playlist.on_playlist_items_reordered(playlist_idx);
     };
 
     this.on_playlist_items_removed = function (playlist_idx) {
+        if (!is_activated) {
+            return;
+        }
+
         if (g_properties.show_playlist_info) {
             playlist_info.on_playlist_modified();
         }
@@ -465,6 +504,10 @@ function PlaylistPanel() {
     };
 
     this.on_playlist_items_selection_change = function () {
+        if (!is_activated) {
+            return;
+        }
+
         playlist.on_playlist_items_selection_change();
         if (g_properties.show_playlist_info) {
             playlist_info.on_playlist_modified();
@@ -472,26 +515,50 @@ function PlaylistPanel() {
     };
 
     this.on_playback_dynamic_info_track = function () {
+        if (!is_activated) {
+            return;
+        }
+
         playlist.on_playback_dynamic_info_track();
     };
 
     this.on_playback_new_track = function (metadb) {
+        if (!is_activated) {
+            return;
+        }
+
         playlist.on_playback_new_track(metadb);
     };
 
     this.on_playback_queue_changed = function (origin) {
+        if (!is_activated) {
+            return;
+        }
+
         playlist.on_playback_queue_changed(origin);
     };
 
     this.on_playback_stop = function (reason) {
+        if (!is_activated) {
+            return;
+        }
+
         playlist.on_playback_stop(reason);
     };
 
     this.on_focus = function (is_focused) {
+        if (!is_activated) {
+            return;
+        }
+
         playlist.on_focus(is_focused);
     };
 
     this.on_metadb_changed = function (handles, fromhook) {
+        if (!is_activated) {
+            return;
+        }
+
         if (g_properties.show_playlist_info) {
             playlist_info.on_playlist_modified();
         }
@@ -499,6 +566,10 @@ function PlaylistPanel() {
     };
 
     this.on_get_album_art_done = function (metadb, art_id, image, image_path) {
+        if (!is_activated) {
+            return;
+        }
+
         playlist.on_get_album_art_done(metadb, art_id, image, image_path);
     };
 
@@ -530,6 +601,8 @@ function PlaylistPanel() {
     var playlist_info_h = 24;
     /** @const {number} */
     var playlist_info_and_gap_h = playlist_info_h + 2;
+
+    var is_activated = window.IsVisible;
 
     // Panel parts
     var playlist_info = new PlaylistManager(0, 0, 0, playlist_info_h);
@@ -1402,8 +1475,11 @@ function Playlist(x,y) {
     this.on_notify_data = function (name, info) {
         if ( name === 'sync_group_query_state') {
             Header.grouping_handler.sync_state(info);
-            this.initialize_list();
-            scroll_to_focused_or_now_playing();
+
+            if (window.IsVisible) {
+                this.initialize_list();
+                scroll_to_focused_or_now_playing();
+            }
         }
     };
     //</editor-fold>
@@ -1424,6 +1500,7 @@ function Playlist(x,y) {
         trace_call && console.log('initialize_list');
         if (trace_initialize_list_performance) {
             var profiler = fb.CreateProfiler();
+            var profiler_part = fb.CreateProfiler();
         }
 
         cur_playlist_idx = plman.ActivePlaylist;
@@ -1436,7 +1513,11 @@ function Playlist(x,y) {
 
         // Initialize rows
 
+        trace_initialize_list_performance && profiler_part.reset();
+
         this.cnt.rows = initialize_rows(plman.GetPlaylistItems(cur_playlist_idx), plman.PlaylistItemCount(cur_playlist_idx));
+
+        trace_initialize_list_performance && console.log('Rows initialized in ' + profiler_part.Time + 'ms');
 
         playing_item = undefined;
         var playing_item_location = plman.GetPlayingItemLocation();
@@ -1454,8 +1535,12 @@ function Playlist(x,y) {
 
         // Initialize headers
 
+        trace_initialize_list_performance && profiler_part.reset();
+
         Header.grouping_handler.set_active_playlist(plman.GetPlaylistName(cur_playlist_idx));
         this.cnt.headers = create_headers(this.cnt.rows);
+
+        trace_initialize_list_performance && console.log('Headers initialized in ' + profiler_part.Time + 'ms');
 
         collapse_handler.initialize(this.cnt.headers);
 
@@ -1489,6 +1574,14 @@ function Playlist(x,y) {
         selection_handler = new SelectionHandler(this.cnt.rows, cur_playlist_idx);
 
         trace_initialize_list_performance && console.log('Playlist initialized in ' + profiler.Time + 'ms');
+    };
+
+    this.reinitialize = function() {
+        if (cur_playlist_idx !== plman.ActivePlaylist) {
+            g_properties.scroll_pos = _.isNil(scroll_pos_list[plman.ActivePlaylist]) ? 0 : scroll_pos_list[plman.ActivePlaylist];
+        }
+        this.initialize_list();
+        scroll_to_focused();
     };
 
     /**
@@ -3359,6 +3452,7 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
 Row.prototype = Object.create(List.Item.prototype);
 Row.prototype.constructor = Row;
 
+
 /**
  * @constructor
  */
@@ -4289,6 +4383,12 @@ function PlaylistManager(x, y, w, h) {
         return true;
     };
     //</editor-fold>
+
+    this.reinitialize = function() {
+        info_text = undefined;
+        this.panel_state = state.normal;
+        this.hover_alpha = 0;
+    };
 
     this.set_w = function (w) {
         this.w = w;
