@@ -12,10 +12,15 @@
 })();
 
 (function check_jscript_version() {
-    if (utils.Version < 2010) {
-        var versionStr = utils.Version.toString();
-        var error_msg = 'JScript (modded or vanilla) v2.0.1.0 or higher is required!\n';
-        error_msg += 'Your JScript version: ' + versionStr[0] + '.' + versionStr[1] + '.' + versionStr[2] + '.' + versionStr[3];
+    var required_version = 2050;
+    if (utils.Version < required_version) {
+        function version_to_string(version) {
+            var version_string = version.toString();
+            return version_string[0] + '.' + version_string[1] + '.' + version_string[2] + '.' + version_string[3];
+        }
+
+        var error_msg = 'JScript (modded or vanilla) v' + version_to_string(required_version) + ' or higher is required!\n';
+        error_msg += 'Your JScript version: ' + version_to_string(utils.Version);
 
         throw new ThemeError(error_msg);
     }
