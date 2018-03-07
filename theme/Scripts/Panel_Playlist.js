@@ -14,6 +14,7 @@ g_script_list.push('Panel_Playlist.js');
 // Should be used only for default panel properties
 var g_is_mini_panel = (window.name.toLowerCase().indexOf('mini') !== -1);
 
+// TODO: rollback queue handling workarounds
 // Niceties:
 // TODO: grouping presets manager: consider adding other EsPlaylist grouping features - sorting, playlist association
 // Low priority:
@@ -674,9 +675,11 @@ function Playlist(x,y) {
             return true;
         }
 
+        var start_drag_drop = false;
         if (!selection_handler.is_dragging()) {
             var item = this.get_item_under_mouse(x, y);
             if (item && last_hover_item && item !== last_hover_item) {
+                start_drag_drop = true;
                 selection_handler.enable_drag();
             }
         }
@@ -709,10 +712,12 @@ function Playlist(x,y) {
                     }
                 }
             }
-        }
 
-        if (!this.mouse_down || selection_handler.is_dragging()) {
             last_hover_item = this.get_item_under_mouse(x, y);
+
+            if (start_drag_drop) {
+                selection_handler.perform_internal_drag_n_drop();
+            }
         }
 
         return true;
@@ -957,7 +962,17 @@ function Playlist(x,y) {
     this.on_drag_enter = function (action, x, y, mask) {
         this.mouse_in = true;
         this.mouse_down = true;
-        selection_handler.enable_external_drag();
+
+        if (!selection_handler.can_drop()) {
+            action.Effect = 0;
+        }
+        else {
+            if (!selection_handler.is_dragging()) {
+                selection_handler.enable_external_drag();
+            }
+
+            action.Effect = (action.Effect & 1) || (action.Effect & 2) || (action.Effect & 4);
+        }
     };
 
     this.on_drag_leave = function () {
@@ -973,6 +988,12 @@ function Playlist(x,y) {
 
     this.on_drag_over = function (action, x, y, mask) {
         on_mouse_move(x, y, mask);
+        if (!selection_handler.can_drop()) {
+            action.Effect = 0;
+        }
+        else {
+            action.Effect = (action.Effect & 1) || (action.Effect & 2) || (action.Effect & 4);
+        }
     };
 
     this.on_drag_drop = function (action, x, y, m) {
@@ -985,25 +1006,33 @@ function Playlist(x,y) {
 
         if (!this.trace_list(x, y) || !selection_handler.can_drop()) {
             selection_handler.disable_external_drag();
+            action.Effect = 0;
             return;
         }
 
-        selection_handler.prepare_drop_external();
+        if (selection_handler.is_external_drop()) {
+            selection_handler.prepare_drop_external();
 
-        var playlist_idx;
-        if (!plman.PlaylistCount) {
-            playlist_idx = plman.CreatePlaylist(0, 'Default');
-            plman.ActivePlaylist = playlist_idx;
+            var playlist_idx;
+            if (!plman.PlaylistCount) {
+                playlist_idx = plman.CreatePlaylist(0, 'Default');
+                plman.ActivePlaylist = playlist_idx;
+            }
+            else {
+                playlist_idx = cur_playlist_idx;
+                selection_handler.clear_selection();
+                plman.UndoBackup(cur_playlist_idx);
+            }
+
+            action.Playlist = playlist_idx;
+            action.ToSelect = true;
+            action.Effect = (action.Effect & 1) || (action.Effect & 2) || (action.Effect & 4);
         }
         else {
-            playlist_idx = cur_playlist_idx;
-            selection_handler.clear_selection();
-            plman.UndoBackup(cur_playlist_idx);
+            selection_handler.drop();
+            // Suppress drop, since we have handled it ourselves
+            action.Effect = 0;
         }
-
-        action.ToPlaylist();
-        action.Playlist = playlist_idx;
-        action.ToSelect = true;
     };
 
     this.on_key_down = function (vkey) {
@@ -3601,6 +3630,10 @@ function SelectionHandler(rows_arg, cur_playlist_idx_arg) {
         return selected_indexes.length;
     };
 
+    this.perform_internal_drag_n_drop = function () {
+        fb.DoDragDrop(plman.GetPlaylistSelectedItems(cur_playlist_idx), 1|2|4 );
+    };
+
     this.enable_drag = function () {
         clear_last_hover_row();
         is_dragging = true;
@@ -3614,19 +3647,11 @@ function SelectionHandler(rows_arg, cur_playlist_idx_arg) {
     this.enable_external_drag = function () {
         this.enable_drag();
         is_external_drop = true;
-
-        if (plman.IsPlaylistLocked(cur_playlist_idx)) {
-            window.SetCursor(IDC_NO);
-        }
     };
 
     this.disable_external_drag = function () {
         this.disable_drag();
         is_external_drop = false;
-
-        if (plman.IsPlaylistLocked(cur_playlist_idx)) {
-            window.SetCursor(IDC_ARROW);
-        }
     };
 
     this.is_dragging = function () {
