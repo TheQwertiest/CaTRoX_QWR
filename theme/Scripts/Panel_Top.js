@@ -58,11 +58,6 @@ function on_mouse_lbtn_down(x, y, m) {
     top_panel.on_mouse_lbtn_down(x, y, m);
 }
 
-function on_mouse_lbtn_dblclk(x, y, m) {
-    trace_call && console.log(qwr_utils.function_name());
-    top_panel.on_mouse_lbtn_dblclk(x, y, m);
-}
-
 function on_mouse_lbtn_up(x, y, m) {
     trace_call && console.log(qwr_utils.function_name());
 
