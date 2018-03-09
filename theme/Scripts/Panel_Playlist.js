@@ -1002,20 +1002,9 @@ function Playlist(x,y) {
         var shift_pressed = utils.IsKeyPressed(VK_SHIFT);
 
         if (selection_handler.is_external_drop()) {
-            selection_handler.prepare_drop_external();
+            selection_handler.prepare_external_drop(action);
 
-            var playlist_idx;
-            if (!plman.PlaylistCount) {
-                playlist_idx = plman.CreatePlaylist(0, 'Default');
-                plman.ActivePlaylist = playlist_idx;
-            }
-            else {
-                playlist_idx = cur_playlist_idx;
-                plman.UndoBackup(cur_playlist_idx);
-            }
-
-            action.Playlist = playlist_idx;
-            action.ToSelect = true;
+            // TODO: add refocus in on_playlist_items_added, if it is not added in JScript itself
 
             if (ctrl_pressed) {
                 if (shift_pressed) {
@@ -1400,10 +1389,6 @@ function Playlist(x,y) {
     this.on_playlist_items_added = function (playlist_idx) {
         if (playlist_idx !== cur_playlist_idx) {
             return;
-        }
-
-        if (selection_handler.is_external_drop()) {
-            selection_handler.drop_external();
         }
 
         this.initialize_and_repaint_list();
@@ -3744,6 +3729,10 @@ function SelectionHandler(rows_arg, cur_playlist_idx_arg) {
         last_hover_row = cur_hover_item;
     };
 
+    this.can_drop = function () {
+        return !plman.IsPlaylistLocked(cur_playlist_idx);
+    };
+
     this.drop = function (copy_selection) {
         if (!is_dragging) {
             return;
@@ -3779,31 +3768,40 @@ function SelectionHandler(rows_arg, cur_playlist_idx_arg) {
         }
     };
 
-    this.prepare_drop_external = function () {
+    this.prepare_external_drop = function (action) {
         plman.ClearPlaylistSelection(cur_playlist_idx);
-        is_dragging = false;
-    };
-
-    this.can_drop = function () {
-        return !plman.IsPlaylistLocked(cur_playlist_idx);
-    };
-
-    this.drop_external = function () {
-        // this is done after dragging ends, no need to check the drag
+        
+        var playlist_idx;
+        if (!plman.PlaylistCount) {
+            playlist_idx = plman.CreatePlaylist(0, 'Default');
+            plman.ActivePlaylist = playlist_idx;
+        }
+        else {
+            playlist_idx = cur_playlist_idx;
+            plman.UndoBackup(cur_playlist_idx);
+        }
+        
+        action.Playlist = playlist_idx;
+        action.ToSelect = true;
+        
         if (last_hover_row) {
             var drop_idx = last_hover_row.idx;
             if (last_hover_row.is_drop_bottom_selected) {
                 ++drop_idx;
             }
+            action.Base = drop_idx;
 
-            plman.MovePlaylistSelection(cur_playlist_idx, -(rows.length - drop_idx));
-            plman.SetPlaylistFocusItem(cur_playlist_idx, drop_idx);
+            //plman.MovePlaylistSelection(cur_playlist_idx, -(rows.length - drop_idx));
+            //plman.SetPlaylistFocusItem(cur_playlist_idx, drop_idx);
         }
         else {
-            // For correct initialization
-            plman.MovePlaylistSelection(cur_playlist_idx, 1);
-            plman.SetPlaylistFocusItem(cur_playlist_idx, 0);
+            action.Base = plman.PlaylistCount;
+
+            //// For correct initialization
+            //plman.MovePlaylistSelection(cur_playlist_idx, 1);
+            //plman.SetPlaylistFocusItem(cur_playlist_idx, 0);
         }
+
         this.disable_external_drag();
     };
 
