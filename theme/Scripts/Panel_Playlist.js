@@ -1011,8 +1011,6 @@ function Playlist(x,y) {
         else {
             selection_handler.prepare_external_drop(action);
 
-            // TODO: add refocus in on_playlist_items_added, if it is not added in JScript itself
-
             if (ctrl_pressed) {
                 if (shift_pressed) {
                     // Link only
@@ -1389,6 +1387,10 @@ function Playlist(x,y) {
     this.on_playlist_items_added = function (playlist_idx) {
         if (playlist_idx !== cur_playlist_idx) {
             return;
+        }
+
+        if (selection_handler.need_post_external_drop()) {
+            selection_handler.post_external_drop();
         }
 
         this.initialize_and_repaint_list();
@@ -3673,6 +3675,10 @@ function SelectionHandler(rows_arg, cur_playlist_idx_arg) {
         return is_internal_drag_n_drop_active;
     };
 
+    this.need_post_external_drop = function() {
+        return !_.isNil(external_drop_refocus_idx);
+    };
+
     // calls repaint
     this.drag = function (hover_row, is_above) {
         if (_.isNil(hover_row)) {
@@ -3779,26 +3785,31 @@ function SelectionHandler(rows_arg, cur_playlist_idx_arg) {
         
         action.Playlist = playlist_idx;
         action.ToSelect = true;
-        
+
         if (last_hover_row) {
             var drop_idx = last_hover_row.idx;
             if (last_hover_row.is_drop_bottom_selected) {
                 ++drop_idx;
             }
             action.Base = drop_idx;
-
-            //plman.MovePlaylistSelection(cur_playlist_idx, -(rows.length - drop_idx));
-            //plman.SetPlaylistFocusItem(cur_playlist_idx, drop_idx);
+            external_drop_refocus_idx = drop_idx;
         }
         else {
             action.Base = plman.PlaylistCount;
-
-            //// For correct initialization
-            //plman.MovePlaylistSelection(cur_playlist_idx, 1);
-            //plman.SetPlaylistFocusItem(cur_playlist_idx, 0);
+            external_drop_refocus_idx = plman.PlaylistCount;
         }
 
         this.disable_external_drag();
+    };
+
+    this.post_external_drop = function() {
+        if (_.isNil(external_drop_refocus_idx)) {
+            return;
+        }
+
+        plman.SetPlaylistFocusItem(cur_playlist_idx, external_drop_refocus_idx);
+
+        external_drop_refocus_idx = null;
     };
 
     this.copy = function () {
@@ -4027,14 +4038,21 @@ function SelectionHandler(rows_arg, cur_playlist_idx_arg) {
         return (a - b);
     }
 
+    /** @const {Array<Row>} */
     var rows = rows_arg;
+    /** @const {number} */
     var cur_playlist_idx = cur_playlist_idx_arg;
+
     var selected_indexes = [];
     /** @type {?number} */
     var last_single_selected_index = undefined;
+
     var is_dragging = false;
     var is_internal_drag_n_drop_active = false;
     var last_hover_row = undefined;
+
+    /** @type {?number} */
+    var external_drop_refocus_idx = null;
 
     this.initialize_selection();
 }
