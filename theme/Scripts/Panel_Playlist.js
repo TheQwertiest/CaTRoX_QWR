@@ -937,7 +937,7 @@ function Playlist(x,y) {
     this.on_drag_leave = function () {
         if (selection_handler.is_dragging()) {
             stop_drag_scroll();
-            selection_handler.disable_external_drag(); // disables internal as well
+            selection_handler.disable_external_drag();
         }
         this.mouse_in = false;
         this.mouse_down = false;
@@ -993,7 +993,7 @@ function Playlist(x,y) {
         stop_drag_scroll();
 
         if (!this.trace_list(x, y) || !selection_handler.can_drop()) {
-            selection_handler.disable_external_drag(); // disables internal as well
+            selection_handler.disable_external_drag();
             action.Effect = 0;
             return;
         }
@@ -1001,7 +1001,14 @@ function Playlist(x,y) {
         var ctrl_pressed = utils.IsKeyPressed(VK_CONTROL);
         var shift_pressed = utils.IsKeyPressed(VK_SHIFT);
 
-        if (selection_handler.is_external_drop()) {
+        if (selection_handler.is_internal_drag_n_drop_active()) {
+            var copy_drop = utils.IsKeyPressed(VK_CONTROL) && ((action.Effect & 1) || (action.Effect & 4));
+            selection_handler.drop(copy_drop);
+
+            // Suppress native drop, since we've handled it ourselves
+            action.Effect = 0;
+        }
+        else {
             selection_handler.prepare_external_drop(action);
 
             // TODO: add refocus in on_playlist_items_added, if it is not added in JScript itself
@@ -1020,13 +1027,6 @@ function Playlist(x,y) {
                 // Move > Copy > Link
                 action.Effect = (action.Effect & 2) || (action.Effect & 1) || (action.Effect & 4);
             }
-        }
-        else {
-            var copy_drop = utils.IsKeyPressed(VK_CONTROL) && ((action.Effect & 1) || (action.Effect & 4));
-            selection_handler.drop(copy_drop);
-
-            // Suppress native drop, since we've handled it ourselves
-            action.Effect = 0;
         }
     };
 
@@ -3632,7 +3632,7 @@ function SelectionHandler(rows_arg, cur_playlist_idx_arg) {
 
         var effect = fb.DoDragDrop(cur_playlist_selection, 1 | 2 | 4);
         if (effect > 0) {
-            this.disable_external_drag();
+            this.disable_drag();
         }
         if (2 === effect) {
             if (cur_playlist_size === plman.PlaylistItemCount(cur_playlist_idx)
@@ -3642,6 +3642,8 @@ function SelectionHandler(rows_arg, cur_playlist_idx_arg) {
                 plman.RemovePlaylistSelection(cur_playlist_idx);
             }
         }
+
+        is_internal_drag_n_drop_active = false;
     };
 
     this.enable_drag = function () {
@@ -3657,12 +3659,10 @@ function SelectionHandler(rows_arg, cur_playlist_idx_arg) {
     this.enable_external_drag = function () {
         this.enable_drag();
         is_internal_drag_n_drop_active = false;
-        is_external_drop = true;
     };
 
     this.disable_external_drag = function () {
         this.disable_drag();
-        is_external_drop = false;
     };
 
     this.is_dragging = function () {
@@ -3671,10 +3671,6 @@ function SelectionHandler(rows_arg, cur_playlist_idx_arg) {
 
     this.is_internal_drag_n_drop_active = function () {
         return is_internal_drag_n_drop_active;
-    };
-
-    this.is_external_drop = function () {
-        return is_external_drop;
     };
 
     // calls repaint
@@ -3692,7 +3688,7 @@ function SelectionHandler(rows_arg, cur_playlist_idx_arg) {
         var is_drop_bottom_selected = !is_above;
         var is_drop_boundary_reached = hover_row.idx === 0 || (!is_above && hover_row.idx === rows.length - 1);
 
-        if (!is_external_drop && !utils.IsKeyPressed(VK_CONTROL)) {
+        if (is_internal_drag_n_drop_active && !utils.IsKeyPressed(VK_CONTROL)) {
             // Can't move selected item on itself
             var is_item_above_selected = hover_row.idx !== 0 && rows[hover_row.idx - 1].is_selected_dynamic();
             var is_item_below_selected = hover_row.idx !== (rows.length - 1) && rows[hover_row.idx + 1].is_selected_dynamic();
@@ -4038,7 +4034,6 @@ function SelectionHandler(rows_arg, cur_playlist_idx_arg) {
     var last_single_selected_index = undefined;
     var is_dragging = false;
     var is_internal_drag_n_drop_active = false;
-    var is_external_drop = false;
     var last_hover_row = undefined;
 
     this.initialize_selection();
