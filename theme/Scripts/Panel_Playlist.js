@@ -1388,10 +1388,6 @@ function Playlist(x,y) {
             return;
         }
 
-        if (selection_handler.need_post_external_drop()) {
-            selection_handler.post_external_drop();
-        }
-
         this.initialize_and_repaint_list();
     };
 
@@ -3674,10 +3670,6 @@ function SelectionHandler(rows_arg, cur_playlist_idx_arg) {
         return is_internal_drag_n_drop_active;
     };
 
-    this.need_post_external_drop = function () {
-        return !_.isNil(external_drop_refocus_idx);
-    };
-
     // calls repaint
     this.drag = function (hover_row, is_above) {
         if (_.isNil(hover_row)) {
@@ -3791,24 +3783,12 @@ function SelectionHandler(rows_arg, cur_playlist_idx_arg) {
                 ++drop_idx;
             }
             action.Base = drop_idx;
-            external_drop_refocus_idx = drop_idx;
         }
         else {
             action.Base = plman.PlaylistCount;
-            external_drop_refocus_idx = plman.PlaylistCount;
         }
 
         this.disable_external_drag();
-    };
-
-    this.post_external_drop = function () {
-        if (_.isNil(external_drop_refocus_idx)) {
-            return;
-        }
-
-        plman.SetPlaylistFocusItem(cur_playlist_idx, external_drop_refocus_idx);
-
-        external_drop_refocus_idx = null;
     };
 
     this.copy = function () {
@@ -4056,9 +4036,6 @@ function SelectionHandler(rows_arg, cur_playlist_idx_arg) {
     var is_dragging = false;
     var is_internal_drag_n_drop_active = false;
     var last_hover_row = undefined;
-
-    /** @type {?number} */
-    var external_drop_refocus_idx = null;
 
     this.initialize_selection();
 }
