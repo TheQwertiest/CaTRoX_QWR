@@ -14,7 +14,6 @@ g_script_list.push('Panel_Playlist.js');
 // Should be used only for default panel properties
 var g_is_mini_panel = (window.name.toLowerCase().indexOf('mini') !== -1);
 
-// TODO: rollback queue handling workarounds
 // Niceties:
 // TODO: grouping presets manager: consider adding other EsPlaylist grouping features - sorting, playlist association
 // Low priority:
@@ -4156,37 +4155,31 @@ function QueueHandler(rows_arg, cur_playlist_idx_arg) {
             reset_queued_status();
         }
 
-        var queue_contents = plman.GetPlaybackQueueHandles();
-        if (!queue_contents.Count) {
+        var queue_contents = plman.GetPlaybackQueueContents().toArray();
+        if (!queue_contents.length) {
             return;
         }
 
-        var playlist_items =  plman.GetPlaylistItems(cur_playlist_idx);
-
-        for (var i = 0; i < queue_contents.Count; ++i) {
-            // Because of JScript v2 changes we can't differentiate between queued tracks with the same metadb,
-            // even if they are different items in one playlist or actually in different playlists altogether.
-
-            var cur_queue_item_idx = playlist_items.Find(queue_contents.Item(i));
-            if (cur_queue_item_idx === -1) {
-                continue;
+        queue_contents.forEach(function (queued_item, i) {
+            if (queued_item.PlaylistIndex !== cur_playlist_idx) {
+                return;
             }
-            var cur_queue_item = rows[cur_queue_item_idx];
 
-            var has_item = _.find(queued_rows, function (item) {
-                return cur_queue_item.idx === item.idx;
+            var cur_queued_row = rows[queued_item.PlaylistItemIndex];
+            var has_row = _.find(queued_rows, function (queued_row) {
+                return queued_row.idx === cur_queued_row.idx;
             });
 
-            if (!has_item) {
-                cur_queue_item.queue_idx = i + 1;
-                cur_queue_item.queue_idx_count = 1;
+            if (!has_row) {
+                cur_queued_row.queue_idx = i + 1;
+                cur_queued_row.queue_idx_count = 1;
             }
             else {
-                cur_queue_item.queue_idx_count++;
+                cur_queued_row.queue_idx_count++;
             }
 
-            queued_rows.push(cur_queue_item);
-        }
+            queued_rows.push(cur_queued_row);
+        });
     };
 
     this.add_row = function(row) {
