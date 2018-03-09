@@ -1298,19 +1298,19 @@ function Playlist(x,y) {
             }
             case VK_KEY_C: {
                 if (ctrl_pressed) {
-                    copy_paste_metadb_list = selection_handler.copy();
+                    selection_handler.copy();
                 }
                 break;
             }
             case VK_KEY_X: {
                 if (ctrl_pressed) {
-                    copy_paste_metadb_list = selection_handler.cut();
+                    selection_handler.cut();
                 }
                 break;
             }
             case VK_KEY_V: {
-                if (ctrl_pressed) {
-                    selection_handler.paste(copy_paste_metadb_list);
+                if (ctrl_pressed && !plman.IsPlaylistLocked(cur_playlist_idx)) {
+                    selection_handler.paste();
                 }
                 break;
             }
@@ -1700,9 +1700,11 @@ function Playlist(x,y) {
     //<editor-fold desc="Context Menu">
     function append_edit_menu_to(parent_menu) {
         var has_selected_item = selection_handler.has_selected_items();
-        var is_auto_playlist = plman.IsAutoPlaylist(cur_playlist_idx);
+        var is_playlist_locked = plman.IsPlaylistLocked(cur_playlist_idx);
+        // Check only for data presence, since parsing it's contents might take a while
+        var has_data_in_clipboard = fb.CheckClipboardContents(window.ID);
 
-        if (has_selected_item || copy_paste_metadb_list.Count > 0) {
+        if (has_selected_item || has_data_in_clipboard) {
             if (!parent_menu.is_empty()) {
                 parent_menu.append_separator();
             }
@@ -1711,7 +1713,7 @@ function Playlist(x,y) {
                 parent_menu.append_item(
                     'Cut',
                     function () {
-                        copy_paste_metadb_list = selection_handler.cut();
+                        selection_handler.cut();
                     },
                     {is_grayed_out: !has_selected_item}
                 );
@@ -1719,18 +1721,19 @@ function Playlist(x,y) {
                 parent_menu.append_item(
                     'Copy',
                     function () {
-                        copy_paste_metadb_list = selection_handler.copy();
+                        selection_handler.copy();
                     },
                     {is_grayed_out: !has_selected_item}
                 );
             }
-            if (copy_paste_metadb_list.Count > 0) {
+
+            if (has_data_in_clipboard) {
                 parent_menu.append_item(
                     'Paste',
                     function () {
-                        selection_handler.paste(copy_paste_metadb_list);
+                        selection_handler.paste();
                     },
-                    {is_grayed_out: !copy_paste_metadb_list.Count}
+                    {is_grayed_out: !has_data_in_clipboard || is_playlist_locked}
                 );
             }
         }
@@ -1745,7 +1748,7 @@ function Playlist(x,y) {
                 function () {
                     plman.RemovePlaylistSelection(cur_playlist_idx);
                 },
-                {is_grayed_out: is_auto_playlist}
+                {is_grayed_out: is_playlist_locked}
             );
         }
     }
@@ -2532,9 +2535,6 @@ function Playlist(x,y) {
 
     // Scrollbar props
     var scroll_pos_list = [];
-
-    // copy, cut, paste data
-    var copy_paste_metadb_list = fb.CreateHandleList();
 
     // Objects
     var selection_handler = undefined;
@@ -3637,7 +3637,7 @@ function SelectionHandler(rows_arg, cur_playlist_idx_arg) {
         }
         if (2 === effect) {
             if (cur_playlist_size === plman.PlaylistItemCount(cur_playlist_idx)
-                && _.isEqual(cur_selected_indexes, selected_indexes) ) {
+                && _.isEqual(cur_selected_indexes, selected_indexes)) {
                 // We can't handle properly the 'move drop' on the same playlist in a different panel,
                 // so we need to check if the playlist is still in the same state
                 plman.RemovePlaylistSelection(cur_playlist_idx);
@@ -3674,7 +3674,7 @@ function SelectionHandler(rows_arg, cur_playlist_idx_arg) {
         return is_internal_drag_n_drop_active;
     };
 
-    this.need_post_external_drop = function() {
+    this.need_post_external_drop = function () {
         return !_.isNil(external_drop_refocus_idx);
     };
 
@@ -3771,7 +3771,7 @@ function SelectionHandler(rows_arg, cur_playlist_idx_arg) {
 
     this.prepare_external_drop = function (action) {
         plman.ClearPlaylistSelection(cur_playlist_idx);
-        
+
         var playlist_idx;
         if (!plman.PlaylistCount) {
             playlist_idx = plman.CreatePlaylist(0, 'Default');
@@ -3781,7 +3781,7 @@ function SelectionHandler(rows_arg, cur_playlist_idx_arg) {
             playlist_idx = cur_playlist_idx;
             plman.UndoBackup(cur_playlist_idx);
         }
-        
+
         action.Playlist = playlist_idx;
         action.ToSelect = true;
 
@@ -3801,7 +3801,7 @@ function SelectionHandler(rows_arg, cur_playlist_idx_arg) {
         this.disable_external_drag();
     };
 
-    this.post_external_drop = function() {
+    this.post_external_drop = function () {
         if (_.isNil(external_drop_refocus_idx)) {
             return;
         }
@@ -3816,7 +3816,8 @@ function SelectionHandler(rows_arg, cur_playlist_idx_arg) {
             return fb.CreateHandleList();
         }
 
-        return plman.GetPlaylistSelectedItems(cur_playlist_idx);
+        var selected_items = plman.GetPlaylistSelectedItems(cur_playlist_idx);
+        fb.CopyHandleListToClipboard(selected_items);
     };
 
     this.cut = function () {
@@ -3824,14 +3825,20 @@ function SelectionHandler(rows_arg, cur_playlist_idx_arg) {
             return fb.CreateHandleList();
         }
 
-        var cut_items = plman.GetPlaylistSelectedItems(cur_playlist_idx);
-        plman.UndoBackup(cur_playlist_idx);
-        plman.RemovePlaylistSelection(cur_playlist_idx);
+        var selected_items = plman.GetPlaylistSelectedItems(cur_playlist_idx);
 
-        return cut_items;
+        if (fb.CopyHandleListToClipboard(selected_items)) {
+            plman.UndoBackup(cur_playlist_idx);
+            plman.RemovePlaylistSelection(cur_playlist_idx);
+        }
     };
 
-    this.paste = function (metadb_list) {
+    this.paste = function () {
+        if (!fb.CheckClipboardContents(window.ID)) {
+            return;
+        }
+
+        var metadb_list = fb.GetClipboardContents(window.ID);
         if (!metadb_list || !metadb_list.Count) {
             return;
         }
@@ -3856,13 +3863,13 @@ function SelectionHandler(rows_arg, cur_playlist_idx_arg) {
         plman.SetPlaylistFocusItem(cur_playlist_idx, insert_idx);
     };
 
-    this.send_to_playlist = function(playlist_idx) {
+    this.send_to_playlist = function (playlist_idx) {
         plman.UndoBackup(playlist_idx);
         plman.ClearPlaylistSelection(playlist_idx);
         plman.InsertPlaylistItems(playlist_idx, plman.PlaylistItemCount(playlist_idx), plman.GetPlaylistSelectedItems(cur_playlist_idx), true);
     };
 
-    this.move_selection_up = function() {
+    this.move_selection_up = function () {
         if (!selected_indexes.length) {
             return;
         }
@@ -3870,7 +3877,7 @@ function SelectionHandler(rows_arg, cur_playlist_idx_arg) {
         move_selection(Math.max(0, _.head(selected_indexes) - 1));
     };
 
-    this.move_selection_down = function() {
+    this.move_selection_down = function () {
         if (!selected_indexes.length) {
             return;
         }
@@ -3997,7 +4004,7 @@ function SelectionHandler(rows_arg, cur_playlist_idx_arg) {
             var focus_idx = plman.GetPlaylistFocusItemIndex(cur_playlist_idx);
             var move_delta;
             if (new_idx < focus_idx) {
-                move_delta = - (_.head(selected_indexes) - new_idx);
+                move_delta = -(_.head(selected_indexes) - new_idx);
             }
             else {
                 move_delta = new_idx - (_.last(selected_indexes) + 1);
@@ -4006,11 +4013,11 @@ function SelectionHandler(rows_arg, cur_playlist_idx_arg) {
             plman.MovePlaylistSelection(cur_playlist_idx, move_delta);
         }
         else {
-            var item_count_before_drop_idx = _.count(selected_indexes, function(idx) {
+            var item_count_before_drop_idx = _.count(selected_indexes, function (idx) {
                 return idx < new_idx;
             });
 
-            move_delta = - (plman.PlaylistItemCount(cur_playlist_idx) - selected_indexes.length - (new_idx - item_count_before_drop_idx));
+            move_delta = -(plman.PlaylistItemCount(cur_playlist_idx) - selected_indexes.length - (new_idx - item_count_before_drop_idx));
 
             // Move to the end to make it contiguous, then back to drop_idx
             plman.MovePlaylistSelection(cur_playlist_idx, plman.PlaylistItemCount(cur_playlist_idx));
