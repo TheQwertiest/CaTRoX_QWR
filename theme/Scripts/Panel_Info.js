@@ -235,13 +235,12 @@ function TrackInfoList() {
 
     this.on_mouse_move = function (x, y, m) {
         if (List.prototype.on_mouse_move.apply(this, [x, y, m])) {
-            if (!this.trace(x, y)) {
-                clear_last_hover_item();
-            }
-
             return;
         }
-
+        if (!this.trace(x, y)) {
+            clear_last_hover_item();
+            return;
+        }
         if (this.mouse_down) {
             return;
         }

@@ -20,7 +20,7 @@ var g_is_mini_panel = (window.name.toLowerCase().indexOf('mini') !== -1);
 // TODO: bug marc2003 about on_visibility_change callback
 // TODO: consider making registration for on_key handlers
 // TODO: research the source of hangs with big art image loading (JScript? fb2k?)
-// TODO: measure draw vs backend performance (don't forget to disable playlist in other mode before testing)
+// TODO: measure draw vs backend performance
 g_properties.add_properties(
     {
         rows_in_header:         ['user.header.normal.row_count', 4],
@@ -670,13 +670,14 @@ function Playlist(x,y) {
             return true;
         }
 
-        if (!this.mouse_down || !this.trace_list(x, y)) {
+        if (!this.mouse_down) {
             return true;
         }
 
-        if (!selection_handler.is_dragging()) {
-            var item = this.get_item_under_mouse(x, y);
-            if (item && last_hover_item && item !== last_hover_item) {
+        if (!selection_handler.is_dragging() && last_hover_item) {
+            var drag_diff = Math.sqrt((Math.pow(last_pressed_coord.x - x, 2) + Math.pow(last_pressed_coord.y - y, 2)));
+            if (drag_diff >= 7) {
+                last_pressed_coord = { x: undefined, y: undefined };
                 last_hover_item = this.get_item_under_mouse(x, y);
 
                 selection_handler.perform_internal_drag_n_drop();
@@ -693,8 +694,11 @@ function Playlist(x,y) {
 
         var ctrl_pressed = utils.IsKeyPressed(VK_CONTROL);
         var shift_pressed = utils.IsKeyPressed(VK_SHIFT);
+
         var item = this.trace_list(x, y) ? this.get_item_under_mouse(x, y) : undefined;
         last_hover_item = item;
+        last_pressed_coord.x = x;
+        last_pressed_coord.y = y;
 
         if (item) {
             if (ctrl_pressed && shift_pressed && _.isInstanceOf(item, Header)) {
@@ -707,7 +711,7 @@ function Playlist(x,y) {
                 selection_handler.update_selection(item, ctrl_pressed, shift_pressed);
             }
             else {
-                // will update selection on on_mouse_lbtn_up if needed
+                // indicates the need to update selection on on_mouse_lbtn_up
                 mouse_on_item = true;
             }
         }
@@ -752,6 +756,8 @@ function Playlist(x,y) {
         if (List.prototype.on_mouse_lbtn_up.apply(this, [x, y, m])) {
             return true;
         }
+
+        last_pressed_coord = { x: undefined, y: undefined };
 
         if (was_double_clicked) {
             return true;
@@ -2518,11 +2524,10 @@ function Playlist(x,y) {
     var key_down = false;
 
     // Item events
-    /**
-     * Used only to enable drag from unselected item on mouse move
-     * @type {?List.Item}
-     */
+    /** @type {?List.Item} */
     var last_hover_item = undefined;
+    /** @type  {{x: ?number, y: ?number}} */
+    var last_pressed_coord = { x: undefined, y: undefined };
 
     // Timers
     var drag_scroll_in_progress = false;
@@ -4009,7 +4014,7 @@ function SelectionHandler(rows_arg, cur_playlist_idx_arg) {
         var is_contiguous = true;
         _.forEach(selected_indexes, function (item, i) {
             if (i === 0) {
-                return;
+                return true;
             }
             if ((selected_indexes[i] - selected_indexes[i - 1]) !== 1) {
                 is_contiguous = false;

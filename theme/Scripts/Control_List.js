@@ -180,12 +180,7 @@ List.prototype.on_mouse_move = function (x, y, m) {
         }
     }
 
-    if (!this.trace(x, y)) {
-        this.mouse_in = false;
-        return true;
-    }
-
-    this.mouse_in = true;
+    this.mouse_in = this.trace(x, y);
 
     return false;
 };
