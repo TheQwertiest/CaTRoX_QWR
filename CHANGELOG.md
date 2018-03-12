@@ -1,6 +1,38 @@
 # Changelog
 
 ## [Unreleased]
+### Added
+- Playlist Panel:
+  - Increased playlist initialization speed by 100%-180%!
+  - Copy/Cut/Paste now works with native clipboard, e.g. copy mp3 file to/from Windows Explorer.
+  - Added ability to drag tracks from panel, e.g. drag mp3 file to another panel or to Windows Explorer. 
+
+### Changed
+- Playlist Panel:
+  - Changed default title query in header to use %albumartist%.
+  - Cleaned up various queries used in group header.
+  - Drag-n-drop behaviour is now much more in line with the native Windows behaviour.
+- Track Info Panel: 
+  - Remade 'New Tag' dialog window.
+
+### Fixed
+- General:
+  - Fixed frame shadow not enabling on frame style switch.
+  - Fixed mouse middle button not always working.
+- Playlist Panel:
+  - Fixed items not refocusing after external drag-n-drop.
+  - Fixed items not refocusing if added from external script\components.
+  - Fixed handling of title and sub-title queries when evaluation result is empty.
+  - Fixed track info not always updating when played from dynamic sources.
+  - Fixed invalid info in Group Header when playing from dynamic sources.
+  - Fixed 'Open Containing Folder' (SHIFT-O).
+  - Fixed overlap of queue index and album artist.
+  - Fixed playlist manager not always reflecting changes in playlist content, when adding or removing playlist items.
+- Top Panel: 
+  - Fixed crash on double-click.
+  - Fixed track info not updating when playing from dynamic sources.
+- Bottom Panel: 
+  - Fixed invalid playback time with dynamic sources. 
 
 ## [4.1.1] - 2018-02-19
 ### Changed
