@@ -237,7 +237,7 @@ function TrackInfoList() {
         if (List.prototype.on_mouse_move.apply(this, [x, y, m])) {
             return;
         }
-        if (!this.trace(x, y)) {
+        if (!this.trace_list(x, y)) {
             clear_last_hover_item();
             return;
         }

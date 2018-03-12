@@ -922,19 +922,19 @@ function Playlist(x,y) {
         this.mouse_in = true;
         this.mouse_down = true;
 
-        if (!selection_handler.can_drop()) {
+        if (!selection_handler.is_dragging()) {
+            if (selection_handler.is_internal_drag_n_drop_active()) {
+                selection_handler.enable_drag();
+            }
+            else {
+                selection_handler.enable_external_drag();
+            }
+        }
+
+        if (!this.trace_list(x,y) || !selection_handler.can_drop()) {
             action.Effect = 0;
         }
         else {
-            if (!selection_handler.is_dragging()) {
-                if (selection_handler.is_internal_drag_n_drop_active()) {
-                    selection_handler.enable_drag();
-                }
-                else {
-                    selection_handler.enable_external_drag();
-                }
-            }
-
             action.Effect = (action.Effect & 2) || (action.Effect & 1) || (action.Effect & 4);
         }
     };
@@ -944,6 +944,7 @@ function Playlist(x,y) {
             stop_drag_scroll();
             selection_handler.disable_external_drag();
         }
+
         this.mouse_in = false;
         this.mouse_down = false;
 
@@ -951,6 +952,11 @@ function Playlist(x,y) {
     };
 
     this.on_drag_over = function (action, x, y, mask) {
+        if (!selection_handler.can_drop()) {
+            action.Effect = 0;
+            return;
+        }
+
         var drop_info = get_drop_row_info(x, y);
         var row = drop_info.row;
 
@@ -981,7 +987,7 @@ function Playlist(x,y) {
 
         last_hover_item = this.get_item_under_mouse(x, y);
 
-        if (!selection_handler.can_drop()) {
+        if (!this.trace_list(x,y)) {
             action.Effect = 0;
         }
         else {
@@ -990,14 +996,10 @@ function Playlist(x,y) {
     };
 
     this.on_drag_drop = function (action, x, y, m) {
-        if (!selection_handler.is_dragging()) {
-            return;
-        }
-
-        this.mouse_down = false;
+        this.mouse_down = false; ///< because on_drag_drop suppresses on_mouse_lbtn_up call
         stop_drag_scroll();
 
-        if (!this.trace_list(x, y) || !selection_handler.can_drop()) {
+        if (!selection_handler.is_dragging() || !this.trace_list(x, y) || !selection_handler.can_drop()) {
             selection_handler.disable_external_drag();
             action.Effect = 0;
             return;
