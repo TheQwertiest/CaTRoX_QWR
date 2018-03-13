@@ -6,6 +6,7 @@
   - Increased playlist initialization speed by 100%-180%!
   - Copy/Cut/Paste now works with native clipboard, e.g. copy mp3 file to/from Windows Explorer.
   - Added ability to drag tracks from panel, e.g. drag mp3 file to another panel or to Windows Explorer. 
+  - Added option to display original release date in grouping header (right-click > Appearance > Headers > Show original release date).
 
 ### Changed
 - Playlist Panel:
