@@ -1,7 +1,18 @@
 /*
-Last Updated: 16.02.2018
-Corresponding JScript Commit: 04d5bceee36cfa114e508f006455dd753c555a4e
+Last Updated: 13.03.2018
+Corresponding JScript Commit: 209557a11c22f021c742c6f01376c0f6a7768da5
 */
+
+/**
+ * @constructor
+ * @template T
+ */
+function VBArray() {
+    /**
+     * @return {Array<T>}
+     */
+    this.toArray = function() {};
+}
 
 /**
  * @constructor
@@ -33,6 +44,9 @@ function IFbUtils() {
     /** @type {boolean} */
     this.IsPlaying = undefined; // (boolean) (read)
 
+    /** @type {boolean} */
+    this.PlaybackFollowCursor = undefined; // (boolean) (read, write)
+
     /** @type {float} */
     this.PlaybackLength = undefined; // (double) (read)
     /*
@@ -41,9 +55,6 @@ function IFbUtils() {
     example2:
     console.log(Math.round(fb.PlaybackLength)); // 323
     */
-
-    /** @type {boolean} */
-    this.PlaybackFollowCursor = undefined; // (boolean) (read, write)
 
     /** @type {float} */
     this.PlaybackTime = undefined; // (double) (read, write)
@@ -59,7 +70,7 @@ function IFbUtils() {
      * 0 - None
      * 1 - Track
      * 2 - Album
-     * 3 - Track/Album by Playback Order (only available in foobar2000 v1.3.8 and above)
+     * 3 - Track/Album by Playback Order
      *
      * @type {number}
      */
@@ -127,7 +138,7 @@ function IFbUtils() {
     selection_holder.SetPlaylistSelectionTracking();
 
     function on_focus(is_focused) {
-        if (is_focused) { //updates the selection when panel regains focus
+        if (is_focused) { // Updates the selection when panel regains focus
             selection_holder.SetPlaylistSelectionTracking();
         }
     }
@@ -137,15 +148,15 @@ function IFbUtils() {
     var selection_holder = fb.AcquireUiSelectionHolder();
     var handle_list = null;
 
-    function on_mouse_lbtn_up(x, y) { //presumably going to select something here...
+    function on_mouse_lbtn_up(x, y) { // Presumably going to select something here...
         handle_list = ...;
-        selection_holder.SetSelection(handle_list); //must be a valid handle list
+        selection_holder.SetSelection(handle_list);
     }
 
     function on_focus(is_focused) {
-        if (is_focused) { //updates the selection when panel regains focus
+        if (is_focused) { // Updates the selection when panel regains focus
             if (handle_list && handle_list.Count)
-                selection_holder.SetSelection(handle_list); //must be a valid handle list
+                selection_holder.SetSelection(handle_list);
         }
     }
     */
@@ -155,25 +166,59 @@ function IFbUtils() {
     this.AddFiles = function () {}; // (void)
 
     /**
+     * Checks Clipboard contents are handles or a file selection from Windows Explorer. Use in conjunction
+     * with fb.GetClipboardContents().
+     *
+     * @param {number} window_id
+     * @return {boolean}
+     */
+    this.CheckClipboardContents = function(window_id) {}; // (boolean)
+
+    /**
      * Clears active playlist. If you wish to clear a specific playlist, use plman.ClearPlaylist(playlistIndex).
      */
     this.ClearPlaylist = function () {}; // (void)
 
     /**
+     * @param {IFbMetadbHandleList} handle_list
+     * @return {boolean}
+     */
+    this.CopyHandleListToClipboard = function(handle_list) {}; // (boolean)
+    /*
+    Items can then be pasted in other playlist viewers or in Windows Explorer as files.
+
+    Example1: (copy playlist items)
+    var items = plman.GetPlaylistSelectedItems(plman.ActivePlaylist);
+    fb.CopyHandleListToClipboard(items);
+    items.Dispose();
+
+    Example2: (cut playlist items)
+    var ap = plman.ActivePlaylist;
+    if (!plman.IsPlaylistLocked(ap)) {
+    	var items = plman.GetPlaylistSelectedItems(ap);
+    	if (fb.CopyHandleListToClipboard(items)) {
+    		plman.UndoBackup(ap);
+    		plman.RemovePlaylistSelection(ap);
+    	}
+    	items.Dispose();
+    }
+    */
+
+    /**
+     * See samples\basic\MainMenuManager All-In-One, samples\basic\Menu Sample.txt
+     *
      * @return {IContextMenuManager}
      */
     this.CreateContextMenuManager = function () {}; // (IContextMenuManager)
 
     /**
-     * See samples\basic\MainMenuManager All-In-One, samples\basic\Menu Sample.txt
-     *
      * @constructor
      */
     function IContextMenuManager() {
         /**
          * @param {IMenuObj} menuObj
          * @param {number} base_id
-         * @param {number=} [max_id=1]
+         * @param {number=} [max_id=-1]
          */
         this.BuildMenu = function (menuObj, base_id, max_id) {}; // (void)
 
@@ -201,13 +246,13 @@ function IFbUtils() {
     this.CreateHandleList = function () {}; // (IFbMetadbHandleList)
 
     /**
+     * See samples\basic\MainMenuManager All-In-One, samples\basic\Menu Sample.txt
+     *
      * @return {IMainMenuManager}
      */
     this.CreateMainMenuManager = function () {}; // (IMainMenuManager)
 
     /**
-     * See samples\basic\MainMenuManager All-In-One, samples\basic\Menu Sample.txt
-     *
      * @constructor
      */
     function IMainMenuManager() {
@@ -250,11 +295,45 @@ function IFbUtils() {
     Example:
     var test = fb.CreateProfiler("test");
     // do something time consuming
-    console.log(test.Time); //outputs bare time in ms like "789"
-    test.Print(); // outputs component name/version/assigned name like "JScript Panel v2.0.2: FbProfiler (test): 789 ms"
+    console.log(test.Time); // Outputs bare time in ms like "789"
+    test.Print(); // Outputs component name/version/assigned name like "JScript Panel v2.0.2: FbProfiler (test): 789 ms"
     */
 
+    /**
+     * See {@link https://msdn.microsoft.com/en-us/library/windows/desktop/ms678486.aspx} and {@link https://github.com/marc2k3/foo_jscript_panel/wiki/Drag-and-Drop}
+     *
+     * @param {IFbMetadbHandleList} handle_list
+     * @param {number} effect Allowed effects.
+     * @return {number} Effect that was returned in on_drag_drop.
+     */
+    this.DoDragDrop = function(handle_list, effect) {}; // (uint);
+
     this.Exit = function () {}; // (void)
+
+    /**
+     * @param {number} window_id
+     * @return {IFbMetadbHandleList}
+     */
+    this.GetClipboardContents = function(window_id) {}; // (IFbMetadbHandleList)
+    /*
+    Clipboard contents can be handles copied to the clipboard in other components, from fb.CopyHandleListToClipboard or a file selection
+    from Windows Explorer etc.
+
+    Example:
+    function on_mouse_rbtn_up(x, y) {
+        var ap = plman.ActivePlaylist;
+        var menu = window.CreatePopupMenu();
+        menu.AppendMenuItem(!plman.IsPlaylistLocked(ap) && fb.CheckClipboardContents(window.ID) ? MF_STRING : MF_GRAYED, 1, "Paste"); // assume MF_* are already defined
+    	var idx = menu.TrackPopupMenu(x, y);
+    	if (idx == 1) {
+    		var items = fb.GetClipboardContents(window.ID);
+    		plman.InsertPlaylistItems(ap, plman.PlaylistItemCount(ap), items);
+    		items.Dispose();
+    	}
+    	menu.Dispose();
+    	return true;
+    }
+    */
 
     /**
      * @param {boolean=} [force=true] When true, it will use the first item of the active playlist if it is unable to get the focus item.
@@ -454,7 +533,6 @@ function IFbUtils() {
         */
 
         this.Dispose = function () {}; //
-        // Example: tfo.Dispose();
 
         /**
          * @param {boolean=} [force=false] If true, you can process text that doesn't contain
@@ -479,6 +557,18 @@ function IFbUtils() {
         Example:
         console.log(tfo.EvalWithMetadb(fb.GetFocusItem()));
         */
+
+        /**
+         * @param handle_list {IFbMetadbHandleList}
+         * @return {VBArray<string>}
+         */
+        this.EvalWithMetadbs = function(handle_list) {}; //(VBArray)
+    	/*
+		Example:
+		var items = fb.GetLibraryItems();
+		var artists = tfo.EvalWithMetadbs(items).toArray();
+		console.log(items.Count === artists.length); // should always be true!
+		*/
     }
 
     this.VolumeDown = function () {}; // (void)
@@ -512,10 +602,13 @@ function IGdiUtils() {
 
     /**
      * @param {string} path
-     * @return {IGdiBitmap}
+     * @return {?IGdiBitmap} null if path doesn't exist or image fails to load.
      */
     this.Image = function (path) {}; // (IGdiBitmap)
-    // Example: var img = "e:\\images folder\\my_image.png";
+    /*
+    Example:
+    var img = "e:\\images folder\\my_image.png";
+    */
 
     /**
      * @param {number} window_id
@@ -623,6 +716,11 @@ function IFbPlaylistManager() {
     /*
     Example:
     plman.AddLocations(plman.ActivePlaylist, ["e:\\1.mp3"]);
+    This operation is asynchronous and may take some time to complete if it's a large array.
+    Any code in your script directly after this line will run immediately without waiting for
+    the job to finish.
+    If select is true, the active playlist will be set to the playlistIndex, the items will
+    be selected and focus will be set to the first new item.
     */
 
     /**
@@ -747,7 +845,7 @@ function IFbPlaylistManager() {
     this.GetPlaylistFocusItemIndex = function (playlistIndex) {}; // (int)
     /*
     Example:
-    var focus_item_index = plman.GetPlaylistFocusItemIndex(plman.ActivePlaylist); // 0 first item
+    var focus_item_index = plman.GetPlaylistFocusItemIndex(plman.ActivePlaylist); // 0 would be the first item
     */
 
     /**
@@ -897,7 +995,7 @@ function IFbPlaylistManager() {
 
     function on_focus(is_focused) {
         if (is_focused) {
-            plman.SetActivePlaylistContext(); // when the panel gets focus but not on every click
+            plman.SetActivePlaylistContext(); // When the panel gets focus but not on every click
         }
     }
     */
@@ -920,7 +1018,7 @@ function IFbPlaylistManager() {
     /*
     Example:
     var ap = plman.ActivePlaylist;
-    var handle = plman.GetPlaylistItems(ap).Item(1); //2nd item in playlist
+    var handle = plman.GetPlaylistItems(ap).Item(1); // 2nd item in playlist
     plman.SetPlaylistFocusItemByHandle(ap, handle);
     */
 
@@ -933,7 +1031,7 @@ function IFbPlaylistManager() {
     /*
     Example:
     plman.SetPlaylistSelection(plman.ActivePlaylist, [0, 2, 4], true);
-    Selects tracks first, third and fifth tracks in playlist. This does not affect other selected items.
+    Selects first, third and fifth tracks in playlist. This does not affect other selected items.
     */
 
     /**
@@ -961,7 +1059,8 @@ function IFbPlaylistManager() {
      */
     this.ShowAutoPlaylistUI = function (playlistIndex) {}; // (boolean)
     /*
-    Example: fb.ShowAutoPlaylistUI(plman.ActivePlaylist);
+    Example:
+    fb.ShowAutoPlaylistUI(plman.ActivePlaylist);
     */
 
     /**
@@ -974,13 +1073,20 @@ function IFbPlaylistManager() {
 
     /**
      * @param {number} playlistIndex Index of playlist to alter.
-     * @param {string} pattern Title formatting pattern
+     * @param {string} pattern Title formatting pattern to sort by.
      * @param {number=} [direction=1]
      *     1 - ascending
      *     -1 - descending
      * @return {boolean}
      */
     this.SortByFormatV2 = function (playlistIndex, pattern, direction) {}; // (boolean) [, direction]
+
+    /**
+     * @param {number=} [direction=1]
+     *     1 - ascending
+     *     -1 - descending
+     */
+    this.SortPlaylistsByName = function(direction) {}; //(void)
 
     /**
      * Call before using other plman methods that add/remove/reorder playlist items so a history will be available from the Edit menu.
@@ -1010,6 +1116,40 @@ function IFbPlaylistManager() {
 
     this.FlushPlaybackQueue = function () {}; // (void)
 
+    /**
+     * @return {VBArray<IFbPlaybackQueueItem>}
+     */
+    this.GetPlaybackQueueContents = function() {}; // (VBArray)
+    /*
+    Example:
+    var contents = plman.GetPlaybackQueueContents().toArray();
+    if (contents.length) {
+    	// access properties of first item
+    	console.log(contents[0].PlaylistIndex, contents[0].PlaylistItemIndex);
+    }
+    */
+
+    /**
+     * @constructor
+     */
+    function IFbPlaybackQueueItem() {
+
+        /** @type {IFbMetadbHandle} */
+        this.Handle = undefined; // (IFbMetadbHandle) (read)
+
+        /** @type {number} */
+        this.PlaylistIndex = undefined; // (int) (read)
+
+        /**
+         * -1 if added not from a playlist
+         *
+         * @type {number}
+         */
+        this.PlaylistItemIndex = undefined; // (int) (read)
+
+        this.Dispose = function () {}; // (void)
+    }
+
     /*
      * @return {IFbMetadbHandleList}
      */
@@ -1017,7 +1157,7 @@ function IFbPlaylistManager() {
     /*
     var handles = plman.GetPlaybackQueueHandles();
     if (handles.Count > 0) {
-        // removes the need for plman.GetPlaybackQueueCount() and plman.IsPlaybackQueueActive()
+        // use "Count" to determine if Playback Queue is active.
     }
     */
 
@@ -1105,8 +1245,8 @@ function IJSUtils() {
      *     "e" - If file path exists, return true.
      *     "s" - Retrieve file size, in bytes.
      *     "d" - If path is a directory, return true.
-     *     "split" - Returns a VBArray so you need to use .toArray() on the result.
-     * @return {*}
+     *     "split" - Returns a VBArray.
+     * @return {VBArray<string>}
      */
     this.FileTest = function (path, mode) {}; // (VARIANT)
     /*
@@ -1178,7 +1318,8 @@ function IJSUtils() {
      */
     this.GetSysColor = function (index) {}; // (uint)
     /*
-    Example: var splitter_colour = utils.GetSysColour(15);
+    Example:
+    var splitter_colour = utils.GetSysColour(15);
     */
 
     /**
@@ -1191,11 +1332,10 @@ function IJSUtils() {
      * @param {string} pattern
      * @param {number=} [exc_mask=0x10] Default is FILE_ATTRIBUTE_DIRECTORY. See flags.txt > Used in utils.Glob()
      * @param {number=} [inc_mask=0xffffffff]
-     * @return {VBArray}
+     * @return {VBArray<string>}
      */
     this.Glob = function (pattern, exc_mask, inc_mask) {}; // (VBArray) [, exc_mask][, inc_mask]
     /*
-    Returns a VBArray so you need to use .toArray() on the result.
     Example:
     var arr = utils.Glob("C:\\*.*").toArray();
     */
@@ -1376,13 +1516,13 @@ function Fb2kWindow() {
     this.SetTimeout = function (func, delay) {}; // (uint)
 
     /**
+     * See samples\basic\MainMenuManager All-In-One, samples\basic\Menu Sample.txt
+     *
      * @return {IMenuObj}
      */
     this.CreatePopupMenu = function () {}; // (IMenuObj)
 
     /**
-     * See samples\basic\MainMenuManager All-In-One, samples\basic\Menu Sample.txt
-     *
      * @constructor
      */
     function IMenuObj() {
@@ -1753,10 +1893,9 @@ function IGdiBitmap() {
 
     /**
      * @param {number} max_count
-     * @return {VBArray}
+     * @return {VBArray<number>}
      */
     this.GetColourScheme = function (max_count) {}; // (VBArray)
-    // Returns a VBArray so you need to use .toArray() on the result.
 
     /**
      * @return {IGdiGraphics}
@@ -1914,11 +2053,10 @@ function IGdiGraphics() {
      * @param {string} str
      * @param {IGdiFont}
      * @param {number} max_width
-     * @return {VBArray}
+     * @return {VBArray<Array>}
      */
     this.EstimateLineWrap = function (str, font, max_width) {}; // (VBArray)
     /*
-    returns a VBArray so you need to use .toArray() on the result.
     index | meaning
     [0] text line 1
     [1] width of text line 1 (in pixel)
@@ -2018,11 +2156,10 @@ function IGdiGraphics() {
      * @param {number} w
      * @param {number} h
      * @param {number=} [format=0] See flags.txt > DT_*
-     * @return {VBArray}
+     * @return {VBArray<number>}
      */
     this.GdiDrawText = function (str, font, colour, x, y, w, h, format) {}; // (VBArray) [, format]
     /*
-    Returns a VBArray so you need to use .toArray() on the result.
     index | meaning
     [0] left   (DT_CALCRECT)
     [1] top    (DT_CALCRECT)
@@ -2331,13 +2468,12 @@ function IFbMetadbHandleList() {
     */
 
     /**
-     * @param {IFbMetadbHandle} handle
+     * Faster than Find()
+     *
+     * @param {IFbMetadbHandle} handle Must be sorted.
      * @return {number} -1 on failure.
      */
     this.BSearch = function (handle) {}; // (uint)
-    /*
-    Must be sorted, faster than Find()
-    */
 
     /**
      * @return {float|number} total in seconds. For display purposes, consider using {@link utils.FormatDuration} on the result.
@@ -2383,10 +2519,7 @@ function IFbMetadbHandleList() {
      */
     this.Insert = function (index, handle) {}; // (int)
     /*
-    Example1:
-    handle_list.Insert(0, fb.GetNowPlaying());
-    0 inserts at the start of the handle list.
-    Example2:
+    Example:
     handle_list.Insert(handle_list.Count, fb.GetNowPlaying());
     This inserts at the end of the handle list.
     */
@@ -2399,11 +2532,10 @@ function IFbMetadbHandleList() {
     this.InsertRange = function (index, handle_list) {}; // (int)
 
     /**
-     * @param {IFbMetadbHandleList} handle
+     * @param {IFbMetadbHandleList} handle Must be sorted.
      */
     this.MakeDifference = function (handle_list) {}; // (void)
     /*
-    Must be sorted
     Example:
     var one = plman.GetPlaylistItems(0);
     one.Sort();
@@ -2416,11 +2548,10 @@ function IFbMetadbHandleList() {
     */
 
     /**
-     * @param {IFbMetadbHandleList} handle
+     * @param {IFbMetadbHandleList} handle Must be sorted.
      */
     this.MakeIntersection = function (handle_list) {}; // (void)
     /*
-    Must be sorted
     Example:
     var one = plman.GetPlaylistItems(0);
     one.Sort();
@@ -2433,11 +2564,10 @@ function IFbMetadbHandleList() {
     */
 
     /**
-     * @param {IFbMetadbHandleList} handle
+     * @param {IFbMetadbHandleList} handle Must be sorted.
      */
     this.MakeUnion = function (handle_list) {}; // (void)
     /*
-    Must be sorted
     Example:
     var one = plman.GetPlaylistItems(0);
     one.Sort();
@@ -2463,6 +2593,7 @@ function IFbMetadbHandleList() {
 
     this.OrderByPath = function () {}; // (void)
 
+    // This method should only be used on a handle list containing items that are monitored as part of the Media Library.
     this.OrderByRelativePath = function () {}; // (void)
 
     /**
@@ -2511,13 +2642,20 @@ function IFbMetadbHandleList() {
 }
 
 /**
+ * See {@link https://github.com/marc2k3/foo_jscript_panel/wiki/Drag-and-Drop}
  * @constructor
  */
 function IDropTargetAction() {
-    // See samples\basic\Drag Drop Basic.txt
 
-    /** @type {boolean} */
-    this.Parsable = undefined; // (boolean) (read, write)
+    /** @type {number} */
+    this.Base = undefined; // (write)
+
+    /**
+     * See {@link https://msdn.microsoft.com/en-us/library/windows/desktop/ms693457.aspx}
+     *
+     * @type {number}
+     */
+    this.Effect = undefined //(read, write)
 
     /**
      * Active playlist.
@@ -2525,10 +2663,8 @@ function IDropTargetAction() {
      *
      * @type {number}
      */
-    this.Playlist = undefined; // (read, write)
+    this.Playlist = undefined; // (write)
 
     /** @type {boolean} */
-    this.ToSelect = undefined; // (boolean) (read, write)
-
-    this.ToPlaylist = function () {}; // (void)
+    this.ToSelect = undefined; // (boolean) (write)
 }
