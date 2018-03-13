@@ -58,7 +58,7 @@ var g_component_utils = _.cc('foo_utils');
 var g_has_modded_jscript = qwr_utils.has_modded_jscript();
 
 // Fixup properties
-(function() {
+(function () {
     g_properties.rows_in_header = Math.max(0, g_properties.rows_in_header);
     g_properties.rows_in_compact_header = Math.max(0, g_properties.rows_in_compact_header);
     g_properties.show_rating = g_properties.show_rating && g_component_playcount;
@@ -149,7 +149,7 @@ function on_size() {
 function on_mouse_move(x, y, m) {
     trace_call && trace_on_move && console.log(qwr_utils.function_name());
 
-    if (mouse_move_suppress.is_supressed(x,y,m)) {
+    if (mouse_move_suppress.is_supressed(x, y, m)) {
         return;
     }
 
@@ -248,7 +248,7 @@ function on_playlist_switch() {
 
 function on_playlist_item_ensure_visible(playlistIndex, playlistItemIndex) {
     trace_call && console.log(qwr_utils.function_name());
-    playlist.on_playlist_item_ensure_visible(playlistIndex,playlistItemIndex);
+    playlist.on_playlist_item_ensure_visible(playlistIndex, playlistItemIndex);
 }
 
 function on_playlist_items_added(playlistIndex) {
@@ -310,6 +310,7 @@ function on_notify_data(name, info) {
     trace_call && console.log(qwr_utils.function_name());
     playlist.on_notify_data(name, info);
 }
+
 //</editor-fold>
 
 /**
@@ -616,7 +617,7 @@ function PlaylistPanel() {
  * @constructor
  * @extend {List}
  */
-function Playlist(x,y) {
+function Playlist(x, y) {
     List.call(this, x, y, 0, 0, new PlaylistContent());
 
     // public:
@@ -678,7 +679,10 @@ function Playlist(x,y) {
         if (!selection_handler.is_dragging() && last_hover_item) {
             var drag_diff = Math.sqrt((Math.pow(last_pressed_coord.x - x, 2) + Math.pow(last_pressed_coord.y - y, 2)));
             if (drag_diff >= 7) {
-                last_pressed_coord = { x: undefined, y: undefined };
+                last_pressed_coord = {
+                    x: undefined,
+                    y: undefined
+                };
                 last_hover_item = this.get_item_under_mouse(x, y);
 
                 selection_handler.perform_internal_drag_n_drop();
@@ -758,7 +762,10 @@ function Playlist(x,y) {
             return true;
         }
 
-        last_pressed_coord = { x: undefined, y: undefined };
+        last_pressed_coord = {
+            x: undefined,
+            y: undefined
+        };
 
         if (was_double_clicked) {
             return true;
@@ -932,7 +939,7 @@ function Playlist(x,y) {
             }
         }
 
-        if (!this.trace_list(x,y) || !selection_handler.can_drop()) {
+        if (!this.trace_list(x, y) || !selection_handler.can_drop()) {
             action.Effect = 0;
         }
         else {
@@ -988,7 +995,7 @@ function Playlist(x,y) {
 
         last_hover_item = this.get_item_under_mouse(x, y);
 
-        if (!this.trace_list(x,y)) {
+        if (!this.trace_list(x, y)) {
             action.Effect = 0;
         }
         else {
@@ -1678,7 +1685,7 @@ function Playlist(x,y) {
 
     var debounced_get_album_art = _.debounce(function (items, force) {
         items.forEach(function (item) {
-            if (_.isInstanceOf(item, Header) && (force || !item.has_art() )) {
+            if (_.isInstanceOf(item, Header) && (force || !item.has_art())) {
                 utils.GetAlbumArtAsync(window.ID, item.rows[0].metadb, g_album_art_id.front);
             }
         });
@@ -2538,7 +2545,10 @@ function Playlist(x,y) {
     /** @type {?List.Item} */
     var last_hover_item = undefined;
     /** @type  {{x: ?number, y: ?number}} */
-    var last_pressed_coord = { x: undefined, y: undefined };
+    var last_pressed_coord = {
+        x: undefined,
+        y: undefined
+    };
 
     // Timers
     var drag_scroll_in_progress = false;
@@ -2559,6 +2569,7 @@ function Playlist(x,y) {
         plman.PlayingPlaylist = plman.ActivePlaylist;
     }
 }
+
 Playlist.prototype = Object.create(List.prototype);
 Playlist.prototype.constructor = Playlist;
 
@@ -2567,7 +2578,7 @@ Playlist.prototype.constructor = Playlist;
  * @constructor
  * @extend {List.RowContent}
  */
-PlaylistContent = function() {
+PlaylistContent = function () {
     List.RowContent.call(this);
 
     this.generate_items_to_draw = function (wy, wh, row_shift, pixel_shift, row_h) {
@@ -2583,7 +2594,7 @@ PlaylistContent = function() {
         return generate_all_items_to_draw(wy, wh, first_item);
     };
 
-    this.update_items_w_size = function(w) {
+    this.update_items_w_size = function (w) {
         if (!g_properties.show_header) {
             List.RowContent.prototype.update_items_w_size.apply(this, [w]);
             return;
@@ -2598,7 +2609,7 @@ PlaylistContent = function() {
         });
     };
 
-    this.calculate_total_h_in_rows = function() {
+    this.calculate_total_h_in_rows = function () {
         if (!g_properties.show_header) {
             return List.RowContent.prototype.calculate_total_h_in_rows.apply(this);
         }
@@ -2613,7 +2624,7 @@ PlaylistContent = function() {
         return total_height_in_rows;
     };
 
-    this.set_header_h_in_rows = function(header_h_in_rows_arg) {
+    this.set_header_h_in_rows = function (header_h_in_rows_arg) {
         header_h_in_rows = header_h_in_rows_arg;
     };
 
@@ -2846,10 +2857,10 @@ function Header(x, y, w, h, idx, row_h_arg) {
         //---> DATE
         if (grouping_handler.show_date()) {
             var date_query = '[%date%]';
-            if (g_properties.show_original_date){
+            if (g_properties.show_original_date) {
                 date_query += '[ \'(\'%original release date%\')\']';
             }
-            
+
             var date_text = _.tf(date_query, metadb);
             if (date_text) {
                 var date_w = Math.ceil(gr.MeasureString(date_text, date_font, 0, 0, 0, 0).Width + 5);
@@ -3045,12 +3056,12 @@ function Header(x, y, w, h, idx, row_h_arg) {
         //---> DATE
         if (grouping_handler.show_date()) {
             var date_query = '[%date%]';
-            if (g_properties.show_original_date){
+            if (g_properties.show_original_date) {
                 date_query += '[ \'(\'%original release date%\')\']';
             }
 
             var date_text = _.tf(date_query, metadb);
-            if ( date_text ) {
+            if (date_text) {
                 var date_w = Math.ceil(gr.MeasureString(date_text, date_font, 0, 0, 0, 0).Width + 5);
                 var date_x = this.w - date_w - 5;
                 var date_y = 0;
@@ -3065,9 +3076,8 @@ function Header(x, y, w, h, idx, row_h_arg) {
         }
 
         //---> TITLE
-        if (grouping_handler.get_title_query())
-        {
-            var artist_text = _.tf(grouping_handler.get_title_query(),metadb);
+        if (grouping_handler.get_title_query()) {
+            var artist_text = _.tf(grouping_handler.get_title_query(), metadb);
             if (!artist_text) {
                 artist_text = is_radio ? 'Radio Stream' : '?';
             }
@@ -3222,6 +3232,7 @@ function Header(x, y, w, h, idx, row_h_arg) {
     var art = undefined;
     var grouping_handler = Header.grouping_handler;
 }
+
 Header.prototype = Object.create(List.Item.prototype);
 Header.prototype.constructor = Header;
 
@@ -3366,7 +3377,7 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
         if (_.isNil(title_text)) {
             var track_num_query = '$if(%tracknumber%,%tracknumber%,$pad_right(' + this.num_in_header + ',2,0))';
             var title_query = track_num_query + '.  %title%';
-            title_text = ( fb.IsPlaying && this.is_playing && is_radio ) ? _.tfe(title_query) : _.tf(title_query, metadb);
+            title_text = (fb.IsPlaying && this.is_playing && is_radio) ? _.tfe(title_query) : _.tf(title_query, metadb);
         }
 
         //---> TITLE ARTIST init
@@ -3401,13 +3412,13 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
 
     /** @override */
     this.set_y = function (y) {
-        List.Item.prototype.set_y.apply(this,[y]);
+        List.Item.prototype.set_y.apply(this, [y]);
         rating.y = y;
     };
 
     /** @override */
     this.set_w = function (w) {
-        List.Item.prototype.set_w.apply(this,[w]);
+        List.Item.prototype.set_w.apply(this, [w]);
         initialize_rating();
     };
 
@@ -3485,6 +3496,7 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
 
     initialize_rating();
 }
+
 Row.prototype = Object.create(List.Item.prototype);
 Row.prototype.constructor = Row;
 
@@ -4152,7 +4164,7 @@ function CollapseHandler() {
  * @constructor
  */
 function QueueHandler(rows_arg, cur_playlist_idx_arg) {
-    this.initialize_queue = function() {
+    this.initialize_queue = function () {
         if (queued_rows.length) {
             reset_queued_status();
         }
@@ -4184,7 +4196,7 @@ function QueueHandler(rows_arg, cur_playlist_idx_arg) {
         });
     };
 
-    this.add_row = function(row) {
+    this.add_row = function (row) {
         if (!row) {
             return;
         }
@@ -4192,7 +4204,7 @@ function QueueHandler(rows_arg, cur_playlist_idx_arg) {
         plman.AddPlaylistItemToPlaybackQueue(cur_playlist_idx, row.idx);
     };
 
-    this.remove_row = function(row) {
+    this.remove_row = function (row) {
         if (!row) {
             return;
         }
@@ -4203,11 +4215,11 @@ function QueueHandler(rows_arg, cur_playlist_idx_arg) {
         }
     };
 
-    this.flush = function(){
+    this.flush = function () {
         plman.FlushPlaybackQueue();
     };
 
-    this.has_items = function() {
+    this.has_items = function () {
         return !!plman.GetPlaybackQueueHandles().Count;
     };
 
@@ -4418,13 +4430,13 @@ function PlaylistManager(x, y, w, h) {
             qwr_utils.append_default_context_menu_to(cmm);
         }
 
-        cmm.execute(x,y);
+        cmm.execute(x, y);
         cmm.dispose();
 
         return true;
     };
 
-    this.on_mouse_leave = function() {
+    this.on_mouse_leave = function () {
         change_state(state.normal);
     };
 
@@ -4455,7 +4467,7 @@ function PlaylistManager(x, y, w, h) {
     };
     //</editor-fold>
 
-    this.reinitialize = function() {
+    this.reinitialize = function () {
         info_text = undefined;
         this.panel_state = state.normal;
         this.hover_alpha = 0;
@@ -4476,12 +4488,12 @@ function PlaylistManager(x, y, w, h) {
         throttled_repaint();
     };
 
-    function draw_on_image(gr,x,y,w,h, panel_state) {
+    function draw_on_image(gr, x, y, w, h, panel_state) {
 
         var text_color;
         var bg_color;
 
-        switch (panel_state){
+        switch (panel_state) {
             case state.normal: {
                 text_color = g_pl_colors.playlist_mgr_text_normal;
                 bg_color = g_theme.colors.panel_front;
@@ -4527,7 +4539,7 @@ function PlaylistManager(x, y, w, h) {
         gr.DrawString(info_text, g_pl_fonts.title_selected, text_color, info_x, info_y, info_w, info_h, info_text_format);
     }
 
-    function change_state(new_state){
+    function change_state(new_state) {
         if (that.panel_state === new_state) {
             return;
         }
@@ -4554,7 +4566,7 @@ function PlaylistManager(x, y, w, h) {
 
     /** @enum {number} */
     var state = {
-        normal: 0,
+        normal:  0,
         hovered: 1,
         pressed: 2
     };
@@ -4569,14 +4581,15 @@ function PlaylistManager(x, y, w, h) {
     /** @type {?string} */
     var info_text = undefined;
 
-    var alpha_timer = new _.alpha_timer([this], function(item){
+    var alpha_timer = new _.alpha_timer([this], function (item) {
         return item.panel_state === state.hovered;
     });
 
     var image_normal = null;
     var image_hovered = null;
 }
-PlaylistManager.append_playlist_info_visibility_context_menu_to = function(parent_menu){
+
+PlaylistManager.append_playlist_info_visibility_context_menu_to = function (parent_menu) {
     parent_menu.append_item(
         'Show playlist manager',
         function () {
@@ -4589,7 +4602,7 @@ PlaylistManager.append_playlist_info_visibility_context_menu_to = function(paren
 /**
  * @constructor
  */
-function GroupingHandler () {
+function GroupingHandler() {
     this.on_playlists_changed = function () {
         var playlist_count = plman.PlaylistCount;
         var new_playlists = [];
@@ -4651,7 +4664,7 @@ function GroupingHandler () {
             if (group_name === 'user_defined') {
                 cur_group = settings.playlist_custom_group_data[cur_playlist_name];
             }
-            else if (group_by_name.indexOf(group_name)){
+            else if (group_by_name.indexOf(group_name)) {
                 cur_group = settings.group_presets[group_by_name.indexOf(group_name)];
             }
 
@@ -4738,7 +4751,7 @@ function GroupingHandler () {
         );
 
         settings.group_presets.forEach(function (group_item) {
-            var group_by_text =  group_item.description;
+            var group_by_text = group_item.description;
             if (group_item.name === settings.default_group_name) {
                 group_by_text += ' [default]';
             }
@@ -4865,7 +4878,7 @@ function GroupingHandler () {
     cleanup_settings();
 }
 
-GroupingHandler.Settings = function() {
+GroupingHandler.Settings = function () {
     this.load = function () {
         this.playlist_group_data = JSON.parse(g_properties.playlist_group_data);
         this.playlist_custom_group_data = JSON.parse(g_properties.playlist_custom_group_data);
@@ -4913,17 +4926,17 @@ GroupingHandler.Settings = function() {
             g_properties.group_presets = JSON.stringify([
                 new CtorGroupData('artist', 'by artist', '%album artist%', undefined, ''),
                 new CtorGroupData('artist_album', 'by artist / album', '%album artist%%album%', undefined, undefined, {
-                    show_date:  true
+                    show_date: true
                 }),
                 new CtorGroupData('artist_album_disc', 'by artist / album / disc number', '%album artist%%album%%discnumber%', undefined, undefined, {
-                    show_date:  true,
-                    show_cd:    true
+                    show_date: true,
+                    show_cd:   true
                 }),
                 new CtorGroupData('path', 'by path', '$directory_path(%path%)', undefined, undefined, {
-                    show_date:  true
+                    show_date: true
                 }),
                 new CtorGroupData('date', 'by date', '%date%', undefined, undefined, {
-                    show_date:  true
+                    show_date: true
                 })
             ]);
         }
@@ -4957,12 +4970,12 @@ GroupingHandler.Settings = function() {
  * @constructor
  * @struct
  */
-GroupingHandler.Settings.Group = function(name, description, group_query, title_query, sub_title_query, options) {
+GroupingHandler.Settings.Group = function (name, description, group_query, title_query, sub_title_query, options) {
     this.name = name;
     this.description = description;
     this.group_query = !_.isNil(group_query) ? group_query : '';
-    this.title_query =  !_.isNil(title_query) ? title_query : '[%album artist%]';
-    this.sub_title_query =  !_.isNil(sub_title_query) ? sub_title_query : '[%album%[ - %albumsubtitle%]]';
+    this.title_query = !_.isNil(title_query) ? title_query : '[%album artist%]';
+    this.sub_title_query = !_.isNil(sub_title_query) ? sub_title_query : '[%album%[ - %albumsubtitle%]]';
     this.show_date = !!(options && options.show_date);
     this.show_cd = !!(options && options.show_cd);
 };
