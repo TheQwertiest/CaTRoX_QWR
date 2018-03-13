@@ -33,6 +33,7 @@ g_properties.add_properties(
         show_album_art:     ['user.header.this.art.show', true],
         auto_album_art:     ['user.header.this.art.auto', false],
         show_group_info:    ['user.header.info.show', true],
+        show_original_date: ['user.header.original_date.show', false],
 
         alternate_row_color:  ['user.row.alternate_color', true],
         show_playcount:       ['user.row.play_count.show', _.cc('foo_playcount')],
@@ -1861,6 +1862,14 @@ function Playlist(x,y) {
                 {is_checked: g_properties.use_compact_header}
             );
 
+            appear_header.append_item(
+                'Show original release date',
+                function () {
+                    g_properties.show_original_date = !g_properties.show_original_date;
+                },
+                {is_checked: g_properties.show_original_date}
+            );
+
             if (!g_properties.use_compact_header) {
                 appear_header.append_item(
                     'Show group info',
@@ -2836,11 +2845,12 @@ function Header(x, y, w, h, idx, row_h_arg) {
 
         //---> DATE
         if (grouping_handler.show_date()) {
-            var date_text = _.tf('%date%', metadb);
-            if (date_text === '?') {
-                date_text = '';
+            var date_query = '[%date%]';
+            if (g_properties.show_original_date){
+                date_query += '[ \'(\'%original release date%\')\']';
             }
-
+            
+            var date_text = _.tf(date_query, metadb);
             if (date_text) {
                 var date_w = Math.ceil(gr.MeasureString(date_text, date_font, 0, 0, 0, 0).Width + 5);
                 var date_x = this.w - date_w - 5;
@@ -3034,11 +3044,12 @@ function Header(x, y, w, h, idx, row_h_arg) {
 
         //---> DATE
         if (grouping_handler.show_date()) {
-            var date_text = _.tf('%date%', metadb);
-            if (date_text === '?') {
-                date_text = '';
+            var date_query = '[%date%]';
+            if (g_properties.show_original_date){
+                date_query += '[ \'(\'%original release date%\')\']';
             }
 
+            var date_text = _.tf(date_query, metadb);
             if ( date_text ) {
                 var date_w = Math.ceil(gr.MeasureString(date_text, date_font, 0, 0, 0, 0).Width + 5);
                 var date_x = this.w - date_w - 5;
