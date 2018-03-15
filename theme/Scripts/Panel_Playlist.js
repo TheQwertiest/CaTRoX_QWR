@@ -999,7 +999,7 @@ function Playlist(x, y) {
             action.Effect = 0;
         }
         else {
-            action.Effect = (action.Effect & 2) || (action.Effect & 1) || (action.Effect & 4);
+            action.Effect = filter_effect_by_modifiers(action.Effect);
         }
     };
 
@@ -1014,31 +1014,21 @@ function Playlist(x, y) {
         }
 
         var ctrl_pressed = utils.IsKeyPressed(VK_CONTROL);
-        var shift_pressed = utils.IsKeyPressed(VK_SHIFT);
 
         if (selection_handler.is_internal_drag_n_drop_active()) {
-            var copy_drop = utils.IsKeyPressed(VK_CONTROL) && ((action.Effect & 1) || (action.Effect & 4));
+            var copy_drop = ctrl_pressed && ((action.Effect & 1) || (action.Effect & 4));
             selection_handler.drop(copy_drop);
 
             // Suppress native drop, since we've handled it ourselves
             action.Effect = 0;
         }
         else {
-            selection_handler.prepare_external_drop(action);
-
-            if (ctrl_pressed) {
-                if (shift_pressed) {
-                    // Link only
-                    action.Effect = (action.Effect & 4);
-                }
-                else {
-                    // Copy (also via link)
-                    action.Effect = (action.Effect & 1) || (action.Effect & 4);
-                }
+            action.Effect = filter_effect_by_modifiers(action.Effect);
+            if (0 !== action.Effect){
+                selection_handler.prepare_external_drop(action);
             }
             else {
-                // Move > Copy > Link
-                action.Effect = (action.Effect & 2) || (action.Effect & 1) || (action.Effect & 4);
+                selection_handler.disable_external_drag();
             }
         }
     };
@@ -2517,6 +2507,24 @@ function Playlist(x, y) {
         drag_scroll_repeat_timer = undefined;
 
         drag_scroll_in_progress = false;
+    }
+
+    function filter_effect_by_modifiers(effect) {
+        var ctrl_pressed = utils.IsKeyPressed(VK_CONTROL);
+        var shift_pressed = utils.IsKeyPressed(VK_SHIFT);
+
+        if (ctrl_pressed && shift_pressed) {
+            // Link only
+            return (effect & 4);
+        }
+
+        if (ctrl_pressed) {
+            // Copy (also via link)
+            return (effect & 1) || (effect & 4);
+        }
+
+        // Move > Copy > Link
+        return (effect & 2) || (effect & 1) || (effect & 4);
     }
 
     // private:
