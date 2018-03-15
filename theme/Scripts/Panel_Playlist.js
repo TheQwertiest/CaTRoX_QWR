@@ -2512,8 +2512,9 @@ function Playlist(x, y) {
     function filter_effect_by_modifiers(effect) {
         var ctrl_pressed = utils.IsKeyPressed(VK_CONTROL);
         var shift_pressed = utils.IsKeyPressed(VK_SHIFT);
+        var alt_pressed = utils.IsKeyPressed(VK_MENU);
 
-        if (ctrl_pressed && shift_pressed) {
+        if (ctrl_pressed && shift_pressed || alt_pressed) {
             // Link only
             return (effect & 4);
         }
@@ -2521,6 +2522,11 @@ function Playlist(x, y) {
         if (ctrl_pressed) {
             // Copy (also via link)
             return (effect & 1) || (effect & 4);
+        }
+
+        if (shift_pressed) {
+            // Move only
+            return (effect & 2);
         }
 
         // Move > Copy > Link
@@ -3911,6 +3917,9 @@ function SelectionHandler(rows_arg, cur_playlist_idx_arg) {
 
             if (_.isNil(last_single_selected_index)) {
                 last_single_selected_index = plman.GetPlaylistFocusItemIndex(cur_playlist_idx);
+                if (-1 === last_single_selected_index){
+                    last_single_selected_index = 0;
+                }
             }
 
             var last_selected_header = rows[last_single_selected_index].header;
@@ -3970,6 +3979,9 @@ function SelectionHandler(rows_arg, cur_playlist_idx_arg) {
 
             if (_.isNil(last_single_selected_index)) {
                 last_single_selected_index = plman.GetPlaylistFocusItemIndex(cur_playlist_idx);
+                if (-1 === last_single_selected_index){
+                    last_single_selected_index = 0;
+                }
             }
 
             var last_selected_header = rows[last_single_selected_index].header;
