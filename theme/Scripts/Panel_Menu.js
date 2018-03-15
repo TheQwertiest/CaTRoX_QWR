@@ -12,7 +12,7 @@
 })();
 
 (function check_jscript_version() {
-    var required_version = 2050;
+    var required_version = 2100;
     if (utils.Version < required_version) {
         function version_to_string(version) {
             var version_string = version.toString();
@@ -77,7 +77,7 @@ g_properties.add_properties(
         }
     }
 
-    g_hta_window.popup_with_checkbox(-10000,-10000, 'JScript incompatibility warning', msg, 'Do not show this dialog again', false, on_ok_fn );
+    g_hta_window.popup_with_checkbox(-10000, -10000, 'JScript incompatibility warning', msg, 'Do not show this dialog again', false, on_ok_fn);
     g_hta_window.manager.center();
 })();
 
@@ -141,7 +141,7 @@ function on_size() {
 function on_mouse_move(x, y, m) {
     trace_call && trace_on_move && console.log(qwr_utils.function_name());
 
-    if (mouse_move_suppress.is_supressed(x,y,m)) {
+    if (mouse_move_suppress.is_supressed(x, y, m)) {
         return;
     }
 
@@ -187,7 +187,7 @@ function on_notify_data(name, info) {
  * @constructor
  */
 function Menu() {
-    this.on_paint = function (gr) {
+    this.on_paint = function(gr) {
         if (!has_notified) {
             // When on_paint is called all other panels are loaded and can receive notifications
             window.NotifyOthers('show_tooltips', g_properties.show_tooltips);
@@ -203,13 +203,13 @@ function Menu() {
             }
         }
 
-        gr.FillSolidRect(this.x - pad, this.y - pad, this.w + 2*pad, this.h + pad, g_theme.colors.pss_back);
+        gr.FillSolidRect(this.x - pad, this.y - pad, this.w + 2 * pad, this.h + pad, g_theme.colors.pss_back);
         gr.FillSolidRect(this.x, this.y, this.w, this.h, g_theme.colors.panel_front);
         gr.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
 
         if (g_properties.show_window_shadow) {
             // Dirty hack to fix the appearing border
-            gr.DrawLine(this.x - pad, this.y - pad, this.w + 2*pad, this.y - pad, 1, g_theme.colors.pss_back);
+            gr.DrawLine(this.x - pad, this.y - pad, this.w + 2 * pad, this.y - pad, 1, g_theme.colors.pss_back);
         }
 
         if (g_properties.show_fb2k_version || g_properties.show_theme_version || g_properties.show_cpu_usage) {
@@ -252,9 +252,9 @@ function Menu() {
         buttons.paint(gr);
     };
 
-    this.on_size = function (w, h) {
+    this.on_size = function(w, h) {
         this.h = h - pad;
-        this.w = w - 2*pad;
+        this.w = w - 2 * pad;
 
         create_buttons(this.x, this.y, this.w, this.h);
 
@@ -263,7 +263,7 @@ function Menu() {
         }
     };
 
-    this.on_mouse_move = function (x, y, m) {
+    this.on_mouse_move = function(x, y, m) {
         var btn = buttons.move(x, y);
         if (btn) {
             return;
@@ -279,23 +279,23 @@ function Menu() {
         }
     };
 
-    this.on_mouse_lbtn_down = function (x, y, m) {
+    this.on_mouse_lbtn_down = function(x, y, m) {
         mouse_down = true;
         buttons.lbtn_down(x, y);
     };
 
-    this.on_mouse_lbtn_dblclk = function (x, y, m) {
+    this.on_mouse_lbtn_dblclk = function(x, y, m) {
         this.on_mouse_lbtn_down(x, y, m);
     };
 
-    this.on_mouse_lbtn_up = function (x, y, m) {
+    this.on_mouse_lbtn_up = function(x, y, m) {
         qwr_utils.EnableSizing(m);
 
         mouse_down = false;
         buttons.lbtn_up(x, y);
     };
 
-    this.on_mouse_rbtn_up = function (x, y, m) {
+    this.on_mouse_rbtn_up = function(x, y, m) {
         var cmm = new Context.MainMenu();
 
         var frame = new Context.Menu('Frame style');
@@ -303,7 +303,7 @@ function Menu() {
 
         frame.append_item(
             'Default',
-            _.bind(function () {
+            _.bind(function() {
                 frame_handler.change_style(FrameStyle.Default);
                 frame_handler.toggle_shadow(false);
                 create_buttons(this.x, this.y, this.w, this.h);
@@ -312,7 +312,7 @@ function Menu() {
 
         frame.append_item(
             'Small caption',
-            _.bind(function () {
+            _.bind(function() {
                 frame_handler.change_style(FrameStyle.SmallCaption);
                 frame_handler.toggle_shadow(false);
                 create_buttons(this.x, this.y, this.w, this.h);
@@ -321,7 +321,7 @@ function Menu() {
 
         frame.append_item(
             'No caption',
-            _.bind(function () {
+            _.bind(function() {
                 frame_handler.change_style(FrameStyle.NoCaption);
                 frame_handler.toggle_shadow(false);
                 create_buttons(this.x, this.y, this.w, this.h);
@@ -331,7 +331,7 @@ function Menu() {
 
         frame.append_item(
             'No border',
-            _.bind(function () {
+            _.bind(function() {
                 frame_handler.change_style(FrameStyle.NoBorder);
                 frame_handler.toggle_shadow(g_properties.show_window_shadow);
                 create_buttons(this.x, this.y, this.w, this.h);
@@ -346,7 +346,7 @@ function Menu() {
 
             frame.append_item(
                 'Show window shadow',
-                function () {
+                function() {
                     g_properties.show_window_shadow = !g_properties.show_window_shadow;
                     frame_handler.toggle_shadow(g_properties.show_window_shadow);
                 },
@@ -359,7 +359,7 @@ function Menu() {
 
             cmm.append_item(
                 'Maximize button -> to fullscreen',
-                function () {
+                function() {
                     g_properties.maximize_to_fullscreen = !g_properties.maximize_to_fullscreen;
                 },
                 {is_checked: g_properties.maximize_to_fullscreen}
@@ -370,7 +370,7 @@ function Menu() {
 
         cmm.append_item(
             'Show foobar version',
-            function () {
+            function() {
                 g_properties.show_fb2k_version = !g_properties.show_fb2k_version;
             },
             {is_checked: g_properties.show_fb2k_version}
@@ -378,7 +378,7 @@ function Menu() {
 
         cmm.append_item(
             'Show theme version',
-            function () {
+            function() {
                 g_properties.show_theme_version = !g_properties.show_theme_version;
             },
             {is_checked: g_properties.show_theme_version}
@@ -386,7 +386,7 @@ function Menu() {
 
         cmm.append_item(
             'Show button tooltips',
-            function () {
+            function() {
                 g_properties.show_tooltips = !g_properties.show_tooltips;
                 buttons.show_tt = g_properties.show_tooltips;
                 window.NotifyOthers('show_tooltips', g_properties.show_tooltips);
@@ -399,7 +399,7 @@ function Menu() {
 
             cmm.append_item(
                 'Show CPU usage',
-                function () {
+                function() {
                     g_properties.show_cpu_usage = !g_properties.show_cpu_usage;
                     if (g_properties.show_cpu_usage) {
                         cpu_usage_tracker.start();
@@ -422,7 +422,7 @@ function Menu() {
         return true;
     };
 
-    this.on_mouse_leave = function () {
+    this.on_mouse_leave = function() {
         buttons.leave();
     };
 
@@ -430,7 +430,7 @@ function Menu() {
         buttons.refresh_pin_button();
     };
 
-    this.on_notify_data = function (name, info) {
+    this.on_notify_data = function(name, info) {
         if (name === 'minimode_state') {
             this.repaint();
         }
@@ -438,10 +438,10 @@ function Menu() {
 
     ///// EOF callbacks
 
-    var throttled_repaint = _.throttle(_.bind(function () {
+    var throttled_repaint = _.throttle(_.bind(function() {
         window.RepaintRect(this.x, this.y, this.w, this.h);
     }, this), 1000 / 60);
-    this.repaint = function () {
+    this.repaint = function() {
         throttled_repaint();
     };
 
@@ -476,32 +476,32 @@ function Menu() {
             var y = y_arg + 1;
             var h = img.normal.Height;
             var w = img.normal.Width;
-            buttons.buttons.file = new _.button(x, y, w, h, button_images.File, function (xx, yy, x, y, h, w) { _.menu_item(x, y + h, 'File'); });
+            buttons.buttons.file = new _.button(x, y, w, h, button_images.File, function(xx, yy, x, y, h, w) { _.menu_item(x, y + h, 'File'); });
 
             img = button_images.Edit;
             x += w;
             w = img.normal.Width;
-            buttons.buttons.edit = new _.button(x, y, w, h, button_images.Edit, function (xx, yy, x, y, h, w) { _.menu_item(x, y + h, 'Edit'); });
+            buttons.buttons.edit = new _.button(x, y, w, h, button_images.Edit, function(xx, yy, x, y, h, w) { _.menu_item(x, y + h, 'Edit'); });
 
             img = button_images.View;
             x += w;
             w = img.normal.Width;
-            buttons.buttons.view = new _.button(x, y, w, h, button_images.View, function (xx, yy, x, y, h, w) { _.menu_item(x, y + h, 'View'); });
+            buttons.buttons.view = new _.button(x, y, w, h, button_images.View, function(xx, yy, x, y, h, w) { _.menu_item(x, y + h, 'View'); });
 
             img = button_images.Playback;
             x += w;
             w = img.normal.Width;
-            buttons.buttons.playback = new _.button(x, y, w, h, button_images.Playback, function (xx, yy, x, y, h, w) { _.menu_item(x, y + h, 'Playback'); });
+            buttons.buttons.playback = new _.button(x, y, w, h, button_images.Playback, function(xx, yy, x, y, h, w) { _.menu_item(x, y + h, 'Playback'); });
 
             img = button_images.Library;
             x += w;
             w = img.normal.Width;
-            buttons.buttons.library = new _.button(x, y, w, h, button_images.Library, function (xx, yy, x, y, h, w) { _.menu_item(x, y + h, 'Library'); });
+            buttons.buttons.library = new _.button(x, y, w, h, button_images.Library, function(xx, yy, x, y, h, w) { _.menu_item(x, y + h, 'Library'); });
 
             img = button_images.Help;
             x += w;
             w = img.normal.Width;
-            buttons.buttons.help = new _.button(x, y, w, h, button_images.Help, function (xx, yy, x, y, h, w) { _.menu_item(x, y + h, 'Help'); });
+            buttons.buttons.help = new _.button(x, y, w, h, button_images.Help, function(xx, yy, x, y, h, w) { _.menu_item(x, y + h, 'Help'); });
 
             left_pad = x + w;
         }
@@ -511,7 +511,7 @@ function Menu() {
             var h = button_images.Menu.normal.Height;
             var w = button_images.Menu.normal.Width;
 
-            buttons.buttons.menu = new _.button(x, y, w, h, button_images.Menu, function (xx, yy, x, y, h, w) { _.menu(x, y + h); });
+            buttons.buttons.menu = new _.button(x, y, w, h, button_images.Menu, function(xx, yy, x, y, h, w) { _.menu(x, y + h); });
 
             left_pad = x + w;
         }
@@ -552,11 +552,11 @@ function Menu() {
 
         right_pad = x;
 
-        buttons.buttons.pin = new _.button(x, y, w, h, fb.AlwaysOnTop ? button_images.Unpin : button_images.Pin, function () {
+        buttons.buttons.pin = new _.button(x, y, w, h, fb.AlwaysOnTop ? button_images.Unpin : button_images.Pin, function() {
             fb.RunMainMenuCommand('View/Always on Top');
         }, fb.AlwaysOnTop ? 'Unpin window' : 'Pin window on Top');
 
-        buttons.refresh_pin_button = function () {
+        buttons.refresh_pin_button = function() {
             buttons.buttons.pin.set_image(fb.AlwaysOnTop ? button_images.Unpin : button_images.Pin);
             buttons.buttons.pin.tiptext = fb.AlwaysOnTop ? 'Unpin window' : 'Pin window on Top';
             buttons.buttons.pin.repaint();
@@ -608,11 +608,11 @@ function Menu() {
 
         if (UIHacks.FrameStyle !== FrameStyle.Default) {
             x += w + p;
-            buttons.buttons.minimize = new _.button(x, y, w, h, button_images.Minimize, function () { fb.RunMainMenuCommand('View/Hide'); }, 'Minimize');
+            buttons.buttons.minimize = new _.button(x, y, w, h, button_images.Minimize, function() { fb.RunMainMenuCommand('View/Hide'); }, 'Minimize');
 
             if (pss_switch.minimode.state === 'Full') {
                 x += w + p;
-                buttons.buttons.maximize = new _.button(x, y, w, h, button_images.Maximize, function () {
+                buttons.buttons.maximize = new _.button(x, y, w, h, button_images.Maximize, function() {
                     try {
                         if (g_properties.maximize_to_fullscreen ? !utils.IsKeyPressed(VK_CONTROL) : utils.IsKeyPressed(VK_CONTROL)) {
                             UIHacks.FullScreen = !UIHacks.FullScreen;
@@ -636,7 +636,7 @@ function Menu() {
 
             if (UIHacks.FrameStyle !== FrameStyle.SmallCaption || UIHacks.FullScreen) {
                 x += w + p;
-                buttons.buttons.close = new _.button(x, y, w, h, button_images.Close, function () { fb.Exit(); }, 'Close');
+                buttons.buttons.close = new _.button(x, y, w, h, button_images.Close, function() { fb.Exit(); }, 'Close');
             }
         }
     }
@@ -767,7 +767,7 @@ function Menu() {
                 }
             };
 
-        _.forEach(btn, function (item, i) {
+        _.forEach(btn, function(item, i) {
             if (item.id === 'menu') {
                 var img = gdi.CreateImage(100, 100);
                 var g = img.GetGraphics();
@@ -864,7 +864,7 @@ function Menu() {
  */
 function WindowModeHandler() {
 
-    this.toggle_ultra_mini_mode = function () {
+    this.toggle_ultra_mini_mode = function() {
         if (pss_switch.minimode.state !== 'UltraMini') {
             g_properties.saved_mode = pss_switch.minimode.state;
         }
@@ -917,7 +917,7 @@ function WindowModeHandler() {
         }
     };
 
-    this.toggle_mini_mode = function () {
+    this.toggle_mini_mode = function() {
         var new_minimode_state = ((pss_switch.minimode.state === 'Mini') ? 'Full' : 'Mini');
 
         if (new_minimode_state === 'Mini') {
@@ -960,7 +960,7 @@ function WindowModeHandler() {
         }
     };
 
-    this.set_window_size_limits_for_mode = function (miniMode) {
+    this.set_window_size_limits_for_mode = function(miniMode) {
         var minW = 0,
             maxW = 0,
             minH = 0,
@@ -1009,7 +1009,7 @@ function WindowModeHandler() {
         }
     };
 
-    function set_window_size (width, height) {
+    function set_window_size(width, height) {
         //To avoid resizing bugs, when the window is bigger\smaller than the saved one.
         UIHacks.MinSize = false;
         UIHacks.MaxSize = false;
@@ -1075,10 +1075,10 @@ function FrameStyleHandler() {
     };
 
     this.disable_caption = function() {
-        this.set_caption(0,0,0,0);
+        this.set_caption(0, 0, 0, 0);
     };
 
-    this.set_caption = function(x_arg,y_arg,w_arg,h_arg) {
+    this.set_caption = function(x_arg, y_arg, w_arg, h_arg) {
         if (x_arg !== x || y_arg !== y || w_arg !== w || h_arg !== h) {
             x = x_arg;
             y = y_arg;
@@ -1099,7 +1099,7 @@ function FrameStyleHandler() {
         }
     };
 
-    function update_caption_state(){
+    function update_caption_state() {
         that.has_true_caption = (UIHacks.FrameStyle === FrameStyle.Default || UIHacks.FrameStyle === FrameStyle.SmallCaption) && !UIHacks.FullScreen;
     }
 
@@ -1119,25 +1119,25 @@ function FrameStyleHandler() {
  * @constructor
  */
 function CpuUsageTracker(on_change_callback_arg) {
-    this.start = function () {
+    this.start = function() {
         start_cpu_usage_timer();
     };
 
-    this.stop = function () {
+    this.stop = function() {
         stop_cpu_usage_timer();
     };
 
-    this.get_cpu_usage = function () {
+    this.get_cpu_usage = function() {
         return cpu_usage;
     };
 
-    this.get_gui_cpu_usage = function () {
+    this.get_gui_cpu_usage = function() {
         return gui_cpu_usage;
     };
 
     function start_cpu_usage_timer() {
         if (_.isNil(cpu_usage_timer)) {
-            cpu_usage_timer = setInterval(function () {
+            cpu_usage_timer = setInterval(function() {
 
                 var floatUsage = UIHacks.FoobarCPUUsage;
 
@@ -1155,7 +1155,7 @@ function CpuUsageTracker(on_change_callback_arg) {
                 cpu_usage = floatUsage.toFixed(1);
 
                 var usageDiff = Math.max((floatUsage - baseLine), 0);
-                usageDiff = (usageDiff <= 0.5 ? 0 : usageDiff ); // Supress low spikes
+                usageDiff = (usageDiff <= 0.5 ? 0 : usageDiff); // Supress low spikes
                 gui_cpu_usage = usageDiff.toFixed(1);
 
                 on_change_callback();
@@ -1185,7 +1185,7 @@ function CpuUsageTracker(on_change_callback_arg) {
  * @constructor
  */
 function AverageUsageFunc() {
-    this.update = function (current_usage) {
+    this.update = function(current_usage) {
         if (current_sample_count) {
             if (this.average_usage - current_usage > 2) {
                 if (reset_sample_count < 3) {
@@ -1205,7 +1205,7 @@ function AverageUsageFunc() {
         }
     };
 
-    this.reset = function () {
+    this.reset = function() {
         current_sample_count = 0;
         reset_sample_count = 0;
         acum_usage = 0;
