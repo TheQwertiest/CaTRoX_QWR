@@ -4804,7 +4804,7 @@ function GroupingHandler() {
             on_execute_callback_fn();
         };
 
-        var parsed_query = cur_group.name === 'user_defined' ? [cur_group.group_query, cur_group.title_query] : ['', '[%album artist%])'];
+        var parsed_query = cur_group.name === 'user_defined' ? [cur_group.group_query, cur_group.title_query] : ['', '[%album artist%]'];
         g_hta_window.msg_box_multiple(-10000, -10000, ['Grouping Query', 'Title Query'], 'Foobar2000: Group by', [parsed_query[0], parsed_query[1]], on_ok_fn);
 
         var fb_handle = g_has_modded_jscript ? qwr_utils.get_fb2k_window() : undefined;
