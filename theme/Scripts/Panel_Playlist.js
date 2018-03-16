@@ -67,6 +67,15 @@ var g_has_modded_jscript = qwr_utils.has_modded_jscript();
     // Grouping data is validated in it's class ctor
 })();
 
+/** @enum{number} */
+var g_drop_effect = {
+    none: 0,
+    copy: 1,
+    move: 2,
+    link: 4,
+    scroll: 0x80000000
+};
+
 //---> Fonts
 var g_pl_fonts = {
     title_normal:   gdi.font('Segoe Ui', 12),
@@ -940,10 +949,12 @@ function Playlist(x, y) {
         }
 
         if (!this.trace_list(x, y) || !selection_handler.can_drop()) {
-            action.Effect = 0;
+            action.Effect = g_drop_effect.none;
         }
         else {
-            action.Effect = (action.Effect & 2) || (action.Effect & 1) || (action.Effect & 4);
+            action.Effect = (action.Effect & g_drop_effect.move)
+                || (action.Effect & g_drop_effect.copy)
+                || (action.Effect & g_drop_effect.link);
         }
     };
 
@@ -961,7 +972,7 @@ function Playlist(x, y) {
 
     this.on_drag_over = function (action, x, y, mask) {
         if (!selection_handler.can_drop()) {
-            action.Effect = 0;
+            action.Effect = g_drop_effect.none;
             return;
         }
 
@@ -996,7 +1007,7 @@ function Playlist(x, y) {
         last_hover_item = this.get_item_under_mouse(x, y);
 
         if (!this.trace_list(x, y)) {
-            action.Effect = 0;
+            action.Effect = g_drop_effect.none;
         }
         else {
             action.Effect = filter_effect_by_modifiers(action.Effect);
@@ -1009,7 +1020,7 @@ function Playlist(x, y) {
 
         if (!selection_handler.is_dragging() || !this.trace_list(x, y) || !selection_handler.can_drop()) {
             selection_handler.disable_external_drag();
-            action.Effect = 0;
+            action.Effect = g_drop_effect.none;
             return;
         }
 
@@ -1020,11 +1031,11 @@ function Playlist(x, y) {
             selection_handler.drop(copy_drop);
 
             // Suppress native drop, since we've handled it ourselves
-            action.Effect = 0;
+            action.Effect = g_drop_effect.none;
         }
         else {
             action.Effect = filter_effect_by_modifiers(action.Effect);
-            if (0 !== action.Effect){
+            if (g_drop_effect.none !== action.Effect){
                 selection_handler.prepare_external_drop(action);
             }
             else {
@@ -2514,23 +2525,24 @@ function Playlist(x, y) {
         var shift_pressed = utils.IsKeyPressed(VK_SHIFT);
         var alt_pressed = utils.IsKeyPressed(VK_MENU);
 
-        if (ctrl_pressed && shift_pressed || alt_pressed) {
+        if (ctrl_pressed && shift_pressed && !alt_pressed
+            || alt_pressed && !ctrl_pressed && !shift_pressed) {
             // Link only
-            return (effect & 4);
+            return (effect & g_drop_effect.link);
         }
 
-        if (ctrl_pressed) {
+        if (ctrl_pressed && !shift_pressed && !alt_pressed) {
             // Copy (also via link)
-            return (effect & 1) || (effect & 4);
+            return (effect & g_drop_effect.copy) || (effect & g_drop_effect.link);
         }
 
         if (shift_pressed) {
             // Move only
-            return (effect & 2);
+            return (effect & g_drop_effect.move);
         }
 
         // Move > Copy > Link
-        return (effect & 2) || (effect & 1) || (effect & 4);
+        return (effect & g_drop_effect.move) || (effect & g_drop_effect.copy) || (effect & g_drop_effect.link);
     }
 
     // private:
@@ -3671,17 +3683,38 @@ function SelectionHandler(rows_arg, cur_playlist_idx_arg) {
         var cur_playlist_selection = plman.GetPlaylistSelectedItems(cur_playlist_idx);
         var cur_selected_indexes = selected_indexes;
 
-        var effect = fb.DoDragDrop(cur_playlist_selection, 1 | 2 | 4);
-        if (effect > 0) {
-            this.disable_drag();
+        var effect = fb.DoDragDrop(cur_playlist_selection, g_drop_effect.copy | g_drop_effect.move | g_drop_effect.link);
+
+        function can_handle_move_drop(){
+            // We can handle properly the 'move drop' properly only when playlist is still in the same state
+            return cur_playlist_size === plman.PlaylistItemCount(cur_playlist_idx)
+                && _.isEqual(cur_selected_indexes, selected_indexes);
         }
-        if (2 === effect) {
-            if (cur_playlist_size === plman.PlaylistItemCount(cur_playlist_idx)
-                && _.isEqual(cur_selected_indexes, selected_indexes)) {
-                // We can't handle properly the 'move drop' on the same playlist in a different panel,
-                // so we need to check if the playlist is still in the same state
+
+        if ( g_drop_effect.none === effect && can_handle_move_drop()) {
+            // This needs special handling, because on NT, DROPEFFECT_NONE
+            // is returned for some move operations, instead of DROPEFFECT_MOVE.
+            // See Q182219 for the details.
+
+            var items_to_remove = [];
+            var playlist_items = plman.GetPlaylistItems(cur_playlist_idx);
+            _.forEach(cur_selected_indexes, function(idx)
+            {
+                var cur_item = playlist_items.Item(idx);
+                if (_.startsWith(cur_item.RawPath, 'file://') && !fso.FileExists(cur_item.Path)) {
+                    items_to_remove.push(idx);
+                }
+            });
+
+            if (items_to_remove.length) {
+                plman.ClearPlaylistSelection(cur_playlist_idx);
+                plman.SetPlaylistSelection(cur_playlist_idx, items_to_remove, true);
                 plman.RemovePlaylistSelection(cur_playlist_idx);
             }
+        }
+        else if (g_drop_effect.move === effect && can_handle_move_drop())
+        {
+            plman.RemovePlaylistSelection(cur_playlist_idx);
         }
 
         is_internal_drag_n_drop_active = false;
