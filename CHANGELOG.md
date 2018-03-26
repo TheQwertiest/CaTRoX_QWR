@@ -6,12 +6,12 @@
 - Playlist Panel:
   - Increased playlist initialization speed by 100%-180%!
   - Copy/Cut/Paste now works with native clipboard, e.g. copy mp3 file to/from Windows Explorer.
-  - Added ability to drag tracks from panel, e.g. drag mp3 file to another panel or to Windows Explorer. 
+  - Added ability to drag tracks from panel, e.g. drag mp3 file to another panel or to Windows Explorer.
   - Added option to display original release date in grouping header (right-click > Appearance > Headers > Show original release date).
 
 ### Changed
 - Playlist Panel:
-  - Changed default title query in header to use %albumartist%.
+  - Changed default title query in header to %albumartist%.
   - Cleaned up various queries used in group header.
   - Drag-n-drop behaviour is now much more in line with the native Windows behaviour.
 - Track Info Panel:
@@ -25,7 +25,7 @@
 
 ### Fixed
 - General:
-  - Fixed frame shadow not enabling on frame style switch.
+  - Fixed frame shadow not being enabled on frame style switch.
   - Fixed mouse middle button not always working.
 - Playlist Panel:
   - Fixed items not refocusing after external drag-n-drop.
@@ -36,18 +36,18 @@
   - Fixed 'Open Containing Folder' (SHIFT-O).
   - Fixed overlap of queue index and album artist.
   - Fixed playlist manager not always reflecting changes in playlist content, when adding or removing playlist items.
-- Top Panel: 
+- Top Panel:
   - Fixed crash on double-click.
   - Fixed track info not updating when playing from dynamic sources.
-- Bottom Panel: 
-  - Fixed invalid playback time with dynamic sources. 
+- Bottom Panel:
+  - Fixed invalid playback time with dynamic sources.
 
 ## [4.1.1] - 2018-02-19
 ### Changed
 Playlist Panel:
 - Playlist Manager: changed button animation style for better consistency with the rest of the theme.
 - Grouping Dialogs:
-  - Added workaround for borked buttons in Windows 7.  
+  - Added workaround for borked buttons in Windows 7.
   - Added fb2k icon to the window.
   - 'Apply' and 'Update' buttons are now active only when there are pending changes.
   - Dialog windows are now centered.
@@ -62,11 +62,11 @@ Playlist Panel:
   - Added animation on mouse click.
 - Playlist Panel:
   - Added ESplaylist-like ability to customize grouping presets:
-    - Presets can be added, changed, moved and removed. 
-    - Customizable title and sub-title queries in group header. 
+    - Presets can be added, changed, moved and removed.
+    - Customizable title and sub-title queries in group header.
   - Added CTRL-SHIFT-up/down hotkeys - moves selection up/down.
   - Added 'pressed' animation to playlist manager.
-- Context Menus: developer context menu (accessible via SHIFT-right-click) now contains all base panel scripts in it's 'Edit panel scripts' sub-menu. 
+- Context Menus: developer context menu (accessible via SHIFT-right-click) now contains all base panel scripts in it's 'Edit panel scripts' sub-menu.
 
 ### Changed
 - Updated WilB's scripts:
@@ -87,14 +87,14 @@ Playlist Panel:
   - List padding (set via panel properties) is respected now.
   - Fixed incorrect scroll position that appeared in some cases.
   - Fixed invalid drag-n-drop position.
-  - Fixed various errors with drag-n-drop on empty playlist area.  
+  - Fixed various errors with drag-n-drop on empty playlist area.
   - Fixed invalid position of CTRL-V pasted items.
   - Fixed CTRL-X not removing cut item.
   - Fixed various crashes during playlist navigation while focused track is not set.
   - Fixed grouping settings not respecting playlist changes.
 - Cover Panel:
   - Fixed 'Loading' text being stuck on script load.
-  - Fixed crashes when track is deleted during art load. 
+  - Fixed crashes when track is deleted during art load.
 
 ## [4.0.5] - 2018-01-10
 ### Added
@@ -111,7 +111,7 @@ Playlist Panel:
 - Removed unneeded resizes on mode change.
 
 ## [4.0.4] - 2017-12-24
-### Changed 
+### Changed
 - Playlist: date and album now won't be displayed if unavailable (previously was displayed as '?').
 - Better handling of vanilla JScript component.
 
@@ -126,14 +126,13 @@ Playlist Panel:
 - Track Info Panel: added ability to change tracking mode (auto/playing/selected).
 - Playlist Panel: header grouping type is now synced between Playlist Mode and Full Mode.
 
-### Changed 
+### Changed
 - Top Panel: Made 'Last.FM Scrobbling Disabled' icon a bit prettier ^^.
 - Updated theme.fcl: moved timeout shim to helpers.js.
-- Compiled latest foo_jscript_panel with extensions (v1.3.2.1).
 
 ### Fixed
 - Art Mode: fixed cropped 'mute' button.
-- Playlist Panel: 
+- Playlist Panel:
   - Fixed text overlapping with lock image.
   - Fixed lock image not appearing after locking playlist.
   - Fixed list width not adjusting when scrollbar disappears\appears.
@@ -155,7 +154,7 @@ Playlist Panel:
   - Fixed crash when clicking on volume bar in Playlist Mode ( again ).
 
 ## [4.0.2a] - 2017-11-23
-### Changed 
+### Changed
 - Updated theme.fcl:
   - Removed unused CUI layout.
 
@@ -164,7 +163,7 @@ Playlist Panel:
   - Fixed crash when clicking on volume bar in Playlist Mode.
 
 ## [4.0.2] - 2017-11-23
-### Changed 
+### Changed
 - First theme launch now sets window size according to player mode.
 - Updated theme.fcl:
   - Spectrum visualization is now enabled by default.
@@ -177,10 +176,9 @@ Playlist Panel:
 ### Added
 - Top Panel: foo_scrobble integration - added button to toggle Last.FM scrobbling.
 
-### Changed 
+### Changed
 - Updated WilB's Library Tree to 1.3.9.1.
 - Updated theme.fcl.
-- Compiled latest foo_jscript_panel with extensions (v1.3.1).
 
 ### Fixed
 - Various small bugfixes.
@@ -192,7 +190,7 @@ Playlist Panel:
 - Playlist: expansion/collapse of headers can be done by right/left arrow buttons.
 - Playlist: all playlist changes now can be roll-backed with Edit > Undo.
 
-### Changed 
+### Changed
 - Playlist: removed ability to skip tracks when rating is lower than specified. Use [foo_skip](https://www.foobar2000.org/components/view/foo_skip) component instead.
 - Playlist: expansion/collapse of headers is now done by CTRL-SHIFT-click instead of double-click.
 - Playlist: small design changes.
@@ -200,7 +198,6 @@ Playlist Panel:
 - Updated code for compatibility with JScript 1.3.1 changes.
 - Technical: updated lodash to 4.17.4.
 - Technical: refactored lots of code.
-- Compiled latest foo_jscript_panel with extensions (v1.3.1beta).
 
 ### Fixed
 - Fixed glitched window shadow.
