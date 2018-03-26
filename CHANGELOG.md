@@ -13,8 +13,11 @@
   - Changed default title query in header to use %albumartist%.
   - Cleaned up various queries used in group header.
   - Drag-n-drop behaviour is now much more in line with the native Windows behaviour.
-- Track Info Panel: 
+- Track Info Panel:
   - Remade 'New Tag' dialog window.
+- Updated WilB's scripts:
+  - Library Tree v1.4.
+  - YouTube Track Manager v3.9.5. 
 
 ### Fixed
 - General:
