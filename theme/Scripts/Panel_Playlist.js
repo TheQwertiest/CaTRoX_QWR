@@ -2296,11 +2296,13 @@ function Playlist(x, y) {
                 if (from_item) {
                     var from_item_state = get_item_visibility_state(from_item);
                     if (from_item_state.visibility !== visibility_state['none']) {
-                        var is_item_prev = from_item.type === to_item.type && from_item.idx - 1 === to_item.idx
+                        var from_item_type = _.isInstanceOf(from_item, Header) ? Header : Row;
+
+                        var is_item_prev = _.isInstanceOf(to_item, from_item_type) && from_item.idx - 1 === to_item.idx
                             || is_from_header && !is_to_header && from_header.idx - 1 === to_header.idx && to_item.idx === _.last(to_header.rows).idx
                             || !is_from_header && is_to_header && from_header.idx - 1 === to_header.idx && from_item.idx === _.head(from_header.rows).idx;
 
-                        var is_item_next = from_item.type === to_item.type && from_item.idx + 1 === to_item.idx
+                        var is_item_next = _.isInstanceOf(to_item, from_item_type) && from_item.idx + 1 === to_item.idx
                             || is_from_header && !is_to_header && from_header.idx + 1 === to_header.idx && to_item.idx === _.head(to_header.rows).idx
                             || !is_from_header && is_to_header && from_header.idx + 1 === to_header.idx && from_item.idx === _.last(from_header.rows).idx;
 
@@ -2378,8 +2380,10 @@ function Playlist(x, y) {
             invisible_part: item_to_check.h / that.row_h
         };
 
+        var item_to_check_type = _.isInstanceOf(item_to_check, Header) ? Header : Row;
+
         _.forEach(that.items_to_draw, function (item) {
-            if (item_to_check.type !== item.type) {
+            if (!_.isInstanceOf(item, item_to_check_type)) {
                 return true;
             }
 
