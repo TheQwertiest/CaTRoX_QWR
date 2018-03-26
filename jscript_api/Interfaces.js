@@ -1,6 +1,6 @@
 /*
-Last Updated: 13.03.2018
-Corresponding JScript Commit: 209557a11c22f021c742c6f01376c0f6a7768da5
+Last Updated: 26.03.2018
+Corresponding JScript Commit: d63aace6a00ff16c3312d8558d7649ffaf1f98d1
 */
 
 /**
@@ -11,7 +11,7 @@ function VBArray() {
     /**
      * @return {Array<T>}
      */
-    this.toArray = function() {};
+    this.toArray = function () {};
 }
 
 /**
@@ -123,14 +123,15 @@ function IFbUtils() {
         this.SetPlaylistSelectionTracking = function () {}; // (void)
 
         /**
-        * Sets selected items to playlist contents and enables tracking.
-        * When the playlist selection changes, the stored selection is automatically
-        * updated. Tracking ends when a set method is called on any ui_selection_holder
-        * or when the last reference to this ui_selection_holder is released.
-        */
+         * Sets selected items to playlist contents and enables tracking.
+         * When the playlist selection changes, the stored selection is automatically
+         * updated. Tracking ends when a set method is called on any ui_selection_holder
+         * or when the last reference to this ui_selection_holder is released.
+         */
         this.SetPlaylistTracking = function () {}; // (void)
 
     }
+
     /*
     Example1: (for playlist viewers)
 
@@ -172,7 +173,7 @@ function IFbUtils() {
      * @param {number} window_id
      * @return {boolean}
      */
-    this.CheckClipboardContents = function(window_id) {}; // (boolean)
+    this.CheckClipboardContents = function (window_id) {}; // (boolean)
 
     /**
      * Clears active playlist. If you wish to clear a specific playlist, use plman.ClearPlaylist(playlistIndex).
@@ -183,7 +184,7 @@ function IFbUtils() {
      * @param {IFbMetadbHandleList} handle_list
      * @return {boolean}
      */
-    this.CopyHandleListToClipboard = function(handle_list) {}; // (boolean)
+    this.CopyHandleListToClipboard = function (handle_list) {}; // (boolean)
     /*
     Items can then be pasted in other playlist viewers or in Windows Explorer as files.
 
@@ -195,12 +196,12 @@ function IFbUtils() {
     Example2: (cut playlist items)
     var ap = plman.ActivePlaylist;
     if (!plman.IsPlaylistLocked(ap)) {
-    	var items = plman.GetPlaylistSelectedItems(ap);
-    	if (fb.CopyHandleListToClipboard(items)) {
-    		plman.UndoBackup(ap);
-    		plman.RemovePlaylistSelection(ap);
-    	}
-    	items.Dispose();
+        var items = plman.GetPlaylistSelectedItems(ap);
+        if (fb.CopyHandleListToClipboard(items)) {
+            plman.UndoBackup(ap);
+            plman.RemovePlaylistSelection(ap);
+        }
+        items.Dispose();
     }
     */
 
@@ -291,6 +292,7 @@ function IFbUtils() {
         this.Reset = function () {}; // (void)
         this.Print = function () {}; // (void)
     }
+
     /*
     Example:
     var test = fb.CreateProfiler("test");
@@ -306,7 +308,7 @@ function IFbUtils() {
      * @param {number} effect Allowed effects.
      * @return {number} Effect that was returned in on_drag_drop.
      */
-    this.DoDragDrop = function(handle_list, effect) {}; // (uint);
+    this.DoDragDrop = function (handle_list, effect) {}; // (uint);
 
     this.Exit = function () {}; // (void)
 
@@ -314,7 +316,7 @@ function IFbUtils() {
      * @param {number} window_id
      * @return {IFbMetadbHandleList}
      */
-    this.GetClipboardContents = function(window_id) {}; // (IFbMetadbHandleList)
+    this.GetClipboardContents = function (window_id) {}; // (IFbMetadbHandleList)
     /*
     Clipboard contents can be handles copied to the clipboard in other components, from fb.CopyHandleListToClipboard or a file selection
     from Windows Explorer etc.
@@ -324,14 +326,14 @@ function IFbUtils() {
         var ap = plman.ActivePlaylist;
         var menu = window.CreatePopupMenu();
         menu.AppendMenuItem(!plman.IsPlaylistLocked(ap) && fb.CheckClipboardContents(window.ID) ? MF_STRING : MF_GRAYED, 1, "Paste"); // assume MF_* are already defined
-    	var idx = menu.TrackPopupMenu(x, y);
-    	if (idx == 1) {
-    		var items = fb.GetClipboardContents(window.ID);
-    		plman.InsertPlaylistItems(ap, plman.PlaylistItemCount(ap), items);
-    		items.Dispose();
-    	}
-    	menu.Dispose();
-    	return true;
+        var idx = menu.TrackPopupMenu(x, y);
+        if (idx == 1) {
+            var items = fb.GetClipboardContents(window.ID);
+            plman.InsertPlaylistItems(ap, plman.PlaylistItemCount(ap), items);
+            items.Dispose();
+        }
+        menu.Dispose();
+        return true;
     }
     */
 
@@ -562,13 +564,13 @@ function IFbUtils() {
          * @param handle_list {IFbMetadbHandleList}
          * @return {VBArray<string>}
          */
-        this.EvalWithMetadbs = function(handle_list) {}; //(VBArray)
-    	/*
-		Example:
-		var items = fb.GetLibraryItems();
-		var artists = tfo.EvalWithMetadbs(items).toArray();
-		console.log(items.Count === artists.length); // should always be true!
-		*/
+        this.EvalWithMetadbs = function (handle_list) {}; //(VBArray)
+        /*
+        Example:
+        var items = fb.GetLibraryItems();
+        var artists = tfo.EvalWithMetadbs(items).toArray();
+        console.log(items.Count === artists.length); // should always be true!
+        */
     }
 
     this.VolumeDown = function () {}; // (void)
@@ -807,7 +809,7 @@ function IFbPlaylistManager() {
      * @param {string} name Case insensitive.
      * @return {number} playlistIndex or -1 on failure.
      */
-    this.FindPlaylist = function(name) {}; // (int)
+    this.FindPlaylist = function (name) {}; // (int)
 
     /**
      * Retrieves playlist position of currently playing item.
@@ -829,6 +831,7 @@ function IFbPlaylistManager() {
         /** @type {number} */
         this.PlaylistItemIndex = undefined; // (int) (read)
     }
+
     /*
     Example:
     var playing_item_location = plman.GetPlayingItemLocation();
@@ -957,6 +960,10 @@ function IFbPlaylistManager() {
     */
 
     /**
+     * Removes the specified playlist.
+     * Note that if removing the active playlist, no playlist will be active after using this. You'll
+     * need to set it manually or use plman.RemovePlaylistSwitch instead.
+     *
      * @param {number} playlistIndex
      * @return {boolean}
      */
@@ -964,7 +971,7 @@ function IFbPlaylistManager() {
 
     /**
      * @param {number} playlistIndex
-     * @param {boolean=} [crop=false]
+     * @param {boolean=} [crop=false] If crop is true, then removes items that are NOT selected.
      */
     this.RemovePlaylistSelection = function (playlistIndex, crop) {}; // (void) [, crop]
     /*
@@ -975,6 +982,15 @@ function IFbPlaylistManager() {
     plman.RemovePlaylistSelection(plman.ActivePlaylist, true);
     Removes items that are NOT selected.
     */
+
+    /**
+     * Removes the specified playlist.
+     * This automatically sets another playlist as active if removing the active playlist.
+     *
+     * @param {number} playlistIndex
+     * @return {boolean}
+     */
+    this.RemovePlaylistSwitch = function (playlistIndex) {}; // (boolean)
 
     /**
      * @param {number} playlistIndex
@@ -1086,7 +1102,7 @@ function IFbPlaylistManager() {
      *     1 - ascending
      *     -1 - descending
      */
-    this.SortPlaylistsByName = function(direction) {}; //(void)
+    this.SortPlaylistsByName = function (direction) {}; //(void)
 
     /**
      * Call before using other plman methods that add/remove/reorder playlist items so a history will be available from the Edit menu.
@@ -1119,13 +1135,13 @@ function IFbPlaylistManager() {
     /**
      * @return {VBArray<IFbPlaybackQueueItem>}
      */
-    this.GetPlaybackQueueContents = function() {}; // (VBArray)
+    this.GetPlaybackQueueContents = function () {}; // (VBArray)
     /*
     Example:
     var contents = plman.GetPlaybackQueueContents().toArray();
     if (contents.length) {
-    	// access properties of first item
-    	console.log(contents[0].PlaylistIndex, contents[0].PlaylistItemIndex);
+        // access properties of first item
+        console.log(contents[0].PlaylistIndex, contents[0].PlaylistItemIndex);
     }
     */
 
@@ -1416,10 +1432,10 @@ function IJSUtils() {
      */
     this.WriteTextFile = function (filename, content, write_bom) {}; //(boolean)
     /*
-	Example:
-	utils.WriteTextFile("z:\\1.txt", "test"); // write_bom missing but defaults to true, resulting file is UTF8-BOM
-	utils.WriteTextFile("z:\\2.txt", "test", true); // resulting file is UTF8-BOM
-	utils.WriteTextFile("z:\\3.txt", "test", false); // resulting file is UTF8 without BOM
+    Example:
+    utils.WriteTextFile("z:\\1.txt", "test"); // write_bom missing but defaults to true, resulting file is UTF8-BOM
+    utils.WriteTextFile("z:\\2.txt", "test", true); // resulting file is UTF8-BOM
+    utils.WriteTextFile("z:\\3.txt", "test", false); // resulting file is UTF8 without BOM
     */
 }
 
@@ -2285,31 +2301,31 @@ function IFbMetadbHandle() {
     /**
      * @param {number} playcount Use 0 to clear
      */
-    this.SetPlayCount = function(playcount) {}; // (void)
+    this.SetPlayCount = function (playcount) {}; // (void)
 
     /**
      * @param {number} loved Use 0 to clear
      */
-    this.SetLoved = function(loved) {}; // (void)
+    this.SetLoved = function (loved) {}; // (void)
 
     /**
      * @param {string} first_played Use "" to clear
      */
-    this.SetFirstPlayed = function(first_played) {}; // (void)
+    this.SetFirstPlayed = function (first_played) {}; // (void)
 
     /**
      * @param {string} last_played Use "" to clear
      */
-    this.SetLastPlayed = function(last_played) {}; // (void)
+    this.SetLastPlayed = function (last_played) {}; // (void)
 
     /**
      * @param {number} rating Use 0 to clear
      */
-    this.SetRating = function(rating) {}; // (void)
+    this.SetRating = function (rating) {}; // (void)
 
-    this.ClearStats = function() {}; // (void)
+    this.ClearStats = function () {}; // (void)
 
-    this.RefreshStats = function() {}; // (void)
+    this.RefreshStats = function () {}; // (void)
 
     /**
      * Compare two IFbMetadbHandle instances, pointer only.
