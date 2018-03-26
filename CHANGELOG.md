@@ -1,6 +1,7 @@
 # Changelog
 
 ## [Unreleased]
+## [4.2.0] - 2018-03-26
 ### Added
 - Playlist Panel:
   - Increased playlist initialization speed by 100%-180%!
@@ -17,7 +18,10 @@
   - Remade 'New Tag' dialog window.
 - Updated WilB's scripts:
   - Library Tree v1.4.
-  - YouTube Track Manager v3.9.5. 
+  - YouTube Track Manager v3.9.5.
+- Updated theme.fcl:
+  - Changed contained script files.
+  - Adjusted default panel properties.
 
 ### Fixed
 - General:
@@ -231,8 +235,9 @@ Playlist Panel:
 ### Fixed
 - Fixed various crashes caused by incompatibility with JScript.
 
-[Unreleased]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.1.1...HEAD
-[4.1.0]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.1.0...v4.1.1
+[Unreleased]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.2.0...HEAD
+[4.2.0]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.1.1...v4.2.0
+[4.1.1]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.1.0...v4.1.1
 [4.1.0]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.0.5...v4.1.0
 [4.0.5]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.0.4...v4.0.5
 [4.0.4]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.0.3...v4.0.4
