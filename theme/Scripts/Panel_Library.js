@@ -1,7 +1,7 @@
 ﻿// ==PREPROCESSOR==
 // @name "Library Tree"
 // @author "WilB"
-// @version "1.4"
+// @version "1.401"
 // ==/PREPROCESSOR==
 
 if (!window.GetProperty("SYSTEM.Chakra Checked", false) && !Date.now) {fb.ShowPopupMessage("Use the 'Chakra' script engine if possible (requires IE9 or later) - it's faster. Select in the JScript panel configuration window (shift + right click)", "Library Tree"); window.SetProperty("SYSTEM.Chakra Checked", true);}
@@ -1043,7 +1043,7 @@ function populate() {
         last_pressed_coord = {x: undefined, y: undefined}; lbtn_dn = false;
         if (y < p.s_h) return; var ix = this.get_ix(x, y, true, false); p.pos = ix; if (ix >= this.tree.length || ix < 0)  return this.get_selection(-1);
         var item = this.tree[ix], mode = x < Math.round(ui.pad * item.tr) + ui.icon_w + ui.margin ? 0 : this.check_ix(item, x, y, false) ? 1 : 2, xp = item.child.length > 0 ? 0 : 1;
-        if (!mode || sent) return;
+        if (mode != 1 || sent) return;
         if (v.k(2) && this.autoFill) return this.add(x, y, alt_lbtn_pl);
         if (!v.k(1)) {this.clear(); if (!item.sel) this.get_selection(ix, item.sel);}
         else this.get_selection(ix, item.sel); p.tree_paint();

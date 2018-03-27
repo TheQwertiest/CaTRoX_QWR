@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [4.2.0b] - 2018-03-27
+### Changed
+Updated WilB's Library Tree to v1.401.
+
 ## [4.2.0a] - 2018-03-26
 ### Fixed
 Playlist Panel: fixed wrong scroll position on item refocusing.
@@ -237,7 +241,8 @@ Playlist Panel:
 ### Fixed
 - Fixed various crashes caused by incompatibility with JScript.
 
-[Unreleased]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.2.0a...HEAD
+[Unreleased]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.2.0b...HEAD
+[4.2.0b]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.2.0a...v4.2.0b
 [4.2.0a]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.2.0...v4.2.0a
 [4.2.0]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.1.1...v4.2.0
 [4.1.1]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.1.0...v4.1.1
