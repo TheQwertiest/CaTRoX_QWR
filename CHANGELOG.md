@@ -4,11 +4,11 @@
 
 ## [4.2.0b] - 2018-03-27
 ### Changed
-Updated WilB's Library Tree to v1.401.
+- Updated WilB's Library Tree to v1.401.
 
 ## [4.2.0a] - 2018-03-26
 ### Fixed
-Playlist Panel: fixed wrong scroll position on item refocusing.
+- Playlist Panel: fixed wrong scroll position on item refocusing.
 
 ## [4.2.0] - 2018-03-26
 ### Added
