@@ -329,7 +329,7 @@ var qwr_utils = {
                 site = (search_term || album ? 'http://www.discogs.com/search?q=' + search_term + '+' + album + '&ie=utf-8' : null);
                 break;
             default:
-                site = undefined;
+                site = '';
         }
 
         if (!site) {

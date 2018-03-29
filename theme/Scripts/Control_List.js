@@ -29,7 +29,6 @@ g_properties.add_properties(
     g_properties.row_h = Math.max(10, g_properties.row_h);
 })();
 
-
 /**
  * Basic list with a scrollbar.
  * By default each item is a row of a fixed size.
@@ -43,11 +42,6 @@ g_properties.add_properties(
 List = function (x, y, w, h, content) {
 
     // public:
-
-    /** @type {function} */
-    this.throttled_repaint = _.throttle(_.bind(function () {
-        window.RepaintRect(this.x, this.y, this.w, this.h);
-    }, this), 1000 / 60);
 
     /** @type {number} */
     this.x = x;
@@ -67,6 +61,14 @@ List = function (x, y, w, h, content) {
     this.panel_back_color = g_theme.colors.panel_back;
 
     // protected:
+
+    /**
+     * @private
+     * @function
+     */
+    this.throttled_repaint = _.throttle(_.bind(function () {
+        window.RepaintRect(this.x, this.y, this.w, this.h);
+    }, this), 1000 / 60);
 
     /** @protected {number} */
     this.list_x = this.x + g_properties.list_left_pad;
@@ -482,7 +484,8 @@ List.prototype.calculate_shift_params = function () {
  */
 List.Item = function (x, y, w, h) {
     /**
-     * @private {function}
+     * @private
+     * @function
      */
     this.throttled_repaint = _.throttle(_.bind(function () {
         window.RepaintRect(this.x, this.y, this.w, this.h);
