@@ -1,6 +1,6 @@
 /*
-Last Updated: 26.03.2018
-Corresponding JScript Commit: d63aace6a00ff16c3312d8558d7649ffaf1f98d1
+Last Updated: 16.04.2018
+Corresponding JScript Commit: af6e2f384fd024ff91ece926cb06562ef34bdf59
 */
 
 /**
@@ -50,9 +50,10 @@ function IFbUtils() {
     /** @type {float} */
     this.PlaybackLength = undefined; // (double) (read)
     /*
-    example1:
+    Example1:
     console.log(fb.PlaybackLength); // 322.843414966166
-    example2:
+
+    Example2:
     console.log(Math.round(fb.PlaybackLength)); // 323
     */
 
@@ -598,7 +599,7 @@ function IGdiUtils() {
      * @param {string} name
      * @param {number} size_px See helpers.txt > Point2Pixel function for conversions
      * @param {number=} [style=0] See flags.txt > FontStyle
-     * @return {IGdiFont}
+     * @return {?IGdiFont} Returns null if font is not present.
      */
     this.Font = function (name, size_px, style) {}; // (IGdiFont) [, style]
 
@@ -659,16 +660,6 @@ function IFbPlaylistManager() {
 
     /** @type {number} */
     this.PlaylistCount = undefined; // (uint) (read)
-
-    /**
-     * @param {number} playlistIndex
-     * @return {number}
-     */
-    this.PlaylistItemCount = function (playlistIndex) {}; // (uint) (read)
-    /*
-    Example:
-    console.log(plman.PlaylistItemCount(plman.PlayingPlaylist)); // 12
-    */
 
     /** @type {IFbPlaylistRecyclerManager} */
     this.PlaylistRecyclerManager = undefined; // (IFbPlaylistRecyclerManager) (read)
@@ -960,6 +951,16 @@ function IFbPlaylistManager() {
     */
 
     /**
+     * @param {number} playlistIndex
+     * @return {number}
+     */
+    this.PlaylistItemCount = function (playlistIndex) {}; // (uint) (read)
+    /*
+    Example:
+    console.log(plman.PlaylistItemCount(plman.PlayingPlaylist)); // 12
+    */
+
+    /**
      * Removes the specified playlist.
      * Note that if removing the active playlist, no playlist will be active after using this. You'll
      * need to set it manually or use plman.RemovePlaylistSwitch instead.
@@ -1235,6 +1236,9 @@ function IJSUtils() {
     */
 
     /**
+     * This only checks for fonts that are actually installed. It cannot detect fonts
+     * loaded by foo_ui_hacks and always returns false. However, {@link gdi.Font} can use those fonts.
+     *
      * @param {string} name Can be either in English or the localised name in your OS.
      * @return {boolean}
      */
@@ -1912,6 +1916,28 @@ function IGdiBitmap() {
      * @return {VBArray<number>}
      */
     this.GetColourScheme = function (max_count) {}; // (VBArray)
+
+    /**
+     * Returns a JSON array in string form so you need to call JSON.parse() on the result.
+     * Each entry in the array is an object which contains colour and frequency values.
+     * Uses a different method for calculating colours than GetColourScheme.
+     * Image is automatically resized during processing for performance reasons so there's no
+     * need to resize before calling the method.
+     *
+     * @param {number} max_count
+     * @return {string}
+     */
+    this.GetColourSchemeJSON = function (max_count) {}; // (string)
+    /*
+    Example:
+    img = ... // use utils.GetAlbumArtV2 / gdi.Image / etc
+    colours = JSON.parse(img.GetColourSchemeJSON(5));
+    console.log(colours[0].col); // -4194304
+    console.log(colours[0].freq); // 0.34
+    console.log(toRGB(colours[0].col)); // [192, 0, 0]
+
+    See docs\helpers.txt for "toRGB" function.
+    */
 
     /**
      * @return {IGdiGraphics}
