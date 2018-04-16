@@ -15,10 +15,10 @@ g_script_list.push('Panel_Playlist.js');
 var g_is_mini_panel = (window.name.toLowerCase().indexOf('mini') !== -1);
 
 // Niceties:
-// TODO: grouping presets manager: consider adding other EsPlaylist grouping features - sorting, playlist association
+// TODO: grouping presets manager: other EsPlaylist grouping features - sorting, playlist association
 // Low priority:
 // TODO: bug marc2003 about on_visibility_change callback
-// TODO: consider making registration for on_key handlers
+// TODO: registration for on_key handlers
 // TODO: research the source of hangs with big art image loading (JScript? fb2k?)
 // TODO: measure draw vs backend performance
 g_properties.add_properties(
@@ -3220,7 +3220,6 @@ function Header(x, y, w, h, idx, row_h_arg) {
     };
 
     //private:
-    // TODO: consider moving this to playlist
     function is_focused() {
         return _.some(that.rows, function (row) {
             return row.is_focused;

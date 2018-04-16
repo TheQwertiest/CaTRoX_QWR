@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## [4.2.1] - 2018-04-16
+### Changed
+- Updated WilB's scripts:
+  - Library Tree v1.4.0.2.
+  - YouTube Track Manager v3.9.5.2.
+
+### Fixed
+- Fixed various bugz with player window when it's maximized.
+
 ## [4.2.0b] - 2018-03-27
 ### Changed
 - Updated WilB's Library Tree to v1.401.
@@ -241,7 +250,8 @@ Playlist Panel:
 ### Fixed
 - Fixed various crashes caused by incompatibility with JScript.
 
-[Unreleased]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.2.0b...HEAD
+[Unreleased]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.2.1...HEAD
+[4.2.1]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.2.0b...v4.2.1
 [4.2.0b]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.2.0a...v4.2.0b
 [4.2.0a]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.2.0...v4.2.0a
 [4.2.0]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.1.1...v4.2.0
