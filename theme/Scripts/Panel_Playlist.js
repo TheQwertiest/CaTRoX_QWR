@@ -964,7 +964,7 @@ function Playlist(x, y) {
     this.on_drag_leave = function () {
         if (selection_handler.is_dragging()) {
             stop_drag_scroll();
-            selection_handler.disable_external_drag();
+            selection_handler.disable_drag();
         }
 
         this.mouse_in = false;
@@ -1022,7 +1022,7 @@ function Playlist(x, y) {
         stop_drag_scroll();
 
         if (!selection_handler.is_dragging() || !this.trace_list(x, y) || !selection_handler.can_drop()) {
-            selection_handler.disable_external_drag();
+            selection_handler.disable_drag();
             action.Effect = g_drop_effect.none;
             return;
         }
@@ -1039,10 +1039,10 @@ function Playlist(x, y) {
         else {
             action.Effect = filter_effect_by_modifiers(action.Effect);
             if (g_drop_effect.none !== action.Effect){
-                selection_handler.prepare_external_drop(action);
+                selection_handler.external_drop(action);
             }
             else {
-                selection_handler.disable_external_drag();
+                selection_handler.disable_drag();
             }
         }
     };
@@ -1498,7 +1498,7 @@ function Playlist(x, y) {
             image = null;
         }
 
-        /** @type {Array<Row>|Array<Header>} */
+        /** @type {Array<Row|Header>} */
         var items = this.items_to_draw;
         items.forEach(function (item) {
             if (_.isInstanceOf(item, Header) && !item.has_art() && item.rows[0].metadb.Compare(metadb)) {
@@ -2461,7 +2461,7 @@ function Playlist(x, y) {
             drag_scroll_timeout_timer = setTimeout(function () {
                 if (!drag_scroll_repeat_timer) {
                     drag_scroll_repeat_timer = setInterval(function () {
-                        if (!that.scrollbar.in_sbar && !selection_handler.is_dragging || !drag_scroll_timeout_timer) {
+                        if (!that.scrollbar.in_sbar && !selection_handler.is_dragging() || !drag_scroll_timeout_timer) {
                             return;
                         }
 
@@ -3697,7 +3697,7 @@ function SelectionHandler(rows_arg, cur_playlist_idx_arg) {
         var effect = fb.DoDragDrop(cur_playlist_selection, g_drop_effect.copy | g_drop_effect.move | g_drop_effect.link);
 
         function can_handle_move_drop(){
-            // We can handle properly the 'move drop' properly only when playlist is still in the same state
+            // We can handle the 'move drop' properly only when playlist is still in the same state
             return cur_playlist_size === plman.PlaylistItemCount(cur_playlist_idx)
                 && _.isEqual(cur_selected_indexes, selected_indexes);
         }
@@ -3744,10 +3744,6 @@ function SelectionHandler(rows_arg, cur_playlist_idx_arg) {
     this.enable_external_drag = function () {
         this.enable_drag();
         is_internal_drag_n_drop_active = false;
-    };
-
-    this.disable_external_drag = function () {
-        this.disable_drag();
     };
 
     this.is_dragging = function () {
@@ -3849,7 +3845,7 @@ function SelectionHandler(rows_arg, cur_playlist_idx_arg) {
         }
     };
 
-    this.prepare_external_drop = function (action) {
+    this.external_drop = function (action) {
         plman.ClearPlaylistSelection(cur_playlist_idx);
 
         var playlist_idx;
@@ -3876,7 +3872,7 @@ function SelectionHandler(rows_arg, cur_playlist_idx_arg) {
             action.Base = plman.PlaylistCount;
         }
 
-        this.disable_external_drag();
+        this.disable_drag();
     };
 
     this.copy = function () {
