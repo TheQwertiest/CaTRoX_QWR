@@ -324,9 +324,12 @@ function on_notify_data(name, info) {
 
 /**
  * Playlist + PlaylistManager
+ *
+ * @param {number} x
+ * @param {number} y
  * @constructor
  */
-function PlaylistPanel() {
+function PlaylistPanel(x,y) {
 
     //<editor-fold desc="Callback Implementation">
     this.on_paint = function (gr) {
@@ -341,7 +344,7 @@ function PlaylistPanel() {
 
         playlist.on_paint(gr);
         if (g_properties.show_playlist_info) {
-            gr.FillSolidRect(0, playlist_info.y + playlist_info.h, playlist_info.w, 2, g_theme.colors.pss_back);
+            gr.FillSolidRect(this.x, playlist_info.y + playlist_info.h, this.w, 2, g_theme.colors.pss_back);
             playlist_info.on_paint(gr);
         }
     };
@@ -601,8 +604,8 @@ function PlaylistPanel() {
         window.Repaint();
     }
 
-    this.x = 0;
-    this.y = 0;
+    this.x = x;
+    this.y = y;
     this.w = 0;
     this.h = 0;
 
@@ -616,8 +619,8 @@ function PlaylistPanel() {
     var is_activated = window.IsVisible;
 
     // Panel parts
-    var playlist_info = new PlaylistManager(0, 0, 0, playlist_info_h);
-    var playlist = new Playlist(0, g_properties.show_playlist_info ? playlist_info_and_gap_h : 0);
+    var playlist_info = new PlaylistManager(that.x, that.y, 0, playlist_info_h);
+    var playlist = new Playlist(that.x, that.y + (g_properties.show_playlist_info ? playlist_info_and_gap_h : 0));
 }
 
 /**
@@ -1647,12 +1650,12 @@ function Playlist(x, y) {
         // Magic! For some reason using array[i] instead of IFbMetadbHandleList.Item(i) greatly increases performance :\
         var playlist_items_arr = [];
         for (var i = 0; i < playlist_size; ++i) {
-            playlist_items_arr.push(playlist_items.Item(i));
+            playlist_items_arr[i] = playlist_items.Item(i);
         }
 
         var rows = [];
         for (var i = 0; i < playlist_size; ++i) {
-            rows.push(new Row(that.list_x, 0, that.list_w, that.row_h, playlist_items_arr[i], i, cur_playlist_idx));
+            rows[i] = new Row(that.list_x, 0, that.list_w, that.row_h, playlist_items_arr[i], i, cur_playlist_idx);
             if (!g_properties.show_header) {
                 rows[i].is_odd = (i + 1) % 2;
             }
@@ -5043,5 +5046,5 @@ GroupingHandler.Settings.Group = function (name, description, group_query, title
 
 Header.grouping_handler = new GroupingHandler();
 
-var playlist = new PlaylistPanel();
+var playlist = new PlaylistPanel(0,0);
 playlist.initialize();
