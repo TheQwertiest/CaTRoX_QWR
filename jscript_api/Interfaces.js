@@ -804,7 +804,7 @@ function IFbPlaylistManager() {
 
     /**
      * Retrieves playlist position of currently playing item.
-     * On failure, the property "IsValid" of {@link IFbPlayingItemLocation} interface will be set to false.
+     * On failure, the property {@link IFbPlayingItemLocation.IsValid} will be set to false.
      *
      * @return {IFbPlayingItemLocation}
      */
