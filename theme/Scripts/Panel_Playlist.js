@@ -1378,7 +1378,7 @@ function Playlist(x, y) {
         Header.grouping_handler.set_active_playlist(plman.GetPlaylistName(plman.ActivePlaylist));
 
         if (plman.ActivePlaylist !== cur_playlist_idx) {
-            this.initialize_and_repaint_list();
+            this.debounced_initialize_and_repaint_list();
         }
     };
 
@@ -1387,7 +1387,7 @@ function Playlist(x, y) {
             g_properties.scroll_pos = _.isNil(scroll_pos_list[plman.ActivePlaylist]) ? 0 : scroll_pos_list[plman.ActivePlaylist];
         }
 
-        this.initialize_and_repaint_list();
+        this.debounced_initialize_and_repaint_list();
     };
 
     this.on_playlist_item_ensure_visible = function (playlist_idx, playlistItemIndex) {
@@ -1408,7 +1408,7 @@ function Playlist(x, y) {
             return;
         }
 
-        this.initialize_and_repaint_list();
+        this.debounced_initialize_and_repaint_list();
     };
 
     this.on_playlist_items_reordered = function (playlist_idx) {
@@ -1424,7 +1424,7 @@ function Playlist(x, y) {
             return;
         }
 
-        this.initialize_and_repaint_list();
+        this.debounced_initialize_and_repaint_list();
     };
 
     this.on_playlist_items_selection_change = function () {
@@ -1528,6 +1528,13 @@ function Playlist(x, y) {
         }
         this.repaint();
     };
+
+    this.debounced_initialize_and_repaint_list = _.debounce(function () {
+        this.initialize_and_repaint_list();
+    }, 150, {
+        'leading':  false,
+        'trailing': true
+    });
 
     /**
      * This method does not contain any redraw calls - it's purely back-end
@@ -2814,7 +2821,6 @@ function Header(x, y, w, h, idx, row_h_arg) {
         var clipImg = gdi.CreateImage(this.w, this.h);
         var grClip = clipImg.GetGraphics();
 
-        gr.FillSolidRect(this.x, this.y, this.w, this.h, g_pl_colors.background);
         grClip.FillSolidRect(0, 0, this.w, this.h, g_pl_colors.background); // Solid background for ClearTypeGridFit text rendering
 
         if (this.has_selected_items()) {
