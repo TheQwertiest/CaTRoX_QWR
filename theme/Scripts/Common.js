@@ -467,7 +467,7 @@ var UIHacks =
     /** @type {IUIHacks} */
     new ActiveXObject('UIHacks');
 
-var g_properties = new function() {
+function Properties() {
     this.add_properties = function (properties) {
         _.forEach(properties, _.bind(function (item, i) {
             if (!_.isArray(item) || item.length !== 2 || !_.isString(item[0])) {
@@ -491,6 +491,8 @@ var g_properties = new function() {
             });
         }, this));
     };
-};
+}
+
+var g_properties = new Properties();
 
 var g_script_list = ['Common.js'];
