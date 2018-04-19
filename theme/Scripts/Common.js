@@ -436,11 +436,11 @@ var qwr_utils = {
 };
 
 /**
- * @param{string} text_id
+ * @param{string} name
  * @param{*} default_value
  * @constructor
  */
-function PanelProperty(text_id, default_value) {
+function PanelProperty(name, default_value) {
     /**
      * @return {*}
      */
@@ -453,14 +453,16 @@ function PanelProperty(text_id, default_value) {
      */
     this.set = function(new_value) {
         if (value !== new_value) {
-            window.SetProperty(this.text_id, new_value);
+            window.SetProperty(this.name, new_value);
             value = new_value;
         }
     };
 
-    this.text_id = text_id;
+    /** @const{string} */
+    this.name = name;
 
-    var value = window.GetProperty(this.text_id, default_value);
+    /** @type{*} */
+    var value = window.GetProperty(this.name, default_value);
 }
 
 var UIHacks =
@@ -469,28 +471,45 @@ var UIHacks =
 
 var g_properties = new function() {
     this.add_properties = function (properties) {
-        _.forEach(properties, _.bind(function (item, i) {
-            if (!_.isArray(item) || item.length !== 2 || !_.isString(item[0])) {
-                throw new TypeError('property', typeof item, '{ string, [string, any] }', 'Usage: add_properties({\n  property_name, [property.string.description, property_default_value]\n})');
-            }
-            if (i === 'add_properties') {
-                throw new ArgumentError('property_name', i, 'This name is reserved');
-            }
-            if (!_.isNil(this[i]) || !_.isNil(this[i + '_internal'])) {
-                throw new ArgumentError('property_name', i, 'This name is already occupied');
-            }
-
-            this[i + '_internal'] = new PanelProperty(item[0], item[1]);
-            Object.defineProperty(this, i, {
-                get: function () {
-                    return this[i + '_internal'].get()
-                },
-                set: function (new_value) {
-                    this[i + '_internal'].set(new_value)
-                }
-            });
-        }, this));
+        _.forEach(properties, function (item, i) {
+            validate_property_item(item, i);
+            add_property_item(item, i);
+        });
     };
+
+    function validate_property_item(item, item_id) {
+        if (!_.isArray(item) || item.length !== 2 || !_.isString(item[0])) {
+            throw new TypeError('property', typeof item, '{ string, [string, any] }', 'Usage: add_properties({\n  property_id: [property_name, property_default_value]\n})');
+        }
+        if (item_id === 'add_properties') {
+            throw new ArgumentError('property_id', item_id, 'This id is reserved');
+        }
+        if (!_.isNil(that[item_id]) || !_.isNil(that[item_id + '_internal'])) {
+            throw new ArgumentError('property_id', item_id, 'This id is already occupied');
+        }
+        if (!_.isNil(name_list[item[0]])) {
+            throw new ArgumentError('property_name', item[0], 'This name is already occupied');
+        }
+    }
+
+    function add_property_item(item, item_id) {
+        name_list[item[0]] = 1;
+
+        that[item_id + '_internal'] = new PanelProperty(item[0], item[1]);
+
+        Object.defineProperty(that, item_id, {
+            get: function () {
+                return that[item_id + '_internal'].get()
+            },
+            set: function (new_value) {
+                that[item_id + '_internal'].set(new_value)
+            }
+        });
+    }
+
+    var that = this;
+    // Used for collision checks only
+    var name_list = {};
 };
 
 var g_script_list = ['Common.js'];

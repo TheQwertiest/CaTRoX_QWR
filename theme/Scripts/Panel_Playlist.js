@@ -46,6 +46,7 @@ g_properties.add_properties(
         collapse_on_playlist_switch: ['user.header.collapse.on_playlist_switch', false],
         collapse_on_start:           ['user.header.collapse.on_start', false],
 
+        // Default values for grouping data are set in it's class ctor
         playlist_group_data:        ['system.playlist.grouping.data_list', ''],
         playlist_custom_group_data: ['system.playlist.grouping.custom_data_list', ''],
         default_group_name:         ['system.playlist.grouping.default_preset_name', ''],
@@ -2814,7 +2815,6 @@ function Header(x, y, w, h, idx, row_h_arg) {
         var clipImg = gdi.CreateImage(this.w, this.h);
         var grClip = clipImg.GetGraphics();
 
-        gr.FillSolidRect(this.x, this.y, this.w, this.h, g_pl_colors.background);
         grClip.FillSolidRect(0, 0, this.w, this.h, g_pl_colors.background); // Solid background for ClearTypeGridFit text rendering
 
         if (this.has_selected_items()) {
