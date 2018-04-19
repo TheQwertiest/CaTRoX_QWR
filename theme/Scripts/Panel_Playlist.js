@@ -1691,7 +1691,6 @@ function Playlist(x, y) {
     }
 
     var debounced_get_album_art = _.debounce(function (items, force) {
-        var has_cached_art = false;
         items.forEach(function (item) {
             if (_.isInstanceOf(item, Header) && (force || !item.has_art())) {
                 utils.GetAlbumArtAsync(window.ID, _.head(item.rows).metadb, g_album_art_id.front);
@@ -5082,7 +5081,7 @@ function ArtImageCache(max_cache_size_arg) {
             var new_cache_item = { meta: metadb, img : img_arg };
             cache.push(new_cache_item);
             if (cache.length > max_cache_size) {
-                cache.pop();
+                cache.shift();
             }
         }
     };
@@ -5094,6 +5093,8 @@ function ArtImageCache(max_cache_size_arg) {
     /** @const{number} */
     var max_cache_size = max_cache_size_arg;
     var cache = [];
+
+    // TODO: replace array with a proper cache implementation (e.g. linked list + map)
 }
 
 Header.art_cache = new ArtImageCache(100);
