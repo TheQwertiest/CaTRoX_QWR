@@ -3,6 +3,8 @@
 // @author 'TheQwertiest'
 // ==/PREPROCESSOR==
 
+//<editor-fold desc="Global constants">
+
 var g_theme = {};
 g_theme.name = 'CaTRoX (QWR Edition)';
 g_theme.version = '4.2.1';
@@ -140,6 +142,10 @@ var g_album_art_id = {
     artist: 4
 };
 
+//</editor-fold>
+
+//<editor-fold desc="Error types">
+
 /**
  * @param {string} msg
  * @constructor
@@ -222,6 +228,12 @@ function ArgumentError(arg_name, arg_value, additional_msg) {
     this.message = err_msg;
 }
 ArgumentError.prototype = Object.create(Error.prototype);
+
+//</editor-fold>
+
+var UIHacks =
+    /** @type {IUIHacks} */
+    new ActiveXObject('UIHacks');
 
 var qwr_utils = {
     EnableSizing:         function (m) {
@@ -436,6 +448,53 @@ var qwr_utils = {
 };
 
 /**
+ * @constructor
+ */
+function KeyActionHandler() {
+    /**
+     * @param{string} key
+     * @param{function} action_callback
+     */
+    this.register_key_action = function(key, action_callback) {
+        if (!action_callback) {
+            throw new ArgumentError('action_callback', action_callback);
+        }
+
+        if (!_.isNil(actions[key])) {
+            throw new ArgumentError('key', key.toString(), 'This key is already used');
+        }
+
+        actions[key] = action_callback;
+    };
+
+    /**
+     * @param{string} key
+     * @param{object=} [key_modifiers={}] passed to key action callback
+     * @param{boolean=} [key_modifiers.ctrl=false]
+     * @param{boolean=} [key_modifiers.alt=false]
+     * @param{boolean=} [key_modifiers.shift=false]
+     * @return{boolean} true, if key is registered, false - otherwise
+     */
+    this.invoke_key_action = function(key, key_modifiers) {
+        var key_obj = actions[key];
+        if (!key_obj) {
+            return false;
+        }
+
+        var key_action = actions[key];
+        if (!actions[key]) {
+            return false;
+        }
+
+        key_action(key_modifiers ? key_modifiers : {});
+
+        return true;
+    };
+
+    var actions = {};
+}
+
+/**
  * @param{string} name
  * @param{*} default_value
  * @constructor
@@ -464,10 +523,6 @@ function PanelProperty(name, default_value) {
     /** @type{*} */
     var value = window.GetProperty(this.name, default_value);
 }
-
-var UIHacks =
-    /** @type {IUIHacks} */
-    new ActiveXObject('UIHacks');
 
 var g_properties = new function() {
     this.add_properties = function (properties) {

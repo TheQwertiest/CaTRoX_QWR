@@ -11,8 +11,8 @@ var trace_initialize_list_performance = false;
 
 g_script_list.push('Panel_Playlist.js');
 
-// Should be used only for default panel properties
-var g_is_mini_panel = (window.name.toLowerCase().indexOf('mini') !== -1);
+// Should be used only for default panel properties initialization
+var g_is_mini_panel = _.includes(window.name.toLowerCase(), 'mini');
 
 // Niceties:
 // TODO: grouping presets manager: other EsPlaylist grouping features - sorting, playlist association
@@ -443,7 +443,13 @@ function PlaylistPanel(x,y) {
 
     this.on_key_down = function (vkey) {
         playlist.on_key_down(vkey);
-        playlist_info.on_key_down(vkey);
+
+        var modifiers = {
+            ctrl: utils.IsKeyPressed(VK_CONTROL),
+            alt: utils.IsKeyPressed(VK_MENU),
+            shift: utils.IsKeyPressed(VK_SHIFT)
+        };
+        key_handler.invoke_key_action(vkey, modifiers);
     };
 
     this.on_key_up = function (vkey) {
@@ -594,6 +600,9 @@ function PlaylistPanel(x,y) {
     //</editor-fold>
 
     this.initialize = function () {
+        playlist.register_key_actions(key_handler);
+        playlist_info.register_key_actions(key_handler);
+
         playlist.initialize_list();
     };
 
@@ -618,6 +627,8 @@ function PlaylistPanel(x,y) {
     var playlist_info_and_gap_h = playlist_info_h + 2;
 
     var is_activated = window.IsVisible;
+
+    var key_handler = new KeyActionHandler();
 
     // Panel parts
     var playlist_info = new PlaylistManager(that.x, that.y, 0, playlist_info_h);
@@ -753,7 +764,7 @@ function Playlist(x, y) {
         }
 
         if (_.isInstanceOf(item, Header)) {
-            plman.ExecutePlaylistDefaultAction(cur_playlist_idx, item.rows[0].idx);
+            plman.ExecutePlaylistDefaultAction(cur_playlist_idx, _.head(item.rows).idx);
         }
         else {
             if (g_properties.show_rating && item.rating_trace(x, y)) {
@@ -1050,293 +1061,6 @@ function Playlist(x, y) {
 
     this.on_key_down = function (vkey) {
         key_down = true;
-
-        var ctrl_pressed = utils.IsKeyPressed(VK_CONTROL);
-        var shift_pressed = utils.IsKeyPressed(VK_SHIFT);
-
-        switch (vkey) {
-            case VK_UP: {
-                if (!this.cnt.rows.length) {
-                    // skip repaint
-                    return;
-                }
-
-                if (ctrl_pressed && shift_pressed) {
-                    if (!selection_handler.has_selected_items()) {
-                        return;
-                    }
-
-                    selection_handler.move_selection_up();
-
-                    break;
-                }
-
-                if (!focused_item) {
-                    var first_item = _.head(this.items_to_draw);
-                    focused_item = _.isInstanceOf(first_item, Header) ? _.head(first_item.rows) : first_item;
-                }
-
-                var header = focused_item.header;
-                var new_focus_idx;
-                if (header.is_collapsed) {
-                    new_focus_idx = _.last(this.cnt.headers[Math.max(0, focused_item.header.idx - 1)].rows).idx;
-                }
-                else {
-                    new_focus_idx = Math.max(0, focused_item.idx - 1);
-                }
-
-                selection_handler.update_selection(this.cnt.rows[new_focus_idx], null, shift_pressed);
-
-                break;
-            }
-            case VK_DOWN: {
-                if (!this.cnt.rows.length) {
-                    // skip repaint
-                    return;
-                }
-
-                if (ctrl_pressed && shift_pressed) {
-                    if (!selection_handler.has_selected_items()) {
-                        return;
-                    }
-
-                    selection_handler.move_selection_down();
-
-                    break;
-                }
-
-                if (!focused_item) {
-                    var first_item = _.head(this.items_to_draw);
-                    focused_item = _.isInstanceOf(first_item, Header) ? _.head(first_item.rows) : first_item;
-                }
-
-                var header = focused_item.header;
-                var new_focus_idx;
-                if (header.is_collapsed) {
-                    new_focus_idx = _.head(this.cnt.headers[Math.min(this.cnt.headers.length - 1, focused_item.header.idx + 1)].rows).idx;
-                }
-                else {
-                    new_focus_idx = Math.min(this.cnt.rows.length - 1, focused_item.idx + 1);
-                }
-
-                selection_handler.update_selection(this.cnt.rows[new_focus_idx], null, shift_pressed);
-
-                break;
-            }
-            case VK_LEFT: {
-                if (!g_properties.show_header || !this.cnt.rows.length) {
-                    // skip repaint
-                    return;
-                }
-
-                if (!focused_item) {
-                    var first_item = _.head(this.items_to_draw);
-                    focused_item = _.isInstanceOf(first_item, Header) ? _.head(first_item.rows) : first_item;
-                }
-
-                collapse_handler.collapse(focused_item.header);
-
-                selection_handler.update_selection(focused_item.header, null, null);
-
-                break;
-            }
-            case VK_RIGHT: {
-                if (!g_properties.show_header || !this.cnt.rows.length) {
-                    // skip repaint
-                    return;
-                }
-
-                if (!focused_item) {
-                    var first_item = _.head(this.items_to_draw);
-                    focused_item = _.isInstanceOf(first_item, Header) ? _.head(first_item.rows) : first_item;
-                }
-
-                var header = focused_item.header;
-                collapse_handler.expand(header);
-                if (collapse_handler.changed) {
-                    var new_focus_item = _.head(header.rows);
-                    scroll_to_row(focused_item, new_focus_item);
-
-                    selection_handler.update_selection(new_focus_item, null, null);
-                }
-
-                break;
-            }
-            case VK_PRIOR: {
-                if (!this.cnt.rows.length) {
-                    // skip repaint
-                    return;
-                }
-
-                if (!focused_item) {
-                    var first_item = _.head(this.items_to_draw);
-                    focused_item = _.isInstanceOf(first_item, Header) ? _.head(first_item.rows) : first_item;
-                }
-
-                var new_focus_item;
-                if (this.is_scrollbar_available) {
-                    new_focus_item = _.head(this.items_to_draw);
-                    if (_.isInstanceOf(new_focus_item, Header)) {
-                        new_focus_item = this.cnt.rows[new_focus_item.rows[0].idx];
-                    }
-                    if (new_focus_item.y < this.list_y && new_focus_item.y + new_focus_item.h > this.list_y) {
-                        new_focus_item = this.cnt.rows[new_focus_item.idx + 1];
-                    }
-                    if (new_focus_item.idx === focused_item.idx) {
-                        this.scrollbar.shift_page(-1);
-
-                        new_focus_item = _.head(this.items_to_draw);
-                        if (_.isInstanceOf(new_focus_item, Header)) {
-                            new_focus_item = this.cnt.rows[new_focus_item.rows[0].idx];
-                        }
-                    }
-                }
-                else {
-                    new_focus_item = _.head(this.items_to_draw);
-                }
-
-                selection_handler.update_selection(new_focus_item, null, shift_pressed);
-
-                break;
-            }
-            case VK_NEXT: {
-                if (!this.cnt.rows.length) {
-                    // skip repaint
-                    return;
-                }
-
-                if (!focused_item) {
-                    var first_item = _.head(this.items_to_draw);
-                    focused_item = _.isInstanceOf(first_item, Header) ? _.head(first_item.rows) : first_item;
-                }
-
-                var new_focus_item;
-                if (this.is_scrollbar_available) {
-                    new_focus_item = _.last(this.items_to_draw);
-                    if (_.isInstanceOf(new_focus_item, Header)) {
-                        new_focus_item = _.last(this.cnt.headers[new_focus_item.idx - 1].rows);
-                    }
-                    if (new_focus_item.y < this.list_y + this.list_h && new_focus_item.y + new_focus_item.h > this.list_y + this.list_h) {
-                        new_focus_item = this.cnt.rows[new_focus_item.idx - 1];
-                    }
-                    if (new_focus_item.idx === focused_item.idx) {
-                        this.scrollbar.shift_page(1);
-
-                        new_focus_item = _.last(this.items_to_draw);
-                        if (_.isInstanceOf(new_focus_item, Header)) {
-                            new_focus_item = _.last(this.cnt.headers[new_focus_item.idx - 1].rows);
-                        }
-                    }
-                }
-                else {
-                    new_focus_item = _.last(this.items_to_draw);
-                }
-
-                selection_handler.update_selection(new_focus_item, null, shift_pressed);
-
-                break;
-            }
-            case VK_HOME: {
-                selection_handler.update_selection(_.head(this.cnt.rows), null, shift_pressed);
-
-                break;
-            }
-            case VK_END: {
-                selection_handler.update_selection(_.last(this.cnt.rows), null, shift_pressed);
-
-                break;
-            }
-            case VK_DELETE: {
-                if (!selection_handler.has_selected_items() && focused_item) {
-                    selection_handler.update_selection(focused_item);
-                }
-                plman.UndoBackup(cur_playlist_idx);
-                plman.RemovePlaylistSelection(cur_playlist_idx);
-
-                break;
-            }
-            case VK_KEY_A: {
-                if (ctrl_pressed) {
-                    selection_handler.select_all();
-                }
-
-                break;
-            }
-            case VK_KEY_F: {
-                if (ctrl_pressed) {
-                    fb.RunMainMenuCommand('Edit/Search');
-                }
-                else if (shift_pressed) {
-                    fb.RunMainMenuCommand('Library/Search');
-                }
-
-                break;
-            }
-            case VK_RETURN: {
-                plman.ExecutePlaylistDefaultAction(cur_playlist_idx, focused_item.idx);
-
-                break;
-            }
-            case VK_KEY_N: {
-                if (ctrl_pressed) {
-                    plman.CreatePlaylist(plman.PlaylistCount, '');
-                    plman.ActivePlaylist = plman.PlaylistCount - 1;
-                }
-                break;
-            }
-            case VK_KEY_O: {
-                if (shift_pressed) {
-                    fb.RunContextCommandWithMetadb('Open Containing Folder', focused_item.metadb);
-                }
-                break;
-            }
-            case VK_KEY_M: {
-                if (ctrl_pressed) {
-                    fb.RunMainMenuCommand('View/Playlist Manager');
-                }
-                break;
-            }
-            case VK_KEY_Q: {
-                if (!queue_handler) {
-                    break;
-                }
-
-                if (ctrl_pressed && shift_pressed) {
-                    queue_handler.flush();
-                }
-                else if (ctrl_pressed) {
-                    queue_handler.add_row(focused_item);
-                }
-                else if (shift_pressed) {
-                    queue_handler.remove_row(focused_item);
-                }
-                break;
-            }
-            case VK_F5: {
-                this.initialize_list();
-                scroll_to_focused_or_now_playing();
-                break;
-            }
-            case VK_KEY_C: {
-                if (ctrl_pressed) {
-                    selection_handler.copy();
-                }
-                break;
-            }
-            case VK_KEY_X: {
-                if (ctrl_pressed) {
-                    selection_handler.cut();
-                }
-                break;
-            }
-            case VK_KEY_V: {
-                if (ctrl_pressed && !plman.IsPlaylistLocked(cur_playlist_idx)) {
-                    selection_handler.paste();
-                }
-                break;
-            }
-        }
-        this.repaint();
     };
 
     this.on_key_up = function (vkey) {
@@ -1502,7 +1226,7 @@ function Playlist(x, y) {
         /** @type {Array<Row|Header>} */
         var items = this.items_to_draw;
         items.forEach(function (item) {
-            if (_.isInstanceOf(item, Header) && !item.has_art() && item.rows[0].metadb.Compare(metadb)) {
+            if (_.isInstanceOf(item, Header) && !item.has_art() && _.head(item.rows).metadb.Compare(metadb)) {
                 item.assign_art(image);
                 item.repaint();
             }
@@ -1520,6 +1244,282 @@ function Playlist(x, y) {
         }
     };
     //</editor-fold>
+
+    this.register_key_actions = function(key_handler) {
+        key_handler.register_key_action(VK_UP,
+            _.bind(function(modifiers){
+                if (!this.cnt.rows.length) {
+                    return;
+                }
+
+                if (modifiers.ctrl && modifiers.shift) {
+                    if (!selection_handler.has_selected_items()) {
+                        return;
+                    }
+
+                    selection_handler.move_selection_up();
+                    return;
+                }
+
+                if (!focused_item) {
+                    var first_item = _.head(this.items_to_draw);
+                    focused_item = _.isInstanceOf(first_item, Header) ? _.head(first_item.rows) : first_item;
+                }
+
+                var header = focused_item.header;
+                var new_focus_idx;
+                if (header.is_collapsed) {
+                    new_focus_idx = _.last(this.cnt.headers[Math.max(0, focused_item.header.idx - 1)].rows).idx;
+                }
+                else {
+                    new_focus_idx = Math.max(0, focused_item.idx - 1);
+                }
+
+                selection_handler.update_selection(this.cnt.rows[new_focus_idx], null, modifiers.shift);
+                this.repaint();
+        },this));
+
+        key_handler.register_key_action(VK_DOWN,
+            _.bind(function(modifiers) {
+                if (!this.cnt.rows.length) {
+                    // skip repaint
+                    return;
+                }
+
+                if (modifiers.ctrl && modifiers.shift) {
+                    if (!selection_handler.has_selected_items()) {
+                        return;
+                    }
+
+                    selection_handler.move_selection_down();
+                    return;
+                }
+
+                if (!focused_item) {
+                    var first_item = _.head(this.items_to_draw);
+                    focused_item = _.isInstanceOf(first_item, Header) ? _.head(first_item.rows) : first_item;
+                }
+
+                var header = focused_item.header;
+                var new_focus_idx;
+                if (header.is_collapsed) {
+                    new_focus_idx = _.head(this.cnt.headers[Math.min(this.cnt.headers.length - 1, focused_item.header.idx + 1)].rows).idx;
+                }
+                else {
+                    new_focus_idx = Math.min(this.cnt.rows.length - 1, focused_item.idx + 1);
+                }
+
+                selection_handler.update_selection(this.cnt.rows[new_focus_idx], null, modifiers.shift);
+                this.repaint();
+            },this));
+
+        key_handler.register_key_action(VK_LEFT,
+            _.bind(function(modifiers) {
+                if (!g_properties.show_header || !this.cnt.rows.length) {
+                    return;
+                }
+
+                if (!focused_item) {
+                    var first_item = _.head(this.items_to_draw);
+                    focused_item = _.isInstanceOf(first_item, Header) ? _.head(first_item.rows) : first_item;
+                }
+
+                collapse_handler.collapse(focused_item.header);
+
+                selection_handler.update_selection(focused_item.header, null, null);
+                this.repaint();
+            },this));
+
+        key_handler.register_key_action(VK_RIGHT,
+            _.bind(function(modifiers) {
+                if (!g_properties.show_header || !this.cnt.rows.length) {
+                    return;
+                }
+
+                if (!focused_item) {
+                    var first_item = _.head(this.items_to_draw);
+                    focused_item = _.isInstanceOf(first_item, Header) ? _.head(first_item.rows) : first_item;
+                }
+
+                var header = focused_item.header;
+                collapse_handler.expand(header);
+                if (collapse_handler.changed) {
+                    var new_focus_item = _.head(header.rows);
+                    scroll_to_row(focused_item, new_focus_item);
+
+                    selection_handler.update_selection(new_focus_item, null, null);
+                    this.repaint();
+                }
+            },this));
+
+        key_handler.register_key_action(VK_PRIOR,
+            _.bind(function(modifiers) {
+                if (!this.cnt.rows.length) {
+                    return;
+                }
+
+                if (!focused_item) {
+                    var first_item = _.head(this.items_to_draw);
+                    focused_item = _.isInstanceOf(first_item, Header) ? _.head(first_item.rows) : first_item;
+                }
+
+                var new_focus_item;
+                if (this.is_scrollbar_available) {
+                    new_focus_item = _.head(this.items_to_draw);
+                    if (_.isInstanceOf(new_focus_item, Header)) {
+                        new_focus_item = this.cnt.rows[_.head(new_focus_item.rows).idx];
+                    }
+                    if (new_focus_item.y < this.list_y && new_focus_item.y + new_focus_item.h > this.list_y) {
+                        new_focus_item = this.cnt.rows[new_focus_item.idx + 1];
+                    }
+                    if (new_focus_item.idx === focused_item.idx) {
+                        this.scrollbar.shift_page(-1);
+
+                        new_focus_item = _.head(this.items_to_draw);
+                        if (_.isInstanceOf(new_focus_item, Header)) {
+                            new_focus_item = this.cnt.rows[_.head(new_focus_item.rows).idx];
+                        }
+                    }
+                }
+                else {
+                    new_focus_item = _.head(this.items_to_draw);
+                }
+
+                selection_handler.update_selection(new_focus_item, null, modifiers.shift);
+                this.repaint();
+            },this));
+
+        key_handler.register_key_action(VK_NEXT,
+            _.bind(function(modifiers) {
+                if (!this.cnt.rows.length) {
+                    return;
+                }
+
+                if (!focused_item) {
+                    var first_item = _.head(this.items_to_draw);
+                    focused_item = _.isInstanceOf(first_item, Header) ? _.head(first_item.rows) : first_item;
+                }
+
+                var new_focus_item;
+                if (this.is_scrollbar_available) {
+                    new_focus_item = _.last(this.items_to_draw);
+                    if (_.isInstanceOf(new_focus_item, Header)) {
+                        new_focus_item = _.last(this.cnt.headers[new_focus_item.idx - 1].rows);
+                    }
+                    if (new_focus_item.y < this.list_y + this.list_h && new_focus_item.y + new_focus_item.h > this.list_y + this.list_h) {
+                        new_focus_item = this.cnt.rows[new_focus_item.idx - 1];
+                    }
+                    if (new_focus_item.idx === focused_item.idx) {
+                        this.scrollbar.shift_page(1);
+
+                        new_focus_item = _.last(this.items_to_draw);
+                        if (_.isInstanceOf(new_focus_item, Header)) {
+                            new_focus_item = _.last(this.cnt.headers[new_focus_item.idx - 1].rows);
+                        }
+                    }
+                }
+                else {
+                    new_focus_item = _.last(this.items_to_draw);
+                }
+
+                selection_handler.update_selection(new_focus_item, null, modifiers.shift);
+                this.repaint();
+            },this));
+
+        key_handler.register_key_action(VK_HOME,
+            _.bind(function(modifiers) {
+                selection_handler.update_selection(_.head(this.cnt.rows), null, modifiers.shift);
+                this.repaint();
+            },this));
+
+        key_handler.register_key_action(VK_END,
+            _.bind(function(modifiers) {
+                selection_handler.update_selection(_.last(this.cnt.rows), null, modifiers.shift);
+                this.repaint();
+            },this));
+
+        key_handler.register_key_action(VK_DELETE,
+            _.bind(function(modifiers) {
+                if (!selection_handler.has_selected_items() && focused_item) {
+                    selection_handler.update_selection(focused_item);
+                }
+                plman.UndoBackup(cur_playlist_idx);
+                plman.RemovePlaylistSelection(cur_playlist_idx);
+            },this));
+
+        key_handler.register_key_action(VK_KEY_A,
+            _.bind(function(modifiers) {
+                if (modifiers.ctrl) {
+                    selection_handler.select_all();
+                    this.repaint();
+                }
+            },this));
+
+        key_handler.register_key_action(VK_KEY_F,
+            _.bind(function(modifiers) {
+                if (modifiers.ctrl) {
+                    fb.RunMainMenuCommand('Edit/Search');
+                }
+                else if (modifiers.shift) {
+                    fb.RunMainMenuCommand('Library/Search');
+                }
+            },this));
+
+        key_handler.register_key_action(VK_RETURN,
+            _.bind(function(modifiers) {
+                plman.ExecutePlaylistDefaultAction(cur_playlist_idx, focused_item.idx);
+            },this));
+
+        key_handler.register_key_action(VK_KEY_O,
+            _.bind(function(modifiers) {
+                if (modifiers.shift) {
+                    fb.RunContextCommandWithMetadb('Open Containing Folder', focused_item.metadb);
+                }
+            },this));
+
+        key_handler.register_key_action(VK_KEY_Q,
+            _.bind(function(modifiers) {
+                if (!queue_handler) {
+                    return;
+                }
+
+                if (modifiers.ctrl && modifiers.shift) {
+                    queue_handler.flush();
+                }
+                else if (modifiers.ctrl) {
+                    queue_handler.add_row(focused_item);
+                }
+                else if (modifiers.shift) {
+                    queue_handler.remove_row(focused_item);
+                }
+            },this));
+
+        key_handler.register_key_action(VK_F5,
+            _.bind(function(modifiers) {
+                this.initialize_and_repaint_list(true);
+            },this));
+
+        key_handler.register_key_action(VK_KEY_C,
+            _.bind(function(modifiers) {
+                if (modifiers.ctrl) {
+                    selection_handler.copy();
+                }
+            },this));
+
+        key_handler.register_key_action(VK_KEY_X,
+            _.bind(function(modifiers) {
+                if (modifiers.ctrl) {
+                    selection_handler.cut();
+                }
+            },this));
+
+        key_handler.register_key_action(VK_KEY_V,
+            _.bind(function(modifiers) {
+                if (modifiers.ctrl && !plman.IsPlaylistLocked(cur_playlist_idx)) {
+                    selection_handler.paste();
+                }
+            },this));
+    };
 
     this.initialize_and_repaint_list = function (refocus) {
         this.initialize_list();
@@ -1691,7 +1691,7 @@ function Playlist(x, y) {
     var debounced_get_album_art = _.debounce(function (items, force) {
         items.forEach(function (item) {
             if (_.isInstanceOf(item, Header) && (force || !item.has_art())) {
-                utils.GetAlbumArtAsync(window.ID, item.rows[0].metadb, g_album_art_id.front);
+                utils.GetAlbumArtAsync(window.ID, _.head(item.rows).metadb, g_album_art_id.front);
             }
         });
     }, 500, {
@@ -3185,7 +3185,7 @@ function Header(x, y, w, h, idx, row_h_arg) {
         var query = grouping_handler.get_query();
         var tfo = fb.TitleFormat(query ? query : ''); // workaround a bug, because of which '' is sometimes treated as null :\
 
-        var group = tfo.EvalWithMetadb(rows_to_process[0].metadb);
+        var group = tfo.EvalWithMetadb(_.head(rows_to_process).metadb);
         _.forEach(rows_to_process, _.bind(function (item, i) {
             var cur_group = tfo.EvalWithMetadb(item.metadb);
             if (group !== cur_group) {
@@ -3201,7 +3201,7 @@ function Header(x, y, w, h, idx, row_h_arg) {
 
         _.dispose(tfo);
 
-        metadb = this.rows[0].metadb;
+        metadb = _.head(this.rows).metadb;
     };
 
     this.has_selected_items = function () {
@@ -4025,12 +4025,12 @@ function SelectionHandler(rows_arg, cur_playlist_idx_arg) {
             }
 
             var last_selected_header = rows[last_single_selected_index].header;
-            if (last_single_selected_index < header.rows[0].idx) {
+            if (last_single_selected_index < _.head(header.rows).idx) {
                 a = last_selected_header.is_collapsed ? _.head(last_selected_header.rows).idx : last_single_selected_index;
-                b = header.rows[0].idx;
+                b = _.head(header.rows).idx;
             }
             else {
-                a = header.rows[0].idx;
+                a = _.head(header.rows).idx;
                 b = last_selected_header.is_collapsed ? _.last(last_selected_header.rows).idx : last_single_selected_index;
             }
 
@@ -4044,11 +4044,11 @@ function SelectionHandler(rows_arg, cur_playlist_idx_arg) {
             else {
                 selected_indexes = _.union(selected_indexes, row_indexes);
             }
-            last_single_selected_index = row_indexes[0].idx;
+            last_single_selected_index = _.head(row_indexes).idx;
         }
         else {
             selected_indexes = row_indexes;
-            last_single_selected_index = row_indexes[0].idx;
+            last_single_selected_index = _.head(row_indexes).idx;
         }
 
         plman.ClearPlaylistSelection(cur_playlist_idx);
@@ -4500,31 +4500,6 @@ function PlaylistManager(x, y, w, h) {
         change_state(state.normal);
     };
 
-    this.on_key_down = function (vkey) {
-        var ctrl_pressed = utils.IsKeyPressed(VK_CONTROL);
-        //var shift_pressed = utils.IsKeyPressed(VK_SHIFT);
-
-        switch (vkey) {
-            case VK_KEY_N: {
-                if (ctrl_pressed) {
-                    plman.CreatePlaylist(plman.PlaylistCount, '');
-                    plman.ActivePlaylist = plman.PlaylistCount - 1;
-                }
-                break;
-            }
-            case VK_KEY_M: {
-                if (ctrl_pressed) {
-                    fb.RunMainMenuCommand('View/Playlist Manager');
-                }
-                break;
-            }
-            default: {
-                return false;
-            }
-        }
-
-        return true;
-    };
     //</editor-fold>
 
     this.reinitialize = function () {
@@ -4539,6 +4514,23 @@ function PlaylistManager(x, y, w, h) {
 
     this.trace = function (x, y) {
         return x >= this.x && x < this.x + this.w && y >= this.y && y < this.y + this.h;
+    };
+
+    this.register_key_actions = function(key_handler) {
+        key_handler.register_key_action(VK_KEY_N,
+            _.bind(function(modifiers) {
+                if (modifiers.ctrl) {
+                    plman.CreatePlaylist(plman.PlaylistCount, '');
+                    plman.ActivePlaylist = plman.PlaylistCount - 1;
+                }
+            },this));
+
+        key_handler.register_key_action(VK_KEY_M,
+            _.bind(function(modifiers) {
+                if (modifiers.ctrl) {
+                    fb.RunMainMenuCommand('View/Playlist Manager');
+                }
+            },this));
     };
 
     var throttled_repaint = _.throttle(_.bind(function () {
@@ -4724,7 +4716,7 @@ function GroupingHandler() {
             if (group_name === 'user_defined') {
                 cur_group = settings.playlist_custom_group_data[cur_playlist_name];
             }
-            else if (group_by_name.indexOf(group_name)) {
+            else if (_.includes(group_by_name, group_name)) {
                 cur_group = settings.group_presets[group_by_name.indexOf(group_name)];
             }
 
@@ -4911,13 +4903,13 @@ function GroupingHandler() {
 
     function cleanup_settings() {
         _.forEach(settings.playlist_group_data, function (item, i) {
-            if (playlists.indexOf(i) === -1) {
+            if (!_.includes(playlists, i)) {
                 delete settings.playlist_group_data[i];
             }
         });
 
         _.forEach(settings.playlist_custom_group_data, function (item, i) {
-            if (playlists.indexOf(i) === -1) {
+            if (!_.includes(playlists, i)) {
                 delete settings.playlist_custom_group_data[i];
             }
         });
