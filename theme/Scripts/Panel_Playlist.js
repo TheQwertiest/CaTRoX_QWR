@@ -1692,20 +1692,18 @@ function Playlist(x, y) {
         return headers;
     }
 
-    var debounced_get_album_art = _.debounce(function (items, force) {
+    var debounced_get_album_art = _.debounce(function (items) {
         items.forEach(function (item) {
-            if (!_.isInstanceOf(item, Header) || (item.is_art_loaded() && !force)) {
+            if (!_.isInstanceOf(item, Header) || item.is_art_loaded()) {
                 return;
             }
 
             var metadb = _.head(item.rows).metadb;
-            if (!force) {
-                var cached_art = Header.art_cache.get_image_for_meta(metadb);
-                if (cached_art){
-                    item.assign_art(cached_art);
-                }
+            var cached_art = Header.art_cache.get_image_for_meta(metadb);
+            if (cached_art){
+                item.assign_art(cached_art);
             }
-            if (force || !item.is_art_loaded()) {
+            else {
                 utils.GetAlbumArtAsync(window.ID, metadb, g_album_art_id.front);
             }
         });
@@ -1714,12 +1712,12 @@ function Playlist(x, y) {
         'trailing': true
     });
 
-    function get_album_art(items, force) {
+    function get_album_art(items) {
         if (!g_properties.show_album_art) {
             return;
         }
 
-        debounced_get_album_art(items, force);
+        debounced_get_album_art(items);
     }
 
     function set_rows_boundary_status() {
