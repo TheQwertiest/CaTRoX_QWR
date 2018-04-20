@@ -524,47 +524,73 @@ function PanelProperty(name, default_value) {
     var value = window.GetProperty(this.name, default_value);
 }
 
-var g_properties = new function() {
-    this.add_properties = function (properties) {
-        _.forEach(properties, function (item, i) {
-            validate_property_item(item, i);
-            add_property_item(item, i);
-        });
-    };
+/**
+ * @hideconstructor
+ */
+var PanelProperties = (function(){
+    function PanelProperties() {
+        /**
+         * @param {Array} properties Each item in array is an object of the following type { string, [string, any] }
+         */
+        this.add_properties = function (properties) {
+            _.forEach(properties, function (item, i) {
+                validate_property_item(item, i);
+                add_property_item(item, i);
+            });
+        };
 
-    function validate_property_item(item, item_id) {
-        if (!_.isArray(item) || item.length !== 2 || !_.isString(item[0])) {
-            throw new TypeError('property', typeof item, '{ string, [string, any] }', 'Usage: add_properties({\n  property_id: [property_name, property_default_value]\n})');
-        }
-        if (item_id === 'add_properties') {
-            throw new ArgumentError('property_id', item_id, 'This id is reserved');
-        }
-        if (!_.isNil(that[item_id]) || !_.isNil(that[item_id + '_internal'])) {
-            throw new ArgumentError('property_id', item_id, 'This id is already occupied');
-        }
-        if (!_.isNil(name_list[item[0]])) {
-            throw new ArgumentError('property_name', item[0], 'This name is already occupied');
-        }
-    }
-
-    function add_property_item(item, item_id) {
-        name_list[item[0]] = 1;
-
-        that[item_id + '_internal'] = new PanelProperty(item[0], item[1]);
-
-        Object.defineProperty(that, item_id, {
-            get: function () {
-                return that[item_id + '_internal'].get()
-            },
-            set: function (new_value) {
-                that[item_id + '_internal'].set(new_value)
+        function validate_property_item(item, item_id) {
+            if (!_.isArray(item) || item.length !== 2 || !_.isString(item[0])) {
+                throw new TypeError('property', typeof item, '{ string, [string, any] }', 'Usage: add_properties({\n  property_id: [property_name, property_default_value]\n})');
             }
-        });
+            if (item_id === 'add_properties') {
+                throw new ArgumentError('property_id', item_id, 'This id is reserved');
+            }
+            if (!_.isNil(that[item_id]) || !_.isNil(that[item_id + '_internal'])) {
+                throw new ArgumentError('property_id', item_id, 'This id is already occupied');
+            }
+            if (!_.isNil(name_list[item[0]])) {
+                throw new ArgumentError('property_name', item[0], 'This name is already occupied');
+            }
+        }
+
+        function add_property_item(item, item_id) {
+            name_list[item[0]] = 1;
+
+            that[item_id + '_internal'] = new PanelProperty(item[0], item[1]);
+
+            Object.defineProperty(that, item_id, {
+                get: function () {
+                    return that[item_id + '_internal'].get()
+                },
+                set: function (new_value) {
+                    that[item_id + '_internal'].set(new_value)
+                }
+            });
+        }
+
+        var that = this;
+        // Used for collision checks only
+        var name_list = {};
     }
 
-    var that = this;
-    // Used for collision checks only
-    var name_list = {};
-};
+    var instance = null;
+
+    return {
+        /**
+         * @alias PanelProperties.get_instance
+         * @returns {PanelProperties}
+         */
+        get_instance: function(){
+            if (!instance) {
+                instance = new PanelProperties();
+                delete instance.constructor;
+            }
+            return instance;
+        }
+    };
+})();
+
+var g_properties = PanelProperties.get_instance();
 
 var g_script_list = ['Common.js'];
