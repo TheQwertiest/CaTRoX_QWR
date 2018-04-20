@@ -3,12 +3,18 @@
 // @author 'TheQwertiest'
 // ==/PREPROCESSOR==
 
+/**
+ * @constructor
+ * @template T
+ */
 function LinkedList() {
     /**
-     * @param{*} value
+     * @param{T} value
      * @param{?Node} prev
      * @param{?Node} next
      * @constructor
+     * @struct
+     * @template T
      */
     function Node(value, prev, next) {
         this.value = value;
@@ -16,152 +22,10 @@ function LinkedList() {
         this.next = next;
     }
 
-    this.clear = function () {
-        back = null;
-        front = null;
-        size = 0;
-    };
-
-    /**
-     * @param{*} value
-     */
-    this.push_back = function (value) {
-        var node = new Node(value, back, null);
-        if (back) {
-            back.next = node;
-        }
-        back = node;
-
-        if (!size){
-            front = back;
-        }
-
-        ++size;
-    };
-
-    /**
-     * @param{*} value
-     */
-    this.push_front = function (value) {
-        var node = new Node(value, null, front);
-        if (front) {
-            front.prev = node;
-        }
-        front = node;
-
-        if (!size){
-            back = front;
-        }
-
-        ++size;
-    };
-
-    this.pop_front = function () {
-        if (!front) {
-            return;
-        }
-
-        front = front.next;
-        if (front) {
-            front.prev = null;
-        }
-
-        if (size === 1) {
-            back = null;
-        }
-
-        --size;
-    };
-
-    this.pop_back = function () {
-        if (!back) {
-            return;
-        }
-
-        back = back.prev;
-        if (back) {
-            back.next = null;
-        }
-
-        if (size === 1) {
-            front = null;
-        }
-
-        --size;
-    };
-
-    /**
-     * @param {Iterator} iterator
-     */
-    this.remove = function(iterator) {
-        if (!_.isInstanceOf(iterator, Iterator)) {
-            throw new TypeError(iterator, typeof iterator, 'Iterator');
-        }
-
-        if (iterator.compare(this.end())) {
-            throw new LogicError('Removing invalid iterator');
-        }
-
-        var node_to_remove = iterator.cur_node;
-        if (node_to_remove.prev) {
-            node_to_remove.prev.next = node_to_remove.next;
-        }
-        else {
-            front = node_to_remove.next;
-        }
-
-        if (node_to_remove.next) {
-            node_to_remove.next.prev = node_to_remove.prev;
-        }
-        else {
-            back = node_to_remove.prev;
-        }
-
-        iterator.cur_node = end_node;
-
-        --size;
-    };
-
-    /**
-     * @return {number}
-     */
-    this.length = function () {
-        return size;
-    };
-
-    /**
-     * @return {*}
-     */
-    this.front = function() {
-        return front.value;
-    };
-
-    /**
-     * @return {*}
-     */
-    this.back = function() {
-        return back.value;
-    };
-
-    /**
-     * This method creates Iterator object
-     * @return {Iterator}
-     */
-    this.begin = function() {
-        return new Iterator(front ? front : end_node);
-    };
-
-    /**
-     * This method creates Iterator object
-     * @return {Iterator}
-     */
-    this.end = function() {
-        return new Iterator(end_node);
-    };
-
     /**
      * @param {Node} node
      * @constructor
+     * @template T
      */
     function Iterator(node) {
         this.increment = function () {
@@ -189,7 +53,7 @@ function LinkedList() {
         };
 
         /**
-         * @return {*}
+         * @return {T}
          */
         this.value = function () {
             if (this.cur_node === end_node) {
@@ -211,6 +75,134 @@ function LinkedList() {
          * @private {Node}
          */
         this.cur_node = node;
+    }
+
+    this.clear = function () {
+        back = null;
+        front = null;
+        size = 0;
+    };
+
+    /**
+     * @param{T} value
+     */
+    this.push_back = function (value) {
+        add_node(new Node(value, back, null));
+    };
+
+    /**
+     * @param{T} value
+     */
+    this.push_front = function (value) {
+        add_node(new Node(value, null, front));
+    };
+
+    this.pop_front = function () {
+        remove_node(front);
+    };
+
+    this.pop_back = function () {
+        remove_node(back);
+    };
+
+    /**
+     * @param {Iterator<T>} iterator
+     */
+    this.remove = function(iterator) {
+        if (!_.isInstanceOf(iterator, Iterator)) {
+            throw new TypeError(iterator, typeof iterator, 'Iterator');
+        }
+
+        if (iterator.compare(this.end())) {
+            throw new LogicError('Removing invalid iterator');
+        }
+
+        remove_node(iterator.cur_node);
+
+        iterator.cur_node = end_node;
+    };
+
+    /**
+     * @return {T}
+     */
+    this.front = function() {
+        return front.value;
+    };
+
+    /**
+     * @return {T}
+     */
+    this.back = function() {
+        return back.value;
+    };
+
+    /**
+     * @return {number}
+     */
+    this.length = function () {
+        return size;
+    };
+
+    /**
+     * This method creates Iterator object
+     * @return {Iterator<T>}
+     */
+    this.begin = function() {
+        return new Iterator(front ? front : end_node);
+    };
+
+    /**
+     * This method creates Iterator object
+     * @return {Iterator<T>}
+     */
+    this.end = function() {
+        return new Iterator(end_node);
+    };
+
+    /**
+     * @param {Node} node
+     */
+    function add_node(node) {
+        if (node.prev) {
+            node.prev.next = node;
+        }
+        else {
+            front = node;
+        }
+
+        if (node.next) {
+            node.next.prev = node;
+        }
+        else {
+            back = node;
+        }
+
+        ++size;
+    }
+
+    /**
+     * @param {?Node} node
+     */
+    function remove_node(node) {
+        if (!node) {
+            return;
+        }
+
+        if (node.prev) {
+            node.prev.next = node.next;
+        }
+        else {
+            front = node.next;
+        }
+
+        if (node.next) {
+            node.next.prev = node.prev;
+        }
+        else {
+            back = node.prev;
+        }
+
+        --size;
     }
 
     /** @type {?Node} */

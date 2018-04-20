@@ -2322,7 +2322,7 @@ function IFbMetadbHandle() {
     /** @type {float} */
     this.Length = undefined; // (double) (read)
 
-    // See https://github.com/marc2k3/foo_jscript_panel/wiki/Playback-Stats
+    // See {@link https://github.com/marc2k3/foo_jscript_panel/wiki/Playback-Stats}
 
     /**
      * @param {number} playcount Use 0 to clear

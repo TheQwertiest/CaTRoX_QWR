@@ -5063,6 +5063,17 @@ Header.grouping_handler = new GroupingHandler();
  * @constructor
  */
 function ArtImageCache(max_cache_size_arg) {
+
+    /**
+     * @param {IFbMetadbHandle} metadb
+     * @param {IGdiBitmap} img
+     * @constructor
+     */
+    function CacheItem(metadb,img) {
+        this.metadb = metadb;
+        this.img = img;
+    }
+
     /**
      * @param {IFbMetadbHandle} metadb
      * @return {?IGdiBitmap}
@@ -5090,8 +5101,7 @@ function ArtImageCache(max_cache_size_arg) {
             move_item_to_top(iterator);
         }
         else {
-            var new_cache_item = { meta: metadb, img : img_arg };
-            cache.push_front(new_cache_item);
+            cache.push_front(new CacheItem(metadb,img_arg));
             if (cache.length() > max_cache_size) {
                 cache.pop_back();
             }
@@ -5104,14 +5114,14 @@ function ArtImageCache(max_cache_size_arg) {
 
     /**
      * @param {IFbMetadbHandle} metadb
-     * @return {?Iterator}
+     * @return {?Iterator<CacheItem>}
      */
     function get_iterator_of_meta(metadb) {
         var end = cache.end();
         var iterator = cache.begin();
 
         while (!iterator.compare(end)) {
-            if (metadb.Compare(iterator.value().meta)){
+            if (metadb.Compare(iterator.value().metadb)){
                 break;
             }
             iterator.increment();
@@ -5121,7 +5131,7 @@ function ArtImageCache(max_cache_size_arg) {
     }
 
     /**
-     * @param {Iterator} iterator
+     * @param {Iterator<CacheItem>} iterator
      */
     function move_item_to_top(iterator) {
         var cache_item = iterator.value();
@@ -5131,7 +5141,8 @@ function ArtImageCache(max_cache_size_arg) {
 
     /** @const{number} */
     var max_cache_size = max_cache_size_arg;
-    var cache = new LinkedList;
+    /** @type {LinkedList<CacheItem>} */
+    var cache = new LinkedList();
 
     // TODO: somehow make a map metadb > img (RawPath?)
 }
