@@ -1227,7 +1227,7 @@ function Playlist(x, y) {
         /** @type {Array<Row|Header>} */
         var items = this.items_to_draw;
         items.forEach(function (item) {
-            if (_.isInstanceOf(item, Header) && !item.has_art() && _.head(item.rows).metadb.Compare(metadb)) {
+            if (_.isInstanceOf(item, Header) && !item.is_art_loaded() && _.head(item.rows).metadb.Compare(metadb)) {
                 item.assign_art(image);
                 item.repaint();
             }
@@ -1630,7 +1630,9 @@ function Playlist(x, y) {
     this.on_content_to_draw_change = function () {
         set_rows_boundary_status();
         List.prototype.on_content_to_draw_change.apply(this);
-        get_album_art(this.items_to_draw);
+        if (g_properties.show_album_art) {
+            get_album_art(this.items_to_draw);
+        }
     };
 
     /**
@@ -1692,8 +1694,19 @@ function Playlist(x, y) {
 
     var debounced_get_album_art = _.debounce(function (items, force) {
         items.forEach(function (item) {
-            if (_.isInstanceOf(item, Header) && (force || !item.has_art())) {
-                utils.GetAlbumArtAsync(window.ID, _.head(item.rows).metadb, g_album_art_id.front);
+            if (!_.isInstanceOf(item, Header) || (item.is_art_loaded() && !force)) {
+                return;
+            }
+
+            var metadb = _.head(item.rows).metadb;
+            if (!force) {
+                var cached_art = Header.art_cache.get_image_for_meta(metadb);
+                if (cached_art){
+                    item.assign_art(cached_art);
+                }
+            }
+            if (force || !item.is_art_loaded()) {
+                utils.GetAlbumArtAsync(window.ID, metadb, g_album_art_id.front);
             }
         });
     }, 500, {
@@ -2835,7 +2848,7 @@ function Header(x, y, w, h, idx, row_h_arg) {
 
         //---> Artbox
         if (g_properties.show_album_art) {
-            if (art === undefined) {
+            if (!this.is_art_loaded()) {
                 var cached_art = Header.art_cache.get_image_for_meta(metadb);
                 if (cached_art){
                     this.assign_art(cached_art);
@@ -2866,10 +2879,10 @@ function Header(x, y, w, h, idx, row_h_arg) {
                     }
                     grClip.DrawImage(art, art_x, art_y, art_w, art_h, 0, 0, art_w, art_h, 0, 220);
                 }
-                else if (art === undefined) {
+                else if (!this.is_art_loaded()) {
                     grClip.DrawString('LOADING', g_pl_fonts.cover, line_color, art_box_x, art_box_y, art_box_size, art_box_size, g_string_format.align_center);
                 }
-                else {
+                else {// null
                     grClip.DrawString('NO COVER', g_pl_fonts.cover, _.RGB(100, 100, 100), art_box_x, art_box_y, art_box_size, art_box_size, g_string_format.align_center);
                 }
 
@@ -3185,7 +3198,7 @@ function Header(x, y, w, h, idx, row_h_arg) {
         Header.art_cache.add_image_for_meta(art, metadb);
     };
 
-    this.has_art = function () {
+    this.is_art_loaded = function () {
         return art !== undefined;
     };
 
@@ -3274,7 +3287,7 @@ function Header(x, y, w, h, idx, row_h_arg) {
     var art_max_size = that.h - 16;
 
     var metadb;
-    var art = undefined;
+    var art = undefined; // undefined > Not Loaded; null > Loaded & Not Found; !_.isNil > Loaded & Found
     var grouping_handler = Header.grouping_handler;
 }
 
