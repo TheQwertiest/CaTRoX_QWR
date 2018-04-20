@@ -1,6 +1,17 @@
 # Changelog
 
 ## [Unreleased]
+### Added
+- Playlist Panel:
+  - Art images are now cached: no more needless image reloading after every little action.
+
+### Changed
+- Playlist Panel:
+  - Increased playlist initialization speed by ~7%.
+
+### Fixed
+- Playlist Panel:
+  - Art images won't be loaded anymore when they are disabled.
 
 ## [4.2.1] - 2018-04-16
 ### Changed
