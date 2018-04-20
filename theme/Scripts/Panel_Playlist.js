@@ -1630,7 +1630,7 @@ function Playlist(x, y) {
     this.on_content_to_draw_change = function () {
         set_rows_boundary_status();
         List.prototype.on_content_to_draw_change.apply(this);
-        if (g_properties.show_album_art) {
+        if (g_properties.show_album_art && !g_properties.use_compact_header) {
             get_album_art(this.items_to_draw);
         }
     };
@@ -1713,7 +1713,7 @@ function Playlist(x, y) {
     });
 
     function get_album_art(items) {
-        if (!g_properties.show_album_art) {
+        if (!g_properties.show_album_art || g_properties.use_compact_header) {
             return;
         }
 
@@ -5063,91 +5063,77 @@ Header.grouping_handler = new GroupingHandler();
  * @constructor
  */
 function ArtImageCache(max_cache_size_arg) {
-
     /**
      * @param {IFbMetadbHandle} metadb
      * @param {IGdiBitmap} img
+     * @param {LinkedList.Iterator<IFbMetadbHandle>} queue_iterator
      * @constructor
      */
-    function CacheItem(metadb,img) {
+    function CacheItem(metadb, img, queue_iterator) {
         this.metadb = metadb;
         this.img = img;
+        this.queue_iterator = queue_iterator;
     }
 
     /**
      * @param {IFbMetadbHandle} metadb
      * @return {?IGdiBitmap}
      */
-    this.get_image_for_meta = function(metadb) {
-        var iterator = get_iterator_of_meta(metadb);
-        if (!iterator) {
-            return undefined; // undefined means Loading
+    this.get_image_for_meta = function (metadb) {
+        var cache_item = cache[metadb.Path];
+        if (!cache_item) {
+            return undefined; // undefined means Not Loaded
         }
 
-        var img = iterator.value().img;
-        move_item_to_top(iterator);
+        var img = cache_item.img;
+        move_item_to_top(cache_item);
 
         return img;
     };
 
     /**
-     * @param {IGdiBitmap} img_arg
+     * @param {IGdiBitmap} img
      * @param {IFbMetadbHandle} metadb
      */
-    this.add_image_for_meta = function(img_arg, metadb) {
-        var iterator = get_iterator_of_meta(metadb);
-        if (iterator) {
-            iterator.value().img = img_arg;
-            move_item_to_top(iterator);
+    this.add_image_for_meta = function (img, metadb) {
+        var cache_item = cache[metadb.Path];
+        if (cache_item) {
+            cache_item.img = img;
+            move_item_to_top(cache_item);
         }
         else {
-            cache.push_front(new CacheItem(metadb,img_arg));
-            if (cache.length() > max_cache_size) {
-                cache.pop_back();
+            queue.push_front(metadb);
+            cache[metadb.Path] = new CacheItem(metadb, img, queue.begin());
+            if (queue.length() > max_cache_size) {
+                delete cache[queue.back().Path];
+                queue.pop_back();
             }
         }
     };
 
-    this.clear = function() {
-        cache.clear();
+    this.clear = function () {
+        cache = {};
+        queue.clear();
     };
 
     /**
-     * @param {IFbMetadbHandle} metadb
-     * @return {?Iterator<CacheItem>}
+     * @param {CacheItem} cache_item
      */
-    function get_iterator_of_meta(metadb) {
-        var end = cache.end();
-        var iterator = cache.begin();
-
-        while (!iterator.compare(end)) {
-            if (metadb.Compare(iterator.value().metadb)){
-                break;
-            }
-            iterator.increment();
-        }
-
-        return !iterator.compare(end) ? iterator : null;
-    }
-
-    /**
-     * @param {Iterator<CacheItem>} iterator
-     */
-    function move_item_to_top(iterator) {
-        var cache_item = iterator.value();
-        cache.remove(iterator);
-        cache.push_front(cache_item);
+    function move_item_to_top(cache_item) {
+        queue.remove(cache_item.queue_iterator);
+        queue.push_front(cache_item.metadb);
+        cache_item.queue_iterator = queue.begin();
     }
 
     /** @const{number} */
     var max_cache_size = max_cache_size_arg;
-    /** @type {LinkedList<CacheItem>} */
-    var cache = new LinkedList();
-
-    // TODO: somehow make a map metadb > img (RawPath?)
+    /** @type {LinkedList<IFbMetadbHandle>} */
+    var queue = new LinkedList();
+    /** @type {Object<string,CacheItem>} */
+    var cache = {};
 }
 
-Header.art_cache = new ArtImageCache(100);
+Header.art_cache = new ArtImageCache(200);
 
 var playlist = new PlaylistPanel(0,0);
 playlist.initialize();

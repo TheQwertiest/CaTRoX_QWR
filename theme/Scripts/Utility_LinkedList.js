@@ -22,61 +22,6 @@ function LinkedList() {
         this.next = next;
     }
 
-    /**
-     * @param {Node} node
-     * @constructor
-     * @template T
-     */
-    function Iterator(node) {
-        this.increment = function () {
-            if (this.cur_node === end_node) {
-                throw new LogicError('Iterator is out of bounds');
-            }
-
-            this.cur_node = this.cur_node.next;
-            if (!this.cur_node) {
-                this.cur_node = end_node;
-            }
-        };
-
-        this.decrement = function () {
-            if (this.cur_node === front) {
-                throw new LogicError('Iterator is out of bounds');
-            }
-
-            if (this.cur_node === end_node) {
-                this.cur_node = back;
-            }
-            else {
-                this.cur_node = this.cur_node.prev;
-            }
-        };
-
-        /**
-         * @return {T}
-         */
-        this.value = function () {
-            if (this.cur_node === end_node) {
-                throw new LogicError('Accessing end node');
-            }
-
-            return this.cur_node.value;
-        };
-
-        /**
-         * @param {Iterator} iterator
-         * @return {boolean}
-         */
-        this.compare = function (iterator) {
-            return iterator.cur_node === this.cur_node;
-        };
-
-        /**
-         * @private {Node}
-         */
-        this.cur_node = node;
-    }
-
     this.clear = function () {
         back = null;
         front = null;
@@ -106,11 +51,15 @@ function LinkedList() {
     };
 
     /**
-     * @param {Iterator<T>} iterator
+     * @param {LinkedList.Iterator<T>} iterator
      */
-    this.remove = function(iterator) {
-        if (!_.isInstanceOf(iterator, Iterator)) {
+    this.remove = function (iterator) {
+        if (!_.isInstanceOf(iterator, LinkedList.Iterator)) {
             throw new TypeError(iterator, typeof iterator, 'Iterator');
+        }
+
+        if (iterator.parent !== this) {
+            throw new LogicError('Using iterator from a different list');
         }
 
         if (iterator.compare(this.end())) {
@@ -119,20 +68,20 @@ function LinkedList() {
 
         remove_node(iterator.cur_node);
 
-        iterator.cur_node = end_node;
+        iterator.cur_node = this.end_node;
     };
 
     /**
      * @return {T}
      */
-    this.front = function() {
+    this.front = function () {
         return front.value;
     };
 
     /**
      * @return {T}
      */
-    this.back = function() {
+    this.back = function () {
         return back.value;
     };
 
@@ -145,18 +94,18 @@ function LinkedList() {
 
     /**
      * This method creates Iterator object
-     * @return {Iterator<T>}
+     * @return {LinkedList.Iterator<T>}
      */
-    this.begin = function() {
-        return new Iterator(front ? front : end_node);
+    this.begin = function () {
+        return new LinkedList.Iterator(this, front ? front : this.end_node);
     };
 
     /**
      * This method creates Iterator object
-     * @return {Iterator<T>}
+     * @return {LinkedList.Iterator<T>}
      */
-    this.end = function() {
-        return new Iterator(end_node);
+    this.end = function () {
+        return new LinkedList.Iterator(this, this.end_node);
     };
 
     /**
@@ -212,6 +161,67 @@ function LinkedList() {
     /** @type {number} */
     var size = 0;
 
-    /** @const {Node} */
-    var end_node = new Node(null,null,null);
+    /**
+     * @const {Node}
+     */
+    this.end_node = new Node(null, null, null);
 }
+
+/**
+ * @param {LinkedList} parent
+* @param {Node} node
+* @constructor
+* @template T
+*/
+LinkedList.Iterator = function (parent,node) {
+    this.increment = function () {
+        if (this.cur_node === parent.end_node) {
+            throw new LogicError('Iterator is out of bounds');
+        }
+
+        this.cur_node = this.cur_node.next;
+        if (!this.cur_node) {
+            this.cur_node = parent.end_node;
+        }
+    };
+
+    this.decrement = function () {
+        if (this.cur_node === front) {
+            throw new LogicError('Iterator is out of bounds');
+        }
+
+        if (this.cur_node === parent.end_node) {
+            this.cur_node = back;
+        }
+        else {
+            this.cur_node = this.cur_node.prev;
+        }
+    };
+
+    /**
+     * @return {T}
+     */
+    this.value = function () {
+        if (this.cur_node === parent.end_node) {
+            throw new LogicError('Accessing end node');
+        }
+
+        return this.cur_node.value;
+    };
+
+    /**
+     * @param {LinkedList.Iterator} iterator
+     * @return {boolean}
+     */
+    this.compare = function (iterator) {
+        if (iterator.parent !== this.parent) {
+            throw new LogicError('Comparing iterators from different lists');
+        }
+        return iterator.cur_node === this.cur_node;
+    };
+
+    /** @const {LinkedList} */
+    this.parent = parent;
+    /** @type {Node} */
+    this.cur_node = node;
+};
