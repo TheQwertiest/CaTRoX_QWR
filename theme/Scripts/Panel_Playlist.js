@@ -5057,11 +5057,15 @@ function ArtImageCache(max_cache_size_arg) {
      * @return {?IGdiBitmap}
      */
     this.get_image_for_meta = function(metadb) {
-        var cache_item = _.find(cache, function(item){
-            return item && metadb.Compare(item.meta);
-        });
+        var iterator = get_iterator_of_meta(metadb);
+        if (!iterator) {
+            return undefined; // undefined means Loading
+        }
 
-        return cache_item ? cache_item.img : undefined; // undefined - Loading
+        var img = iterator.value().img;
+        move_item_to_top(iterator);
+
+        return img;
     };
 
     /**
@@ -5069,32 +5073,56 @@ function ArtImageCache(max_cache_size_arg) {
      * @param {IFbMetadbHandle} metadb
      */
     this.add_image_for_meta = function(img_arg, metadb) {
-        var cache_item = (_.remove(cache, function(item){
-            return item && metadb.Compare(item.meta);
-        }))[0];
-
-        if (cache_item) {
-            cache_item.img = img_arg;
-            cache.push(cache_item);
+        var iterator = get_iterator_of_meta(metadb);
+        if (iterator) {
+            iterator.value().img = img_arg;
+            move_item_to_top(iterator);
         }
         else {
             var new_cache_item = { meta: metadb, img : img_arg };
-            cache.push(new_cache_item);
-            if (cache.length > max_cache_size) {
-                cache.shift();
+            cache.push_front(new_cache_item);
+            if (cache.length() > max_cache_size) {
+                cache.pop_back();
             }
         }
     };
 
     this.clear = function() {
-        cache = [];
+        cache.clear();
     };
+
+    /**
+     * @param {IFbMetadbHandle} metadb
+     * @return {?Iterator}
+     */
+    function get_iterator_of_meta(metadb) {
+        var end = cache.end();
+        var iterator = cache.begin();
+
+        while (!iterator.compare(end)) {
+            if (metadb.Compare(iterator.value().meta)){
+                break;
+            }
+            iterator.increment();
+        }
+
+        return !iterator.compare(end) ? iterator : null;
+    }
+
+    /**
+     * @param {Iterator} iterator
+     */
+    function move_item_to_top(iterator) {
+        var cache_item = iterator.value();
+        cache.remove(iterator);
+        cache.push_front(cache_item);
+    }
 
     /** @const{number} */
     var max_cache_size = max_cache_size_arg;
-    var cache = [];
+    var cache = new LinkedList;
 
-    // TODO: replace array with a proper cache implementation (e.g. linked list + map)
+    // TODO: somehow make a map metadb > img (RawPath?)
 }
 
 Header.art_cache = new ArtImageCache(100);
