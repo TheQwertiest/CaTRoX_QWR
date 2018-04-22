@@ -34,6 +34,7 @@ g_properties.add_properties(
         auto_album_art:     ['user.header.this.art.auto', false],
         show_group_info:    ['user.header.info.show', true],
         show_original_date: ['user.header.original_date.show', false],
+        show_disc_headers:  ['user.header.disc_headers.show', true],
 
         alternate_row_color:  ['user.row.alternate_color', true],
         show_playcount:       ['user.row.play_count.show', _.cc('foo_playcount')],
@@ -1689,7 +1690,9 @@ function Playlist(x, y) {
             playlist_copy.length = playlist_copy.length - header.rows.length; ///< much faster then _.drop or slice, since it does not create a new array
             playlist_copy.reverse();
 
-            header.init_disc_rows(that);
+            if (g_properties.show_disc_headers) {
+                header.init_disc_rows(that);
+            }
             headers.push(header);
             ++head_nr;
         }
@@ -3239,8 +3242,8 @@ function Header(x, y, w, h, idx, row_h_arg) {
 
     this.init_disc_rows = function (that) {
         var disc, lastDisc = '';
-        var tfo = fb.TitleFormat('$ifgreater(%totaldiscs%,1,,false)[' + tf.disc_subtitle + ']');
-        var disc_group = fb.TitleFormat('%album artist% %album% %edition% %discnumber%' + tf.disc_subtitle);
+        var tfo = fb.TitleFormat('$ifgreater(%totaldiscs%,1,,false)[%discsubtitle%]');
+        var disc_group = fb.TitleFormat('%album artist% %album% %edition% %discnumber% %discsubtitle%');
         var disc_nr = 0;
         var startIndex;
         var disc_header = null;
@@ -3376,7 +3379,7 @@ function DiscHeader(x, y, w, h, metadb, header) {
         }
 
         var disc_header_text_format = g_string_format.v_align_center | g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
-        var disc_text = _.tf('[Disc %discnumber% $if('+ tf.disc_subtitle+', \u2014 ,) ]['+ tf.disc_subtitle +']', that.metadb);
+        var disc_text = _.tf('[Disc %discnumber% $if(%discsubtitle%, \u2014 ,) ][%discsubtitle%]', that.metadb);
         gr.DrawString(disc_text, title_font, title_color, cur_x, this.y, this.w, this.h, disc_header_text_format);
 
         var tracks_text = this.rows.length + ' Track' + (this.rows.length > 1 ? 's' : '') + ' - ' + get_duration();
