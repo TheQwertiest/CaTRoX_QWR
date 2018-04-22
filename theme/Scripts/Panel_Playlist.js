@@ -3354,8 +3354,6 @@ function Header(x, y, w, h, idx, row_h_arg) {
 Header.prototype = Object.create(List.Item.prototype);
 Header.prototype.constructor = Header;
 
-var show_disc_headers = true;
-
 function DiscHeader(x, y, w, h, metadb, header) {
     List.Item.call(this, x, y, w, h);
 
@@ -3519,9 +3517,6 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
         var right_pad = 0;
         var testRect = false;
 
-        var title_y = this.y;
-        var title_h = this.h;
-
         if (_.tf('$ifgreater(%totaldiscs%,1,true,false)', this.metadb) != 'false') {
             cur_x += 20;
         }
@@ -3543,7 +3538,7 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
             if (length_text) {
                 var length_x = this.x + this.w - length_w - right_pad;
 
-                gr.DrawString(length_text, title_font, title_color, length_x, title_y, length_w, title_h, g_string_format.align_center);
+                gr.DrawString(length_text, title_font, title_color, length_x, this.y, length_w, this.h, g_string_format.align_center);
                 testRect && gr.DrawRect(length_x, this.y - 1, length_w, this.h, 1, _.RGBA(155, 155, 255, 250));
             }
             // We always want that padding
@@ -3566,7 +3561,7 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
                 );
                 var count_x = this.x + this.w - count_w - right_pad;
 
-                gr.DrawString(count_text, g_pl_fonts.playcount, count_color, count_x, title_y, count_w, title_h, g_string_format.align_center);
+                gr.DrawString(count_text, g_pl_fonts.playcount, count_color, count_x, this.y, count_w, this.h, g_string_format.align_center);
                 testRect && gr.DrawRect(count_x, this.y - 1, count_w, this.h, 1, _.RGBA(155, 155, 255, 250));
 
                 right_pad += count_w;
@@ -3605,13 +3600,13 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
             var title_w = this.w - right_pad - 10;
 
             var title_text_format = g_string_format.v_align_center | g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
-            gr.DrawString(title_text + (title_artist_text ? '' : queue_text), title_font, title_color, cur_x, title_y, title_w, title_h, title_text_format);
+            gr.DrawString(title_text + (title_artist_text ? '' : queue_text), title_font, title_color, cur_x, this.y, title_w, this.h, title_text_format);
 
             testRect && gr.DrawRect(this.x, this.y - 1, title_w, this.h, 1, _.RGBA(155, 155, 255, 250));
 
             cur_x += Math.ceil(
                 /** @type {!number} */
-                gr.MeasureString(title_text, title_font, 0, 0, title_w, title_h, title_text_format | g_string_format.measure_trailing_spaces).Width
+                gr.MeasureString(title_text, title_font, 0, 0, title_w, this.h, title_text_format | g_string_format.measure_trailing_spaces).Width
             );
         }
 
@@ -3621,7 +3616,7 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
             var title_artist_w = this.w - (title_artist_x - this.x) - right_pad;
 
             var title_artist_text_format = g_string_format.v_align_center | g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
-            gr.DrawString(title_artist_text + queue_text, title_artist_font, title_artist_color, title_artist_x, title_y, title_artist_w, this.h, title_artist_text_format);
+            gr.DrawString(title_artist_text + queue_text, title_artist_font, title_artist_color, title_artist_x, this.y, title_artist_w, this.h, title_artist_text_format);
         }
     };
 
