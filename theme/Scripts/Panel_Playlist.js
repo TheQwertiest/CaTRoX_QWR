@@ -1583,6 +1583,9 @@ function Playlist(x, y) {
 
         Header.grouping_handler.set_active_playlist(plman.GetPlaylistName(cur_playlist_idx));
         this.cnt.headers = create_headers(this.cnt.rows);
+        if (g_properties.show_disc_headers) {
+            this.cnt.disc_headers = get_disc_headers(this.cnt.headers);
+        }
 
         trace_initialize_list_performance && console.log('Headers initialized in ' + profiler_part.Time + 'ms');
 
@@ -1698,6 +1701,20 @@ function Playlist(x, y) {
         }
 
         return headers;
+    }
+
+    /**
+     * @param {Array<Header>} rows
+     * @return {Array<DiscHeader>}
+     */
+    function get_disc_headers(headers) {
+        var disc_headers = [];
+
+        headers.forEach(function (header) {
+            disc_headers.push.apply(disc_headers, header.discs);
+        });
+
+        return disc_headers;
     }
 
     var debounced_get_album_art = _.debounce(function (items) {
@@ -2662,6 +2679,10 @@ PlaylistContent = function () {
         this.rows.forEach(function (item) {
             item.set_w(w);
         });
+
+        this.disc_headers.forEach(function (item) {
+            item.set_w(w);
+        });
     };
 
     this.calculate_total_h_in_rows = function () {
@@ -2790,6 +2811,9 @@ PlaylistContent = function () {
 
     /** @type {Array<Header>} */
     this.headers = [];
+
+    /** @type {Array<DiscHeader>} */
+    this.disc_headers = [];
 
     var that = this;
 
@@ -3028,7 +3052,7 @@ function Header(x, y, w, h, idx, row_h_arg) {
                 codec = (_.startsWith(metadb.RawPath, '3dydfy:') || _.startsWith(metadb.RawPath, 'fy+')) ? 'yt' : metadb.Path;
             }
 
-            var track_count = this.rows.length - this.num_discs;
+            var track_count = this.rows.length - this.discs.length;
             var genre = is_radio ? '' : (grouping_handler.get_query_name() !== 'artist' ? '[%genre% | ]' : '');
             var disc_number = (grouping_handler.show_cd() && _.tf('[%totaldiscs%]', metadb) !== '1') ? _.tf('[ | Disc: %discnumber%/%totaldiscs%]', metadb) : '';
             var info_text = _.tf(genre + codec + disc_number + '[ | %replaygain_album_gain%]', metadb) + (is_radio ? '' : ' | ' + track_count + (track_count === 1 ? ' Track' : ' Tracks'));
@@ -3280,11 +3304,13 @@ function Header(x, y, w, h, idx, row_h_arg) {
         if (disc_nr) {
             this.rows = rows_copy;
             for (var i = 0; i < this.rows.length; i++) {
+                if (_.isInstanceOf(this.rows[i], DiscHeader)) {
+                    this.discs.push(this.rows[i]);
+                }
                 this.rows[i].num_in_header = i + 1;
                 this.rows[i].is_odd = (i + 1) % 2;
             }
         }
-        this.num_discs = disc_nr;
         _.dispose(tfo);
         _.dispose(disc_group);
     }
@@ -3339,7 +3365,8 @@ function Header(x, y, w, h, idx, row_h_arg) {
 
     this.is_collapsed = false;
 
-    this.num_discs = 0;
+    /** @type{Array<DiscHeader>} */
+    this.discs = [];
 
     //private:
     var that = this;
@@ -3365,9 +3392,10 @@ function DiscHeader(x, y, w, h, metadb, header) {
             gr.FillSolidRect(this.x, this.y + 1, this.w, this.h - 1, g_pl_colors.row_alternate);
         }
 
-        gr.DrawRect(this.x, this.y, this.w, this.h - 1, 1, rgba(100,100,100,100));
-
         var cur_x = this.x + 10;
+        var right_pad = 5;
+        var testRect = false;
+
         var title_font = g_pl_fonts.title_normal;
         var title_color = g_pl_colors.title_normal;
 
@@ -3379,16 +3407,23 @@ function DiscHeader(x, y, w, h, metadb, header) {
         var disc_header_text_format = g_string_format.v_align_center | g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
         var disc_text = _.tf('[Disc %discnumber% $if(%discsubtitle%, \u2014 ,) ][%discsubtitle%]', that.metadb);
         gr.DrawString(disc_text, title_font, title_color, cur_x, this.y, this.w, this.h, disc_header_text_format);
+        var disc_w = Math.ceil(gr.MeasureString(disc_text, title_font, 0, 0, 0, 0).Width + 5);
 
         var tracks_text = this.rows.length + ' Track' + (this.rows.length > 1 ? 's' : '') + ' - ' + get_duration();
 
         var tracks_w = Math.ceil(gr.MeasureString(tracks_text, title_font, 0, 0, 0, 0).Width + 5);
-        var tracks_x = this.x + this.w - tracks_w - 8;
+        var tracks_x = this.x + this.w - tracks_w - right_pad;
 
-        gr.DrawString(tracks_text, title_font, title_color, tracks_x, this.y, tracks_w, this.h, g_string_format.v_align_center);
+        gr.DrawString(tracks_text, title_font, title_color, tracks_x, this.y, tracks_w, this.h, g_string_format.v_align_center | g_string_format.h_align_far);
 
         if (this.is_collapsed) {
-            // what to draw here?
+            var line_y = Math.round(this.y + this.h / 2) - 2;
+            gr.DrawLine(cur_x + disc_w, line_y, this.x + this.w - tracks_w - 5, line_y, 1, _.rgba(100,100,100,100));
+            line_y += 4;
+            gr.DrawLine(cur_x + disc_w, line_y, this.x + this.w - tracks_w - 5, line_y, 1, _.rgba(100,100,100,100));
+        } else {
+            var line_y = Math.round(this.y + this.h / 2);
+            gr.DrawLine(cur_x + disc_w, line_y, this.x + this.w - tracks_w - 5, line_y, 1, _.rgba(100,100,100,100));
         }
     };
 
