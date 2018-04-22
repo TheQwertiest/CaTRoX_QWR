@@ -3418,12 +3418,12 @@ function DiscHeader(x, y, w, h, metadb, header) {
 
         if (this.is_collapsed) {
             var line_y = Math.round(this.y + this.h / 2) - 2;
-            gr.DrawLine(cur_x + disc_w, line_y, this.x + this.w - tracks_w - 5, line_y, 1, _.rgba(100,100,100,100));
+            gr.DrawLine(cur_x + disc_w, line_y, this.x + this.w - tracks_w - 5, line_y, 1, _.RGBA(100,100,100,100));
             line_y += 4;
-            gr.DrawLine(cur_x + disc_w, line_y, this.x + this.w - tracks_w - 5, line_y, 1, _.rgba(100,100,100,100));
+            gr.DrawLine(cur_x + disc_w, line_y, this.x + this.w - tracks_w - 5, line_y, 1, _.RGBA(100,100,100,100));
         } else {
             var line_y = Math.round(this.y + this.h / 2);
-            gr.DrawLine(cur_x + disc_w, line_y, this.x + this.w - tracks_w - 5, line_y, 1, _.rgba(100,100,100,100));
+            gr.DrawLine(cur_x + disc_w, line_y, this.x + this.w - tracks_w - 5, line_y, 1, _.RGBA(100,100,100,100));
         }
     };
 
