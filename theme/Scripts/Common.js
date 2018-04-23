@@ -517,10 +517,10 @@ function PanelProperty(name, default_value) {
         }
     };
 
-    /** @const{string} */
+    /** @const {string} */
     this.name = name;
 
-    /** @type{*} */
+    /** @type {*} */
     var value = window.GetProperty(this.name, default_value);
 }
 
@@ -530,7 +530,7 @@ function PanelProperty(name, default_value) {
 var PanelProperties = (function(){
     function PanelProperties() {
         /**
-         * @param {Array} properties Each item in array is an object of the following type { string, [string, any] }
+         * @param {Object<string, Array<string, *>>} properties Each item in array is an object of the following type { string, [string, any] }
          */
         this.add_properties = function (properties) {
             _.forEach(properties, function (item, i) {

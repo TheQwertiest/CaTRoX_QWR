@@ -480,7 +480,7 @@ List.prototype.calculate_shift_params = function () {
  * @param {number} y
  * @param {number} w
  * @param {number} h
- * @cons    tructor
+ * @constructor
  */
 List.Item = function (x, y, w, h) {
     /**
@@ -597,7 +597,7 @@ List.RowContent.prototype.generate_items_to_draw = function (wy, wh, row_shift, 
         items_to_draw.push(this.rows[i]);
         cur_y += row_h;
 
-        if (cur_y >= wh) {
+        if (cur_y >= wy + wh) {
             break;
         }
     }
