@@ -3981,12 +3981,12 @@ function SelectionHandler(rows_arg, cur_playlist_idx_arg) {
 
         var is_drop_top_selected = is_above;
         var is_drop_bottom_selected = !is_above;
-        var is_drop_boundary_reached = hover_row.idx === 0 || (!is_above && hover_row.idx === rows.length - 1);
+        var is_drop_boundary_reached = hover_row.num_in_header === 0 || (!is_above && hover_row.num_in_header === rows.length - 1);
 
         if (is_internal_drag_n_drop_active && !utils.IsKeyPressed(VK_CONTROL)) {
             // Can't move selected item on itself
-            var is_item_above_selected = hover_row.idx !== 0 && rows[hover_row.idx - 1].is_selected();
-            var is_item_below_selected = hover_row.idx !== (rows.length - 1) && rows[hover_row.idx + 1].is_selected();
+            var is_item_above_selected = hover_row.num_in_header !== 0 && rows[hover_row.num_in_header - 1].is_selected();
+            var is_item_below_selected = hover_row.num_in_header !== (rows.length - 1) && rows[hover_row.num_in_header + 1].is_selected();
             is_drop_top_selected &= !hover_row.is_selected() && !is_item_above_selected;
             is_drop_bottom_selected &= !hover_row.is_selected() && !is_item_below_selected;
         }
@@ -3995,7 +3995,7 @@ function SelectionHandler(rows_arg, cur_playlist_idx_arg) {
 
         var needs_repaint = false;
         if (last_hover_row) {
-            if (last_hover_row.idx === cur_hover_item.idx) {
+            if (last_hover_row.num_in_header === cur_hover_item.num_in_header) {
                 needs_repaint = last_hover_row.is_drop_top_selected !== is_drop_top_selected
                     || last_hover_row.is_drop_bottom_selected !== is_drop_bottom_selected
                     || last_hover_row.is_drop_boundary_reached !== is_drop_boundary_reached;
