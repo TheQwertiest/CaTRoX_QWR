@@ -1372,8 +1372,15 @@ function Playlist(x, y) {
                 var new_focus_item;
                 if (this.is_scrollbar_available) {
                     new_focus_item = _.head(this.items_to_draw);
+                    if (_.isInstanceOf(new_focus_item, DiscHeader)) {
+                        new_focus_item = this.items_to_draw[1]; // this will not work if we can collapse DiscHeaders
+                    }
                     if (_.isInstanceOf(new_focus_item, Header)) {
-                        new_focus_item = this.cnt.rows[_.head(new_focus_item.rows).idx];
+                        if (_.isInstanceOf(_.head(new_focus_item.rows), DiscHeader)) {
+                            new_focus_item = _.head(new_focus_item.rows).rows[0];   // first row in DiscHeader
+                        } else {
+                            new_focus_item = this.cnt.rows[_.head(new_focus_item.rows).idx];
+                        }
                     }
                     if (new_focus_item.y < this.list_y && new_focus_item.y + new_focus_item.h > this.list_y) {
                         new_focus_item = this.cnt.rows[new_focus_item.idx + 1];
@@ -1383,7 +1390,11 @@ function Playlist(x, y) {
 
                         new_focus_item = _.head(this.items_to_draw);
                         if (_.isInstanceOf(new_focus_item, Header)) {
-                            new_focus_item = this.cnt.rows[_.head(new_focus_item.rows).idx];
+                            if (_.isInstanceOf(_.head(new_focus_item.rows), DiscHeader)) {
+                                new_focus_item = _.head(new_focus_item.rows).rows[0];   // first row in DiscHeader
+                            } else {
+                                new_focus_item = this.cnt.rows[_.head(new_focus_item.rows).idx];
+                            }
                         }
                     }
                 }
@@ -1409,6 +1420,9 @@ function Playlist(x, y) {
                 var new_focus_item;
                 if (this.is_scrollbar_available) {
                     new_focus_item = _.last(this.items_to_draw);
+                    if (_.isInstanceOf(new_focus_item, DiscHeader)) {
+                        new_focus_item = this.items_to_draw[this.items_to_draw.length - 2]; // this will not work if we can collapse DiscHeaders
+                    }
                     if (_.isInstanceOf(new_focus_item, Header)) {
                         new_focus_item = _.last(this.cnt.headers[new_focus_item.idx - 1].rows);
                     }
@@ -1421,6 +1435,9 @@ function Playlist(x, y) {
                         new_focus_item = _.last(this.items_to_draw);
                         if (_.isInstanceOf(new_focus_item, Header)) {
                             new_focus_item = _.last(this.cnt.headers[new_focus_item.idx - 1].rows);
+                        }
+                        if (_.isInstanceOf(new_focus_item, DiscHeader)) {
+                            new_focus_item = this.items_to_draw[this.items_to_draw.length - 2]; // this will not work if we can collapse DiscHeaders
                         }
                     }
                 }
