@@ -2320,6 +2320,7 @@ function Playlist(x, y) {
         }
 
         var has_headers = g_properties.show_header;
+        var has_disc_headers = g_properties.show_disc_headers;
 
         var from_header = from_row ? from_row.header : undefined;
         var to_header = to_row.header;
@@ -2348,20 +2349,33 @@ function Playlist(x, y) {
                             || is_from_header && !is_to_header && from_header.idx + 1 === to_header.idx && to_item.idx === _.head(to_header.rows).idx
                             || !is_from_header && is_to_header && from_header.idx + 1 === to_header.idx && from_item.idx === _.last(from_header.rows).idx;
 
-
                         var row_shift = from_item_state.invisible_part + to_item_h_in_rows;
                         if (is_item_prev) {
                             if (has_headers && !is_from_header && !is_to_header && to_item.idx === _.last(to_header.rows).idx) {
                                 var from_header_state = get_item_visibility_state(from_header);
                                 row_shift += from_header_state.invisible_part;
+                                if (_.isInstanceOf(_.head(from_header.rows), DiscHeader)) {
+                                    row_shift++;
+                                }
+                            }
+                            else if (has_disc_headers && !is_to_header && to_item.num_in_header === from_row.num_in_header - 2) {
+                                // has DiscHeader between items
+                                row_shift += 1;
                             }
                             that.scrollbar.scroll_to(g_properties.scroll_pos - row_shift);
                             shifted_successfully = true;
                         }
                         else if (is_item_next) {
-                            if (has_headers && !is_to_header && to_item.idx === _.head(to_header.rows).idx) {
+                            if (has_headers && !is_to_header && (to_item.idx === _.head(to_header.rows).idx || to_item.num_in_header === 2)) {
                                 var to_header_state = get_item_visibility_state(to_header);
                                 row_shift += to_header_state.invisible_part;
+                                if (_.isInstanceOf(_.head(to_header.rows), DiscHeader)) {
+                                    row_shift++;
+                                }
+                            }
+                            else if (has_disc_headers && !is_to_header && to_item.num_in_header === from_row.num_in_header + 2) {
+                                // has DiscHeader between items
+                                row_shift += 1;
                             }
 
                             that.scrollbar.scroll_to(g_properties.scroll_pos + row_shift);
