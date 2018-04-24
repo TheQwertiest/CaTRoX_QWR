@@ -34,6 +34,7 @@ g_properties.add_properties(
         auto_album_art:     ['user.header.this.art.auto', false],
         show_group_info:    ['user.header.info.show', true],
         show_original_date: ['user.header.original_date.show', false],
+        show_disc_headers:  ['user.header.disc_headers.show', true],
 
         alternate_row_color:  ['user.row.alternate_color', true],
         show_playcount:       ['user.row.play_count.show', _.cc('foo_playcount')],
@@ -766,6 +767,10 @@ function Playlist(x, y) {
         if (_.isInstanceOf(item, Header)) {
             plman.ExecutePlaylistDefaultAction(cur_playlist_idx, _.head(item.rows).idx);
         }
+        else if (_.isInstanceOf(item, DiscHeader)) {
+            // Toggling works, but cannot get List to redraw
+            // item.toggle_collapse();
+        }
         else {
             if (g_properties.show_rating && item.rating_trace(x, y)) {
                 item.rating_click(x, y);
@@ -1367,8 +1372,15 @@ function Playlist(x, y) {
                 var new_focus_item;
                 if (this.is_scrollbar_available) {
                     new_focus_item = _.head(this.items_to_draw);
+                    if (_.isInstanceOf(new_focus_item, DiscHeader)) {
+                        new_focus_item = this.items_to_draw[1]; // this will not work if we can collapse DiscHeaders
+                    }
                     if (_.isInstanceOf(new_focus_item, Header)) {
-                        new_focus_item = this.cnt.rows[_.head(new_focus_item.rows).idx];
+                        if (_.isInstanceOf(_.head(new_focus_item.rows), DiscHeader)) {
+                            new_focus_item = _.head(new_focus_item.rows).rows[0];   // first row in DiscHeader
+                        } else {
+                            new_focus_item = this.cnt.rows[_.head(new_focus_item.rows).idx];
+                        }
                     }
                     if (new_focus_item.y < this.list_y && new_focus_item.y + new_focus_item.h > this.list_y) {
                         new_focus_item = this.cnt.rows[new_focus_item.idx + 1];
@@ -1378,7 +1390,11 @@ function Playlist(x, y) {
 
                         new_focus_item = _.head(this.items_to_draw);
                         if (_.isInstanceOf(new_focus_item, Header)) {
-                            new_focus_item = this.cnt.rows[_.head(new_focus_item.rows).idx];
+                            if (_.isInstanceOf(_.head(new_focus_item.rows), DiscHeader)) {
+                                new_focus_item = _.head(new_focus_item.rows).rows[0];   // first row in DiscHeader
+                            } else {
+                                new_focus_item = this.cnt.rows[_.head(new_focus_item.rows).idx];
+                            }
                         }
                     }
                 }
@@ -1404,6 +1420,9 @@ function Playlist(x, y) {
                 var new_focus_item;
                 if (this.is_scrollbar_available) {
                     new_focus_item = _.last(this.items_to_draw);
+                    if (_.isInstanceOf(new_focus_item, DiscHeader)) {
+                        new_focus_item = this.items_to_draw[this.items_to_draw.length - 2]; // this will not work if we can collapse DiscHeaders
+                    }
                     if (_.isInstanceOf(new_focus_item, Header)) {
                         new_focus_item = _.last(this.cnt.headers[new_focus_item.idx - 1].rows);
                     }
@@ -1416,6 +1435,9 @@ function Playlist(x, y) {
                         new_focus_item = _.last(this.items_to_draw);
                         if (_.isInstanceOf(new_focus_item, Header)) {
                             new_focus_item = _.last(this.cnt.headers[new_focus_item.idx - 1].rows);
+                        }
+                        if (_.isInstanceOf(new_focus_item, DiscHeader)) {
+                            new_focus_item = this.items_to_draw[this.items_to_draw.length - 2]; // this will not work if we can collapse DiscHeaders
                         }
                     }
                 }
@@ -1578,6 +1600,9 @@ function Playlist(x, y) {
 
         Header.grouping_handler.set_active_playlist(plman.GetPlaylistName(cur_playlist_idx));
         this.cnt.headers = create_headers(this.cnt.rows);
+        if (g_properties.show_disc_headers) {
+            this.cnt.disc_headers = get_disc_headers(this.cnt.headers);
+        }
 
         trace_initialize_list_performance && console.log('Headers initialized in ' + profiler_part.Time + 'ms');
 
@@ -1685,11 +1710,28 @@ function Playlist(x, y) {
             playlist_copy.length = playlist_copy.length - header.rows.length; ///< much faster then _.drop or slice, since it does not create a new array
             playlist_copy.reverse();
 
+            if (g_properties.show_disc_headers) {
+                header.init_disc_rows(that);
+            }
             headers.push(header);
             ++head_nr;
         }
 
         return headers;
+    }
+
+    /**
+     * @param {Array<Header>} rows
+     * @return {Array<DiscHeader>}
+     */
+    function get_disc_headers(headers) {
+        var disc_headers = [];
+
+        headers.forEach(function (header) {
+            disc_headers.push.apply(disc_headers, header.discs);
+        });
+
+        return disc_headers;
     }
 
     var debounced_get_album_art = _.debounce(function (items) {
@@ -2295,6 +2337,7 @@ function Playlist(x, y) {
         }
 
         var has_headers = g_properties.show_header;
+        var has_disc_headers = g_properties.show_disc_headers;
 
         var from_header = from_row ? from_row.header : undefined;
         var to_header = to_row.header;
@@ -2323,20 +2366,33 @@ function Playlist(x, y) {
                             || is_from_header && !is_to_header && from_header.idx + 1 === to_header.idx && to_item.idx === _.head(to_header.rows).idx
                             || !is_from_header && is_to_header && from_header.idx + 1 === to_header.idx && from_item.idx === _.last(from_header.rows).idx;
 
-
                         var row_shift = from_item_state.invisible_part + to_item_h_in_rows;
                         if (is_item_prev) {
                             if (has_headers && !is_from_header && !is_to_header && to_item.idx === _.last(to_header.rows).idx) {
                                 var from_header_state = get_item_visibility_state(from_header);
                                 row_shift += from_header_state.invisible_part;
+                                if (_.isInstanceOf(_.head(from_header.rows), DiscHeader)) {
+                                    row_shift++;
+                                }
+                            }
+                            else if (has_disc_headers && !is_to_header && to_item.num_in_header === from_row.num_in_header - 2) {
+                                // has DiscHeader between items
+                                row_shift += 1;
                             }
                             that.scrollbar.scroll_to(g_properties.scroll_pos - row_shift);
                             shifted_successfully = true;
                         }
                         else if (is_item_next) {
-                            if (has_headers && !is_to_header && to_item.idx === _.head(to_header.rows).idx) {
+                            if (has_headers && !is_to_header && (to_item.idx === _.head(to_header.rows).idx || to_item.num_in_header === 2)) {
                                 var to_header_state = get_item_visibility_state(to_header);
                                 row_shift += to_header_state.invisible_part;
+                                if (_.isInstanceOf(_.head(to_header.rows), DiscHeader)) {
+                                    row_shift++;
+                                }
+                            }
+                            else if (has_disc_headers && !is_to_header && to_item.num_in_header === from_row.num_in_header + 2) {
+                                // has DiscHeader between items
+                                row_shift += 1;
                             }
 
                             that.scrollbar.scroll_to(g_properties.scroll_pos + row_shift);
@@ -2654,6 +2710,10 @@ PlaylistContent = function () {
         this.rows.forEach(function (item) {
             item.set_w(w);
         });
+
+        this.disc_headers.forEach(function (item) {
+            item.set_w(w);
+        });
     };
 
     this.calculate_total_h_in_rows = function () {
@@ -2767,6 +2827,10 @@ PlaylistContent = function () {
                     should_break = true;
                     break;
                 }
+
+                if (_.isInstanceOf(header_row, DiscHeader) && header_row.is_collapsed) {
+                    j += header_row.rows.length;
+                }
             }
             if (should_break) {
                 break;
@@ -2778,6 +2842,9 @@ PlaylistContent = function () {
 
     /** @type {Array<Header>} */
     this.headers = [];
+
+    /** @type {Array<DiscHeader>} */
+    this.disc_headers = [];
 
     var that = this;
 
@@ -3016,7 +3083,7 @@ function Header(x, y, w, h, idx, row_h_arg) {
                 codec = (_.startsWith(metadb.RawPath, '3dydfy:') || _.startsWith(metadb.RawPath, 'fy+')) ? 'yt' : metadb.Path;
             }
 
-            var track_count = this.rows.length;
+            var track_count = this.rows.length - this.discs.length;
             var genre = is_radio ? '' : (grouping_handler.get_query_name() !== 'artist' ? '[%genre% | ]' : '');
             var disc_number = (grouping_handler.show_cd() && _.tf('[%totaldiscs%]', metadb) !== '1') ? _.tf('[ | Disc: %discnumber%/%totaldiscs%]', metadb) : '';
             var info_text = _.tf(genre + codec + disc_number + '[ | %replaygain_album_gain%]', metadb) + (is_radio ? '' : ' | ' + track_count + (track_count === 1 ? ' Track' : ' Tracks'));
@@ -3228,6 +3295,57 @@ function Header(x, y, w, h, idx, row_h_arg) {
         metadb = _.head(this.rows).metadb;
     };
 
+    this.init_disc_rows = function (that) {
+        var disc, lastDisc = '';
+        var tfo = fb.TitleFormat('$ifgreater(%totaldiscs%,1,,false)[%discsubtitle%]');
+        var disc_group = fb.TitleFormat('%album artist% %album% %edition% %discnumber% %discsubtitle%');
+        var disc_nr = 0;
+        var startIndex;
+        var disc_header = null;
+        var rows_copy = [];
+
+        for (var i = 0; i < this.rows.length; i++) {
+            if (tfo.EvalWithMetadb(this.rows[i].metadb) !== 'false') {
+                disc = disc_group.EvalWithMetadb(this.rows[i].metadb);
+                if (disc != lastDisc) {
+                    if (disc_header) {
+                        rows_copy.splice(startIndex, 0, disc_header);
+                    } else if (!rows_copy.length) {
+                        // only copy if we have to
+                        rows_copy = this.rows.slice();
+                    }
+                    disc_header = new DiscHeader(that.list_x, 0, that.list_w, that.row_h, this.rows[i].metadb, this);
+                    lastDisc = disc;
+                    startIndex = i + disc_nr;	// index in header where DiscHeader will be inserted
+                    disc_nr++;
+                }
+                this.rows[i].disc = disc_nr - 1;    // already incremented
+                disc_header.rows.push(this.rows[i]);
+            } else {
+                if (disc_header) {
+                    // special case with single disc, but discsubtitle only on some tracks
+                    rows_copy.splice(startIndex, 0, disc_header);
+                    disc_header = null;
+                }
+            }
+        }
+        if (disc_header) {
+            rows_copy.splice(startIndex, 0, disc_header);
+        }
+        if (disc_nr) {
+            this.rows = rows_copy;
+            for (var i = 0; i < this.rows.length; i++) {
+                if (_.isInstanceOf(this.rows[i], DiscHeader)) {
+                    this.discs.push(this.rows[i]);
+                }
+                this.rows[i].num_in_header = i + 1;
+                this.rows[i].is_odd = (i + 1) % 2;
+            }
+        }
+        _.dispose(tfo);
+        _.dispose(disc_group);
+    }
+
     this.has_selected_items = function () {
         return _.some(that.rows, function (row) {
             return row.is_selected();
@@ -3256,12 +3374,11 @@ function Header(x, y, w, h, idx, row_h_arg) {
     function get_duration() {
         var duration_in_seconds = 0;
 
-        that.rows.forEach(function (item) {
-            var trackLength = parseFloat(_.tf('%length_seconds_fp%', item.metadb));
-            if (trackLength) {
-                duration_in_seconds += trackLength;
+        for (var i = 0; i < that.rows.length; ++i) {
+            if (!_.isInstanceOf(that.rows[i], DiscHeader)) {
+                duration_in_seconds += that.rows[i].metadb.Length;
             }
-        });
+        }
 
         if (!duration_in_seconds) {
             return '';
@@ -3274,10 +3391,13 @@ function Header(x, y, w, h, idx, row_h_arg) {
     /** @const {number} */
     this.idx = idx;
 
-    /** @type{Array<Row>} */
+    /** @type{Array<Row|DiscHeader>} */
     this.rows = [];
 
     this.is_collapsed = false;
+
+    /** @type{Array<DiscHeader>} */
+    this.discs = [];
 
     //private:
     var that = this;
@@ -3291,6 +3411,102 @@ function Header(x, y, w, h, idx, row_h_arg) {
 
 Header.prototype = Object.create(List.Item.prototype);
 Header.prototype.constructor = Header;
+
+function DiscHeader(x, y, w, h, metadb, header) {
+    List.Item.call(this, x, y, w, h);
+
+    //public:
+    this.draw = function (gr, top, bottom) {
+        gr.FillSolidRect(this.x, this.y, this.w, this.h, g_pl_colors.background);
+
+        if (this.is_odd && g_properties.alternate_row_color) {
+            gr.FillSolidRect(this.x, this.y + 1, this.w, this.h - 1, g_pl_colors.row_alternate);
+        }
+
+        var cur_x = this.x + 10;
+        var right_pad = 5;
+        var testRect = false;
+
+        var title_font = g_pl_fonts.title_normal;
+        var title_color = g_pl_colors.title_normal;
+
+        if (this.is_selected()) {
+            title_color = g_pl_colors.title_selected;
+            title_font = g_pl_fonts.title_selected;
+        }
+
+        var disc_header_text_format = g_string_format.v_align_center | g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
+        var disc_text = _.tf('[Disc %discnumber% $if(%discsubtitle%, \u2014 ,) ][%discsubtitle%]', that.metadb);
+        gr.DrawString(disc_text, title_font, title_color, cur_x, this.y, this.w, this.h, disc_header_text_format);
+        var disc_w = Math.ceil(gr.MeasureString(disc_text, title_font, 0, 0, 0, 0).Width + 5);
+
+        var tracks_text = this.rows.length + ' Track' + (this.rows.length > 1 ? 's' : '') + ' - ' + get_duration();
+
+        var tracks_w = Math.ceil(gr.MeasureString(tracks_text, title_font, 0, 0, 0, 0).Width + 5);
+        var tracks_x = this.x + this.w - tracks_w - right_pad;
+
+        gr.DrawString(tracks_text, title_font, title_color, tracks_x, this.y, tracks_w, this.h, g_string_format.v_align_center | g_string_format.h_align_far);
+
+        if (this.is_collapsed) {
+            var line_y = Math.round(this.y + this.h / 2) - 2;
+            gr.DrawLine(cur_x + disc_w, line_y, this.x + this.w - tracks_w - 5, line_y, 1, _.RGBA(100,100,100,100));
+            line_y += 4;
+            gr.DrawLine(cur_x + disc_w, line_y, this.x + this.w - tracks_w - 5, line_y, 1, _.RGBA(100,100,100,100));
+        } else {
+            var line_y = Math.round(this.y + this.h / 2);
+            gr.DrawLine(cur_x + disc_w, line_y, this.x + this.w - tracks_w - 5, line_y, 1, _.RGBA(100,100,100,100));
+        }
+    };
+
+    this.is_selected = function () {
+        return _.every(that.rows, function (row) {
+            return row.is_selected();
+        });
+    };
+
+    this.toggle_collapse = function () {
+        this.is_collapsed = !this.is_collapsed;
+
+        this.header.collapse();
+        this.header.expand();
+    }
+
+    function get_duration() {
+        var duration_in_seconds = 0;
+
+        for (var i = 0; i < that.rows.length; ++i) {
+            duration_in_seconds += that.rows[i].metadb.Length;
+        }
+
+        if (!duration_in_seconds) {
+            return '';
+        }
+
+        return utils.FormatDuration(duration_in_seconds);
+    }
+
+    this.rows = [];
+
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.idx = -1;
+    this.metadb = metadb;	// metadb of first disc child
+    this.header = header;
+
+    this.num_in_header = 0;
+
+    this.is_collapsed = false;
+    this.is_playing = false;
+    this.is_focused = false;
+    this.is_odd = false;
+
+    var that = this;
+}
+
+DiscHeader.prototype = Object.create(List.Item.prototype);
+DiscHeader.prototype.constructor = Header;
 
 /**
  * @param {number} x
@@ -3366,6 +3582,10 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
         var cur_x = this.x + 10;
         var right_pad = 0;
         var testRect = false;
+
+        if (_.tf('$ifgreater(%totaldiscs%,1,true,false)', this.metadb) != 'false') {
+            cur_x += 20;
+        }
 
         //---> RATING
         if (g_properties.show_rating) {
@@ -3520,6 +3740,7 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
     this.is_odd = false;
     this.num_in_header = undefined;
     this.header = undefined;
+    this.disc = undefined;
 
     this.queue_idx = undefined;
     this.queue_idx_count = 0;
@@ -3791,12 +4012,12 @@ function SelectionHandler(rows_arg, cur_playlist_idx_arg) {
 
         var is_drop_top_selected = is_above;
         var is_drop_bottom_selected = !is_above;
-        var is_drop_boundary_reached = hover_row.idx === 0 || (!is_above && hover_row.idx === rows.length - 1);
+        var is_drop_boundary_reached = hover_row.num_in_header === 0 || (!is_above && hover_row.num_in_header === rows.length - 1);
 
         if (is_internal_drag_n_drop_active && !utils.IsKeyPressed(VK_CONTROL)) {
             // Can't move selected item on itself
-            var is_item_above_selected = hover_row.idx !== 0 && rows[hover_row.idx - 1].is_selected();
-            var is_item_below_selected = hover_row.idx !== (rows.length - 1) && rows[hover_row.idx + 1].is_selected();
+            var is_item_above_selected = hover_row.num_in_header !== 0 && rows[hover_row.num_in_header - 1].is_selected();
+            var is_item_below_selected = hover_row.num_in_header !== (rows.length - 1) && rows[hover_row.num_in_header + 1].is_selected();
             is_drop_top_selected &= !hover_row.is_selected() && !is_item_above_selected;
             is_drop_bottom_selected &= !hover_row.is_selected() && !is_item_below_selected;
         }
@@ -3805,7 +4026,7 @@ function SelectionHandler(rows_arg, cur_playlist_idx_arg) {
 
         var needs_repaint = false;
         if (last_hover_row) {
-            if (last_hover_row.idx === cur_hover_item.idx) {
+            if (last_hover_row.num_in_header === cur_hover_item.num_in_header) {
                 needs_repaint = last_hover_row.is_drop_top_selected !== is_drop_top_selected
                     || last_hover_row.is_drop_bottom_selected !== is_drop_bottom_selected
                     || last_hover_row.is_drop_boundary_reached !== is_drop_boundary_reached;
