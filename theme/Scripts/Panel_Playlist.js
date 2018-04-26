@@ -2797,12 +2797,14 @@ Playlist.prototype.constructor = Playlist;
 
 
 /**
+ * @final
  * @constructor
  * @extend {List.RowContent}
  */
 PlaylistContent = function () {
     List.RowContent.call(this);
 
+    /** @override */
     this.generate_items_to_draw = function (wy, wh, row_shift, pixel_shift, row_h) {
         if (!this.rows.length) {
             return [];
@@ -2816,6 +2818,7 @@ PlaylistContent = function () {
         return generate_all_items_to_draw(wy, wh, first_item);
     };
 
+    /** @override */
     this.update_items_w_size = function (w) {
         if (!g_properties.show_header) {
             List.RowContent.prototype.update_items_w_size.apply(this, [w]);
@@ -2827,6 +2830,7 @@ PlaylistContent = function () {
         });
     };
 
+    /** @override */
     this.calculate_total_h_in_rows = function () {
         if (!g_properties.show_header) {
             return List.RowContent.prototype.calculate_total_h_in_rows.apply(this);
@@ -3003,6 +3007,13 @@ PlaylistContent.prototype = Object.create(List.RowContent.prototype);
 PlaylistContent.prototype.constructor = PlaylistContent;
 
 /**
+ * @param {List.Content|BaseHeader} parent
+ * @param {number} x
+ * @param {number} y
+ * @param {number} w
+ * @param {number} h
+ * @param {number} idx
+ *
  * @constructor
  * @extends {List.Item}
  */
@@ -3019,13 +3030,14 @@ function BaseHeader(parent, x, y, w, h, idx) {
     };
 
     /**
-     * @param {IGdiGraphics} gr
      * @abstract
+     * @override
      */
     this.draw = function (gr) {
         throw new LogicError("draw not implemented");
     };
 
+    /** @override */
     this.set_w = function (w) {
         List.Item.prototype.set_w.apply(this, [w]);
 
@@ -3153,6 +3165,14 @@ BaseHeader.prototype = Object.create(List.Item.prototype);
 BaseHeader.prototype.constructor = BaseHeader;
 
 /**
+ * @param {List.Content|BaseHeader} parent
+ * @param {number} x
+ * @param {number} y
+ * @param {number} w
+ * @param {number} h
+ * @param {number} idx
+ *
+ *
  * @final
  * @constructor
  * @extends {BaseHeader}
@@ -3160,7 +3180,38 @@ BaseHeader.prototype.constructor = BaseHeader;
 function Header(parent, x, y, w, h, idx) {
     BaseHeader.call(this, parent, x, y, w, h, idx);
 
-    //public:
+    /** @override */
+    this.initialize_items = function (rows_to_process) {
+        this.sub_items = [];
+        if (!rows_to_process.length) {
+            return 0;
+        }
+
+        var query = grouping_handler.get_query();
+        var tfo = fb.TitleFormat(query ? query : ''); // workaround a bug, because of which '' is sometimes treated as null :\
+
+        var group = tfo.EvalWithMetadb(_.head(rows_to_process).metadb);
+        _.forEach(rows_to_process, _.bind(function (item, i) {
+            var cur_group = tfo.EvalWithMetadb(item.metadb);
+            if (group !== cur_group) {
+                return false;
+            }
+            item.idx_in_header = i;
+            if (g_properties.show_header) {
+                item.is_odd = i % 2;
+            }
+            item.parent = this;
+            this.sub_items.push(item);
+        }, this));
+
+        _.dispose(tfo);
+
+        metadb = _.head(this.sub_items).metadb;
+
+        return this.sub_items.length;
+    };
+
+    /** @override */
     this.draw = function (gr) {
         if (g_properties.use_compact_header) {
             this.draw_compact_header(gr)
@@ -3565,36 +3616,6 @@ function Header(parent, x, y, w, h, idx) {
 
     this.is_art_loaded = function () {
         return art !== undefined;
-    };
-
-    this.initialize_items = function (rows_to_process) {
-        this.sub_items = [];
-        if (!rows_to_process.length) {
-            return 0;
-        }
-
-        var query = grouping_handler.get_query();
-        var tfo = fb.TitleFormat(query ? query : ''); // workaround a bug, because of which '' is sometimes treated as null :\
-
-        var group = tfo.EvalWithMetadb(_.head(rows_to_process).metadb);
-        _.forEach(rows_to_process, _.bind(function (item, i) {
-            var cur_group = tfo.EvalWithMetadb(item.metadb);
-            if (group !== cur_group) {
-                return false;
-            }
-            item.idx_in_header = i;
-            if (g_properties.show_header) {
-                item.is_odd = i % 2;
-            }
-            item.parent = this;
-            this.sub_items.push(item);
-        }, this));
-
-        _.dispose(tfo);
-
-        metadb = _.head(this.sub_items).metadb;
-
-        return this.sub_items.length;
     };
 
     //private:
