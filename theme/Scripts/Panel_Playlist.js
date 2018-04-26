@@ -1674,7 +1674,7 @@ function Playlist(x, y) {
         for (var i = 0; i < playlist_size; ++i) {
             rows[i] = new Row(that.list_x, 0, that.list_w, that.row_h, playlist_items_arr[i], i, cur_playlist_idx);
             if (!g_properties.show_header) {
-                rows[i].is_odd = (i + 1) % 2;
+                rows[i].is_odd = !!((i + 1) & 1);
             }
         }
 
@@ -3134,10 +3134,7 @@ function BaseHeader(parent, x, y, w, h, idx) {
 
         if (_.isInstanceOf(_.head(this.sub_items), Row)) {
             this.sub_items.forEach(function (item) {
-                var trackLength = parseFloat(_.tf('%length_seconds_fp%', item.metadb));
-                if (trackLength) {
-                    duration_in_seconds += trackLength;
-                }
+                duration_in_seconds += item.metadb.Length;
             });
         }
         else {
@@ -3198,7 +3195,7 @@ function Header(parent, x, y, w, h, idx) {
             }
             item.idx_in_header = i;
             if (g_properties.show_header) {
-                item.is_odd = i % 2;
+                item.is_odd = !!((i + 1) & 1);
             }
             item.parent = this;
             this.sub_items.push(item);
