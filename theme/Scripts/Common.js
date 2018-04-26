@@ -152,7 +152,7 @@ var g_album_art_id = {
  * @extends {Error}
  */
 function ThemeError(msg) {
-    Error.call(this, '') ;
+    Error.call(this, '');
 
     this.name = 'ThemeError';
 
@@ -162,6 +162,7 @@ function ThemeError(msg) {
 
     this.message = err_msg;
 }
+
 ThemeError.prototype = Object.create(Error.prototype);
 
 /**
@@ -170,7 +171,7 @@ ThemeError.prototype = Object.create(Error.prototype);
  * @extends {Error}
  */
 function LogicError(msg) {
-    Error.call(this, '') ;
+    Error.call(this, '');
 
     this.name = 'LogicError';
 
@@ -180,6 +181,7 @@ function LogicError(msg) {
 
     this.message = err_msg;
 }
+
 LogicError.prototype = Object.create(Error.prototype);
 
 /**
@@ -191,7 +193,7 @@ LogicError.prototype = Object.create(Error.prototype);
  * @extends {Error}
  */
 function TypeError(arg_name, arg_type, valid_type, additional_msg) {
-    Error.call(this, '') ;
+    Error.call(this, '');
 
     this.name = 'TypeError';
 
@@ -204,6 +206,7 @@ function TypeError(arg_name, arg_type, valid_type, additional_msg) {
 
     this.message = err_msg;
 }
+
 TypeError.prototype = Object.create(Error.prototype);
 
 /**
@@ -214,7 +217,7 @@ TypeError.prototype = Object.create(Error.prototype);
  * @extends {Error}
  */
 function ArgumentError(arg_name, arg_value, additional_msg) {
-    Error.call(this, '') ;
+    Error.call(this, '');
 
     this.name = 'ArgumentError';
 
@@ -227,6 +230,7 @@ function ArgumentError(arg_name, arg_value, additional_msg) {
 
     this.message = err_msg;
 }
+
 ArgumentError.prototype = Object.create(Error.prototype);
 
 //</editor-fold>
@@ -431,7 +435,7 @@ var qwr_utils = {
             version += (WshShell.RegRead('HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\CurrentMinorVersionNumber')).toString();
         });
 
-        if (!_.isError(ret)){
+        if (!_.isError(ret)) {
             return version;
         }
 
@@ -439,7 +443,7 @@ var qwr_utils = {
             version = WshShell.RegRead('HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\CurrentVersion');
         });
 
-        if (!_.isError(ret)){
+        if (!_.isError(ret)) {
             return version;
         }
 
@@ -455,7 +459,7 @@ function KeyActionHandler() {
      * @param{string} key
      * @param{function} action_callback
      */
-    this.register_key_action = function(key, action_callback) {
+    this.register_key_action = function (key, action_callback) {
         if (!action_callback) {
             throw new ArgumentError('action_callback', action_callback);
         }
@@ -475,12 +479,7 @@ function KeyActionHandler() {
      * @param{boolean=} [key_modifiers.shift=false]
      * @return{boolean} true, if key is registered, false - otherwise
      */
-    this.invoke_key_action = function(key, key_modifiers) {
-        var key_obj = actions[key];
-        if (!key_obj) {
-            return false;
-        }
-
+    this.invoke_key_action = function (key, key_modifiers) {
         var key_action = actions[key];
         if (!actions[key]) {
             return false;
@@ -503,14 +502,14 @@ function PanelProperty(name, default_value) {
     /**
      * @return {*}
      */
-    this.get = function() {
+    this.get = function () {
         return value;
 
     };
     /**
      * @param {*} new_value
      */
-    this.set = function(new_value) {
+    this.set = function (new_value) {
         if (value !== new_value) {
             window.SetProperty(this.name, new_value);
             value = new_value;
@@ -527,7 +526,7 @@ function PanelProperty(name, default_value) {
 /**
  * @hideconstructor
  */
-var PanelProperties = (function(){
+var PanelProperties = (function () {
     function PanelProperties() {
         /**
          * @param {Object<string, Array<string, *>>} properties Each item in array is an object of the following type { string, [string, any] }
@@ -581,7 +580,7 @@ var PanelProperties = (function(){
          * @alias PanelProperties.get_instance
          * @returns {PanelProperties}
          */
-        get_instance: function(){
+        get_instance: function () {
             if (!instance) {
                 instance = new PanelProperties();
                 delete instance.constructor;
