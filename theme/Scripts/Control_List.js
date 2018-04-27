@@ -27,6 +27,9 @@ g_properties.add_properties(
 // Fixup properties
 (function() {
     g_properties.row_h = Math.max(10, g_properties.row_h);
+    if (!_.isFinite(g_properties.scroll_pos) || g_properties.scroll_pos < 0) {
+        g_properties.scroll_pos = 0;
+    }
 })();
 
 /**
@@ -52,7 +55,10 @@ List = function (x, y, w, h, content) {
     /** @type {number} */
     this.h = h;
 
-    /** @const {number}*/
+    /**
+     * @const
+     * @type {number}
+     */
     this.row_h = g_properties.row_h;
 
     /** @type {number} */
@@ -502,7 +508,7 @@ List.Item = function (x, y, w, h) {
  * @abstract
  */
 List.Item.prototype.draw = function (gr) {
-    throw new LogicError("draw not implemented");
+    throw LogicError("draw not implemented");
 };
 List.Item.prototype.repaint = function () {
     this.throttled_repaint();
@@ -551,7 +557,7 @@ List.Content = function () {};
  * @abstract
  */
 List.Content.prototype.generate_items_to_draw = function(wy, wh, row_shift, pixel_shift, row_h) {
-    throw new LogicError("generate_items_to_draw not implemented");
+    throw LogicError("generate_items_to_draw not implemented");
 };
 
 /**
@@ -560,7 +566,7 @@ List.Content.prototype.generate_items_to_draw = function(wy, wh, row_shift, pixe
  * @abstract
  */
 List.Content.prototype.update_items_w_size = function(w) {
-    throw new LogicError("update_items_w_size not implemented");
+    throw LogicError("update_items_w_size not implemented");
 };
 
 /**
@@ -568,7 +574,7 @@ List.Content.prototype.update_items_w_size = function(w) {
  * @abstract
  */
 List.Content.prototype.calculate_total_h_in_rows = function() {
-    throw new LogicError("calculate_total_h_in_rows not implemented");
+    throw LogicError("calculate_total_h_in_rows not implemented");
 };
 
 

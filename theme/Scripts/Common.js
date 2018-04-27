@@ -144,14 +144,19 @@ var g_album_art_id = {
 
 //</editor-fold>
 
-//<editor-fold desc="Error types">
+//<editor-fold desc="Exception types">
 
 /**
  * @param {string} msg
  * @constructor
  * @extends {Error}
+ * @return {ThemeError}
  */
 function ThemeError(msg) {
+    if (!(this instanceof ThemeError)) {
+        return new ThemeError(msg);
+    }
+
     Error.call(this, '');
 
     this.name = 'ThemeError';
@@ -171,6 +176,10 @@ ThemeError.prototype = Object.create(Error.prototype);
  * @extends {Error}
  */
 function LogicError(msg) {
+    if (!(this instanceof LogicError)) {
+        return new LogicError(msg);
+    }
+
     Error.call(this, '');
 
     this.name = 'LogicError';
@@ -193,6 +202,10 @@ LogicError.prototype = Object.create(Error.prototype);
  * @extends {Error}
  */
 function TypeError(arg_name, arg_type, valid_type, additional_msg) {
+    if (!(this instanceof TypeError)) {
+        return new TypeError(arg_name, arg_type, valid_type, additional_msg);
+    }
+
     Error.call(this, '');
 
     this.name = 'TypeError';
@@ -217,6 +230,10 @@ TypeError.prototype = Object.create(Error.prototype);
  * @extends {Error}
  */
 function ArgumentError(arg_name, arg_value, additional_msg) {
+    if (!(this instanceof ArgumentError)) {
+        return new ArgumentError(arg_name, arg_value, additional_msg);
+    }
+
     Error.call(this, '');
 
     this.name = 'ArgumentError';
@@ -232,6 +249,19 @@ function ArgumentError(arg_name, arg_value, additional_msg) {
 }
 
 ArgumentError.prototype = Object.create(Error.prototype);
+
+/**
+ * @param {boolean} predicate
+ * @param {T} exception_type
+ * @param {...} args
+ * @throws {T}
+ * @template T
+ */
+function assert(predicate, exception_type, args) {
+    if (!predicate) {
+        throw exception_type.apply(null, Array.prototype.slice.call(arguments, 2));
+    }
+}
 
 //</editor-fold>
 
@@ -291,7 +321,7 @@ var qwr_utils = {
 
         if (failCounter) {
             msg += '\n\nPlease install missing ' + (failCounter > 1 ? 'fonts' : 'font') + ' and restart foobar!';
-            throw new ThemeError(msg);
+            throw ThemeError(msg);
         }
     },
     /**
@@ -389,7 +419,7 @@ var qwr_utils = {
      */
     get_fb2k_window:      _.once(function () {
         if (!qwr_utils.has_modded_jscript()) {
-            throw new LogicError('Can\'t use extensions with vanilla JScript')
+            throw LogicError('Can\'t use extensions with vanilla JScript')
         }
 
         // fb2k main window class
@@ -400,7 +430,7 @@ var qwr_utils = {
         }
 
         if (!ret_wnd || ret_wnd.className !== '{E7076D1C-A7BF-4f39-B771-BCBE88F2A2A8}') {
-            throw new LogicError('Failed to get top theme window')
+            throw LogicError('Failed to get top theme window')
         }
 
         return ret_wnd;
@@ -410,7 +440,7 @@ var qwr_utils = {
      */
     get_top_theme_window: _.once(function () {
         if (!qwr_utils.has_modded_jscript()) {
-            throw new LogicError('Can\'t use extensions with vanilla JScript')
+            throw LogicError('Can\'t use extensions with vanilla JScript')
         }
 
         var ret_wnd = wsh_utils.GetWndByHandle(window.id);
@@ -419,7 +449,7 @@ var qwr_utils = {
         }
 
         if (!ret_wnd || ret_wnd.GetAncestor(1).id !== qwr_utils.get_fb2k_window().id) {
-            throw new LogicError('Failed to get top theme window')
+            throw LogicError('Failed to get top theme window')
         }
 
         return ret_wnd;
@@ -461,11 +491,11 @@ function KeyActionHandler() {
      */
     this.register_key_action = function (key, action_callback) {
         if (!action_callback) {
-            throw new ArgumentError('action_callback', action_callback);
+            throw ArgumentError('action_callback', action_callback);
         }
 
         if (!_.isNil(actions[key])) {
-            throw new ArgumentError('key', key.toString(), 'This key is already used');
+            throw ArgumentError('key', key.toString(), 'This key is already used');
         }
 
         actions[key] = action_callback;
@@ -540,16 +570,16 @@ var PanelProperties = (function () {
 
         function validate_property_item(item, item_id) {
             if (!_.isArray(item) || item.length !== 2 || !_.isString(item[0])) {
-                throw new TypeError('property', typeof item, '{ string, [string, any] }', 'Usage: add_properties({\n  property_id: [property_name, property_default_value]\n})');
+                throw TypeError('property', typeof item, '{ string, [string, any] }', 'Usage: add_properties({\n  property_id: [property_name, property_default_value]\n})');
             }
             if (item_id === 'add_properties') {
-                throw new ArgumentError('property_id', item_id, 'This id is reserved');
+                throw ArgumentError('property_id', item_id, 'This id is reserved');
             }
             if (!_.isNil(that[item_id]) || !_.isNil(that[item_id + '_internal'])) {
-                throw new ArgumentError('property_id', item_id, 'This id is already occupied');
+                throw ArgumentError('property_id', item_id, 'This id is already occupied');
             }
             if (!_.isNil(name_list[item[0]])) {
-                throw new ArgumentError('property_name', item[0], 'This name is already occupied');
+                throw ArgumentError('property_name', item[0], 'This name is already occupied');
             }
         }
 

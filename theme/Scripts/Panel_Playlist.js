@@ -621,9 +621,15 @@ function PlaylistPanel(x, y) {
 
     var that = this;
 
-    /** @const {number} */
+    /**
+     * @const
+     * @type {number}
+     */
     var playlist_info_h = 24;
-    /** @const {number} */
+    /**
+     * @const
+     * @type {number}
+     */
     var playlist_info_and_gap_h = playlist_info_h + 2;
 
     var is_activated = window.IsVisible;
@@ -882,7 +888,7 @@ function Playlist(x, y) {
                 cmm.append_separator();
             }
 
-            if (g_properties.show_header) {
+            if (collapse_handler) {
                 append_collapse_menu_to(cmm);
             }
 
@@ -1001,9 +1007,11 @@ function Playlist(x, y) {
             }
         }
         else if (row) {
-            collapse_handler.expand(row.parent);
-            if (collapse_handler.changed) {
-                this.repaint();
+            if (collapse_handler) {
+                collapse_handler.expand(row.parent);
+                if (collapse_handler.changed) {
+                    this.repaint();
+                }
             }
 
             selection_handler.drag(row, drop_info.is_above);
@@ -1181,7 +1189,7 @@ function Playlist(x, y) {
             if (fb.CursorFollowPlayback) {
                 selection_handler.clear_selection();
 
-                if (g_properties.auto_colapse) {
+                if (collapse_handler && g_properties.auto_colapse) {
                     collapse_handler.collapse_all_but_now_playing();
                 }
                 scroll_to_now_playing();
@@ -1314,7 +1322,7 @@ function Playlist(x, y) {
 
         key_handler.register_key_action(VK_LEFT,
             _.bind(function (modifiers) {
-                if (!g_properties.show_header || !this.cnt.rows.length) {
+                if (!collapse_handler || !this.cnt.rows.length) {
                     return;
                 }
 
@@ -1341,7 +1349,7 @@ function Playlist(x, y) {
 
         key_handler.register_key_action(VK_RIGHT,
             _.bind(function (modifiers) {
-                if (!g_properties.show_header || !this.cnt.rows.length) {
+                if (!collapse_handler || !this.cnt.rows.length) {
                     return;
                 }
 
@@ -1594,26 +1602,26 @@ function Playlist(x, y) {
 
         trace_initialize_list_performance && console.log('Headers initialized in ' + profiler_part.Time + 'ms');
 
-        collapse_handler.initialize(this.cnt.sub_items);
-
         if (!was_on_size_called) {
             // First time init
 
             if (g_properties.show_header) {
+                collapse_handler = new CollapseHandler(/** @type {PlaylistContent} */ this.cnt);
                 if (g_properties.collapse_on_start) {
                     collapse_handler.collapse_all();
                 }
-            }
-            else {
-                collapse_handler.expand_all();
-            }
 
-            collapse_handler.set_callback(_.bind(function () {
-                this.on_list_items_change();
-            }, this));
+                collapse_handler.set_callback(_.bind(function () {
+                    this.on_list_items_change();
+                }, this));
+            }
         }
         else {
             // Update list control
+
+            if (collapse_handler) {
+                collapse_handler.on_content_change();
+            }
 
             this.on_list_items_change();
         }
@@ -1623,7 +1631,7 @@ function Playlist(x, y) {
         if (g_properties.show_queue_position) {
             queue_handler = new QueueHandler(this.cnt.rows, cur_playlist_idx);
         }
-        selection_handler = new SelectionHandler(this.cnt, cur_playlist_idx);
+        selection_handler = new SelectionHandler(/** @type {PlaylistContent} */ this.cnt, cur_playlist_idx);
 
         trace_initialize_list_performance && console.log('Playlist initialized in ' + profiler.Time + 'ms');
     };
@@ -1722,8 +1730,8 @@ function Playlist(x, y) {
             }
         });
     }, 500, {
-        'leading':  false,
-        'trailing': true
+        leading:  true,
+        trailing: true
     });
 
     function get_album_art(items) {
@@ -1878,8 +1886,17 @@ function Playlist(x, y) {
             _.bind(function () {
                 g_properties.show_header = !g_properties.show_header;
                 if (g_properties.show_header) {
+                    collapse_handler = new CollapseHandler(/** @type {PlaylistContent} */ this.cnt);
                     collapse_handler.expand_all();
+                    collapse_handler.set_callback(_.bind(function () {
+                        this.on_list_items_change();
+                    }, that));
                 }
+                else {
+                    collapse_handler.expand_all();
+                    collapse_handler = null;
+                }
+
                 this.initialize_list();
                 scroll_to_focused_or_now_playing();
             }, that),
@@ -2265,7 +2282,7 @@ function Playlist(x, y) {
             plman.ActivePlaylist = playing_item_location.PlaylistIndex;
             that.initialize_list();
         }
-        else {
+        else if (collapse_handler) {
             collapse_handler.expand(playing_item.parent);
         }
 
@@ -2337,9 +2354,8 @@ function Playlist(x, y) {
                     neighbour_item = direction > 0 ? cnt_helper.get_next_visible_item(neighbour_item) : cnt_helper.get_prev_visible_item(neighbour_item);
                 } while (neighbour_item && !cnt_helper.is_item_navigateable(neighbour_item));
 
-                if (!neighbour_item) {
-                    throw new LogicError('Navigation failed');
-                }
+                assert(!_.isNil(neighbour_item),
+                    LogicError, 'Failed to get navigateable neighbour');
 
                 if (visible_to_item !== neighbour_item) {
                     // I.e. to_item and from_item are not neighbours
@@ -2374,7 +2390,7 @@ function Playlist(x, y) {
                 break;
             }
             default: {
-                throw new ArgumentError('visibility_state', to_item_state.visibility);
+                throw ArgumentError('visibility_state', to_item_state.visibility);
             }
         }
 
@@ -2493,7 +2509,7 @@ function Playlist(x, y) {
             }
 
             if (!iterate_level(that.cnt.sub_items, target_item)) {
-                throw new LogicError('Could not find item in drawn item list');
+                throw LogicError('Could not find item in drawn item list');
             }
         }
 
@@ -2553,7 +2569,7 @@ function Playlist(x, y) {
                     cur_marked_item.is_drop_boundary_reached = true;
                 }
                 else {
-                    throw new ArgumentError('drag_scroll_command', key);
+                    throw ArgumentError('drag_scroll_command', key);
                 }
 
                 if (that.scrollbar.is_scrolled_down || that.scrollbar.is_scrolled_up) {
@@ -2644,9 +2660,10 @@ function Playlist(x, y) {
     // Objects
     /** @type {?SelectionHandler} */
     var selection_handler = undefined;
+    /** @type {?QueueHandler} */
     var queue_handler = undefined;
-
-    var collapse_handler = new CollapseHandler();
+    /** @type {?CollapseHandler} */
+    var collapse_handler = new CollapseHandler(/** @type {PlaylistContent} */ that.cnt);
     /** @type {ContentNavigationHelper} */
     var cnt_helper = this.cnt.helper;
 
@@ -2767,9 +2784,8 @@ PlaylistContent = function () {
         }
 
         var first_item = iterate_level(that.sub_items);
-        if (!first_item) {
-            throw new LogicError('first_item_to_draw cant be null!');
-        }
+        assert(!_.isNil(first_item),
+            LogicError, 'first_item_to_draw can\'t be null!');
 
         return first_item;
     }
@@ -2871,7 +2887,7 @@ function ContentNavigationHelper(cnt_arg) {
      * @param {Row|BaseHeader} item
      * @return {?BaseHeader}
      */
-    this.get_visible_parent = function(item) {
+    this.get_visible_parent = function (item) {
         if (!item.parent || !_.isInstanceOf(item.parent, BaseHeader)) {
             return null;
         }
@@ -2890,7 +2906,7 @@ function ContentNavigationHelper(cnt_arg) {
      * @param {Row|BaseHeader} item
      * @return {boolean}
      */
-    this.is_item_visible = function(item) {
+    this.is_item_visible = function (item) {
         if (item.parent && _.isInstanceOf(item.parent, BaseHeader)) {
             return !item.parent.is_collapsed;
         }
@@ -2904,11 +2920,11 @@ function ContentNavigationHelper(cnt_arg) {
      * @param {Row|BaseHeader} item
      * @return {boolean}
      */
-    this.is_item_navigateable = function(item) {
+    this.is_item_navigateable = function (item) {
         return _.isInstanceOf(item, Row) ? true : item.is_collapsed;
     };
 
-    this.get_navigateable_neighbour = function(item, direction) {
+    this.get_navigateable_neighbour = function (item, direction) {
         var neighbour_item = item;
         do {
             neighbour_item = this.get_visible_neighbour(neighbour_item, direction);
@@ -2917,11 +2933,11 @@ function ContentNavigationHelper(cnt_arg) {
         return neighbour_item;
     };
 
-    this.get_visible_neighbour = function(item, direction) {
+    this.get_visible_neighbour = function (item, direction) {
         return direction > 0 ? this.get_next_visible_item(item) : this.get_prev_visible_item(item);
     };
 
-    this.get_prev_visible_item = function(item) {
+    this.get_prev_visible_item = function (item) {
         /**
          * @param {BaseHeader} item
          * @return {BaseHeader|Row}
@@ -2968,7 +2984,7 @@ function ContentNavigationHelper(cnt_arg) {
         return item.parent.sub_items[item.idx_in_header - 1];
     };
 
-    this.get_next_visible_item = function(item) {
+    this.get_next_visible_item = function (item) {
         function get_next_item(item) {
             var next_item = item;
             while (next_item) {
@@ -3028,10 +3044,16 @@ function ContentNavigationHelper(cnt_arg) {
 function BaseHeader(parent, x, y, w, h, idx) {
     List.Item.call(this, x, y, w, h);
 
-    /** @const {BaseHeader|List.Content} */
+    /**
+     * @const
+     * @type {BaseHeader|List.Content}
+     */
     this.parent = parent;
 
-    /** @const {number} */
+    /**
+     * @const
+     * @type {number}
+     */
     this.idx = idx;
 
     this.is_collapsed = false;
@@ -3039,6 +3061,7 @@ function BaseHeader(parent, x, y, w, h, idx) {
     /** @type{Array<Row|BaseHeader>} */
     this.sub_items = [];
 }
+
 BaseHeader.prototype = Object.create(List.Item.prototype);
 BaseHeader.prototype.constructor = BaseHeader;
 
@@ -3048,7 +3071,7 @@ BaseHeader.prototype.constructor = BaseHeader;
  * @abstract
  */
 BaseHeader.prototype.initialize_items = function (items) {
-    throw new LogicError("initialize_contents not implemented");
+    throw LogicError("initialize_contents not implemented");
 };
 
 /**
@@ -3057,7 +3080,7 @@ BaseHeader.prototype.initialize_items = function (items) {
  */
 BaseHeader.prototype.draw = function (gr) {
     // Need this useless method to suppress warning =(
-    throw new LogicError("draw not implemented");
+    throw LogicError("draw not implemented");
 };
 
 /** @override */
@@ -3839,9 +3862,9 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
     };
 
     this.rating_click = function (x, y) {
-        if (!g_properties.show_rating) {
-            throw new LogicError('Rating_click was called, when there was no rating object.\nShould use trace before calling click');
-        }
+        assert(g_properties.show_rating,
+            LogicError, 'Rating_click was called, when there was no rating object.\nShould use trace before calling click');
+
         rating.click(x, y);
     };
 
@@ -3855,15 +3878,24 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
     }
 
     //public:
-    /** @const {number} */
+    /**
+     * @const
+     * @type {number}
+     */
     this.idx = idx;
-    /** @const {IFbMetadbHandle} */
+    /**
+     * @const
+     * @type {IFbMetadbHandle}
+     */
     this.metadb = metadb;
 
     //const after header creation
     this.is_odd = false;
     this.idx_in_header = undefined;
-    /** @const {BaseHeader} */
+    /**
+     * @const
+     * @type {BaseHeader}
+     */
     this.parent = undefined;
 
     this.queue_idx = undefined;
@@ -3968,27 +4000,38 @@ function Rating(x, y, max_w, h, metadb) {
         rating = undefined;
     };
 
-    //const:
-    /** @const {number} */
+    /**
+     * @const
+     * @type {number}
+     */
     var btn_w = 14;
 
-    //public:
     this.metadb = metadb;
 
     /** @type {number} */
     this.x = x;
-    /** @const {number} */
+    /**
+     * @const
+     * @type {number}
+     */
     this.y = y;
-    /** @const {number} */
+    /**
+     * @const
+     * @type {number}
+     */
     this.w = Math.min(btn_w * 5, max_w);
-    /** @const {number} */
+    /**
+     * @const
+     * @type {number}
+     */
     this.h = h;
 
-    //private:
     var rating = undefined;
 }
 
 /**
+ * @param {PlaylistContent} cnt_arg
+ * @param {number} cur_playlist_idx_arg
  * @constructor
  */
 function SelectionHandler(cnt_arg, cur_playlist_idx_arg) {
@@ -4003,9 +4046,8 @@ function SelectionHandler(cnt_arg, cur_playlist_idx_arg) {
 
     // changes focus and selection
     this.update_selection = function (item, ctrl_pressed, shift_pressed) {
-        if (!item) {
-            throw new LogicError('update_selection was called with undefined item');
-        }
+        assert(!_.isNil(item),
+            LogicError, 'update_selection was called with undefined item');
 
         if (!ctrl_pressed && !shift_pressed) {
             selected_indexes = [];
@@ -4470,34 +4512,45 @@ function SelectionHandler(cnt_arg, cur_playlist_idx_arg) {
         return (a - b);
     }
 
-    /** @const {Array<Row>} */
-    var rows = cnt_arg.rows;
-    /** @const {number} */
-    var cur_playlist_idx = cur_playlist_idx_arg;
-    /** @const {ContentNavigationHelper} */
+    /**
+     * @const
+     * @type {ContentNavigationHelper}
+     */
     var cnt_helper = cnt_arg.helper;
 
+    /**
+     * @const
+     * @type {Array<Row>}
+     */
+    var rows = cnt_arg.rows;
+    /**
+     * @const
+     * @type {number}
+     */
+    var cur_playlist_idx = cur_playlist_idx_arg;
+
+    /** @type {Array<number>} */
     var selected_indexes = [];
     /** @type {?number} */
     var last_single_selected_index = undefined;
 
     var is_dragging = false;
     var is_internal_drag_n_drop_active = false;
+    /** @type {?Row} */
     var last_hover_row = undefined;
 
     this.initialize_selection();
 }
 
 /**
+ * @param {PlaylistContent} cnt_arg
  * @constructor
  */
-function CollapseHandler() {
-    /**
-     * @param {Array<BaseHeader>} headers_arg
-     */
-    this.initialize = function (headers_arg) {
-        headers = headers_arg;
+function CollapseHandler(cnt_arg) {
+    this.on_content_change = function () {
+        headers = cnt.sub_items;
         this.changed = false;
+
         if (g_properties.collapse_on_playlist_switch) {
             if (g_properties.auto_colapse) {
                 this.collapse_all_but_now_playing()
@@ -4604,11 +4657,22 @@ function CollapseHandler() {
     this.changed = false;
 
     var that = this;
-    var headers = [];
+
+    /**
+     * @const
+     * @type {PlaylistContent}
+     */
+    var cnt = cnt_arg;
+
+    /** @type {Array<BaseHeader>} */
+    var headers = cnt_arg.sub_items;
+    /** @type {function<BaseHeader>} */
     var on_collapse_change_callback = undefined;
 }
 
 /**
+ * @param {Array<Row>} rows_arg
+ * @param {number} cur_playlist_idx_arg
  * @constructor
  */
 function QueueHandler(rows_arg, cur_playlist_idx_arg) {
@@ -5119,9 +5183,8 @@ function GroupingHandler() {
             cur_group = settings.group_presets[group_by_name.indexOf(group_name)];
         }
 
-        if (!cur_group) {
-            throw new ArgumentError('group_name', group_name);
-        }
+        assert(!_.isNil(cur_group),
+            ArgumentError, 'group_name', group_name);
     };
 
     this.get_query = function () {
@@ -5489,7 +5552,10 @@ function ArtImageCache(max_cache_size_arg) {
         cache_item.queue_iterator = queue.begin();
     }
 
-    /** @const{number} */
+    /**
+     * @const
+     * @type {number}
+     */
     var max_cache_size = max_cache_size_arg;
     /** @type {LinkedList<IFbMetadbHandle>} */
     var queue = new LinkedList();

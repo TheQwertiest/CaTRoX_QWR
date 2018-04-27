@@ -162,18 +162,21 @@ function LinkedList() {
     var size = 0;
 
     /**
-     * @const {Node}
+     *
+     * @const
+     * @type {Node}
+
      */
     this.end_node = new Node(null, null, null);
 }
 
 /**
  * @param {LinkedList} parent
-* @param {Node} node
-* @constructor
-* @template T
-*/
-LinkedList.Iterator = function (parent,node) {
+ * @param {Node} node
+ * @constructor
+ * @template T
+ */
+LinkedList.Iterator = function (parent, node) {
     this.increment = function () {
         if (this.cur_node === parent.end_node) {
             throw new LogicError('Iterator is out of bounds');
@@ -220,7 +223,10 @@ LinkedList.Iterator = function (parent,node) {
         return iterator.cur_node === this.cur_node;
     };
 
-    /** @const {LinkedList} */
+    /**
+     * @const
+     * @type {LinkedList}
+     */
     this.parent = parent;
     /** @type {Node} */
     this.cur_node = node;
