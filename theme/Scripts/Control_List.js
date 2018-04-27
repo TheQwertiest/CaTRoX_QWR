@@ -480,6 +480,7 @@ List.prototype.calculate_shift_params = function () {
  * @param {number} y
  * @param {number} w
  * @param {number} h
+ * @abstract
  * @constructor
  */
 List.Item = function (x, y, w, h) {
@@ -530,6 +531,7 @@ List.Item.prototype.set_w = function (w) {
 
 /**
  * Content container
+ * @abstract
  * @constructor
  */
 List.Content = function () {};

@@ -810,6 +810,7 @@ TrackInfoList.prototype = Object.create(List.prototype);
 TrackInfoList.prototype.constructor = TrackInfoList;
 
 /**
+ * @final
  * @constructor
  * @extends {List.Item}
  */
