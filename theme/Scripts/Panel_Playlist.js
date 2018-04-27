@@ -3877,7 +3877,7 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
 
     function initialize_rating() {
         rating = new Rating(0, that.y, that.w - rating_right_pad, that.h, metadb);
-        rating.x = that.x + that.w - rating.w;
+        rating.x = that.x + that.w - (rating.w + rating_right_pad);
     }
 
     //public:
