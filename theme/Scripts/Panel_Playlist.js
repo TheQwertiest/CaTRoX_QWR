@@ -1684,6 +1684,7 @@ function Playlist(x, y) {
 
     /**
      * @param {Array<Row>} rows
+     * @param {Array<Row>} rows
      * @return {Array<Header>}
      */
     function create_headers(rows) {
@@ -3010,6 +3011,8 @@ function ContentNavigationHelper(cnt_arg) {
     var cnt = cnt_arg;
 }
 
+//<editor-fold desc="BaseHeader">
+
 /**
  * @param {List.Content|BaseHeader} parent
  * @param {number} x
@@ -3018,137 +3021,12 @@ function ContentNavigationHelper(cnt_arg) {
  * @param {number} h
  * @param {number} idx
  *
+ * @abstract
  * @constructor
  * @extends {List.Item}
  */
 function BaseHeader(parent, x, y, w, h, idx) {
     List.Item.call(this, x, y, w, h);
-
-    /**
-     * @param {Array<Row|BaseHeader>} items
-     * @return {number} Number of processed items
-     * @abstract
-     */
-    this.initialize_items = function (items) {
-        throw new LogicError("initialize_contents not implemented");
-    };
-
-    /**
-     * @abstract
-     * @override
-     */
-    this.draw = function (gr) {
-        throw new LogicError("draw not implemented");
-    };
-
-    /** @override */
-    this.set_w = function (w) {
-        List.Item.prototype.set_w.apply(this, [w]);
-
-        this.sub_items.forEach(function (item) {
-            item.set_w(w);
-        });
-    };
-
-    this.get_first_row = function () {
-        if (!this.sub_items.length) {
-            return null;
-        }
-
-        var item = _.head(this.sub_items);
-        while (item && !_.isInstanceOf(item, Row)) {
-            item = _.head(item.sub_items);
-        }
-
-        return item;
-    };
-
-    this.get_row_indexes = function () {
-        var row_indexes = [];
-
-        if (_.isInstanceOf(_.head(this.sub_items), Row)) {
-            this.sub_items.forEach(function (item) {
-                row_indexes.push(item.idx);
-            });
-        }
-        else {
-            this.sub_items.forEach(function (item) {
-                row_indexes = row_indexes.concat(item.get_row_indexes());
-            });
-        }
-
-        return row_indexes;
-    };
-
-    /**
-     * @return {number}
-     */
-    this.get_sub_items_total_h_in_rows = function () {
-        if (!this.sub_items.length) {
-            return 0;
-        }
-
-        if (_.isInstanceOf(_.head(this.sub_items), Row)) {
-            return this.sub_items.length;
-        }
-
-        var h_in_rows = Math.round(_.head(this.sub_items).h / g_properties.row_h) * this.sub_items.length;
-        this.sub_items.forEach(function (item) {
-            if (!item.is_collapsed) {
-                h_in_rows += item.get_sub_items_total_h_in_rows();
-            }
-        });
-
-        return h_in_rows;
-    };
-
-    this.has_selected_items = function () {
-        var is_function = typeof _.head(this.sub_items).has_selected_items === "function";
-        return _.some(this.sub_items, function (item) {
-            return is_function ? item.has_selected_items() : item.is_selected();
-        });
-    };
-
-    this.is_completely_selected = function () {
-        var is_function = typeof _.head(this.sub_items).is_completely_selected === "function";
-        return _.every(this.sub_items, function (item) {
-            return is_function ? item.is_completely_selected() : item.is_selected();
-        });
-    };
-
-    this.is_playing = function () {
-        var is_function = typeof _.head(this.sub_items).is_playing === "function";
-        return _.some(this.sub_items, function (item) {
-            return is_function ? item.is_playing() : item.is_playing;
-        });
-    };
-
-    this.is_focused = function () {
-        var is_function = typeof _.head(this.sub_items).is_focused === "function";
-        return _.some(this.sub_items, function (item) {
-            return is_function ? item.is_focused() : item.is_focused;
-        });
-    };
-
-    /**
-     * @return {number} float number
-     */
-    this.get_duration = function () {
-        var duration_in_seconds = 0;
-
-        if (_.isInstanceOf(_.head(this.sub_items), Row)) {
-            this.sub_items.forEach(function (item) {
-                duration_in_seconds += item.metadb.Length;
-            });
-        }
-        else {
-            this.sub_items.forEach(function (item) {
-                duration_in_seconds += item.get_duration();
-            });
-        }
-
-        return duration_in_seconds;
-    };
 
     /** @const {BaseHeader|List.Content} */
     this.parent = parent;
@@ -3161,9 +3039,137 @@ function BaseHeader(parent, x, y, w, h, idx) {
     /** @type{Array<Row|BaseHeader>} */
     this.sub_items = [];
 }
-
 BaseHeader.prototype = Object.create(List.Item.prototype);
 BaseHeader.prototype.constructor = BaseHeader;
+
+/**
+ * @param {Array<Row|BaseHeader>} items
+ * @return {number} Number of processed items
+ * @abstract
+ */
+BaseHeader.prototype.initialize_items = function (items) {
+    throw new LogicError("initialize_contents not implemented");
+};
+
+/**
+ * @override
+ * @abstract
+ */
+BaseHeader.prototype.draw = function (gr) {
+    // Need this useless method to suppress warning =(
+    throw new LogicError("draw not implemented");
+};
+
+/** @override */
+BaseHeader.prototype.set_w = function (w) {
+    List.Item.prototype.set_w.apply(this, [w]);
+
+    this.sub_items.forEach(function (item) {
+        item.set_w(w);
+    });
+};
+
+BaseHeader.prototype.get_first_row = function () {
+    if (!this.sub_items.length) {
+        return null;
+    }
+
+    var item = _.head(this.sub_items);
+    while (item && !_.isInstanceOf(item, Row)) {
+        item = _.head(item.sub_items);
+    }
+
+    return item;
+};
+
+BaseHeader.prototype.get_row_indexes = function () {
+    var row_indexes = [];
+
+    if (_.isInstanceOf(_.head(this.sub_items), Row)) {
+        this.sub_items.forEach(function (item) {
+            row_indexes.push(item.idx);
+        });
+    }
+    else {
+        this.sub_items.forEach(function (item) {
+            row_indexes = row_indexes.concat(item.get_row_indexes());
+        });
+    }
+
+    return row_indexes;
+};
+
+/**
+ * @return {number}
+ */
+BaseHeader.prototype.get_sub_items_total_h_in_rows = function () {
+    if (!this.sub_items.length) {
+        return 0;
+    }
+
+    if (_.isInstanceOf(_.head(this.sub_items), Row)) {
+        return this.sub_items.length;
+    }
+
+    var h_in_rows = Math.round(_.head(this.sub_items).h / g_properties.row_h) * this.sub_items.length;
+    this.sub_items.forEach(function (item) {
+        if (!item.is_collapsed) {
+            h_in_rows += item.get_sub_items_total_h_in_rows();
+        }
+    });
+
+    return h_in_rows;
+};
+
+BaseHeader.prototype.has_selected_items = function () {
+    var is_function = typeof _.head(this.sub_items).has_selected_items === "function";
+    return _.some(this.sub_items, function (item) {
+        return is_function ? item.has_selected_items() : item.is_selected();
+    });
+};
+
+BaseHeader.prototype.is_completely_selected = function () {
+    var is_function = typeof _.head(this.sub_items).is_completely_selected === "function";
+    return _.every(this.sub_items, function (item) {
+        return is_function ? item.is_completely_selected() : item.is_selected();
+    });
+};
+
+BaseHeader.prototype.is_playing = function () {
+    var is_function = typeof _.head(this.sub_items).is_playing === "function";
+    return _.some(this.sub_items, function (item) {
+        return is_function ? item.is_playing() : item.is_playing;
+    });
+};
+
+BaseHeader.prototype.is_focused = function () {
+    var is_function = typeof _.head(this.sub_items).is_focused === "function";
+    return _.some(this.sub_items, function (item) {
+        return is_function ? item.is_focused() : item.is_focused;
+    });
+};
+
+/**
+ * @return {number} float number
+ */
+BaseHeader.prototype.get_duration = function () {
+    var duration_in_seconds = 0;
+
+    if (_.isInstanceOf(_.head(this.sub_items), Row)) {
+        this.sub_items.forEach(function (item) {
+            duration_in_seconds += item.metadb.Length;
+        });
+    }
+    else {
+        this.sub_items.forEach(function (item) {
+            duration_in_seconds += item.get_duration();
+        });
+    }
+
+    return duration_in_seconds;
+};
+
+//</editor-fold>
 
 /**
  * @param {List.Content|BaseHeader} parent
@@ -3172,7 +3178,6 @@ BaseHeader.prototype.constructor = BaseHeader;
  * @param {number} w
  * @param {number} h
  * @param {number} idx
- *
  *
  * @final
  * @constructor
@@ -4007,7 +4012,7 @@ function SelectionHandler(cnt_arg, cur_playlist_idx_arg) {
             last_single_selected_index = undefined;
         }
 
-        var visible_item = cnt_helper.is_item_visible(item) ? item :cnt_helper.get_visible_parent(item);
+        var visible_item = cnt_helper.is_item_visible(item) ? item : cnt_helper.get_visible_parent(item);
         if (_.isInstanceOf(visible_item, BaseHeader)) {
             update_selection_with_header(visible_item, ctrl_pressed, shift_pressed);
         }
@@ -4307,8 +4312,6 @@ function SelectionHandler(cnt_arg, cur_playlist_idx_arg) {
         move_selection(Math.min(rows.length, _.last(selected_indexes) + 2));
     };
 
-    // TODO: clean up duplicated code in update_selection_with_*
-
     // changes focus and selection
     function update_selection_with_row(row, ctrl_pressed, shift_pressed) {
         if (shift_pressed) {
@@ -4374,7 +4377,7 @@ function SelectionHandler(cnt_arg, cur_playlist_idx_arg) {
             plman.SetPlaylistFocusItem(cur_playlist_idx, _.head(row_indexes));
         }
     }
-    
+
     function get_shift_selection(selected_idx) {
         var a = 0,
             b = 0;
