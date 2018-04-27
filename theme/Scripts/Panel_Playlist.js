@@ -3761,9 +3761,12 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
         //---> COUNT
         if (g_properties.show_playcount) {
             if (_.isNil(count_text)) {
-                count_text = (is_radio ? '' : _.tf('%play_count%', this.metadb));
-                if (count_text) {
-                    count_text = _.toNumber(count_text) === 0 ? '' : (count_text + ' |');
+                if (is_radio) {
+                    count_text = '';
+                }
+                else {
+                    count_text = _.tf('[$max(%play_count%, %lastfm_play_count%)]', this.metadb);
+                    count_text = !_.toNumber(count_text) ? '' : (count_text + ' |');
                 }
             }
 
