@@ -586,7 +586,7 @@ List.Content.prototype.calculate_total_h_in_rows = function() {
 List.RowContent = function() {
     List.Content.call(this);
 
-    /** @type {Array<List.Item>} */
+    /** @type {Array<Row>} */
     this.rows = [];
 };
 List.RowContent.prototype = Object.create(List.Content.prototype);
