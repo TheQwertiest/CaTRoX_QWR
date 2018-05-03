@@ -1697,7 +1697,8 @@ function Playlist(x, y) {
         for (var i = 0; i < playlist_size; ++i) {
             rows[i] = new Row(that.list_x, 0, that.list_w, that.row_h, playlist_items_arr[i], i, cur_playlist_idx);
             if (!g_properties.show_header) {
-                rows[i].is_odd = !!((i + 1) & 1);
+                // noinspection JSBitwiseOperatorUsage
+                rows[i].is_odd = !(i & 1);
             }
         }
 
@@ -3046,6 +3047,7 @@ function ContentNavigationHelper(cnt_arg) {
      * @return {Row|BaseHeader|null}
      */
     this.get_prev_visible_item = function (item) {
+
         /**
          * @param {BaseHeader} item
          * @return {BaseHeader|Row}
@@ -3061,7 +3063,7 @@ function ContentNavigationHelper(cnt_arg) {
 
         /**
          * @param {BaseHeader} header
-         * @return {?BaseHeader}
+         * @return {Row|BaseHeader|null}
          */
         function get_prev_item_before_header(header) {
             if (header === _.head(header.parent.sub_items)) {
@@ -3071,11 +3073,17 @@ function ContentNavigationHelper(cnt_arg) {
             return get_last_visible_item(header.parent.sub_items[header.idx - 1]);
         }
 
-        if (_.isInstanceOf(item, BaseHeader)) {
-            return get_prev_item_before_header(item);
-        }
+        /**
+         * @param {Row} row
+         * @return {Row|BaseHeader|null}
+         */
+        function get_prev_item_before_row(row) {
+            if (row === _.head(row.parent.sub_items)) {
+                return row.parent;
+            }
 
-        // Row
+            return row.parent.sub_items[row.idx_in_header - 1];
+        }
 
         if (!g_properties.show_header) {
             if (item === _.head(cnt.rows)) {
@@ -3085,11 +3093,11 @@ function ContentNavigationHelper(cnt_arg) {
             return cnt.rows[item.idx - 1];
         }
 
-        if (item === _.head(item.parent.sub_items)) {
-            return get_prev_item_before_header(item.parent);
+        if (_.isInstanceOf(item, BaseHeader)) {
+            return get_prev_item_before_header(item);
         }
 
-        return item.parent.sub_items[item.idx_in_header - 1];
+        return get_prev_item_before_row(item);
     };
 
     /**
@@ -3097,6 +3105,7 @@ function ContentNavigationHelper(cnt_arg) {
      * @return {Row|BaseHeader|null}
      */
     this.get_next_visible_item = function (item) {
+
         /**
          * @param {Row|BaseHeader} item
          * @return {Row|BaseHeader|null}
@@ -3119,22 +3128,16 @@ function ContentNavigationHelper(cnt_arg) {
             return next_item;
         }
 
-        if (_.isInstanceOf(item, BaseHeader)) {
-            if (item.is_collapsed) {
-                return get_next_item(item);
-            }
-
-            return _.head(item.sub_items);
-        }
-
-        // Row
-
         if (!g_properties.show_header) {
             if (item === _.last(cnt.rows)) {
                 return null;
             }
 
             return cnt.rows[item.idx + 1];
+        }
+
+        if (_.isInstanceOf(item, BaseHeader) && !item.is_collapsed) {
+            return _.head(item.sub_items);
         }
 
         return get_next_item(item);
@@ -3348,7 +3351,8 @@ function Header(parent, x, y, w, h, idx) {
             }
             item.idx_in_header = i;
             if (g_properties.show_header) {
-                item.is_odd = !!((i + 1) & 1);
+                // noinspection JSBitwiseOperatorUsage
+                item.is_odd = !(i & 1);
             }
             item.parent = this;
             this.sub_items.push(item);
