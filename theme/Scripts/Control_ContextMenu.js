@@ -436,6 +436,14 @@ _.mixin(qwr_utils, {
 
         cm.append_separator();
 
+        cm.append_item(
+            'Reload panel',
+            function () {
+                window.Reload();
+            });
+
+        cm.append_separator();
+
         var edit = new Context.Menu('Edit panel scripts');
         cm.append(edit);
 
