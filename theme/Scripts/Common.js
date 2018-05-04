@@ -125,25 +125,70 @@ var StringAlignment = {
 
 /** @enum{number} */
 var StringTrimming = {
+    /** Specifies no trimming. */
     none:          0,
+    /** Specifies that the text is trimmed to the nearest character. */
     char:          1,
+    /** Specifies that text is trimmed to the nearest word. */
     word:          2,
+    /** Specifies that the text is trimmed to the nearest character, and an ellipsis is inserted at the end of a trimmed line. */
     ellipsis_char: 3,
+    /** Specifies that text is trimmed to the nearest word, and an ellipsis is inserted at the end of a trimmed line. */
     ellipsis_word: 4,
+    /** The center is removed from trimmed lines and replaced by an ellipsis. The algorithm keeps as much of the last slash-delimited segment of the line as possible. */
     ellipsis_path: 5
 };
 
 /** @enum{number} */
 var StringFormatFlags = {
+    /**
+     * No flags.
+     */
     none:                    0x00000000,
+    /**
+     * Text is displayed from right to left.
+     */
     direction_right_to_left: 0x00000001,
+    /**
+     * Text is vertically aligned.
+     */
     direction_vertical:      0x00000002,
+    /**
+     * Parts of characters are allowed to overhang the string's layout rectangle.
+     * By default, characters are repositioned to avoid any overhang.
+     */
     fit_black_box:           0x00000004,
+    /**
+     * Control characters such as the left-to-right mark are shown in the output with a representative glyph.
+     */
     display_format_control:  0x00000020,
+    /**
+     * Fallback to alternate fonts for characters not supported in the requested font is disabled.
+     * Any missing characters are displayed with the fonts missing glyph, usually an open square.
+     */
     no_font_fallback:        0x00000400,
+    /**
+     * Includes the trailing space at the end of each line.
+     * By default the boundary rectangle returned by the MeasureString method excludes the space at the end of each line.
+     * Set this flag to include that space in measurement.
+     */
     measure_trailing_spaces: 0x00000800,
+    /**
+     * Text wrapping between lines when formatting within a rectangle is disabled.
+     * This flag is implied when a point is passed instead of a rectangle, or when the specified rectangle has a zero line length
+     */
     no_wrap:                 0x00001000,
+    /**
+     *  Only entire lines are laid out in the formatting rectangle.
+     *  By default layout continues until the end of the text, or until no more lines are visible as a result of clipping, whichever comes first.
+     *  Note that the default settings allow the last line to be partially obscured by a formatting rectangle that is not a whole multiple of the line height.
+     *  To ensure that only whole lines are seen, specify this value and be careful to provide a formatting rectangle at least as tall as the height of one line.
+     */
     line_limit:              0x00002000,
+    /**
+     * Overhanging parts of glyphs, and unwrapped text reaching outside the formatting rectangle are allowed to show.
+     * By default all text and glyph parts reaching outside the formatting rectangle are clipped.
+     */
     no_clip:                 0x00004000
 };
 
