@@ -2526,7 +2526,6 @@ function Playlist(x, y) {
             function iterate_level(sub_items, target_item) {
                 var tmp_item = _.head(sub_items);
                 var header_h_in_rows = Math.round(tmp_item.h / that.row_h);
-                var is_next_level_row = _.isInstanceOf(_.head(tmp_item.sub_items), Row);
 
                 for (var i = 0; i < sub_items.length; ++i) {
                     var header = sub_items[i];
@@ -2540,7 +2539,7 @@ function Playlist(x, y) {
                         continue;
                     }
 
-                    if (!is_next_level_row) {
+                    if (_.isInstanceOf(_.head(header.sub_items), BaseHeader)) {
                         if (iterate_level(header.sub_items, target_item)) {
                             return true;
                         }
@@ -2823,7 +2822,6 @@ PlaylistContent = function () {
         function iterate_level(sub_items) {
             var tmp_item = _.head(sub_items);
             var header_h_in_rows = Math.round(tmp_item.h / row_h);
-            var is_next_level_row = _.isInstanceOf(_.head(tmp_item.sub_items), Row);
 
             for (var i = 0; i < sub_items.length; ++i) {
                 var header = sub_items[i];
@@ -2838,7 +2836,7 @@ PlaylistContent = function () {
                     continue;
                 }
 
-                if (!is_next_level_row) {
+                if (_.isInstanceOf(_.head(header.sub_items), BaseHeader)) {
                     var result = iterate_level(header.sub_items);
                     if (result) {
                         return result;
@@ -2886,7 +2884,6 @@ PlaylistContent = function () {
          * @return {boolean} true, if start_item was used
          */
         function iterate_level(sub_items, start_item) {
-            var is_next_level_row = _.isInstanceOf(_.head(_.head(sub_items).sub_items), Row);
             var start_item_used = !start_item;
             var leveled_start_item = start_item;
             while (leveled_start_item && leveled_start_item.parent !== _.head(sub_items).parent) {
@@ -2914,7 +2911,7 @@ PlaylistContent = function () {
                     continue;
                 }
 
-                if (!is_next_level_row) {
+                if (_.isInstanceOf(_.head(header.sub_items), BaseHeader)) {
                     if (iterate_level(header.sub_items, start_item_used ? null : start_item)) {
                         start_item_used = true;
                     }
