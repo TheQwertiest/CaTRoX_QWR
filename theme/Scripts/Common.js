@@ -20,36 +20,6 @@ g_theme.colors.panel_line_selected = g_theme.colors.panel_line;
 g_theme.colors.panel_text_normal = _.RGB(125, 127, 129);
 
 /** @enum{number} */
-var g_string_format = {
-    h_align_near:   0x00000000,
-    h_align_center: 0x10000000,
-    h_align_far:    0x20000000,
-
-    v_align_near:   0x00000000,
-    v_align_center: 0x01000000,
-    v_align_far:    0x02000000,
-
-    align_center: 0x11000000,
-
-    trim_none:          0x00100000,
-    trim_char:          0x00100000,
-    trim_word:          0x00200000,
-    trim_ellipsis_char: 0x00300000,
-    trim_ellipsis_word: 0x00400000,
-    trim_ellipsis_path: 0x00500000,
-
-    dir_right_to_Left:       0x00000001,
-    dir_vertical:            0x00000002,
-    no_fit_black_box:        0x00000004,
-    display_format_control:  0x00000020,
-    no_font_fallback:        0x00000400,
-    measure_trailing_spaces: 0x00000800,
-    no_wrap:                 0x00001000,
-    line_limit:              0x00002000,
-    no_clip:                 0x00004000
-};
-
-/** @enum{number} */
 var g_font_style = {
     regular:     0,
     bold:        1,
@@ -144,13 +114,83 @@ var g_album_art_id = {
 
 //</editor-fold>
 
+//<editor-fold desc="String formatting">
+
+/** @enum{number} */
+var StringAlignment = {
+    near:   0,
+    center: 1,
+    far:    2
+};
+
+/** @enum{number} */
+var StringTrimming = {
+    none:          0,
+    char:          1,
+    word:          2,
+    ellipsis_char: 3,
+    ellipsis_word: 4,
+    ellipsis_path: 5
+};
+
+/** @enum{number} */
+var StringFormatFlags = {
+    none:                    0x00000000,
+    direction_right_to_left: 0x00000001,
+    direction_vertical:      0x00000002,
+    fit_black_box:           0x00000004,
+    display_format_control:  0x00000020,
+    no_font_fallback:        0x00000400,
+    measure_trailing_spaces: 0x00000800,
+    no_wrap:                 0x00001000,
+    line_limit:              0x00002000,
+    no_clip:                 0x00004000
+};
+
+/**
+ * @param {?StringFormatFlags=} [format_flags=StringFormatFlags.none]
+ * @return {StringFormat}
+ * @constructor
+ */
+function StringFormat(format_flags) {
+    if (!(this instanceof StringFormat)) {
+        return new StringFormat(format_flags);
+    }
+
+    /**
+     * @return {number}
+     */
+    this.value = function () {
+        return this.alignment << 28 | this.line_alignment << 24 | this.trimming << 20 | this.format_flags;
+    };
+
+    /** @type {StringAlignment} */
+    this.alignment = StringAlignment.near;
+    /** @type {StringAlignment} */
+    this.line_alignment = StringAlignment.near;
+    /** @type {StringTrimming} */
+    this.trimming = StringTrimming.none;
+    /** @type {StringFormatFlags} */
+    this.format_flags = _.isNil(format_flags) ? StringFormatFlags.none : format_flags;
+}
+
+/**
+ * @const
+ * @type {StringFormat}
+ */
+var g_string_format_center = StringFormat();
+g_string_format_center.alignment = StringAlignment.center;
+g_string_format_center.line_alignment = StringAlignment.center;
+
+//</editor-fold>
+
 //<editor-fold desc="Exception types">
 
 /**
  * @param {string} msg
+ * @return {ThemeError}
  * @constructor
  * @extends {Error}
- * @return {ThemeError}
  */
 function ThemeError(msg) {
     if (!(this instanceof ThemeError)) {
@@ -172,6 +212,7 @@ ThemeError.prototype = Object.create(Error.prototype);
 
 /**
  * @param {string} msg
+ * @return {LogicError}
  * @constructor
  * @extends {Error}
  */
@@ -198,8 +239,10 @@ LogicError.prototype = Object.create(Error.prototype);
  * @param {string} arg_type
  * @param {string} valid_type
  * @param {string=} additional_msg
+ * @return {TypeError}
  * @constructor
  * @extends {Error}
+ * @return {TypeError}
  */
 function TypeError(arg_name, arg_type, valid_type, additional_msg) {
     if (!(this instanceof TypeError)) {
@@ -226,6 +269,7 @@ TypeError.prototype = Object.create(Error.prototype);
  * @param {string} arg_name
  * @param {*} arg_value
  * @param {string=} additional_msg
+ * @return {ArgumentError}
  * @constructor
  * @extends {Error}
  */

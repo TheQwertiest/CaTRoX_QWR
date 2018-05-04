@@ -160,7 +160,7 @@ function UltraMini() {
             art_module.paint(gr);
         }
         else {
-            gr.DrawString(g_theme.name + ' ' + g_theme.version, gdi.font('Segoe Ui Semibold', 24), _.RGB(70, 70, 70), 0, 0, this.w, this.h, g_string_format.align_center);
+            gr.DrawString(g_theme.name + ' ' + g_theme.version, gdi.font('Segoe Ui Semibold', 24), _.RGB(70, 70, 70), 0, 0, this.w, this.h, g_string_format_center.value());
         }
 
         // Title
@@ -168,8 +168,11 @@ function UltraMini() {
         gr.FillGradRect(0, -1, this.w, 40, 270, _.RGBA(0, 0, 0, 0), _.RGBA(0, 0, 0, 255));
 
         if (fb.IsPlaying) {
-            var title_text_format = g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
-            gr.DrawString(title_cycler.title_text(), gdi.font('Segoe Ui Semibold', 12), _.RGB(240, 240, 240), 5, 5, this.w, this.h, title_text_format);
+            var title_text_format = StringFormat();
+            title_text_format.trimming = StringTrimming.ellipsis_char;
+            title_text_format.format_flags = StringFormatFlags.no_wrap;
+
+            gr.DrawString(title_cycler.title_text(), gdi.font('Segoe Ui Semibold', 12), _.RGB(240, 240, 240), 5, 5, this.w, this.h, title_text_format.value());
         }
 
         if (panel_alpha !== 0) {
@@ -593,7 +596,7 @@ function UltraMini() {
                 }
 
                 var ico_color = default_ico_colors[s];
-                g.DrawString(item.ico, item.font, ico_color, (i === 'Stop') ? 0 : 1, 0, w, h, g_string_format.align_center);
+                g.DrawString(item.ico, item.font, ico_color, (i === 'Stop') ? 0 : 1, 0, w, h, g_string_format_center.value());
 
                 img.ReleaseGraphics(g);
                 stateImages[s] = img;

@@ -235,8 +235,13 @@ function Menu() {
                 title_text += fb.TitleFormat('%_foobar2000_version%').eval(true);
             }
 
-            var title_text_format = g_string_format.align_center | g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
-            gr.DrawString(title_text, gdi.font('Segoe Ui Semibold', 11), _.RGBA(240, 242, 244, 120), title_x, title_y, title_w, this.h, title_text_format);
+            var title_text_format = StringFormat();
+            title_text_format.alignment = StringAlignment.center;
+            title_text_format.line_alignment = StringAlignment.center;
+            title_text_format.trimming = StringTrimming.ellipsis_char;
+            title_text_format.format_flags = StringFormatFlags.no_wrap;
+
+            gr.DrawString(title_text, gdi.font('Segoe Ui Semibold', 11), _.RGBA(240, 242, 244, 120), title_x, title_y, title_w, this.h, title_text_format.value());
         }
 
         buttons.paint(gr);
@@ -785,12 +790,12 @@ function Menu() {
                     if (s !== 0) {
                         g.DrawRect(Math.floor(lw / 2), Math.floor(lw / 2), w - lw, h - lw, 1, menuRectColor);
                     }
-                    g.DrawString(item.ico, item.font, menuTextColor, 0, 0, w, h - 1, g_string_format.align_center);
+                    g.DrawString(item.ico, item.font, menuTextColor, 0, 0, w, h - 1, g_string_format_center.value());
                 }
                 else if (item.id === 'caption') {
                     var captionIcoColor = default_ico_colors[s];
 
-                    g.DrawString(item.ico, item.font, captionIcoColor, 0, 0, w, h, g_string_format.align_center);
+                    g.DrawString(item.ico, item.font, captionIcoColor, 0, 0, w, h, g_string_format_center.value());
                 }
 
                 if (i === 'Unpin') {

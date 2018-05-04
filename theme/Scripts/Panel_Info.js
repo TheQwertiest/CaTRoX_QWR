@@ -210,8 +210,13 @@ function TrackInfoList() {
                 text = 'No info to display';
             }
 
-            var track_info_format = g_string_format.align_center | g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
-            gr.DrawString(text, gdi.font('Segoe Ui Semibold', 24), _.RGB(70, 70, 70), this.x, this.y, this.w, this.h, track_info_format);
+            var track_info_format = StringFormat();
+            track_info_format.alignment = StringAlignment.center;
+            track_info_format.line_alignment = StringAlignment.center;
+            track_info_format.trimming = StringTrimming.ellipsis_char;
+            track_info_format.format_flags = StringFormatFlags.no_wrap;
+
+            gr.DrawString(text, gdi.font('Segoe Ui Semibold', 24), _.RGB(70, 70, 70), this.x, this.y, this.w, this.h, track_info_format.value());
         }
 
         if (this.is_scrollbar_available) {
@@ -909,21 +914,24 @@ function Row(x, y, w, h, metadb_arg, tag_name_arg, value_text_arg) {
             }
         }
 
-        var info_text_format = g_string_format.v_align_center | g_string_format.trim_ellipsis_char | g_string_format.line_limit;
+        var info_text_format = StringFormat();
+        info_text_format.line_alignment = StringAlignment.center;
+        info_text_format.trimming = StringTrimming.ellipsis_char;
+        info_text_format.format_flags = StringFormatFlags.line_limit;
 
         var p = 5;
         var cur_x = x + p;
         {
             var name_text = /** @type{string} */ [((tag_name === 'www') ? tag_name : _.capitalize(tag_name.toLowerCase()) + ':')];
             var name_text_w = Math.ceil(/** @type{number} */ g.MeasureString(name_text, g_tr_i_fonts.info_name, 0, 0, 0, 0).Width) + 5;
-            g.DrawString(name_text, g_tr_i_fonts.info_name, g_tr_i_colors.info_name, cur_x, y, name_text_w, h, info_text_format);
+            g.DrawString(name_text, g_tr_i_fonts.info_name, g_tr_i_colors.info_name, cur_x, y, name_text_w, h, info_text_format.value());
 
             cur_x += name_text_w;
         }
 
         {
             var value_text_w = (w - p) - cur_x;
-            g.DrawString(value_text, g_tr_i_fonts.info_value, g_tr_i_colors.info_value, cur_x, y, value_text_w, h, info_text_format);
+            g.DrawString(value_text, g_tr_i_fonts.info_value, g_tr_i_colors.info_value, cur_x, y, value_text_w, h, info_text_format.value());
         }
     }
 

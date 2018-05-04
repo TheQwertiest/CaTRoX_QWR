@@ -142,8 +142,13 @@ List.prototype.on_paint = function (gr) {
         gr.FillSolidRect(this.x, this.list_y + this.list_h, this.w, (this.y + this.h) - (this.list_y + this.list_h), this.background_color);
     }
     else {
-        var text_format = g_string_format.align_center | g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
-        gr.DrawString('No rows to display', gdi.font('Segoe Ui Semibold', 24), _.RGB(70, 70, 70), this.x, this.y, this.w, this.h, text_format);
+        var text_format = StringFormat();
+        text_format.alignment = StringAlignment.center;
+        text_format.line_alignment = StringAlignment.center;
+        text_format.trimming = StringTrimming.ellipsis_char;
+        text_format.format_flags = StringFormatFlags.no_wrap;
+
+        gr.DrawString('No rows to display', gdi.font('Segoe Ui Semibold', 24), _.RGB(70, 70, 70), this.x, this.y, this.w, this.h, text_format.value());
     }
 
     if (this.is_scrollbar_available) {

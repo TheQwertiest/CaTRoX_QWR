@@ -464,7 +464,7 @@ function PlaybackPanel() {
                 g.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
                 g.FillSolidRect(0, 0, w, h, g_theme.colors.pss_back); // Cleartype is borked, if drawn without background
 
-                g.DrawString(item.ico, item.font, default_ico_colors[s], (i === 'Stop') ? 0 : 1, 0, w, h, g_string_format.align_center);
+                g.DrawString(item.ico, item.font, default_ico_colors[s], (i === 'Stop') ? 0 : 1, 0, w, h, g_string_format_center.value());
 
                 img.ReleaseGraphics(g);
                 state_images[s] = img;

@@ -190,8 +190,8 @@ function BottomPanel() {
 
             var slider_text_color = (fb.IsPlaying ? _.RGB(130, 132, 134) : _.RGB(80, 80, 80));
             var seekbar_text_font = gdi.font('Consolas', 14, 1);
-            gr.DrawString(seekbar_time_1, seekbar_text_font, slider_text_color, seek_x - seekbar_text_w, seek_y - 1, seekbar_text_w, seek_h, g_string_format.align_center);
-            gr.DrawString(seekbar_time_2, seekbar_text_font, slider_text_color, seek_x + seek_w, seek_y - 1, seekbar_text_w, seek_h, g_string_format.align_center);
+            gr.DrawString(seekbar_time_1, seekbar_text_font, slider_text_color, seek_x - seekbar_text_w, seek_y - 1, seekbar_text_w, seek_h, g_string_format_center.value());
+            gr.DrawString(seekbar_time_2, seekbar_text_font, slider_text_color, seek_x + seek_w, seek_y - 1, seekbar_text_w, seek_h, g_string_format_center.value());
         }
 
         // VolBar
@@ -637,7 +637,7 @@ function BottomPanel() {
                 g.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
                 g.FillSolidRect(0, 0, w, h, g_theme.colors.pss_back); // Cleartype is borked, if drawn without background
 
-                g.DrawString(item.ico, item.font, ico_color, 0, 0, w, h, g_string_format.align_center);
+                g.DrawString(item.ico, item.font, ico_color, 0, 0, w, h, g_string_format_center.value());
 
                 img.ReleaseGraphics(g);
                 state_images[s] = img;

@@ -144,9 +144,12 @@ function TopPanel() {
             var info_text = (fb.IsPlaying ? _.tfe(info_query) : _.tf(info_query, metadb));
 
             var info_font = gdi.font('Segoe Ui Semibold', 14);
-            var info_format = g_string_format.v_align_center | g_string_format.trim_ellipsis_char | g_string_format.no_wrap;
+            var info_format = StringFormat();
+            info_format.line_alignment = StringAlignment.center;
+            info_format.trimming = StringTrimming.ellipsis_char;
+            info_format.format_flags = StringFormatFlags.no_wrap;
 
-            gr.DrawString(info_text, info_font, _.RGB(170, 172, 174), info_x, info_y, info_w, info_h, info_format);
+            gr.DrawString(info_text, info_font, _.RGB(170, 172, 174), info_x, info_y, info_w, info_h, info_format.value());
         }
 
         buttons.paint(gr);
@@ -394,11 +397,11 @@ function TopPanel() {
 
                 g.DrawEllipse(Math.floor(lw / 2) + 1, Math.floor(lw / 2) + 1, w - lw - 2, h - lw - 2, lw, ellipse_color);
 
-                g.DrawString(item.ico, item.font, ico_color, 1, 0, w, h, g_string_format.align_center);
+                g.DrawString(item.ico, item.font, ico_color, 1, 0, w, h, g_string_format_center.value());
                 if (item.add_cross) {
                     var slash_font = gdi.font('Arial', 22, g_font_style.bold);
-                    g.DrawString('\u2215', slash_font, ico_color, 1, 1, w, h, g_string_format.align_center);
-                    g.DrawString('\u2215', slash_font, g_theme.colors.pss_back, 3, 1, w, h, g_string_format.align_center);
+                    g.DrawString('\u2215', slash_font, ico_color, 1, 1, w, h, g_string_format_center.value());
+                    g.DrawString('\u2215', slash_font, g_theme.colors.pss_back, 3, 1, w, h, g_string_format_center.value());
                 }
 
                 img.ReleaseGraphics(g);

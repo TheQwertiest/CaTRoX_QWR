@@ -462,12 +462,15 @@ function ScrollBar(x, y, w, h, row_h, fn_redraw) {
                 grClip.SetSmoothingMode(SmoothingMode.HighQuality);
                 grClip.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
 
-                var btn_format = g_string_format.h_align_center | g_string_format.v_align_far;
+                var btn_format = StringFormat();
+                btn_format.alignment = StringAlignment.center;
+                btn_format.line_alignment = StringAlignment.far;
+
                 if (i === 'lineDown') {
-                    grClip.DrawString(item.ico, item.font, icoColor, 0, 0, w, h, btn_format);
+                    grClip.DrawString(item.ico, item.font, icoColor, 0, 0, w, h, btn_format.value());
                 }
                 else if (i === 'lineUp') {
-                    grClip.DrawString(item.ico, item.font, icoColor, 0, 0, w, h - 1, btn_format);
+                    grClip.DrawString(item.ico, item.font, icoColor, 0, 0, w, h - 1, btn_format.value());
                 }
 
                 img.ReleaseGraphics(grClip);
