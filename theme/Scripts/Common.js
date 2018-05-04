@@ -203,6 +203,8 @@ function StringFormat(format_flags) {
     }
 
     /**
+     * Returns StringFormat serialized to integer number suitable for flags argument in {@link IGdiGraphics.DrawString}
+     *
      * @return {number}
      */
     this.value = function () {
@@ -220,6 +222,8 @@ function StringFormat(format_flags) {
 }
 
 /**
+ * {@link StringFormat} object with alignment and line_alignment set to {@link StringAlignment.center}
+ *
  * @const
  * @type {StringFormat}
  */
