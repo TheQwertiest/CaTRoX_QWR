@@ -182,9 +182,8 @@ function on_metadb_changed(handles, fromhook) {
 function TrackInfoList() {
     List.call(this, 0, 0, 0, 0, new List.RowContent());
 
-    // public:
+    //<editor-fold desc="Callback Implementation">
 
-    /// callbacks
     this.on_paint = function (gr) {
         gr.FillSolidRect(this.x, this.y, this.w, this.h, g_tr_i_colors.background);
         gr.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
@@ -202,13 +201,7 @@ function TrackInfoList() {
             gr.FillSolidRect(this.x, this.list_y + this.list_h, this.w, (this.y + this.h) - (this.list_y + this.list_h), g_tr_i_colors.background);
         }
         else {
-            var text;
-            if (!cur_metadb) {
-                text = 'Track Info';
-            }
-            else {
-                text = 'No info to display';
-            }
+            var text = cur_metadb ? 'Track Info' : 'No info to display';
 
             var track_info_format = StringFormat();
             track_info_format.alignment = StringAlignment.center;
@@ -250,7 +243,8 @@ function TrackInfoList() {
             return;
         }
 
-        var item = this.get_item_under_mouse(x, y);
+        var item =
+            /** @type {?Row} */ this.get_item_under_mouse(x, y);
         if (item) {
             if (item !== last_hover_item) {
                 last_hover_item = item;
@@ -284,14 +278,12 @@ function TrackInfoList() {
         }
 
         var item = this.get_item_under_mouse(x, y);
-        if (!item) {
+        if (!item || item.is_readonly) {
             return;
         }
 
-        if (!item.is_readonly) {
-            item.edit_metadata();
-            item.repaint();
-        }
+        item.edit_metadata();
+        item.repaint();
     };
 
     this.on_mouse_lbtn_up = function (x, y, m) {
@@ -519,7 +511,7 @@ function TrackInfoList() {
         }
     };
 
-    /// EOF callbacks
+    //</editor-fold>
 
     // This method does not contain any redraw calls - it's purely back-end
     this.initialize_list = function () {
@@ -533,7 +525,7 @@ function TrackInfoList() {
         }
 
         this.cnt.rows = [];
-        this.scroll_pos = 0;
+        g_properties.scroll_pos = 0;
 
         cur_metadb = get_current_metadb();
         if (cur_metadb) {
@@ -559,7 +551,8 @@ function TrackInfoList() {
                     }
 
                     this.cnt.rows.push(new Row(this.list_x, 0, this.list_w, this.row_h, cur_metadb, tag_name, value_text));
-                    _.last(this.cnt.rows).is_odd = (i + 1) % 2;
+                    // noinspection JSBitwiseOperatorUsage
+                    _.last(this.cnt.rows).is_odd = !(i & 1);
                     _.last(this.cnt.rows).is_readonly = is_readonly;
                 }
             }
@@ -571,7 +564,8 @@ function TrackInfoList() {
                     value_text = fileInfo.InfoValue(fileInfo.InfoFind(tag_name));
 
                     this.cnt.rows.push(new Row(this.list_x, 0, this.list_w, this.row_h, cur_metadb, tag_name, value_text));
-                    _.last(this.cnt.rows).is_odd = ((cur_rows_count + i) + 1) % 2;
+                    // noinspection JSBitwiseOperatorUsage
+                    _.last(this.cnt.rows).is_odd = !((cur_rows_count + i) & 1);
                     _.last(this.cnt.rows).is_readonly = true;
                 }
             }
@@ -580,138 +574,11 @@ function TrackInfoList() {
                 return row.is_pressed;
             });
         }
-        
+
         if (was_on_size_called) {
             this.on_list_items_change();
         }
     };
-
-    //private:
-
-    function scroll_to_row(from_row, to_row) {
-        if (!this.is_scrollbar_available) {
-            return;
-        }
-
-        var from_item = from_row;
-        var to_item = to_row;
-
-        var to_item_state = get_item_visibility_state(to_item);
-
-
-        var shifted_successfully = false;
-
-        switch (to_item_state.visibility) {
-            case visibility_state['none']: {
-                if (from_item) {
-                    var from_item_state = get_item_visibility_state(from_item);
-                    if (from_item_state.visibility !== visibility_state['none']) {
-                        var is_item_prev = from_item.type === to_item.type && from_item.idx - 1 === to_item.idx;
-
-                        var is_item_next = from_item.type === to_item.type && from_item.idx + 1 === to_item.idx;
-
-                        var row_shift = from_item_state.invisible_part + 1;
-                        if (is_item_prev) {
-                            this.scrollbar.scroll_to(this.scroll_pos - row_shift);
-                            shifted_successfully = true;
-                        }
-                        else if (is_item_next) {
-                            this.scrollbar.scroll_to(this.scroll_pos + row_shift);
-                            shifted_successfully = true;
-                        }
-                    }
-                }
-                break;
-            }
-            case visibility_state['partial_top']: {
-                if (to_item_state.invisible_part % 1 > 0) {
-                    this.scrollbar.shift_line(-1);
-                }
-                this.scrollbar.scroll_to(this.scroll_pos - Math.floor(to_item_state.invisible_part));
-                shifted_successfully = true;
-                break;
-            }
-            case visibility_state['partial_bottom']: {
-                if (to_item_state.invisible_part % 1 > 0) {
-                    this.scrollbar.shift_line(1);
-                }
-                this.scrollbar.scroll_to(this.scroll_pos + Math.floor(to_item_state.invisible_part));
-                shifted_successfully = true;
-                break;
-            }
-            case visibility_state['full']: {
-                shifted_successfully = true;
-                break;
-            }
-            default: {
-                throw new ArgumentError('visibility_state', to_item_state.visibility);
-            }
-        }
-
-        if (!shifted_successfully) {
-            var item_draw_idx = get_item_draw_row_idx(to_item);
-            var new_scroll_pos = Math.max(0, item_draw_idx - Math.floor(this.rows_to_draw_precise / 2));
-            this.scrollbar.scroll_to(new_scroll_pos);
-        }
-    }
-
-    var visibility_state = {
-        'none':           0,
-        'partial_top':    1,
-        'partial_bottom': 2,
-        'full':           3
-    };
-
-    function get_item_visibility_state(item_to_check) {
-        var item_state = {
-            visibility:     visibility_state['none'],
-            invisible_part: 1
-        };
-
-        _.forEach(this.items_to_draw, function (item) {
-            if (item_to_check.type !== item.type) {
-                return true;
-            }
-
-            if (item.idx === item_to_check.idx) {
-                if (item.y < this.list_y && item.y + item.h > this.list_y) {
-                    item_state.visibility = visibility_state['partial_top'];
-                    item_state.invisible_part = (this.list_y - item.y) / this.row_h;
-                }
-                else if (item.y < this.list_y + this.list_h && item.y + item.h > this.list_y + this.list_h) {
-                    item_state.visibility = visibility_state['partial_bottom'];
-                    item_state.invisible_part = ((item.y + item.h) - (this.list_y + this.list_h)) / this.row_h;
-                }
-                else {
-                    item_state.visibility = visibility_state['full'];
-                    item_state.invisible_part = 0;
-                }
-                return false;
-            }
-        });
-
-        return item_state;
-    }
-
-    // At worst has O(playlist_size) complexity
-    function get_item_draw_row_idx(item) {
-        var draw_row_idx = -1;
-        var cur_row = 0;
-
-        _.forEach(this.cnt.rows, function (row) {
-            if (item.idx === row.idx) {
-                draw_row_idx = cur_row;
-                return false;
-            }
-            ++cur_row;
-        });
-
-        if (draw_row_idx === -1) {
-            throw new LogicError('Could not find item in drawn item list');
-        }
-
-        return draw_row_idx;
-    }
 
     function get_current_metadb() {
         var metadb = null;
@@ -804,6 +671,7 @@ function TrackInfoList() {
     var mouse_on_item = false;
 
     // Item events
+    /** @type {?Row}*/
     var last_hover_item = undefined;
 
     var alpha_timer = null;
@@ -885,10 +753,16 @@ function Row(x, y, w, h, metadb_arg, tag_name_arg, value_text_arg) {
         }
     };
 
+    /**
+     * @return {string}
+     */
     this.get_value_text = function () {
         return value_text;
     };
 
+    /**
+     * @return {string}
+     */
     this.get_tag_name = function () {
         return tag_name;
     };
@@ -961,7 +835,10 @@ function Row(x, y, w, h, metadb_arg, tag_name_arg, value_text_arg) {
     //private:
     var that = this;
 
-    /** @const {IFbMetadbHandle} */
+    /**
+     * @const
+     * @type {IFbMetadbHandle}
+     */
     var metadb = metadb_arg;
 
     /** @type {string} */

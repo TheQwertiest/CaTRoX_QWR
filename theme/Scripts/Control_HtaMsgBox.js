@@ -191,7 +191,7 @@ g_hta_window.styles.button +=
  */
 g_hta_window.msg_box_multiple = function(x,y,prompt,title,defval,on_finish_fn) {
     if (prompt.length !== defval.length) {
-        throw new ArgumentError('Prompts and default values', prompt.length + ' and ' + defval.length, 'Array sizes must be equal');
+        throw ArgumentError('Prompts and default values', prompt.length + ' and ' + defval.length, 'Array sizes must be equal');
     }
 
     var val_count = prompt.length;

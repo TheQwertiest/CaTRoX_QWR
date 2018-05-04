@@ -363,6 +363,9 @@ var UIHacks =
     new ActiveXObject('UIHacks');
 
 var qwr_utils = {
+    /**
+     * @param {number} m
+     */
     EnableSizing:         function (m) {
         try {
             if (UIHacks.FrameStyle === 3 && UIHacks.DisableSizing) {
@@ -373,6 +376,9 @@ var qwr_utils = {
             console.log(e)
         }
     },
+    /**
+     * @param {number} m
+     */
     DisableSizing:        function (m) {
         try {
             if (m && UIHacks.FrameStyle === 3 && !UIHacks.DisableSizing) {
@@ -402,18 +408,18 @@ var qwr_utils = {
      */
     check_fonts:          function (fonts) {
         var msg = '';
-        var failCounter = 0;
+        var fail_counter = 0;
 
         fonts.forEach(function (item) {
             var check = utils.CheckFont(item);
             if (!check) {
-                ++failCounter;
+                ++fail_counter;
             }
             msg += ('\n' + item + (check ? ': Installed.' : ': NOT INSTALLED!'));
         });
 
-        if (failCounter) {
-            msg += '\n\nPlease install missing ' + (failCounter > 1 ? 'fonts' : 'font') + ' and restart foobar!';
+        if (fail_counter) {
+            msg += '\n\nPlease install missing ' + (fail_counter > 1 ? 'fonts' : 'font') + ' and restart foobar!';
             throw ThemeError(msg);
         }
     },
@@ -477,6 +483,9 @@ var qwr_utils = {
 
         _.run(site);
     },
+    /**
+     * @constructor
+     */
     MouseMoveSuppress:    function () {
         this.is_supressed = function (x, y, m) {
             if (saved_x === x && saved_y === y && saved_m === m) {
@@ -494,6 +503,9 @@ var qwr_utils = {
         var saved_y;
         var saved_m;
     },
+    /**
+     * @constructor
+     */
     KeyModifiersSuppress: function () {
         this.is_supressed = function (key) {
             if ((VK_SHIFT === key || VK_CONTROL === key || VK_MENU === key) && saved_key === key) {
@@ -580,7 +592,7 @@ var qwr_utils = {
 function KeyActionHandler() {
     /**
      * @param{string} key
-     * @param{function} action_callback
+     * @param{function({ctrl: ?boolean, alt: ?boolean, shift: ?boolean})} action_callback
      */
     this.register_key_action = function (key, action_callback) {
         if (!action_callback) {
@@ -613,6 +625,7 @@ function KeyActionHandler() {
         return true;
     };
 
+    /** @type {Object<number, function({ctrl: ?boolean, alt: ?boolean, shift: ?boolean})>} */
     var actions = {};
 }
 
@@ -650,6 +663,9 @@ function PanelProperty(name, default_value) {
  * @hideconstructor
  */
 var PanelProperties = (function () {
+    /**
+     * @constructor
+     */
     function PanelProperties() {
         /**
          * @param {Object<string, Array<string, *>>} properties Each item in array is an object of the following type { string, [string, any] }
@@ -692,7 +708,11 @@ var PanelProperties = (function () {
         }
 
         var that = this;
-        // Used for collision checks only
+        /**
+         * Used for collision checks only
+         *
+         * @type {Object<string, number>}
+         */
         var name_list = {};
     }
 

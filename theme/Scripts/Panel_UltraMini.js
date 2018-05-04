@@ -382,7 +382,7 @@ function UltraMini() {
 
         cmm.append_item(
             'Reload \tF5',
-            function(){
+            function () {
                 art_module.reload_art()
             }
         );
@@ -391,7 +391,7 @@ function UltraMini() {
             qwr_utils.append_default_context_menu_to(cmm);
         }
 
-        cmm.execute(x,y);
+        cmm.execute(x, y);
         cmm.dispose();
 
         return true;
@@ -618,9 +618,20 @@ function UltraMini() {
 
     var that = this;
 
-    // Consts
+    /**
+     * @const
+     * @type {number}
+     */
     var seekbar_h = 8;
+    /**
+     * @const
+     * @type {number}
+     */
     var volume_bar_h = 14;
+    /**
+     * @const
+     * @type {number}
+     */
     var playback_h = 30;
 
     // Const after init
@@ -635,9 +646,9 @@ function UltraMini() {
 
     // Objects
     var art_module = new ArtModule();
-    var title_cycler = new TitleCycler(_.bind(function(){
+    var title_cycler = new TitleCycler(_.bind(function () {
         this.repaint();
-    },this));
+    }, this));
     var animator = new Animator(_.bind(function (alpha) {
         panel_alpha = alpha;
         this.repaint();
@@ -656,43 +667,47 @@ function UltraMini() {
  */
 function Animator(on_alpha_change_fn_arg) {
     this.run_animation = function (animation_name) {
-        if (animation_name === 'fade_out') {
-            // Not stopping fade_in, because it looks borked, when stopped in the middle.
-            stop_fade_out_delay();
-
-            delayFadeOutTimer = _.delay(function(){
+        switch (animation_name) {
+            case 'fade_out': {
+                // Not stopping fade_in, because it looks borked, when stopped in the middle.
                 stop_fade_out_delay();
-                fade_out();
-            }, 1000);
-        }
-        else if (animation_name === 'fade_in') {
-            stop_fade_out();
-            stop_fade_out_delay();
 
-            fade_in();
-        }
-        else {
-            throw Error('Argument error:\nUnknown animation: ' + animation_name);
+                delayFadeOutTimer = _.delay(function () {
+                    stop_fade_out_delay();
+                    fade_out();
+                }, 1000);
+
+                break;
+            }
+            case 'fade_in': {
+                stop_fade_out();
+                stop_fade_out_delay();
+
+                fade_in();
+                break;
+            }
+            default:
+                throw ArgumentError('Unknown animation', animation_name);
         }
     };
 
 // private:
-    function stop_fade_out_delay(){
-        if ( delayFadeOutTimer ) {
+    function stop_fade_out_delay() {
+        if (delayFadeOutTimer) {
             clearTimeout(delayFadeOutTimer);
             delayFadeOutTimer = null;
         }
     }
 
-    function stop_fade_out(){
-        if ( fadeOutTimer ) {
+    function stop_fade_out() {
+        if (fadeOutTimer) {
             clearInterval(fadeOutTimer);
             fadeOutTimer = null;
         }
     }
 
-    function stop_fade_in(){
-        if ( fadeInTimer ) {
+    function stop_fade_in() {
+        if (fadeInTimer) {
             clearInterval(fadeInTimer);
             fadeInTimer = null;
         }
@@ -700,10 +715,10 @@ function Animator(on_alpha_change_fn_arg) {
 
     function fade_out() {
         var hoverOutStep = 15;
-        
+
         if (!fadeOutTimer && alpha !== 0) {
             fadeOutTimer = setInterval(function () {
-                if ( delayFadeOutTimer ) {
+                if (delayFadeOutTimer) {
                     return;
                 }
 
@@ -719,7 +734,7 @@ function Animator(on_alpha_change_fn_arg) {
 
     function fade_in() {
         var hoverInStep = 60;
-        
+
         if (!fadeInTimer && alpha !== 255) {
             fadeInTimer = setInterval(function () {
                 alpha = Math.min(255, alpha += hoverInStep);
@@ -740,12 +755,12 @@ function Animator(on_alpha_change_fn_arg) {
     var fadeInTimer = null;
 
     var timerRate = 25;
-    
+
     var alpha = 0;
 }
 
 /**
- * @param {Function} on_change_fn_arg
+ * @param {function()} on_change_fn_arg
  * @constructor
  */
 function TitleCycler(on_change_fn_arg) {
@@ -788,7 +803,7 @@ function TitleCycler(on_change_fn_arg) {
 
     function start_timer() {
         if (!title_timer) {
-            title_timer = setInterval(function(){cycle_title()}, cycle_time);
+            title_timer = setInterval(function () {cycle_title()}, cycle_time);
         }
     }
 
@@ -808,15 +823,15 @@ function TitleCycler(on_change_fn_arg) {
         var last_idx = cur_query_idx;
 
         do {
-            var titleQuery = queries[cur_query_idx];
+            var title_query = queries[cur_query_idx];
 
             ++cur_query_idx;
             if (cur_query_idx >= queries.length) {
                 cur_query_idx = 0;
             }
 
-            var titleText = _.tfe(titleQuery);
-            if (titleText !== '') {
+            var titleText = _.tfe(title_query);
+            if (titleText.length) {
                 cur_title_text = titleText;
                 break;
             }
@@ -835,6 +850,7 @@ function TitleCycler(on_change_fn_arg) {
     var queries = JSON.parse(g_properties.title_queries);
     var cycle_time = g_properties.title_cycle_time;
 
+    /** @type {function()} */
     var on_change_fn = on_change_fn_arg;
 
     var title_timer = null;

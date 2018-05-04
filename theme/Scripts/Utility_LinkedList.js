@@ -55,15 +55,15 @@ function LinkedList() {
      */
     this.remove = function (iterator) {
         if (!_.isInstanceOf(iterator, LinkedList.Iterator)) {
-            throw new TypeError(iterator, typeof iterator, 'Iterator');
+            throw TypeError(iterator, typeof iterator, 'Iterator');
         }
 
         if (iterator.parent !== this) {
-            throw new LogicError('Using iterator from a different list');
+            throw LogicError('Using iterator from a different list');
         }
 
         if (iterator.compare(this.end())) {
-            throw new LogicError('Removing invalid iterator');
+            throw LogicError('Removing invalid iterator');
         }
 
         remove_node(iterator.cur_node);
@@ -179,7 +179,7 @@ function LinkedList() {
 LinkedList.Iterator = function (parent, node) {
     this.increment = function () {
         if (this.cur_node === parent.end_node) {
-            throw new LogicError('Iterator is out of bounds');
+            throw LogicError('Iterator is out of bounds');
         }
 
         this.cur_node = this.cur_node.next;
@@ -190,7 +190,7 @@ LinkedList.Iterator = function (parent, node) {
 
     this.decrement = function () {
         if (this.cur_node === front) {
-            throw new LogicError('Iterator is out of bounds');
+            throw LogicError('Iterator is out of bounds');
         }
 
         if (this.cur_node === parent.end_node) {
@@ -206,7 +206,7 @@ LinkedList.Iterator = function (parent, node) {
      */
     this.value = function () {
         if (this.cur_node === parent.end_node) {
-            throw new LogicError('Accessing end node');
+            throw LogicError('Accessing end node');
         }
 
         return this.cur_node.value;
@@ -218,7 +218,7 @@ LinkedList.Iterator = function (parent, node) {
      */
     this.compare = function (iterator) {
         if (iterator.parent !== this.parent) {
-            throw new LogicError('Comparing iterators from different lists');
+            throw LogicError('Comparing iterators from different lists');
         }
         return iterator.cur_node === this.cur_node;
     };

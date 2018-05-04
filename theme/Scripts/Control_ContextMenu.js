@@ -21,7 +21,7 @@ Context.BaseObject = function (text_arg) {
      * @abstract
      */
     this.initialize_menu_idx = function(start_idx) {
-        throw new LogicError("initialize_menu_idx not implemented");
+        throw LogicError("initialize_menu_idx not implemented");
     };
 
     /**
@@ -30,7 +30,7 @@ Context.BaseObject = function (text_arg) {
      * @abstract
      */
     this.initialize_menu = function(parent_menu) {
-        throw new LogicError("initialize_menu not implemented");
+        throw LogicError("initialize_menu not implemented");
     };
 
     /**
@@ -40,7 +40,7 @@ Context.BaseObject = function (text_arg) {
      * @abstract
      * */
     this.execute_menu = function (idx) {
-        throw new LogicError("execute_menu not implemented");
+        throw LogicError("execute_menu not implemented");
     };
 
     // const
@@ -70,7 +70,7 @@ Context.Menu = function (text_arg, optional_args) {
      */
     this.append = function (item) {
         if (!_.isInstanceOf(item, Context.BaseObject)) {
-            throw new TypeError('context_item', typeof item, 'instanceof Context.BaseObject');
+            throw TypeError('context_item', typeof item, 'instanceof Context.BaseObject');
         }
 
         this.menu_items.push(item);
@@ -99,15 +99,15 @@ Context.Menu = function (text_arg, optional_args) {
     this.radio_check = function (start_idx, check_idx) {
         var item = this.menu_items[start_idx + check_idx];
         if (!item) {
-            throw new ArgumentError('check_idx', check_idx, 'Value is out of bounds');
+            throw ArgumentError('check_idx', check_idx, 'Value is out of bounds');
         }
 
         if (start_idx >= this.menu_items.length) {
-            throw new ArgumentError('start_idx', start_idx, 'Value is out of bounds');
+            throw ArgumentError('start_idx', start_idx, 'Value is out of bounds');
         }
 
         if (_.isInstanceOf(item, Context.Separator)) {
-            throw new ArgumentError('check_idx', check_idx, 'Index points to MenuSeparator');
+            throw ArgumentError('check_idx', check_idx, 'Index points to MenuSeparator');
         }
 
         item.radio_check(true)

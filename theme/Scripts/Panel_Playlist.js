@@ -333,6 +333,7 @@ function on_notify_data(name, info) {
 function PlaylistPanel(x, y) {
 
     //<editor-fold desc="Callback Implementation">
+
     this.on_paint = function (gr) {
         if (!is_activated) {
             is_activated = true;
@@ -597,6 +598,7 @@ function PlaylistPanel(x, y) {
     this.on_notify_data = function (name, info) {
         playlist.on_notify_data(name, info);
     };
+
     //</editor-fold>
 
     this.initialize = function () {
@@ -1023,11 +1025,11 @@ function Playlist(x, y) {
             if (this.is_scrollbar_available) {
                 if (y < (this.list_y + this.row_h * 2) && !this.scrollbar.is_scrolled_up) {
                     selection_handler.drag(null, false); // To clear last hover row
-                    start_drag_scroll('up');
+                    start_drag_scroll(-1);
                 }
                 if (y > (this.list_y + this.list_h - this.row_h * 2) && !this.scrollbar.is_scrolled_down) {
                     selection_handler.drag(null, false); // To clear last hover row
-                    start_drag_scroll('down');
+                    start_drag_scroll(1);
                 }
             }
         }
@@ -2576,9 +2578,9 @@ function Playlist(x, y) {
     //</editor-fold>
 
     /**
-     * @param {string} key 'up' or 'down'
+     * @param {number} direction -1 for upward direction, 1 - for downward
      */
-    function start_drag_scroll(key) {
+    function start_drag_scroll(direction) {
         if (drag_scroll_timeout_timer) {
             return;
         }
@@ -2596,7 +2598,7 @@ function Playlist(x, y) {
                 drag_scroll_in_progress = true;
 
                 var cur_marked_item;
-                if (key === 'up') {
+                if (direction < 0) {
                     that.scrollbar.shift_line(-1);
 
                     cur_marked_item = _.head(that.items_to_draw);
@@ -2612,7 +2614,7 @@ function Playlist(x, y) {
                     selection_handler.drag(cur_marked_item, true);
                     cur_marked_item.is_drop_boundary_reached = true;
                 }
-                else if (key === 'down') {
+                else if (direction > 0) {
                     that.scrollbar.shift_line(1);
 
                     cur_marked_item = _.last(that.items_to_draw);
@@ -2629,7 +2631,7 @@ function Playlist(x, y) {
                     cur_marked_item.is_drop_boundary_reached = true;
                 }
                 else {
-                    throw ArgumentError('drag_scroll_command', key);
+                    throw ArgumentError('drag_scroll direction', direction);
                 }
 
                 if (that.scrollbar.is_scrolled_down || that.scrollbar.is_scrolled_up) {

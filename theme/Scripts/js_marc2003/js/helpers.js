@@ -4,19 +4,38 @@ this.sort(function(a,b){for(var x=0,aa,bb;(aa=a[x])&&(bb=b[x]);x++){aa=aa.toLowe
 return a.length-b.length;});for(var z=0;z<this.length;z++)
 this[z]=this[z].join('');};
 
-// timeout and interval shims
+//<editor-fold desc="timeout and interval shims">
+
+/**
+ * @param {function()} func
+ * @param {number} wait
+ * @return {number}
+ */
 function setInterval(func, wait){
     return window.SetInterval(func, wait);
 }
+/**
+ * @param {number} id
+ */
 function clearInterval(id) {
     window.ClearInterval(id);
 }
+/**
+ * @param {function()} func
+ * @param {number} wait
+ * @return {number}
+ */
 function setTimeout(func, wait){
     return window.SetTimeout(func, wait);
 }
+/**
+ * @param {number} id
+ */
 function clearTimeout(id) {
     window.ClearTimeout(id);
 }
+
+//</editor-fold>
 
 g_callbacks = {
     /**

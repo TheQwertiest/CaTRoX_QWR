@@ -7,7 +7,7 @@
     var test = !!Date.now && !!Array.isArray && !!Array.prototype.forEach;
     if (!test) {
         var error_msg = 'ES5 is not supported by your system! Cannot use this theme!';
-        throw new ThemeError(error_msg);
+        throw ThemeError(error_msg);
     }
 })();
 
@@ -22,7 +22,7 @@
         var error_msg = 'JScript (modded or vanilla) v' + version_to_string(required_version) + ' or higher is required!\n';
         error_msg += 'Your JScript version: ' + version_to_string(utils.Version);
 
-        throw new ThemeError(error_msg);
+        throw ThemeError(error_msg);
     }
 })();
 
@@ -177,6 +177,9 @@ function on_notify_data(name, info) {
  * @constructor
  */
 function Menu() {
+
+    //<editor-fold desc="Callback Implementation">
+
     this.on_paint = function(gr) {
         if (!has_notified) {
             // When on_paint is called all other panels are loaded and can receive notifications
@@ -198,7 +201,7 @@ function Menu() {
         gr.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
 
         if (g_properties.show_window_shadow) {
-            // Dirty hack to fix the appearing border
+            // Dirty hack to hide the Aero style border
             gr.DrawLine(this.x - pad, this.y - pad, this.w + 2 * pad, this.y - pad, 1, g_theme.colors.pss_back);
         }
 
@@ -252,7 +255,7 @@ function Menu() {
         this.w = w - 2 * pad;
 
         if (UIHacks.FullScreen && UIHacks.MainWindowState !== WindowState.Maximized) {
-            // Bug workaround: dragging in fullscreen mode will restore window state, while keeping fullscreen flag
+            // Bug workaround: dragging in fullscreen mode will restore the window state, while keeping fullscreen flag
             UIHacks.FullScreen = false;
         }
 
@@ -422,7 +425,7 @@ function Menu() {
         }
     };
 
-    ///// EOF callbacks
+    //</editor-fold>
 
     var throttled_repaint = _.throttle(_.bind(function() {
         window.RepaintRect(this.x, this.y, this.w, this.h);
@@ -762,7 +765,7 @@ function Menu() {
                 var g = img.GetGraphics();
 
                 item.w = Math.ceil(
-                    /** @type {!number} */
+                    /** @type {number} */
                     g.MeasureString(item.ico, item.font, 0, 0, 0, 0).Width
                 ) + 17;
                 img.ReleaseGraphics(g);
@@ -811,7 +814,6 @@ function Menu() {
                 img.ReleaseGraphics(g);
                 stateImages[s] = img;
             }
-
             button_images[i] =
                 {
                     normal:  stateImages[0],
@@ -839,7 +841,10 @@ function Menu() {
     var mode_handler = new WindowModeHandler();
     var cpu_usage_tracker = new CpuUsageTracker(_.bind(this.repaint, this));
     var buttons = undefined;
-    var button_images = [];
+
+    // noinspection JSMismatchedCollectionQueryUpdate
+    /** @type {Object<string, !{normal: !IGdiBitmap, hover: !IGdiBitmap, pressed: !IGdiBitmap}>} */
+    var button_images = {};
 
     var left_pad = 0;
     var right_pad = 0;
@@ -879,7 +884,10 @@ function WindowModeHandler() {
             UIHacks.MinSize = true;
         }
         else {
-            if (!UIHacks.FullScreen) {
+            if (UIHacks.FullScreen) {
+                UIHacks.FullScreen = false;
+            }
+            else {
                 if (pss_switch.minimode.state === 'Full') {
                     if (fb_handle) {
                         g_properties.full_mode_saved_width = fb_handle.Width;
@@ -892,9 +900,6 @@ function WindowModeHandler() {
                         g_properties.mini_mode_saved_height = fb_handle.Height;
                     }
                 }
-            }
-            else {
-                UIHacks.FullScreen = false;
             }
 
             pss_switch.minimode.state = new_minimode_state;
@@ -911,14 +916,14 @@ function WindowModeHandler() {
         var new_minimode_state = ((pss_switch.minimode.state === 'Mini') ? 'Full' : 'Mini');
 
         if (new_minimode_state === 'Mini') {
-            if (!UIHacks.FullScreen) {
+            if (UIHacks.FullScreen) {
+                UIHacks.FullScreen = false;
+            }
+            else {
                 if (fb_handle) {
                     g_properties.full_mode_saved_width = fb_handle.Width;
                     g_properties.full_mode_saved_height = fb_handle.Height;
                 }
-            }
-            else {
-                UIHacks.FullScreen = false;
             }
 
             pss_switch.minimode.state = new_minimode_state;
@@ -930,14 +935,14 @@ function WindowModeHandler() {
             UIHacks.MinSize = true;
         }
         else {
-            if (!UIHacks.FullScreen) {
+            if (UIHacks.FullScreen) {
+                UIHacks.FullScreen = false;
+            }
+            else {
                 if (fb_handle) {
                     g_properties.mini_mode_saved_width = fb_handle.Width;
                     g_properties.mini_mode_saved_height = fb_handle.Height;
                 }
-            }
-            else {
-                UIHacks.FullScreen = false;
             }
 
             pss_switch.minimode.state = new_minimode_state;
@@ -951,24 +956,24 @@ function WindowModeHandler() {
     };
 
     this.set_window_size_limits_for_mode = function(miniMode) {
-        var minW = 0,
-            maxW = 0,
-            minH = 0,
-            maxH = 0;
+        var min_w = 0,
+            max_w = 0,
+            min_h = 0,
+            max_h = 0;
         if (miniMode === 'UltraMini') {
-            minW = 200;
-            minH = 200 + 28;
+            min_w = 200;
+            min_h = 200 + 28;
         }
         else if (miniMode === 'Mini') {
-            minW = 300;
-            minH = 250;
+            min_w = 300;
+            min_h = 250;
         }
         else {
-            minW = 650;
-            minH = 600;
+            min_w = 650;
+            min_h = 600;
         }
 
-        set_window_size_limits(minW, maxW, minH, maxH);
+        set_window_size_limits(min_w, max_w, min_h, max_h);
     };
 
     this.fix_window_size = function() {
@@ -1016,24 +1021,25 @@ function WindowModeHandler() {
         window.NotifyOthers('minimode_state_size', pss_switch.minimode.state);
     }
 
-    function set_window_size_limits(minW, maxW, minH, maxH) {
-        UIHacks.MinSize = !!minW;
-        UIHacks.MinSize.Width = minW;
+    function set_window_size_limits(min_w, max_w, min_h, max_h) {
+        UIHacks.MinSize = !!min_w;
+        UIHacks.MinSize.Width = min_w;
 
-        UIHacks.MaxSize = !!maxW;
-        UIHacks.MaxSize.Width = maxW;
+        UIHacks.MaxSize = !!max_w;
+        UIHacks.MaxSize.Width = max_w;
 
-        UIHacks.MinSize = !!minH;
-        UIHacks.MinSize.Height = minH;
+        UIHacks.MinSize = !!min_h;
+        UIHacks.MinSize.Height = min_h;
 
-        UIHacks.MaxSize = !!maxH;
-        UIHacks.MaxSize.Height = maxH;
+        UIHacks.MaxSize = !!max_h;
+        UIHacks.MaxSize.Height = max_h;
     }
 
     var fb_handle = g_has_modded_jscript ? qwr_utils.get_top_theme_window() : undefined;
 }
 
 /**
+ * @param {function()} on_style_change_callback_arg
  * @constructor
  */
 function FrameStyleHandler(on_style_change_callback_arg) {
@@ -1088,22 +1094,23 @@ function FrameStyleHandler(on_style_change_callback_arg) {
         }
     }
 
-    this.has_true_caption = undefined;
+    this.has_true_caption = true;
 
     var that = this;
 
     var on_style_change_callback = on_style_change_callback_arg;
 
-    var x;
-    var y;
-    var w;
-    var h;
+    var x = 0;
+    var y = 0;
+    var w = 0;
+    var h = 0;
 
     update_caption_state();
     update_shadow_state();
 }
 
 /**
+ * @param {function()} on_change_callback_arg
  * @constructor
  */
 function CpuUsageTracker(on_change_callback_arg) {
@@ -1124,35 +1131,37 @@ function CpuUsageTracker(on_change_callback_arg) {
     };
 
     function start_cpu_usage_timer() {
-        if (_.isNil(cpu_usage_timer)) {
-            cpu_usage_timer = setInterval(function() {
-
-                var floatUsage = UIHacks.FoobarCPUUsage;
-
-                var baseLine;
-
-                if (fb.IsPlaying && !fb.IsPaused) {
-                    playing_usage.update(floatUsage);
-                    baseLine = playing_usage.average_usage;
-                }
-                else {
-                    idle_usage.update(floatUsage);
-                    baseLine = idle_usage.average_usage;
-                }
-
-                cpu_usage = floatUsage.toFixed(1);
-
-                var usageDiff = Math.max((floatUsage - baseLine), 0);
-                usageDiff = (usageDiff <= 0.5 ? 0 : usageDiff); // Supress low spikes
-                gui_cpu_usage = usageDiff.toFixed(1);
-
-                on_change_callback();
-            }, 1000);
+        if (cpu_usage_timer) {
+            return;
         }
+
+        cpu_usage_timer = setInterval(function () {
+            var floatUsage =
+                /** @type {number} */ UIHacks.FoobarCPUUsage;
+
+            var baseLine;
+
+            if (fb.IsPlaying && !fb.IsPaused) {
+                playing_usage.update(floatUsage);
+                baseLine = playing_usage.average_usage;
+            }
+            else {
+                idle_usage.update(floatUsage);
+                baseLine = idle_usage.average_usage;
+            }
+
+            cpu_usage = floatUsage.toFixed(1);
+
+            var usageDiff = Math.max((floatUsage - baseLine), 0);
+            usageDiff = (usageDiff <= 0.5 ? 0 : usageDiff); // Suppress low spikes
+            gui_cpu_usage = usageDiff.toFixed(1);
+
+            on_change_callback();
+        }, 1000);
     }
 
     function stop_cpu_usage_timer() {
-        if (!_.isNil(cpu_usage_timer)) {
+        if (cpu_usage_timer) {
             clearInterval(cpu_usage_timer);
             cpu_usage_timer = undefined;
         }
@@ -1162,7 +1171,7 @@ function CpuUsageTracker(on_change_callback_arg) {
 
     var cpu_usage = 0;
     var gui_cpu_usage = 0;
-    var cpu_usage_timer = undefined;
+    var cpu_usage_timer = null;
     var idle_usage = new AverageUsageFunc();
     var playing_usage = new AverageUsageFunc();
 
@@ -1173,6 +1182,9 @@ function CpuUsageTracker(on_change_callback_arg) {
  * @constructor
  */
 function AverageUsageFunc() {
+    /**
+     * @param {number} current_usage
+     */
     this.update = function(current_usage) {
         if (current_sample_count) {
             if (this.average_usage - current_usage > 2) {
@@ -1200,16 +1212,19 @@ function AverageUsageFunc() {
         this.average_usage = 0;
     };
 
+    /**
+     * @param {number} current_usage
+     */
     function recalculate_average(current_usage) {
-        if (current_sample_count < sampleCount) {
+        if (current_sample_count < sample_count) {
             acum_usage += current_usage;
             ++current_sample_count;
 
             that.average_usage = acum_usage / current_sample_count;
         }
         else {
-            that.average_usage -= that.average_usage / sampleCount;
-            that.average_usage += current_usage / sampleCount;
+            that.average_usage -= that.average_usage / sample_count;
+            that.average_usage += current_usage / sample_count;
         }
     }
 
@@ -1217,7 +1232,11 @@ function AverageUsageFunc() {
 
     var that = this;
 
-    var sampleCount = 30;
+    /**
+     * @const
+     * @type {number}
+     */
+    var sample_count = 30;
     var current_sample_count = 0;
     var reset_sample_count = 0;
     var acum_usage = 0;
