@@ -4,6 +4,7 @@
 ### Added
 - Playlist Panel:
   - Art images are now cached: no more needless image reloading after every little action.
+  - Added foo_enhanced_playcount support: track play count now displays `$max(%play_count%, %lastfm_play_count%)`.
 
 ### Changed
 - Playlist Panel:
@@ -11,7 +12,8 @@
 
 ### Fixed
 - Playlist Panel:
-  - Art images won't be loaded anymore when they are disabled.
+  - Fixed bug: art images were loaded even with headers disabled.
+  - Fixed bug: changing grouping preset in one player mode was not always affecting grouping preset in other mode.
 
 ## [4.2.1] - 2018-04-16
 ### Changed
