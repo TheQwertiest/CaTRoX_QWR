@@ -2515,21 +2515,11 @@ function Playlist(x, y) {
      */
     function get_item_draw_row_idx(target_item) {
         var cur_row = 0;
+        var is_target_row = _.isInstanceOf(target_item, Row);
 
-        if (!g_properties.show_header) {
-            _.forEach(that.cnt.rows, function (row) {
-                if (target_item === row) {
-                    return false;
-                }
-                ++cur_row;
-            });
-        }
-        else {
-            var is_target_row = _.isInstanceOf(target_item, Row);
-
-            function iterate_level(sub_items, target_item) {
-                var tmp_item = _.head(sub_items);
-                var header_h_in_rows = Math.round(tmp_item.h / that.row_h);
+        function iterate_level(sub_items, target_item) {
+            if (_.isInstanceOf(_.head(sub_items), BaseHeader)) {
+                var header_h_in_rows = Math.round(_.head(sub_items).h / that.row_h);
 
                 for (var i = 0; i < sub_items.length; ++i) {
                     var header = sub_items[i];
@@ -2543,35 +2533,31 @@ function Playlist(x, y) {
                         continue;
                     }
 
-                    if (_.isInstanceOf(_.head(header.sub_items), BaseHeader)) {
-                        if (iterate_level(header.sub_items, target_item)) {
-                            return true;
-                        }
-                    }
-                    else {
-                        if (!is_target_row) {
-                            cur_row += header.sub_items.length;
-                        }
-                        else {
-                            var header_rows = header.sub_items;
-                            for (var j = 0; j < header_rows.length; ++j) {
-                                var header_row = header_rows[j];
-                                if (header_row === target_item) {
-                                    return true;
-                                }
-
-                                ++cur_row;
-                            }
-                        }
+                    if (iterate_level(header.sub_items, target_item)) {
+                        return true;
                     }
                 }
+            }
+            else { // Row
+                if (is_target_row) {
+                    for (var j = 0; j < sub_items.length; ++j) {
+                        if (target_item === sub_items[j]) {
+                            return true;
+                        }
 
-                return false;
+                        ++cur_row;
+                    }
+                }
+                else {
+                    cur_row += sub_items.length;
+                }
             }
 
-            if (!iterate_level(that.cnt.sub_items, target_item)) {
-                throw LogicError('Could not find item in drawn item list');
-            }
+            return false;
+        }
+
+        if (!iterate_level(g_properties.show_header ? that.cnt.sub_items : that.cnt.rows, target_item)) {
+            throw LogicError('Could not find item in drawn item list');
         }
 
         return cur_row;
@@ -2826,41 +2812,40 @@ PlaylistContent = function () {
          * @return {?BaseHeader|?Row}
          */
         function iterate_level(sub_items) {
-            var tmp_item = _.head(sub_items);
-            var header_h_in_rows = Math.round(tmp_item.h / row_h);
+            if (_.isInstanceOf(_.head(sub_items), BaseHeader)) {
+                var header_h_in_rows = Math.round(_.head(sub_items).h / row_h);
 
-            for (var i = 0; i < sub_items.length; ++i) {
-                var header = sub_items[i];
-                if (cur_row + header_h_in_rows - 1 >= row_shift) {
-                    header.set_y(start_y + (cur_row - row_shift) * row_h);
-                    return header;
-                }
+                for (var i = 0; i < sub_items.length; ++i) {
+                    var header = sub_items[i];
+                    if (cur_row + header_h_in_rows - 1 >= row_shift) {
+                        header.set_y(start_y + (cur_row - row_shift) * row_h);
+                        return header;
+                    }
 
-                cur_row += header_h_in_rows;
+                    cur_row += header_h_in_rows;
 
-                if (header.is_collapsed) {
-                    continue;
-                }
+                    if (header.is_collapsed) {
+                        continue;
+                    }
 
-                if (_.isInstanceOf(_.head(header.sub_items), BaseHeader)) {
                     var result = iterate_level(header.sub_items);
                     if (result) {
                         return result;
                     }
                 }
-                else {
-                    if (cur_row + header.sub_items.length - 1 >= row_shift) {
-                        var header_row_start_idx = (cur_row > row_shift) ? 0 : row_shift - cur_row;
-                        cur_row += header_row_start_idx;
+            }
+            else { // Row
+                if (cur_row + sub_items.length - 1 >= row_shift) {
+                    var row_start_idx = (cur_row > row_shift) ? 0 : row_shift - cur_row;
+                    cur_row += row_start_idx;
 
-                        var header_row = header.sub_items[header_row_start_idx];
-                        header_row.set_y(start_y + (cur_row - row_shift) * row_h);
+                    var row = sub_items[row_start_idx];
+                    row.set_y(start_y + (cur_row - row_shift) * row_h);
 
-                        return header_row;
-                    }
-
-                    cur_row += header.sub_items.length;
+                    return row;
                 }
+
+                cur_row += sub_items.length;
             }
 
             return null;
@@ -2890,22 +2875,28 @@ PlaylistContent = function () {
          * @return {boolean} true, if start_item was used
          */
         function iterate_level(sub_items, start_item) {
+            var is_cur_level_header = _.isInstanceOf(_.head(sub_items), BaseHeader);
             var start_item_used = !start_item;
+
             var leveled_start_item = start_item;
             while (leveled_start_item && leveled_start_item.parent !== _.head(sub_items).parent) {
                 leveled_start_item = leveled_start_item.parent;
             }
 
-            var start_idx = leveled_start_item ? leveled_start_item.idx : 0;
-            for (var i = start_idx; i < sub_items.length; ++i) {
-                var header = sub_items[i];
-                if (start_item_used) {
-                    header.set_y(cur_y);
+            var start_idx = 0;
+            if (leveled_start_item) {
+                start_idx = _.isInstanceOf(leveled_start_item, Row) ? leveled_start_item.idx_in_header : leveled_start_item.idx;
+            }
 
-                    items_to_draw.push(header);
-                    cur_y += header.h;
+            for (var i = start_idx; i < sub_items.length; ++i) {
+                var item = sub_items[i];
+                if (start_item_used) {
+                    item.set_y(cur_y);
+
+                    items_to_draw.push(item);
+                    cur_y += item.h;
                 }
-                if (!start_item_used && header === start_item) {
+                if (!start_item_used && item === start_item) {
                     start_item_used = true;
                 }
 
@@ -2913,42 +2904,16 @@ PlaylistContent = function () {
                     break;
                 }
 
-                if (header.is_collapsed) {
-                    continue;
-                }
+                if (is_cur_level_header) {
+                    if (item.is_collapsed) {
+                        continue;
+                    }
 
-                if (_.isInstanceOf(_.head(header.sub_items), BaseHeader)) {
-                    if (iterate_level(header.sub_items, start_item_used ? null : start_item)) {
+                    if (iterate_level(item.sub_items, start_item_used ? null : start_item)) {
                         start_item_used = true;
                     }
 
                     if (cur_y >= wy + wh) {
-                        break;
-                    }
-                }
-                else {
-                    var header_rows = header.sub_items;
-                    var row_start_idx = start_item_used ? 0 : start_item.idx_in_header;
-
-                    var should_break = false;
-                    for (var j = row_start_idx; j < header_rows.length; ++j) {
-                        var header_row = header_rows[j];
-                        if (start_item_used) {
-                            header_row.set_y(cur_y);
-                            items_to_draw.push(header_row);
-
-                            cur_y += header_row.h;
-                        }
-                        if (!start_item_used && header_row === start_item) {
-                            start_item_used = true;
-                        }
-
-                        if (cur_y >= wy + wh) {
-                            should_break = true;
-                            break;
-                        }
-                    }
-                    if (should_break) {
                         break;
                     }
                 }
