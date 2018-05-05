@@ -1692,19 +1692,19 @@ function Playlist(x, y) {
      */
     function initialize_rows(playlist_items, playlist_size) {
         // Magic! For some reason using array[i] instead of IFbMetadbHandleList.Item(i) greatly increases performance :\
-        var playlist_items_arr = [];
+        var playlist_items_array = [];
         for (var i = 0; i < playlist_size; ++i) {
-            playlist_items_arr[i] = playlist_items.Item(i);
+            playlist_items_array[i] = playlist_items.Item(i);
         }
 
         var rows = [];
-        for (var i = 0; i < playlist_size; ++i) {
-            rows[i] = new Row(that.list_x, 0, that.list_w, that.row_h, playlist_items_arr[i], i, cur_playlist_idx);
+        playlist_items_array.forEach(function (item, i) {
+            rows[i] = new Row(that.list_x, 0, that.list_w, that.row_h, item, i, cur_playlist_idx);
             if (!g_properties.show_header) {
                 // noinspection JSBitwiseOperatorUsage
                 rows[i].is_odd = !(i & 1);
             }
-        }
+        });
 
         return rows;
     }
@@ -1720,10 +1720,10 @@ function Playlist(x, y) {
         var headers = [];
         while (prepared_rows.length) {
             var header = new Header(that.cnt, that.list_x, 0, that.list_w, that.row_h * header_h_in_rows, header_idx);
-            var processed_items = header.initialize_items(prepared_rows);
+            var processed_rows_count = header.initialize_items(prepared_rows);
 
             prepared_rows.reverse();
-            prepared_rows.length = prepared_rows.length - processed_items; ///< much faster then _.drop or slice, since it does not create a new array
+            prepared_rows.length = prepared_rows.length - processed_rows_count; ///< much faster then _.drop or slice, since it does not create a new array
             prepared_rows.reverse();
 
             headers.push(header);
