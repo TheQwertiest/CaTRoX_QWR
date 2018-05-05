@@ -1714,16 +1714,17 @@ function Playlist(x, y) {
      * @return {Array<Header>}
      */
     function create_headers(rows) {
-        var playlist_copy = _.clone(rows);
+        var prepared_rows = Header.prepare_initialization_data(rows);
+
         var header_idx = 0;
         var headers = [];
-        while (playlist_copy.length) {
+        while (prepared_rows.length) {
             var header = new Header(that.cnt, that.list_x, 0, that.list_w, that.row_h * header_h_in_rows, header_idx);
-            var processed_items = header.initialize_items(playlist_copy);
+            var processed_items = header.initialize_items(prepared_rows);
 
-            playlist_copy.reverse();
-            playlist_copy.length = playlist_copy.length - processed_items; ///< much faster then _.drop or slice, since it does not create a new array
-            playlist_copy.reverse();
+            prepared_rows.reverse();
+            prepared_rows.length = prepared_rows.length - processed_items; ///< much faster then _.drop or slice, since it does not create a new array
+            prepared_rows.reverse();
 
             headers.push(header);
             ++header_idx;
@@ -3158,11 +3159,11 @@ BaseHeader.prototype = Object.create(List.Item.prototype);
 BaseHeader.prototype.constructor = BaseHeader;
 
 /**
- * @param {Array<Row>|Array<BaseHeader>} items
+ * @param {Array<*>} prepared_items
  * @return {number} Number of processed items
  * @abstract
  */
-BaseHeader.prototype.initialize_items = function (items) {
+BaseHeader.prototype.initialize_items = function (prepared_items) {
     throw LogicError("initialize_contents not implemented");
 };
 
@@ -3302,31 +3303,29 @@ function Header(parent, x, y, w, h, idx) {
     BaseHeader.call(this, parent, x, y, w, h, idx);
 
     /** @override */
-    this.initialize_items = function (rows_to_process) {
+    this.initialize_items = function (rows_with_data) {
         this.sub_items = [];
-        if (!rows_to_process.length) {
+        if (!rows_with_data.length) {
             return 0;
         }
 
-        var query = grouping_handler.get_query();
-        var tfo = fb.TitleFormat(query ? query : ''); // workaround a bug, because of which '' is sometimes treated as null :\
-
-        var group = tfo.EvalWithMetadb(_.head(rows_to_process).metadb);
-        _.forEach(rows_to_process, _.bind(function (item, i) {
-            var cur_group = tfo.EvalWithMetadb(item.metadb);
-            if (group !== cur_group) {
+        var first_data = _.head(rows_with_data)[1];
+        _.forEach(rows_with_data, _.bind(function (item, i) {
+            if (first_data !== item[1]) {
                 return false;
             }
-            item.idx_in_header = i;
+
+            var row = item[0];
+
+            row.idx_in_header = i;
             if (g_properties.show_header) {
                 // noinspection JSBitwiseOperatorUsage
-                item.is_odd = !(i & 1);
+                row.is_odd = !(i & 1);
             }
-            item.parent = this;
-            this.sub_items.push(item);
-        }, this));
+            row.parent = this;
 
-        _.dispose(tfo);
+            this.sub_items.push(row);
+        }, this));
 
         metadb = _.head(this.sub_items).metadb;
 
@@ -3792,6 +3791,26 @@ function Header(parent, x, y, w, h, idx) {
 
 Header.prototype = Object.create(BaseHeader.prototype);
 Header.prototype.constructor = Header;
+
+/**
+ * @param {Array<Row>} rows_to_process
+ * @return {Array<Array<*>>}
+ */
+Header.prepare_initialization_data = function(rows_to_process) {
+    var query = Header.grouping_handler.get_query();
+    var tfo = fb.TitleFormat(query ? query : ''); // workaround a bug, because of which '' is sometimes treated as null :\
+
+    var metadbs = fb.CreateHandleList();
+    rows_to_process.forEach(function(item){
+        metadbs.Add(item.metadb)
+    });
+
+    var rows_data = tfo.EvalWithMetadbs(metadbs).toArray();
+
+    _.dispose(tfo);
+
+    return _.zip(rows_to_process, rows_data);
+};
 
 /**
  * @param {number} x
