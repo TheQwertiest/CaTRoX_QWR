@@ -490,7 +490,8 @@ List.prototype.calculate_shift_params = function () {
  * @param {number} x
  * @param {number} y
  * @param {number} w
- * @param {number} h
+ * @param {number} h Item height. Must be multiple of row height ({@link List.row_h}, {@link g_properties.row_h})
+ *
  * @abstract
  * @constructor
  */
@@ -586,7 +587,7 @@ List.Content.prototype.calculate_total_h_in_rows = function() {
 /**
  * Basic cnt container, which may contain only Items with height of row_h
  * @constructor
- * @extend {List.Content}
+ * @extends {List.Content}
  */
 List.RowContent = function() {
     List.Content.call(this);

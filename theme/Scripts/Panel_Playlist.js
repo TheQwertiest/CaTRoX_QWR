@@ -650,7 +650,7 @@ function PlaylistPanel(x, y) {
  * @param {number} x
  * @param {number} y
  * @constructor
- * @extend {List}
+ * @extends {List}
  */
 function Playlist(x, y) {
     List.call(this, x, y, 0, 0, new PlaylistContent());
@@ -2743,7 +2743,7 @@ Playlist.prototype.constructor = Playlist;
 /**
  * @final
  * @constructor
- * @extend {List.RowContent}
+ * @extends {List.RowContent}
  */
 PlaylistContent = function () {
     List.RowContent.call(this);
@@ -3126,7 +3126,7 @@ function ContentNavigationHelper(cnt_arg) {
  * @param {number} x
  * @param {number} y
  * @param {number} w
- * @param {number} h
+ * @param {number} h See {@link List.Item}
  * @param {number} idx
  *
  * @abstract
@@ -3151,7 +3151,11 @@ function BaseHeader(parent, x, y, w, h, idx) {
     /** @type {boolean} */
     this.is_collapsed = false;
 
-    /** @type{Array<Row>|Array<BaseHeader>} */
+    /**
+     * Note: {@link PlaylistContent.sub_items}
+     *
+     * @type{Array<Row>|Array<BaseHeader>}
+     */
     this.sub_items = [];
 }
 
@@ -3164,7 +3168,7 @@ BaseHeader.prototype.constructor = BaseHeader;
  * @abstract
  */
 BaseHeader.prototype.initialize_items = function (prepared_items) {
-    throw LogicError("initialize_contents not implemented");
+    throw LogicError("initialize_items not implemented");
 };
 
 /**
