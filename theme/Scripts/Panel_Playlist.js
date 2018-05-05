@@ -980,6 +980,7 @@ function Playlist(x, y) {
             action.Effect = g_drop_effect.none;
         }
         else {
+            // noinspection JSBitwiseOperatorUsage
             action.Effect = (action.Effect & g_drop_effect.move)
                 || (action.Effect & g_drop_effect.copy)
                 || (action.Effect & g_drop_effect.link);
@@ -1058,6 +1059,7 @@ function Playlist(x, y) {
         var ctrl_pressed = utils.IsKeyPressed(VK_CONTROL);
 
         if (selection_handler.is_internal_drag_n_drop_active()) {
+            // noinspection JSBitwiseOperatorUsage
             var copy_drop = ctrl_pressed && ((action.Effect & 1) || (action.Effect & 4));
             selection_handler.drop(copy_drop);
 
@@ -2672,6 +2674,7 @@ function Playlist(x, y) {
 
         if (ctrl_pressed && !shift_pressed && !alt_pressed) {
             // Copy (also via link)
+            // noinspection JSBitwiseOperatorUsage
             return (effect & g_drop_effect.copy) || (effect & g_drop_effect.link);
         }
 
@@ -2681,6 +2684,7 @@ function Playlist(x, y) {
         }
 
         // Move > Copy > Link
+        // noinspection JSBitwiseOperatorUsage
         return (effect & g_drop_effect.move) || (effect & g_drop_effect.copy) || (effect & g_drop_effect.link);
     }
 
@@ -2698,7 +2702,7 @@ function Playlist(x, y) {
 
     // Playback state
     /** @type {number} */
-    var cur_playlist_idx = undefined;
+    var cur_playlist_idx = -1;
     /** @type {?Row} */
     var playing_item = undefined;
     /** @type {?Row} */
@@ -4277,8 +4281,8 @@ function SelectionHandler(cnt_arg, cur_playlist_idx_arg) {
 
     /**
      * @param {Row|BaseHeader} item
-     * @param {boolean=} [ctrl_pressed=false]
-     * @param {boolean=} [shift_pressed=false]
+     * @param {?boolean=} [ctrl_pressed=false]
+     * @param {?boolean=} [shift_pressed=false]
      */
     this.update_selection = function (item, ctrl_pressed, shift_pressed) {
         assert(!_.isNil(item),
@@ -4976,7 +4980,7 @@ function QueueHandler(rows_arg, cur_playlist_idx_arg) {
         }
 
         queue_contents.forEach(function (queued_item, i) {
-            if (queued_item.PlaylistIndex !== cur_playlist_idx) {
+            if (queued_item.PlaylistIndex !== cur_playlist_idx || queued_item.PlaylistItemIndex === -1) {
                 return;
             }
 
@@ -5821,7 +5825,6 @@ GroupingHandler.Settings = function () {
         }
     }
 
-    /** @typedef {GroupingHandler.Settings.Group} */
     var CtorGroupData = GroupingHandler.Settings.Group;
 
     /** @type {Object<string, string>} */

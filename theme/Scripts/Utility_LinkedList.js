@@ -55,7 +55,7 @@ function LinkedList() {
      */
     this.remove = function (iterator) {
         if (!_.isInstanceOf(iterator, LinkedList.Iterator)) {
-            throw TypeError(iterator, typeof iterator, 'Iterator');
+            throw TypeError('iterator', typeof iterator, 'Iterator');
         }
 
         if (iterator.parent !== this) {

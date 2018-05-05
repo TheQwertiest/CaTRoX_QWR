@@ -848,7 +848,8 @@ function TitleCycler(on_change_fn_arg) {
 
     // const
     var queries = JSON.parse(g_properties.title_queries);
-    var cycle_time = g_properties.title_cycle_time;
+    var cycle_time =
+        /** @type {number} */ g_properties.title_cycle_time;
 
     /** @type {function()} */
     var on_change_fn = on_change_fn_arg;
