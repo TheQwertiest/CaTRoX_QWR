@@ -3547,10 +3547,10 @@ function Header(parent, x, y, w, h, idx) {
                 var album_w = this.w - album_x - (part2_right_pad + 5);
 
                 var album_text_format = StringFormat();
-                artist_text_format.trimming = StringTrimming.ellipsis_char;
-                artist_text_format.format_flags = StringFormatFlags.no_wrap;
+                album_text_format.trimming = StringTrimming.ellipsis_char;
+                album_text_format.format_flags = StringFormatFlags.no_wrap;
                 if (g_properties.show_group_info) {
-                    artist_text_format.line_alignment = StringAlignment.center;
+                    album_text_format.line_alignment = StringAlignment.center;
                 }
 
                 grClip.DrawString(album_text, g_pl_fonts.album, album_color, album_x, album_y, album_w, album_h, album_text_format.value());
