@@ -1593,7 +1593,7 @@ function Playlist(x, y) {
 
         trace_initialize_list_performance && profiler_part.reset();
 
-        this.cnt.rows = initialize_rows(plman.GetPlaylistItems(cur_playlist_idx), plman.PlaylistItemCount(cur_playlist_idx));
+        this.cnt.rows = initialize_rows(plman.GetPlaylistItems(cur_playlist_idx));
 
         trace_initialize_list_performance && console.log('Rows initialized in ' + profiler_part.Time + 'ms');
 
@@ -1687,15 +1687,10 @@ function Playlist(x, y) {
 
     /**
      * @param {IFbMetadbHandleList} playlist_items
-     * @param {number} playlist_size
      * @return {Array<Row>}
      */
-    function initialize_rows(playlist_items, playlist_size) {
-        // Magic! For some reason using array[i] instead of IFbMetadbHandleList.Item(i) greatly increases performance :\
-        var playlist_items_array = [];
-        for (var i = 0; i < playlist_size; ++i) {
-            playlist_items_array[i] = playlist_items.Item(i);
-        }
+    function initialize_rows(playlist_items) {
+        var playlist_items_array = playlist_items.Convert().toArray();
 
         var rows = [];
         playlist_items_array.forEach(function (item, i) {
