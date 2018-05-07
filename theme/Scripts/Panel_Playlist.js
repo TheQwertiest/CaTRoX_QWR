@@ -34,6 +34,7 @@ g_properties.add_properties(
         auto_album_art:     ['user.header.this.art.auto', false],
         show_group_info:    ['user.header.info.show', true],
         show_original_date: ['user.header.original_date.show', false],
+        show_disc_header:   ['user.header.disc_header.show', true],
 
         alternate_row_color:  ['user.row.alternate_color', true],
         show_playcount:       ['user.row.play_count.show', _.cc('foo_playcount')],
@@ -1593,7 +1594,8 @@ function Playlist(x, y) {
 
         trace_initialize_list_performance && profiler_part.reset();
 
-        this.cnt.rows = initialize_rows(plman.GetPlaylistItems(cur_playlist_idx));
+        var rows_metadb = plman.GetPlaylistItems(cur_playlist_idx);
+        this.cnt.rows = initialize_rows(rows_metadb);
 
         trace_initialize_list_performance && console.log('Rows initialized in ' + profiler_part.Time + 'ms');
 
@@ -1616,7 +1618,7 @@ function Playlist(x, y) {
         trace_initialize_list_performance && profiler_part.reset();
 
         Header.grouping_handler.set_active_playlist(plman.GetPlaylistName(cur_playlist_idx));
-        this.cnt.sub_items = create_headers(this.cnt.rows);
+        this.cnt.sub_items = create_headers(this.cnt.rows, rows_metadb);
 
         trace_initialize_list_performance && console.log('Headers initialized in ' + profiler_part.Time + 'ms');
 
@@ -1706,26 +1708,12 @@ function Playlist(x, y) {
 
     /**
      * @param {Array<Row>} rows
+     * @param {IFbMetadbHandleList} rows_metadb
      * @return {Array<Header>}
      */
-    function create_headers(rows) {
-        var prepared_rows = Header.prepare_initialization_data(rows);
-
-        var header_idx = 0;
-        var headers = [];
-        while (prepared_rows.length) {
-            var header = new Header(that.cnt, that.list_x, 0, that.list_w, that.row_h * header_h_in_rows, header_idx);
-            var processed_rows_count = header.initialize_items(prepared_rows);
-
-            prepared_rows.reverse();
-            prepared_rows.length = prepared_rows.length - processed_rows_count; ///< much faster then _.drop or slice, since it does not create a new array
-            prepared_rows.reverse();
-
-            headers.push(header);
-            ++header_idx;
-        }
-
-        return headers;
+    function create_headers(rows, rows_metadb) {
+        var prepared_rows = Header.prepare_initialization_data(rows, rows_metadb);
+        return Header.create_headers(/** @type {PlaylistContent} */ that.cnt, that.list_x, 0, that.list_w, that.row_h * header_h_in_rows, prepared_rows);
     }
 
     /**
@@ -1946,6 +1934,16 @@ function Playlist(x, y) {
                     scroll_to_focused_or_now_playing();
                 }, that),
                 {is_checked: g_properties.use_compact_header}
+            );
+
+            appear_header.append_item(
+                'Show disc sub-header',
+                _.bind(function () {
+                    g_properties.show_disc_header = !g_properties.show_disc_header;
+                    this.initialize_list();
+                    scroll_to_focused_or_now_playing();
+                }, that),
+                {is_checked: g_properties.show_disc_header}
             );
 
             appear_header.append_item(
@@ -3147,6 +3145,12 @@ function BaseHeader(parent, x, y, w, h, idx) {
     this.is_collapsed = false;
 
     /**
+     * @type {number}
+     * @private
+     */
+    this.row_count = 0;
+
+    /**
      * Note: {@link PlaylistContent.sub_items}
      *
      * @type{Array<Row>|Array<BaseHeader>}
@@ -3158,7 +3162,7 @@ BaseHeader.prototype = Object.create(List.Item.prototype);
 BaseHeader.prototype.constructor = BaseHeader;
 
 /**
- * @param {Array<*>} prepared_items
+ * @param {Array} prepared_items
  * @return {number} Number of processed items
  * @abstract
  */
@@ -3184,6 +3188,9 @@ BaseHeader.prototype.set_w = function (w) {
     });
 };
 
+/**
+ * @return {?Row}
+ */
 BaseHeader.prototype.get_first_row = function () {
     if (!this.sub_items.length) {
         return null;
@@ -3197,6 +3204,9 @@ BaseHeader.prototype.get_first_row = function () {
     return item;
 };
 
+/**
+ * @return {Array<number>}
+ */
 BaseHeader.prototype.get_row_indexes = function () {
     var row_indexes = [];
 
@@ -3212,6 +3222,26 @@ BaseHeader.prototype.get_row_indexes = function () {
     }
 
     return row_indexes;
+};
+
+/**
+ * @return {number}
+ */
+BaseHeader.prototype.get_row_count = function () {
+    if (this.row_count) {
+        return this.row_count;
+    }
+
+    if (_.isInstanceOf(_.head(this.sub_items), Row)) {
+        this.row_count += this.sub_items.length;
+    }
+    else {
+        this.sub_items.forEach(_.bind(function (item) {
+            this.row_count += item.get_row_count();
+        }, this));
+    }
+
+    return this.row_count;
 };
 
 /**
@@ -3236,6 +3266,9 @@ BaseHeader.prototype.get_sub_items_total_h_in_rows = function () {
     return h_in_rows;
 };
 
+/**
+ * @return {boolean}
+ */
 BaseHeader.prototype.has_selected_items = function () {
     var is_function = typeof _.head(this.sub_items).has_selected_items === "function";
     return _.some(this.sub_items, function (item) {
@@ -3243,6 +3276,9 @@ BaseHeader.prototype.has_selected_items = function () {
     });
 };
 
+/**
+ * @return {boolean}
+ */
 BaseHeader.prototype.is_completely_selected = function () {
     var is_function = typeof _.head(this.sub_items).is_completely_selected === "function";
     return _.every(this.sub_items, function (item) {
@@ -3250,6 +3286,9 @@ BaseHeader.prototype.is_completely_selected = function () {
     });
 };
 
+/**
+ * @return {boolean}
+ */
 BaseHeader.prototype.is_playing = function () {
     var is_function = typeof _.head(this.sub_items).is_playing === "function";
     return _.some(this.sub_items, function (item) {
@@ -3257,6 +3296,9 @@ BaseHeader.prototype.is_playing = function () {
     });
 };
 
+/**
+ * @return {boolean}
+ */
 BaseHeader.prototype.is_focused = function () {
     var is_function = typeof _.head(this.sub_items).is_focused === "function";
     return _.some(this.sub_items, function (item) {
@@ -3298,7 +3340,7 @@ BaseHeader.prototype.get_duration = function () {
  * @constructor
  * @extends {BaseHeader}
  */
-function Header(parent, x, y, w, h, idx) {
+function DiscHeader(parent, x, y, w, h, idx) {
     BaseHeader.call(this, parent, x, y, w, h, idx);
 
     /** @override */
@@ -3317,19 +3359,261 @@ function Header(parent, x, y, w, h, idx) {
             var row = item[0];
 
             row.idx_in_header = i;
-            if (g_properties.show_header) {
-                // noinspection JSBitwiseOperatorUsage
-                row.is_odd = !(i & 1);
-            }
+            // noinspection JSBitwiseOperatorUsage
+            row.is_odd = !(i & 1);
             row.parent = this;
 
             this.sub_items.push(row);
         }, this));
 
-        metadb = _.head(this.sub_items).metadb;
+        var split_data = first_data.split(/,(.*)/);
+        if (split_data[0]) {
+            this.cd_num = _.toNumber(split_data[0]);
+        }
+        this.cd_title = split_data[1];
 
         return this.sub_items.length;
     };
+
+    /** @override */
+    this.draw = function (gr) {
+        var line_color = g_pl_colors.line_normal;
+        var title_font = g_pl_fonts.title_normal;
+        var title_color = g_pl_colors.title_normal;
+
+        if (this.has_selected_items()) {
+            line_color = g_pl_colors.line_selected;
+            title_color = g_pl_colors.title_selected;
+            title_font = g_pl_fonts.title_selected;
+        }
+
+        if (this.is_playing()) {// Might override 'selected' fonts
+            title_color = g_pl_colors.title_playing;
+            title_font = g_pl_fonts.title_playing;
+        }
+
+        var clipImg = gdi.CreateImage(this.w, this.h);
+        var grClip = clipImg.GetGraphics();
+
+        grClip.FillSolidRect(0, 0, this.w, this.h, g_pl_colors.background);
+        if (this.has_selected_items()) {
+            grClip.FillSolidRect(0, 1, this.w, this.h - 1, g_pl_colors.row_selected);
+        }
+
+        grClip.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
+
+        var left_pad = 10;
+        var right_pad = 0;
+        var cur_x = left_pad;
+
+        //---> LENGTH
+        {
+            var length_text = utils.FormatDuration(this.get_duration());
+            if (length_text) {
+                var length_w = Math.ceil(grClip.MeasureString(length_text, title_font, 0, 0, 0, 0).Width + 5);
+                var length_x = this.w - length_w - right_pad - 5;
+
+                var length_text_format = StringFormat();
+                length_text_format.line_alignment = StringAlignment.center;
+
+                grClip.DrawString(length_text, title_font, title_color, length_x, 0, length_w, this.h, length_text_format.value());
+
+                right_pad += this.w - length_x;
+            }
+        }
+
+        //---> Disc text
+        if (this.cd_num !== -1 || this.cd_title) {
+            var cd_text = '';
+            if (this.cd_num !== -1) {
+                cd_text += 'Disc #' + this.cd_num;
+            }
+            if (this.cd_title) {
+                if (cd_text) {
+                    cd_text += ': '
+                }
+                cd_text += this.cd_title;
+            }
+
+            var cd_num_w = this.w - right_pad - 10;
+
+            var cd_num_text_format = StringFormat();
+            cd_num_text_format.line_alignment = StringAlignment.center;
+            cd_num_text_format.trimming = StringTrimming.ellipsis_char;
+            cd_num_text_format.format_flags = StringFormatFlags.no_wrap;
+
+            grClip.DrawString(cd_text, title_font, title_color, cur_x, 0, cd_num_w, this.h, cd_num_text_format.value());
+
+            cd_num_text_format.format_flags |= StringFormatFlags.measure_trailing_spaces;
+
+            cur_x += Math.ceil(
+                /** @type {number} */
+                grClip.MeasureString(cd_text, title_font, 0, 0, cd_num_w, this.h, cd_num_text_format.value()).Width
+            );
+        }
+
+        {
+            var line_x1 = cur_x + 10;
+            var line_x2 = this.w - (right_pad + 10);
+            var line_y = Math.round(this.h / 2) + 1;
+
+            if (line_x2 - line_x1 > 0) {
+                grClip.DrawLine(line_x1, line_y, line_x2, line_y, 1, line_color);
+            }
+        }
+
+        clipImg.ReleaseGraphics(grClip);
+        gr.DrawImage(clipImg, this.x, this.y, this.w, this.h, 0, 0, this.w, this.h, 0, 255);
+        clipImg.Dispose();
+    };
+
+    this.has_data = function () {
+        return this.cd_num !== -1 || !_.isEmpty(this.cd_title);
+    };
+
+    this.cd_num = -1;
+    this.cd_title = '';
+}
+
+DiscHeader.prototype = Object.create(BaseHeader.prototype);
+DiscHeader.prototype.constructor = DiscHeader;
+
+/**
+ * @param {Array<Row>} rows_to_process
+ * @param {IFbMetadbHandleList} rows_metadb
+ * @return {Array<Array>} Has the following format Array<[row,row_data]>
+ */
+DiscHeader.prepare_initialization_data = function (rows_to_process, rows_metadb) {
+    var tfo = fb.TitleFormat("$if2([%discnumber%]','[%subtitle%],)");
+    var disc_data = tfo.EvalWithMetadbs(rows_metadb).toArray();
+    _.dispose(tfo);
+
+    return _.zip(rows_to_process, disc_data);
+};
+
+/**
+ * @param {BaseHeader} parent
+ * @param {number} x
+ * @param {number} y
+ * @param {number} w
+ * @param {number} h
+ * @param {Array<Array>} prepared_rows Has the following format Array<[row,row_data]>
+ * @param {number} rows_to_process_count
+ * @return {Array<DiscHeader>}
+ */
+DiscHeader.create_headers = function (parent, x, y, w, h, prepared_rows, rows_to_process_count) {
+    function has_valid_data(rows_with_data, rows_to_check_count) {
+        for (var i = 0; i < rows_to_check_count; ++i) {
+            if (!_.isEmpty(rows_with_data[i][1])) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    if (!has_valid_data(prepared_rows, rows_to_process_count)) {
+        _.trimArray(prepared_rows, rows_to_process_count, true);
+        return [];
+    }
+
+    var prepared_rows_copy = _.clone(prepared_rows);
+    prepared_rows_copy.length = rows_to_process_count;
+
+    var header_idx = 0;
+    var headers = [];
+    var start_length = prepared_rows_copy.length;
+    while (prepared_rows_copy.length) {
+        var header = new DiscHeader(parent, x, y, w, h, header_idx);
+        var processed_items = header.initialize_items(prepared_rows_copy);
+        if (processed_items === start_length) {
+            prepared_rows_copy.length = 0;
+        }
+        else {
+            _.trimArray(prepared_rows_copy, processed_items, true);
+        }
+
+        headers.push(header);
+        ++header_idx;
+    }
+
+    _.trimArray(prepared_rows, rows_to_process_count, true);
+
+    return headers;
+};
+
+/**
+ * @param {PlaylistContent|BaseHeader} parent
+ * @param {number} x
+ * @param {number} y
+ * @param {number} w
+ * @param {number} h
+ * @param {number} idx
+ *
+ * @final
+ * @constructor
+ * @extends {BaseHeader}
+ */
+function Header(parent, x, y, w, h, idx) {
+    BaseHeader.call(this, parent, x, y, w, h, idx);
+
+    /** @override */
+    this.initialize_items = function (rows_with_data) {
+        this.sub_items = [];
+
+        var rows_with_header_data = rows_with_data[0];
+        if (!rows_with_header_data.length) {
+            return 0;
+        }
+
+        var first_data = _.head(rows_with_header_data)[1];
+
+        var owned_rows = [];
+        _.forEach(rows_with_header_data, _.bind(function (item, i) {
+            if (first_data !== item[1]) {
+                return false;
+            }
+
+            owned_rows.push(item[0]);
+        }, this));
+
+        metadb = _.head(owned_rows).metadb;
+
+        var sub_headers = [];
+        if (g_properties.show_disc_header && grouping_handler.show_cd()) {
+            var rows_with_discheader_data = rows_with_data[1];
+            sub_headers = create_cd_headers(rows_with_discheader_data, owned_rows.length);
+            if (sub_headers.length) {
+                this.sub_items = sub_headers;
+            }
+        }
+
+        if (sub_headers.length) {
+            this.sub_items = sub_headers;
+        }
+        else {
+            this.sub_items = owned_rows;
+
+            _.forEach(owned_rows, _.bind(function (item, i) {
+                item.idx_in_header = i;
+                if (g_properties.show_header) {
+                    // noinspection JSBitwiseOperatorUsage
+                    item.is_odd = !(i & 1);
+                }
+                item.parent = this;
+            }, this));
+        }
+
+        return owned_rows.length;
+    };
+
+    /**
+     * @param {Array} prepared_rows
+     * @param {number} rows_to_proccess_count
+     * @return {Array<DiscHeader>}
+     */
+    function create_cd_headers(prepared_rows, rows_to_proccess_count) {
+        return DiscHeader.create_headers(that, that.x, 0, that.w, g_properties.row_h, prepared_rows, rows_to_proccess_count);
+    }
 
     /** @override */
     this.draw = function (gr) {
@@ -3564,9 +3848,12 @@ function Header(parent, x, y, w, h, idx) {
                 codec = (_.startsWith(metadb.RawPath, '3dydfy:') || _.startsWith(metadb.RawPath, 'fy+')) ? 'yt' : metadb.Path;
             }
 
-            var track_count = this.sub_items.length;
-            var genre = is_radio ? '' : (grouping_handler.get_query_name() !== 'artist' ? '[%genre% | ]' : '');
-            var disc_number = (grouping_handler.show_cd() && _.tf('[%totaldiscs%]', metadb) !== '1') ? _.tf('[ | Disc: %discnumber%/%totaldiscs%]', metadb) : '';
+            var track_count = this.get_row_count();
+            var genre = is_radio ? '' : '[%genre% | ]';
+            var disc_number = '';
+            if (grouping_handler.show_cd() && !g_properties.show_disc_header && _.tf('[%totaldiscs%]', metadb) !== '1') {
+                disc_number = _.tf('[ | Disc: %discnumber%/%totaldiscs%]', metadb);
+            }
             var info_text = _.tf(genre + codec + disc_number + '[ | %replaygain_album_gain%]', metadb) + (is_radio ? '' : ' | ' + track_count + (track_count === 1 ? ' Track' : ' Tracks'));
             if (this.get_duration()) {
                 info_text += ' | Time: ' + utils.FormatDuration(this.get_duration());
@@ -3793,22 +4080,49 @@ Header.prototype.constructor = Header;
 
 /**
  * @param {Array<Row>} rows_to_process
- * @return {Array<Array<*>>}
+ * @param {IFbMetadbHandleList} rows_metadb
+ * @return {Array} Has the following format [Array<[row,row_data]>, disc_header_prepared_data]
  */
-Header.prepare_initialization_data = function(rows_to_process) {
+Header.prepare_initialization_data = function (rows_to_process, rows_metadb) {
     var query = Header.grouping_handler.get_query();
+    if (g_properties.show_disc_header && query && Header.grouping_handler.show_cd()) {
+        query = query.replace(/%discnumber%/, '').replace(/%totaldiscs%/, '').replace(/%subtitle%/, '');
+    }
+
     var tfo = fb.TitleFormat(query ? query : ''); // workaround a bug, because of which '' is sometimes treated as null :\
-
-    var metadbs = fb.CreateHandleList();
-    rows_to_process.forEach(function(item){
-        metadbs.Add(item.metadb)
-    });
-
-    var rows_data = tfo.EvalWithMetadbs(metadbs).toArray();
-
+    var rows_data = tfo.EvalWithMetadbs(rows_metadb).toArray();
     _.dispose(tfo);
 
-    return _.zip(rows_to_process, rows_data);
+    var prepared_disc_data = g_properties.show_disc_header ? DiscHeader.prepare_initialization_data(rows_to_process, rows_metadb) : [];
+
+    return [_.zip(rows_to_process, rows_data), prepared_disc_data];
+};
+
+/**
+ * @param {PlaylistContent} parent
+ * @param {number} x
+ * @param {number} y
+ * @param {number} w
+ * @param {number} h
+ * @param {Array} prepared_rows Has the following format [Array<[row,row_data]>, disc_header_prepared_data]
+ * @return {Array<Header>}
+ */
+Header.create_headers = function (parent, x, y, w, h, prepared_rows) {
+    var prepared_header_rows = prepared_rows[0];
+
+    var header_idx = 0;
+    var headers = [];
+    while (prepared_header_rows.length) {
+        var header = new Header(parent, x, y, w, h, header_idx);
+        var processed_rows_count = header.initialize_items(prepared_rows);
+
+        _.trimArray(prepared_header_rows, processed_rows_count, true);
+
+        headers.push(header);
+        ++header_idx;
+    }
+
+    return headers;
 };
 
 /**
@@ -3880,18 +4194,15 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
 
         ////////////////////////////////////////////////////////////
 
-        var is_radio = _.startsWith(this.metadb.RawPath, 'http');
-
         var cur_x = this.x + 10;
+        if (_.isInstanceOf(this.parent, DiscHeader)) {
+            cur_x += 20;
+        }
+
         var right_pad = 0;
         var testRect = false;
 
-        //---> RATING
-        if (g_properties.show_rating) {
-            rating.draw(gr, title_color);
-
-            right_pad += rating.w + rating_right_pad + rating_left_pad;
-        }
+        var is_radio = _.startsWith(this.metadb.RawPath, 'http');
 
         //---> LENGTH
         {
@@ -3899,7 +4210,7 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
                 length_text = _.tf('[%length%]', this.metadb);
             }
 
-            var length_w = 50;
+            var length_w = duration_max_w;
             if (length_text) {
                 var length_x = this.x + this.w - length_w - right_pad;
 
@@ -3908,6 +4219,13 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
             }
             // We always want that padding
             right_pad += Math.max(length_w, Math.ceil(gr.MeasureString(length_text, title_font, 0, 0, 0, 0).Width + 10));
+        }
+
+        //---> RATING
+        if (g_properties.show_rating) {
+            rating.draw(gr, title_color);
+
+            right_pad = this.w - (rating.x - this.x) + rating_pad;
         }
 
         //---> COUNT
@@ -4101,12 +4419,19 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
      * @const
      * @type {number}
      */
-    var rating_left_pad = 0;
+    var duration_max_w = 50;
+
     /**
      * @const
      * @type {number}
      */
-    var rating_right_pad = 10;
+    var rating_pad = 5;
+    /**
+     * @const
+     * @type {number}
+     */
+    var rating_right_pad = duration_max_w + rating_pad;
+
     /** @type {?Rating} */
     var rating = undefined;
 
@@ -5828,7 +6153,7 @@ GroupingHandler.Settings = function () {
  * @param {string} description
  * @param {?string=} [group_query='']
  * @param {?string=} [title_query='[%album artist%]']
- * @param {?string=} [sub_title_query='[%album%[ - %albumsubtitle%]]']
+ * @param {?string=} [sub_title_query='[%album%[ - %subtitle%]]']
  * @param {object=}  [options={}]
  * @param {boolean=} [options.show_date=false]
  * @param {boolean=} [options.show_cd=false]
@@ -5845,7 +6170,7 @@ GroupingHandler.Settings.Group = function (name, description, group_query, title
     /** @type {string} */
     this.title_query = !_.isNil(title_query) ? title_query : '[%album artist%]';
     /** @type {string} */
-    this.sub_title_query = !_.isNil(sub_title_query) ? sub_title_query : '[%album%[ - %albumsubtitle%]]';
+    this.sub_title_query = !_.isNil(sub_title_query) ? sub_title_query : '[%album%[ - %subtitle%]]';
     /** @type {boolean} */
     this.show_date = !!(options && options.show_date);
     /** @type {boolean} */
