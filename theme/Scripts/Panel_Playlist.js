@@ -3485,7 +3485,7 @@ DiscHeader.prototype.constructor = DiscHeader;
  * @return {Array<Array>} Has the following format Array<[row,row_data]>
  */
 DiscHeader.prepare_initialization_data = function (rows_to_process, rows_metadb) {
-    var tfo = fb.TitleFormat("$if2($ifgreater(%totaldiscs%, 1, [%discnumber%],)','[%subtitle%],)");
+    var tfo = fb.TitleFormat("$if2($ifgreater(%totaldiscs%,1,[%discnumber%],)','[%subtitle%],)");
     var disc_data = tfo.EvalWithMetadbs(rows_metadb).toArray();
     _.dispose(tfo);
 
@@ -3855,7 +3855,7 @@ function Header(parent, x, y, w, h, idx) {
             var genre = is_radio ? '' : '[%genre% | ]';
             var disc_number = '';
             if (grouping_handler.show_cd() && !g_properties.show_disc_header) {
-                disc_number = _.tf('$if2($ifgreater(%totaldiscs%, 1, [ | Disc: %discnumber%/%totaldiscs%],)', metadb);
+                disc_number = _.tf('$ifgreater(%totaldiscs%,1,[ | Disc: %discnumber%/%totaldiscs%]', metadb);
             }
             var info_text = _.tf(genre + codec + disc_number + '[ | %replaygain_album_gain%]', metadb) + (is_radio ? '' : ' | ' + track_count + (track_count === 1 ? ' Track' : ' Tracks'));
             if (this.get_duration()) {
