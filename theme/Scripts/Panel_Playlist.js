@@ -4250,7 +4250,7 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
                 gr.DrawString(count_text, g_pl_fonts.playcount, count_color, count_x, this.y, count_w, this.h, g_string_format_center.value());
                 testRect && gr.DrawRect(count_x, this.y - 1, count_w, this.h, 1, _.RGBA(155, 155, 255, 250));
 
-                right_pad += count_w;
+                right_pad = this.w - (count_x - this.x) + 5;
             }
         }
 
@@ -4283,36 +4283,43 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
 
         //---> TITLE draw
         {
-            var title_w = this.w - right_pad - 10;
+            var title_x = cur_x;
+            var title_w = this.w - ((title_x - this.x) + right_pad);
+
+            var full_title_text = title_text + (title_artist_text ? '' : queue_text);
 
             var title_text_format = StringFormat();
             title_text_format.line_alignment = StringAlignment.center;
             title_text_format.trimming = StringTrimming.ellipsis_char;
             title_text_format.format_flags = StringFormatFlags.no_wrap;
 
-            gr.DrawString(title_text + (title_artist_text ? '' : queue_text), title_font, title_color, cur_x, this.y, title_w, this.h, title_text_format.value());
+            gr.DrawString(full_title_text, title_font, title_color, cur_x, this.y, title_w, this.h, title_text_format.value());
 
-            testRect && gr.DrawRect(this.x, this.y - 1, title_w, this.h, 1, _.RGBA(155, 155, 255, 250));
+            testRect && gr.DrawRect(title_x, this.y - 1, title_w, this.h, 1, _.RGBA(155, 155, 255, 250));
 
             title_text_format.format_flags |= StringFormatFlags.measure_trailing_spaces;
 
             cur_x += Math.ceil(
-                /** @type {!number} */
-                gr.MeasureString(title_text + (title_artist_text ? '' : queue_text), title_font, 0, 0, title_w, this.h, title_text_format.value()).Width
+                /** @type {number} */
+                gr.MeasureString(full_title_text, title_font, 0, 0, title_w, this.h, title_text_format.value()).Width
             );
         }
 
         //---> TITLE ARTIST draw
         if (title_artist_text) {
             var title_artist_x = cur_x;
-            var title_artist_w = this.w - (title_artist_x - this.x) - right_pad;
+            var title_artist_w = this.w - ((title_artist_x - this.x) + right_pad);
+
+            var full_title_artist_text = title_artist_text + queue_text;
 
             var title_artist_text_format = StringFormat();
             title_artist_text_format.line_alignment = StringAlignment.center;
             title_artist_text_format.trimming = StringTrimming.ellipsis_char;
             title_artist_text_format.format_flags = StringFormatFlags.no_wrap;
 
-            gr.DrawString(title_artist_text + queue_text, title_artist_font, title_artist_color, title_artist_x, this.y, title_artist_w, this.h, title_artist_text_format.value());
+            gr.DrawString(full_title_artist_text, title_artist_font, title_artist_color, title_artist_x, this.y, title_artist_w, this.h, title_artist_text_format.value());
+
+            testRect && gr.DrawRect(title_artist_x, this.y - 1, title_artist_w, this.h, 1, _.RGBA(155, 155, 255, 250));
         }
     };
 
