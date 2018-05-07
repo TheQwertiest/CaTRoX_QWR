@@ -147,7 +147,8 @@ function TopPanel() {
             var info_format = StringFormat();
             info_format.line_alignment = StringAlignment.center;
             info_format.trimming = StringTrimming.ellipsis_char;
-            info_format.format_flags = StringFormatFlags.no_wrap;
+            info_format.format_flags =
+                /** @type {StringFormatFlags} */ StringFormatFlags.no_wrap | StringFormatFlags.line_limit;
 
             gr.DrawString(info_text, info_font, _.RGB(170, 172, 174), info_x, info_y, info_w, info_h, info_format.value());
         }

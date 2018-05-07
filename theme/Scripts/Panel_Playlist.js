@@ -3440,7 +3440,8 @@ function DiscHeader(parent, x, y, w, h, idx) {
             var cd_num_text_format = StringFormat();
             cd_num_text_format.line_alignment = StringAlignment.center;
             cd_num_text_format.trimming = StringTrimming.ellipsis_char;
-            cd_num_text_format.format_flags = StringFormatFlags.no_wrap;
+            cd_num_text_format.format_flags =
+                /** @type {StringFormatFlags} */ StringFormatFlags.no_wrap | StringFormatFlags.line_limit;
 
             grClip.DrawString(cd_text, title_font, title_color, cur_x, 0, cd_num_w, this.h, cd_num_text_format.value());
 
@@ -3770,7 +3771,8 @@ function Header(parent, x, y, w, h, idx) {
                 var artist_text_format = StringFormat();
                 artist_text_format.line_alignment = StringAlignment.far;
                 artist_text_format.trimming = StringTrimming.ellipsis_char;
-                artist_text_format.format_flags = StringFormatFlags.no_wrap;
+                artist_text_format.format_flags =
+                    /** @type {StringFormatFlags} */ StringFormatFlags.no_wrap | StringFormatFlags.line_limit;
                 grClip.DrawString(artist_text, artist_font, artist_color, artist_x, 0, artist_w, artist_h, artist_text_format.value());
 
                 //part1_cur_x += artist_w;
@@ -3795,7 +3797,8 @@ function Header(parent, x, y, w, h, idx) {
 
                 var album_text_format = StringFormat();
                 album_text_format.trimming = StringTrimming.ellipsis_char;
-                album_text_format.format_flags = StringFormatFlags.no_wrap;
+                album_text_format.format_flags =
+                    /** @type {StringFormatFlags} */ StringFormatFlags.no_wrap | StringFormatFlags.line_limit;
                 if (g_properties.show_group_info) {
                     album_text_format.line_alignment = StringAlignment.center;
                 }
@@ -3861,7 +3864,8 @@ function Header(parent, x, y, w, h, idx) {
 
             var info_text_format = StringFormat();
             info_text_format.trimming = StringTrimming.ellipsis_char;
-            info_text_format.format_flags = StringFormatFlags.no_wrap;
+            info_text_format.format_flags =
+                /** @type {StringFormatFlags} */ StringFormatFlags.no_wrap | StringFormatFlags.line_limit;
 
             grClip.DrawString(info_text, g_pl_fonts.info, info_color, info_x, info_y, info_w, info_h, info_text_format.value());
 
@@ -3982,7 +3986,8 @@ function Header(parent, x, y, w, h, idx) {
                 var artist_text_format = StringFormat();
                 artist_text_format.line_alignment = StringAlignment.center;
                 artist_text_format.trimming = StringTrimming.ellipsis_char;
-                artist_text_format.format_flags = StringFormatFlags.no_wrap;
+                artist_text_format.format_flags =
+                    /** @type {StringFormatFlags} */ StringFormatFlags.no_wrap | StringFormatFlags.line_limit;
 
                 grClip.DrawString(artist_text, artist_font, artist_color, artist_x, 0, artist_w, artist_h, artist_text_format.value());
 
@@ -4007,7 +4012,8 @@ function Header(parent, x, y, w, h, idx) {
                 var album_text_format = StringFormat();
                 album_text_format.line_alignment = StringAlignment.center;
                 album_text_format.trimming = StringTrimming.ellipsis_char;
-                album_text_format.format_flags = StringFormatFlags.no_wrap;
+                album_text_format.format_flags =
+                    /** @type {StringFormatFlags} */ StringFormatFlags.no_wrap | StringFormatFlags.line_limit;
 
                 grClip.DrawString(album_text, g_pl_fonts.album, album_color, album_x, 0, album_w, album_h, album_text_format.value());
 
@@ -4291,7 +4297,8 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
             var title_text_format = StringFormat();
             title_text_format.line_alignment = StringAlignment.center;
             title_text_format.trimming = StringTrimming.ellipsis_char;
-            title_text_format.format_flags = StringFormatFlags.no_wrap;
+            title_text_format.format_flags =
+                /** @type {StringFormatFlags} */ StringFormatFlags.no_wrap | StringFormatFlags.line_limit;
 
             gr.DrawString(full_title_text, title_font, title_color, cur_x, this.y, title_w, this.h, title_text_format.value());
 
@@ -4315,7 +4322,8 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
             var title_artist_text_format = StringFormat();
             title_artist_text_format.line_alignment = StringAlignment.center;
             title_artist_text_format.trimming = StringTrimming.ellipsis_char;
-            title_artist_text_format.format_flags = StringFormatFlags.no_wrap;
+            title_artist_text_format.format_flags =
+                /** @type {StringFormatFlags} */ StringFormatFlags.no_wrap | StringFormatFlags.line_limit;
 
             gr.DrawString(full_title_artist_text, title_artist_font, title_artist_color, title_artist_x, this.y, title_artist_w, this.h, title_artist_text_format.value());
 
@@ -5677,7 +5685,8 @@ function PlaylistManager(x, y, w, h) {
         info_text_format.alignment = StringAlignment.center;
         info_text_format.line_alignment = StringAlignment.center;
         info_text_format.trimming = StringTrimming.ellipsis_char;
-        info_text_format.format_flags = StringFormatFlags.no_wrap;
+        info_text_format.format_flags =
+            /** @type {StringFormatFlags} */ StringFormatFlags.no_wrap | StringFormatFlags.line_limit;
 
         gr.DrawString(info_text, g_pl_fonts.title_selected, text_color, info_x, info_y, info_w, info_h, info_text_format.value());
     }
