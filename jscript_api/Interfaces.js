@@ -1,6 +1,6 @@
 /*
-Last Updated: 16.04.2018
-Corresponding JScript Commit: af6e2f384fd024ff91ece926cb06562ef34bdf59
+Last Updated: 08.05.2018
+Corresponding JScript Commit: d4b61775913f5dab1ef66598244046c7fe1a4268
 */
 
 /**
@@ -71,7 +71,7 @@ function IFbUtils() {
      * 0 - None
      * 1 - Track
      * 2 - Album
-     * 3 - Track/Album by Playback Order
+     * 3 - Track/Album by Playback Order (only available in foobar2000 v1.3.8 and later)
      *
      * @type {number}
      */
@@ -379,6 +379,66 @@ function IFbUtils() {
     this.GetNowPlaying = function () {}; // (IFbMetadbHandle)
 
     /**
+     * foobar2000 v1.4 and above only. Throws a script error on v1.3.
+     * Returns a JSON array in string form so you need to use JSON.parse() on the result.
+     *
+     * @return {string}
+     */
+    this.GetOutputDevices = function () {}; // (string)
+    /*
+    Example:
+    var str = fb.GetOutputDevices();
+    var arr = JSON.parse(str);
+    console.log(JSON.stringify(arr, null, 4));
+
+    [
+        {
+            "active": false,
+            "device_id": "{5243F9AD-C84F-4723-8194-0788FC021BCC}",
+            "name": "Null Output",
+            "output_id": "{EEEB07DE-C2C8-44C2-985C-C85856D96DA1}"
+        },
+        {
+            "active": true,
+            "device_id": "{00000000-0000-0000-0000-000000000000}",
+            "name": "Primary Sound Driver",
+            "output_id": "{D41D2423-FBB0-4635-B233-7054F79814AB}"
+        },
+        {
+            "active": false,
+            "device_id": "{1C4EC038-97DB-48E7-9C9A-05FDED46847B}",
+            "name": "Speakers (Sound Blaster Z)",
+            "output_id": "{D41D2423-FBB0-4635-B233-7054F79814AB}"
+        },
+        {
+            "active": false,
+            "device_id": "{41B86272-3D6C-4A5A-8907-4FE7EBE39E7E}",
+            "name": "SPDIF-Out (Sound Blaster Z)",
+            "output_id": "{D41D2423-FBB0-4635-B233-7054F79814AB}"
+        },
+        {
+            "active": false,
+            "device_id": "{9CDC0FAE-2870-4AFA-8287-E86099D69076}",
+            "name": "3 - BenQ BL3200 (AMD High Definition Audio Device)",
+            "output_id": "{D41D2423-FBB0-4635-B233-7054F79814AB}"
+        }
+    ]
+
+    As you can see, only one of the items in the array has "active"
+    set to true so that is the device you'd want to display the name of
+    or mark as selected in a menu.
+
+    To actually change device, you'll need the device_id and output_id
+    and use them with fb.SetOutputDevice.
+
+    Example:
+    var str = fb.GetOutputDevices();
+    var arr = JSON.parse(str);
+    // Assuming same list from above, switch output to the last device.
+    fb.SetOutputDevice(arr[4].output_id, arr[4].device_id);
+    */
+
+    /**
      * @param {IFbMetadbHandleList} handle_list
      * @param {string} query
      * @return {IFbMetadbHandleList}
@@ -452,8 +512,6 @@ function IFbUtils() {
 
     this.PlayOrPause = function () {}; // (void)
 
-    this.Stop = function () {}; // (void)
-
     this.Prev = function () {}; // (void)
 
     this.Random = function () {}; // (void)
@@ -503,6 +561,15 @@ function IFbUtils() {
 
     this.SavePlaylist = function () {}; // (void)
 
+    /**
+     * foobar2000 v1.4 and above only. Throws a script error on v1.3.
+     * See {@link fb.GetOutputDevices}.
+     *
+     * @param {string}
+     * @param {string}
+     */
+    this.SetOutputDevice = function (output, device) {}; // (void)
+
     this.ShowConsole = function () {}; // (void)
 
     /**
@@ -519,6 +586,8 @@ function IFbUtils() {
     this.ShowPopupMessage = function (message, title) {}; // (void) [, title]
 
     this.ShowPreferences = function () {}; // (void)
+
+    this.Stop = function () {}; // (void)
 
     /**
      * @param {string} expression
@@ -1918,7 +1987,7 @@ function IGdiBitmap() {
     this.GetColourScheme = function (max_count) {}; // (VBArray)
 
     /**
-     * Returns a JSON array in string form so you need to call JSON.parse() on the result.
+     * Returns a JSON array in string form so you need to use JSON.parse() on the result.
      * Each entry in the array is an object which contains colour and frequency values.
      * Uses a different method for calculating colours than GetColourScheme.
      * Image is automatically resized during processing for performance reasons so there's no
@@ -2539,6 +2608,23 @@ function IFbMetadbHandleList() {
     var handle_list2 = handle_list.Clone();
     */
 
+    /**
+     * Should be faster than looping a IFbMetadbHandleList handle list.
+     *
+     * @return {VBArray<IFbMetadbHandle>}
+     */
+    this.Convert = function () {}; // (VBArray)
+    /*
+    It has been noticed by other users that looping through an array of handles rather
+    than a handle list may be faster under some circumstances.
+
+    Example:
+    var playlist_items_array = plman.GetPlaylistItems(plman.ActivePlaylist).Convert().toArray();
+    for (var i = 0; i < playlist_items_array.length; i++) {
+        // do something with playlist_items_array[i] which is your handle
+    }
+    */
+
     this.Dispose = function () {}; // (void)
     /*
     Example:
@@ -2546,12 +2632,24 @@ function IFbMetadbHandleList() {
     */
 
     /**
+     * Note: If sorted, use {@link IFbMetadbHandleList.BSearch} instead
+     *
      * @param {IFbMetadbHandle} handle
      * @return {number} -1 on failure
      */
     this.Find = function (handle) {}; // (int)
+
+    /**
+     * Should be faster than looping a handle list with {@link fb.GetLibraryRelativePath}.
+     *
+     * @return {VBArray<IFbMetadbHandle>}
+     */
+    this.GetLibraryRelativePaths = function () {}; //(VBArray)
     /*
-    If sorted, use BSearch instead
+    Example:
+    var items = fb.GetLibraryItems();
+    items.OrderByRelativePath();
+    var relative_paths = items.GetRelativePaths().toArray();
     */
 
     /**
