@@ -18,7 +18,6 @@ var g_is_mini_panel = _.includes(window.name.toLowerCase(), 'mini');
 // TODO: grouping presets manager: other EsPlaylist grouping features - sorting, playlist association
 // Low priority:
 // TODO: bug marc2003 about on_visibility_change callback
-// TODO: registration for on_key handlers
 // TODO: research the source of hangs with big art image loading (JScript? fb2k?)
 // TODO: measure draw vs backend performance
 g_properties.add_properties(
@@ -1178,7 +1177,7 @@ function Playlist(x, y) {
     };
 
     this.on_playback_dynamic_info_track = function (handles, fromhook) {
-        this.cnt.rows.forEach(function (item) {
+        _.forEach(this.cnt.rows, function (item) {
             item.reset_queried_data();
         });
 
@@ -1694,8 +1693,9 @@ function Playlist(x, y) {
     function initialize_rows(playlist_items) {
         var playlist_items_array = playlist_items.Convert().toArray();
 
+
         var rows = [];
-        playlist_items_array.forEach(function (item, i) {
+        _.forEach(playlist_items_array, function (item, i) {
             rows[i] = new Row(that.list_x, 0, that.list_w, that.row_h, item, i, cur_playlist_idx);
             if (!g_properties.show_header) {
                 // noinspection JSBitwiseOperatorUsage
@@ -1720,7 +1720,7 @@ function Playlist(x, y) {
      * @type {function(Array<Header>)}
      */
     var debounced_get_album_art = _.debounce(function (items) {
-        items.forEach(function (item) {
+        _.forEach(items, function (item) {
             if (!_.isInstanceOf(item, Header) || item.is_art_loaded()) {
                 return;
             }
@@ -2762,7 +2762,7 @@ PlaylistContent = function () {
             return;
         }
 
-        this.sub_items.forEach(function (item) {
+        _.forEach(this.sub_items, function (item) {
             item.set_w(w);
         });
     };
@@ -2778,7 +2778,7 @@ PlaylistContent = function () {
         }
 
         var total_height_in_rows = Math.round(_.head(this.sub_items).h / g_properties.row_h) * this.sub_items.length;
-        this.sub_items.forEach(function (item) {
+        _.forEach(this.sub_items, function (item) {
             if (!item.is_collapsed) {
                 total_height_in_rows += item.get_sub_items_total_h_in_rows();
             }
@@ -3183,7 +3183,7 @@ BaseHeader.prototype.draw = function (gr) {
 BaseHeader.prototype.set_w = function (w) {
     List.Item.prototype.set_w.apply(this, [w]);
 
-    this.sub_items.forEach(function (item) {
+    _.forEach(this.sub_items, function (item) {
         item.set_w(w);
     });
 };
@@ -3211,12 +3211,12 @@ BaseHeader.prototype.get_row_indexes = function () {
     var row_indexes = [];
 
     if (_.isInstanceOf(_.head(this.sub_items), Row)) {
-        this.sub_items.forEach(function (item) {
+        _.forEach(this.sub_items, function (item) {
             row_indexes.push(item.idx);
         });
     }
     else {
-        this.sub_items.forEach(function (item) {
+        _.forEach(this.sub_items, function (item) {
             row_indexes = row_indexes.concat(item.get_row_indexes());
         });
     }
@@ -3236,7 +3236,7 @@ BaseHeader.prototype.get_row_count = function () {
         this.row_count += this.sub_items.length;
     }
     else {
-        this.sub_items.forEach(_.bind(function (item) {
+        _.forEach(this.sub_items, _.bind(function (item) {
             this.row_count += item.get_row_count();
         }, this));
     }
@@ -3257,7 +3257,7 @@ BaseHeader.prototype.get_sub_items_total_h_in_rows = function () {
     }
 
     var h_in_rows = Math.round(_.head(this.sub_items).h / g_properties.row_h) * this.sub_items.length;
-    this.sub_items.forEach(function (item) {
+    _.forEach(this.sub_items, function (item) {
         if (!item.is_collapsed) {
             h_in_rows += item.get_sub_items_total_h_in_rows();
         }
@@ -3313,12 +3313,12 @@ BaseHeader.prototype.get_duration = function () {
     var duration_in_seconds = 0;
 
     if (_.isInstanceOf(_.head(this.sub_items), Row)) {
-        this.sub_items.forEach(function (item) {
+        _.forEach(this.sub_items, function (item) {
             duration_in_seconds += item.metadb.Length;
         });
     }
     else {
-        this.sub_items.forEach(function (item) {
+        _.forEach(this.sub_items, function (item) {
             duration_in_seconds += item.get_duration();
         });
     }
@@ -3522,16 +3522,11 @@ DiscHeader.create_headers = function (parent, x, y, w, h, prepared_rows, rows_to
 
     var header_idx = 0;
     var headers = [];
-    var start_length = prepared_rows_copy.length;
     while (prepared_rows_copy.length) {
         var header = new DiscHeader(parent, x, y, w, h, header_idx);
         var processed_items = header.initialize_items(prepared_rows_copy);
-        if (processed_items === start_length) {
-            prepared_rows_copy.length = 0;
-        }
-        else {
-            _.trimArray(prepared_rows_copy, processed_items, true);
-        }
+
+        _.trimArray(prepared_rows_copy, processed_items, true);
 
         headers.push(header);
         ++header_idx;
@@ -4595,7 +4590,7 @@ function Rating(x, y, max_w, h, metadb) {
 function SelectionHandler(cnt_arg, cur_playlist_idx_arg) {
     this.initialize_selection = function () {
         selected_indexes = [];
-        rows.forEach(function (item, i) {
+        _.forEach(rows, function (item, i) {
             if (plman.IsPlaylistItemSelected(cur_playlist_idx, item.idx)) {
                 selected_indexes.push(i);
             }
@@ -5206,7 +5201,7 @@ function CollapseHandler(cnt_arg) {
 
     this.collapse_all = function () {
         this.changed = false;
-        headers.forEach(_.bind(function (item) {
+        _.forEach(headers, _.bind(function (item) {
             this.changed |= set_collapsed_state_recursive(item, true);
         }, this));
 
@@ -5215,7 +5210,7 @@ function CollapseHandler(cnt_arg) {
 
     this.collapse_all_but_now_playing = function () {
         this.changed = false;
-        headers.forEach(_.bind(function (item) {
+        _.forEach(headers, _.bind(function (item) {
             if (item.is_playing()) {
                 this.changed |= set_collapsed_state_recursive(item, false);
                 return;
@@ -5228,7 +5223,7 @@ function CollapseHandler(cnt_arg) {
 
     this.expand_all = function () {
         this.changed = false;
-        headers.forEach(_.bind(function (item) {
+        _.forEach(headers, _.bind(function (item) {
             this.changed |= set_collapsed_state_recursive(item, false);
         }, this));
 
@@ -5262,7 +5257,7 @@ function CollapseHandler(cnt_arg) {
             return changed;
         }
 
-        sub_items.forEach(function (item) {
+        _.forEach(sub_items, function (item) {
             changed |= set_collapsed_state_recursive(item, is_collapsed);
         });
 

@@ -900,11 +900,16 @@ _.mixin({
      *
      * @param {Array} array
      * @param {Number} count
-     * @param {boolean} fromHead
+     * @param {boolean} fromStart
      */
-    trimArray: function (array, count, fromHead ){
+    trimArray:            function (array, count, fromStart) {
+        if (array.length === count) {
+            array.length = 0;
+            return;
+        }
+
         /// Length deduction is much faster then _.drop or slice, since it does not create a new array
-        if (fromHead) {
+        if (fromStart) {
             array.reverse();
             array.length -= count;
             array.reverse();
