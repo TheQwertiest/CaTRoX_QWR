@@ -3,17 +3,23 @@
 ## [Unreleased]
 ### Added
 - Playlist Panel:
+  - Added disc sub-header.
   - Art images are now cached: no more needless image reloading after every little action.
-  - Added foo_enhanced_playcount support: track play count now displays `$max(%play_count%, %lastfm_play_count%)`.
+  - Added foo_enhanced_playcount support: `$max(%play_count%, %lastfm_play_count%)` query is used to get track play count.
 
 ### Changed
 - Playlist Panel:
-  - Increased playlist initialization speed by ~7%.
+  - Increased playlist initialization speed by %TBA%.
+  - Swapped rating and duration in rows.
+  - Corrected query for album sub-title: standard `%subtitle%` instead of non-standard `%albumsubtitle%`.
 
 ### Fixed
 - Playlist Panel:
   - Fixed bug: art images were loaded even with headers disabled.
   - Fixed bug: changing grouping preset in one player mode was not always affecting grouping preset in other mode.
+  - Fixed various display glitches with multiline tags.
+- Art Mode:  
+  - Fixed right-click menu handling.
 
 ## [4.2.1] - 2018-04-16
 ### Changed
@@ -42,7 +48,7 @@
 
 ### Changed
 - Playlist Panel:
-  - Changed default title query in header to %albumartist%.
+  - Changed default title query in header to `%albumartist%`.
   - Cleaned up various queries used in group header.
   - Drag-n-drop behaviour is now much more in line with the native Windows behaviour.
 - Track Info Panel:
