@@ -9,7 +9,7 @@
 
 ### Changed
 - Playlist Panel:
-  - Increased playlist initialization speed by %TBA%.
+  - Increased playlist initialization speed by 30%!
   - Swapped rating and duration in rows.
   - Corrected query for album sub-title: standard `%subtitle%` instead of non-standard `%albumsubtitle%`.
 
