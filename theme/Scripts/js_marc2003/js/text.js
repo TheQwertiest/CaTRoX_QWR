@@ -23,7 +23,7 @@ _.mixin({
             }
             else {
                 gr.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
-                gr.DrawString("No text to display", gdi.font("Segoe Ui Semibold", 24, 0), _.RGB(70, 70, 70), this.x, this.y, this.w, this.h, SF_CENTRE);
+                gr.DrawString("No text to display", gdi.Font("Segoe Ui Semibold", 24, 0), _.RGB(70, 70, 70), this.x, this.y, this.w, this.h, SF_CENTRE);
             }
             this.up_btn.paint(gr, panel.colours.text);
             this.down_btn.paint(gr, panel.colours.text);

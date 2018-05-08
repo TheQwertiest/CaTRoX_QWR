@@ -77,27 +77,30 @@ var g_drop_effect = {
     scroll: 0x80000000
 };
 
-//---> Fonts
+/** @type {Object<string, IGdiFont>} */
 var g_pl_fonts = {
-    title_normal:   gdi.font('Segoe Ui', 12),
-    title_selected: gdi.font('Segoe Ui Semibold', 12),
-    title_playing:  gdi.font('Segoe Ui Semibold', 12),
+    title_normal:   gdi.Font('Segoe Ui', 12),
+    title_selected: gdi.Font('Segoe Ui Semibold', 12),
+    title_playing:  gdi.Font('Segoe Ui Semibold', 12),
 
-    artist_normal:          gdi.font('Segoe Ui Semibold', 18),
-    artist_playing:         gdi.font('Segoe Ui Semibold', 18, g_font_style.underline),
-    artist_normal_compact:  gdi.font('Segoe Ui Semibold', 15),
-    artist_playing_compact: gdi.font('Segoe Ui Semibold', 15, g_font_style.underline),
+    artist_normal:          gdi.Font('Segoe Ui Semibold', 18),
+    artist_playing:         gdi.Font('Segoe Ui Semibold', 18, g_font_style.underline),
+    artist_normal_compact:  gdi.Font('Segoe Ui Semibold', 15),
+    artist_playing_compact: gdi.Font('Segoe Ui Semibold', 15, g_font_style.underline),
 
-    playcount:      gdi.font('Segoe Ui', 9),
-    album:          gdi.font('Segoe Ui Semibold', 15),
-    date:           gdi.font('Segoe UI Semibold', 16, g_font_style.bold),
-    date_compact:   gdi.font('Segoe UI Semibold', 15),
-    info:           gdi.font('Segoe Ui', 11),
-    cover:          gdi.font('Segoe Ui Semibold', 11),
-    rating_not_set: gdi.font('Segoe Ui Symbol', 14),
-    rating_set:     gdi.font('Segoe Ui Symbol', 16)
+    playcount:      gdi.Font('Segoe Ui', 9),
+    album:          gdi.Font('Segoe Ui Semibold', 15),
+    date:           gdi.Font('Segoe UI Semibold', 16, g_font_style.bold),
+    date_compact:   gdi.Font('Segoe UI Semibold', 15),
+    info:           gdi.Font('Segoe Ui', 11),
+    cover:          gdi.Font('Segoe Ui Semibold', 11),
+    rating_not_set: gdi.Font('Segoe Ui Symbol', 14),
+    rating_set:     gdi.Font('Segoe Ui Symbol', 16),
+
+    dummy_text: gdi.Font('Segoe Ui', 16)
 };
 
+/** @type {Object<string, number>} */
 var g_pl_colors = {};
 //---> Common
 g_pl_colors.background = g_theme.colors.panel_back;
@@ -131,6 +134,10 @@ g_pl_colors.row_alternate = _.RGB(35, 35, 35);
 g_pl_colors.row_focus_selected = g_theme.colors.panel_line_selected;
 g_pl_colors.row_focus_normal = _.RGB(80, 80, 80);
 g_pl_colors.row_queued = _.RGBA(150, 150, 150, 0);
+g_pl_colors.row_drop_position = _.RGB(140, 142, 144);
+g_pl_colors.row_drop_position_boundary = _.RGB(255, 165, 0);
+//---> Misc
+g_pl_colors.dummy_text = _.RGB(80, 80, 80);
 
 var mouse_move_suppress = new qwr_utils.MouseMoveSuppress();
 var key_down_suppress = new qwr_utils.KeyModifiersSuppress();
@@ -680,7 +687,7 @@ function Playlist(x, y) {
                 text = 'Playlist: ' + plman.GetPlaylistName(cur_playlist_idx) + '\n<--- Empty --->';
             }
 
-            gr.DrawString(text, gdi.font('Segoe Ui', 16), _.RGB(80, 80, 80), this.x, this.y, this.w, this.h, g_string_format_center.value());
+            gr.DrawString(text, g_pl_fonts.dummy_text, g_pl_colors.dummy_text, this.x, this.y, this.w, this.h, g_string_format_center.value());
         }
 
         if (this.is_scrollbar_available) {
@@ -4187,10 +4194,12 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
         }
 
         if (this.is_drop_top_selected) {
-            gr.DrawLine(this.x, this.y + 1, this.x + this.w, this.y + 1, 2, this.is_drop_boundary_reached ? _.RGB(255, 165, 0) : _.RGB(140, 142, 144));
+            var drop_color = this.is_drop_boundary_reached ? g_pl_colors.row_drop_position_boundary: g_pl_colors.row_drop_position;
+            gr.DrawLine(this.x, this.y + 1, this.x + this.w, this.y + 1, 2, drop_color);
         }
         if (this.is_drop_bottom_selected) {
-            gr.DrawLine(this.x, this.y + this.h - 1, this.x + this.w, this.y + this.h - 1, 2, this.is_drop_boundary_reached ? _.RGB(255, 165, 0) : _.RGB(140, 142, 144));
+            var drop_color = this.is_drop_boundary_reached ? g_pl_colors.row_drop_position_boundary: g_pl_colors.row_drop_position;
+            gr.DrawLine(this.x, this.y + this.h - 1, this.x + this.w, this.y + this.h - 1, 2, drop_color);
         }
 
         ////////////////////////////////////////////////////////////
@@ -5664,9 +5673,9 @@ function PlaylistManager(x, y, w, h) {
             var lock_text = '\uF023';
             var lock_w = Math.ceil(
                 /** @type {!number} */
-                gr.MeasureString(lock_text, gdi.font('FontAwesome', 12), 0, 0, 0, 0).Width
+                gr.MeasureString(lock_text, gdi.Font('FontAwesome', 12), 0, 0, 0, 0).Width
             );
-            gr.DrawString(lock_text, gdi.font('FontAwesome', 12), text_color, sbar_x + Math.round((g_properties.scrollbar_w - lock_w) / 2), 0, 8, h, g_string_format_center.value());
+            gr.DrawString(lock_text, gdi.Font('FontAwesome', 12), text_color, sbar_x + Math.round((g_properties.scrollbar_w - lock_w) / 2), 0, 8, h, g_string_format_center.value());
 
             right_pad += lock_w;
         }

@@ -366,8 +366,8 @@ function PlaybackPanel() {
     }
 
     function create_button_images() {
-        var fontGuifx = gdi.font(g_guifx.name, 16);
-        var fontAwesome = gdi.font('FontAwesome', 14);
+        var fontGuifx = gdi.Font(g_guifx.name, 16);
+        var fontAwesome = gdi.Font('FontAwesome', 14);
         var default_ico_colors =
             [
                 _.RGB(110, 112, 114),

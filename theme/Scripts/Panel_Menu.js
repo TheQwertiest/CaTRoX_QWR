@@ -91,6 +91,17 @@ var g_has_modded_jscript = qwr_utils.has_modded_jscript();
     }
 })();
 
+/** @type {Object<string, IGdiFont>} */
+var g_menu_fonts = {
+    title: gdi.Font('Segoe Ui Semibold', 11),
+    menu_button: gdi.Font('Segoe Ui Semibold', 12)
+};
+
+/** @type {Object<string, number>} */
+var g_menu_colors = {
+    title: _.RGBA(240, 242, 244, 120)
+};
+
 var WindowState =
     {
         Normal:    0,
@@ -244,7 +255,7 @@ function Menu() {
             title_text_format.trimming = StringTrimming.ellipsis_char;
             title_text_format.format_flags = StringFormatFlags.no_wrap;
 
-            gr.DrawString(title_text, gdi.font('Segoe Ui Semibold', 11), _.RGBA(240, 242, 244, 120), title_x, title_y, title_w, this.h, title_text_format.value());
+            gr.DrawString(title_text, g_menu_fonts.title, g_menu_colors.title, title_x, title_y, title_w, this.h, title_text_format.value());
         }
 
         buttons.paint(gr);
@@ -634,9 +645,9 @@ function Menu() {
     }
 
     function create_button_images() {
-        var fontMarlett = gdi.font('Marlett', 13);
-        var fontAwesome = gdi.font('FontAwesome', 12);
-        var fontSegoeUi = gdi.font('Segoe Ui Semibold', 12);
+        var fontMarlett = gdi.Font('Marlett', 13);
+        var fontAwesome = gdi.Font('FontAwesome', 12);
+        var fontSegoeUi = g_menu_fonts.menu_button;
 
         var default_menu_text_colors =
             [

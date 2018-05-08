@@ -189,7 +189,7 @@ function BottomPanel() {
             }
 
             var slider_text_color = (fb.IsPlaying ? _.RGB(130, 132, 134) : _.RGB(80, 80, 80));
-            var seekbar_text_font = gdi.font('Consolas', 14, 1);
+            var seekbar_text_font = gdi.Font('Consolas', 14, 1);
             gr.DrawString(seekbar_time_1, seekbar_text_font, slider_text_color, seek_x - seekbar_text_w, seek_y - 1, seekbar_text_w, seek_h, g_string_format_center.value());
             gr.DrawString(seekbar_time_2, seekbar_text_font, slider_text_color, seek_x + seek_w, seek_y - 1, seekbar_text_w, seek_h, g_string_format_center.value());
         }
@@ -531,7 +531,7 @@ function BottomPanel() {
     }
 
     function create_button_images() {
-        var fontGuifx = gdi.font(g_guifx.name, 18);
+        var fontGuifx = gdi.Font(g_guifx.name, 18);
         var c = [250, 250, 250];
 
         var default_ico_colors =

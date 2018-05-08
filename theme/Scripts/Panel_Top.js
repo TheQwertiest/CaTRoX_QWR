@@ -19,6 +19,16 @@ g_properties.add_properties(
 var g_has_modded_jscript = qwr_utils.has_modded_jscript();
 var g_component_scrobble = _.cc('foo_scrobble');
 
+/** @type {Object<string, IGdiFont>} */
+var g_top_panel_fonts = {
+    info: gdi.Font('Segoe Ui Semibold', 14)
+};
+
+/** @type {Object<string, number>} */
+var g_top_panel_colors = {
+    info: _.RGB(170, 172, 174)
+};
+
 var mouse_move_suppress = new qwr_utils.MouseMoveSuppress();
 var top_panel = new TopPanel();
 
@@ -143,14 +153,13 @@ function TopPanel() {
             var info_query = "[%tracknumber%. ][%title%] ['('%length%')'][  \u25AA  %album artist%][  \u25AA  %album%]";
             var info_text = (fb.IsPlaying ? _.tfe(info_query) : _.tf(info_query, metadb));
 
-            var info_font = gdi.font('Segoe Ui Semibold', 14);
             var info_format = StringFormat();
             info_format.line_alignment = StringAlignment.center;
             info_format.trimming = StringTrimming.ellipsis_char;
             info_format.format_flags =
                 /** @type {StringFormatFlags} */ StringFormatFlags.no_wrap | StringFormatFlags.line_limit;
 
-            gr.DrawString(info_text, info_font, _.RGB(170, 172, 174), info_x, info_y, info_w, info_h, info_format.value());
+            gr.DrawString(info_text, g_top_panel_fonts.info, g_top_panel_colors.info, info_x, info_y, info_w, info_h, info_format.value());
         }
 
         buttons.paint(gr);
@@ -309,8 +318,8 @@ function TopPanel() {
     }
 
     function create_button_images() {
-        var font_guifx = gdi.font(g_guifx.name, 16);
-        var font_awesome = gdi.font('FontAwesome', 16);
+        var font_guifx = gdi.Font(g_guifx.name, 16);
+        var font_awesome = gdi.Font('FontAwesome', 16);
 
         var default_ico_colors =
             [
@@ -400,7 +409,7 @@ function TopPanel() {
 
                 g.DrawString(item.ico, item.font, ico_color, 1, 0, w, h, g_string_format_center.value());
                 if (item.add_cross) {
-                    var slash_font = gdi.font('Arial', 22, g_font_style.bold);
+                    var slash_font = gdi.Font('Arial', 22, g_font_style.bold);
                     g.DrawString('\u2215', slash_font, ico_color, 1, 1, w, h, g_string_format_center.value());
                     g.DrawString('\u2215', slash_font, g_theme.colors.pss_back, 3, 1, w, h, g_string_format_center.value());
                 }

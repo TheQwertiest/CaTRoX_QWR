@@ -24,6 +24,18 @@ g_properties.add_properties(
     }
 })();
 
+/** @type {Object<string, IGdiFont>} */
+var g_ultra_mini_fonts = {
+    title:      gdi.Font('Segoe Ui Semibold', 12),
+    dummy_text: gdi.Font('Segoe Ui Semibold', 24)
+};
+
+/** @type {Object<string, number>} */
+var g_ultra_mini_colors = {
+    title:      _.RGB(240, 240, 240),
+    dummy_text: _.RGB(70, 70, 70)
+};
+
 var mouse_move_suppress = new qwr_utils.MouseMoveSuppress();
 var key_down_suppress = new qwr_utils.KeyModifiersSuppress();
 var ultra_mini = new UltraMini();
@@ -113,7 +125,7 @@ function on_mouse_lbtn_up(x, y, m) {
 
 function on_mouse_rbtn_up(x, y) {
     trace_call && console.log(qwr_utils.function_name());
-    ultra_mini.on_mouse_rbtn_up(x, y);
+    return ultra_mini.on_mouse_rbtn_up(x, y);
 }
 
 function on_mouse_wheel(delta) {
@@ -160,7 +172,7 @@ function UltraMini() {
             art_module.paint(gr);
         }
         else {
-            gr.DrawString(g_theme.name + ' ' + g_theme.version, gdi.font('Segoe Ui Semibold', 24), _.RGB(70, 70, 70), 0, 0, this.w, this.h, g_string_format_center.value());
+            gr.DrawString(g_theme.name + ' ' + g_theme.version, g_ultra_mini_fonts.dummy_text, g_ultra_mini_colors.dummy_text, 0, 0, this.w, this.h, g_string_format_center.value());
         }
 
         // Title
@@ -172,7 +184,7 @@ function UltraMini() {
             title_text_format.trimming = StringTrimming.ellipsis_char;
             title_text_format.format_flags = StringFormatFlags.no_wrap;
 
-            gr.DrawString(title_cycler.title_text(), gdi.font('Segoe Ui Semibold', 12), _.RGB(240, 240, 240), 5, 5, this.w, this.h, title_text_format.value());
+            gr.DrawString(title_cycler.title_text(), g_ultra_mini_fonts.title, g_ultra_mini_colors.title, 5, 5, this.w, this.h, title_text_format.value());
         }
 
         if (panel_alpha !== 0) {
@@ -497,9 +509,9 @@ function UltraMini() {
     }
 
     function create_button_images() {
-        var fontGuifx = gdi.font(g_guifx.name, 16);
-        var fontGuifx_15 = gdi.font(g_guifx.name, 15);
-        var fontAwesome = gdi.font('FontAwesome', 14);
+        var fontGuifx = gdi.Font(g_guifx.name, 16);
+        var fontGuifx_15 = gdi.Font(g_guifx.name, 15);
+        var fontAwesome = gdi.Font('FontAwesome', 14);
 
         var default_ico_colors =
             [

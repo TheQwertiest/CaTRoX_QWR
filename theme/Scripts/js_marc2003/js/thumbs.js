@@ -90,7 +90,7 @@ _.mixin({
                 case !this.images.length:
                     this.image_xywh = [];
                     gr.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
-                    gr.DrawString("Thumbs Panel:\nNo images to display", gdi.font("Segoe Ui Semibold", 24, 0), _.RGB(70, 70, 70), 0, 0, panel.w, panel.h, SF_CENTRE);
+                    gr.DrawString("Thumbs Panel:\nNo images to display", gdi.Font("Segoe Ui Semibold", 24, 0), _.RGB(70, 70, 70), 0, 0, panel.w, panel.h, SF_CENTRE);
                     break;
                 case this.properties.mode.value == 5: // off
                     if (this.properties.aspect.value == image.centre) {

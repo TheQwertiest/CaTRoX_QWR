@@ -402,7 +402,7 @@ function ScrollBar(x, y, w, h, row_h, fn_redraw) {
             return;
         }
 
-        var fontSegoeUi = gdi.font('Segoe UI Symbol', 15);
+        var fontSegoeUi = gdi.Font('Segoe UI Symbol', 15);
 
         var ico_back_colors =
             [

@@ -18,6 +18,17 @@ g_properties.add_properties(
     g_properties.track_mode = Math.max(1, Math.min(3, g_properties.track_mode));
 })();
 
+/** @type {Object<string, IGdiFont>} */
+var g_art_module_fonts = {
+    title: gdi.Font('Segoe Ui Semibold', 24),
+    box:   gdi.Font('Segoe Ui', 14)
+};
+
+/** @type {Object<string, number>} */
+var g_art_module_colors = {};
+g_art_module_colors.title = _.RGB(70, 70, 70);
+g_art_module_colors.box = g_art_module_colors.title;
+
 /**
  * @param{object=} [optional_args={}]
  * @param{boolean=} [optional_args.border=false]
@@ -72,17 +83,17 @@ function ArtModule(optional_args) {//(Most of the art handling code was done by 
         else if (art === null) {
             var metadb = get_current_metadb();
             if (metadb && (_.startsWith(metadb.RawPath, 'http://')) && utils.CheckFont('Webdings')) {
-                g.DrawString('\uF0BB', gdi.font('Webdings', 130), _.RGB(70, 70, 70), this.x, this.y, this.w, this.h, text_format.value());
+                g.DrawString('\uF0BB', gdi.Font('Webdings', 130), g_art_module_colors.title, this.x, this.y, this.w, this.h, text_format.value());
             }
             else if (!fb.IsPlaying) {
-                g.DrawString('Album Art Panel', gdi.font('Segoe Ui Semibold', 24), _.RGB(70, 70, 70), this.x, this.y, this.w, this.h, text_format.value());
+                g.DrawString('Album Art Panel', g_art_module_fonts.title, g_art_module_colors.title, this.x, this.y, this.w, this.h, text_format.value());
             }
             else {
-                g.DrawString('No album image', gdi.font('Segoe Ui Semibold', 24), _.RGB(70, 70, 70), this.x, this.y, this.w, this.h, text_format.value());
+                g.DrawString('No album image', g_art_module_fonts.title, g_art_module_colors.title, this.x, this.y, this.w, this.h, text_format.value());
             }
         }
         else {
-            g.DrawString('LOADING', gdi.font('Segoe Ui Semibold', 24), _.RGB(70, 70, 70), this.x, this.y, this.w, this.h, text_format.value());
+            g.DrawString('LOADING', g_art_module_fonts.title, g_art_module_colors.title, this.x, this.y, this.w, this.h, text_format.value());
         }
 
         if (g_properties.show_thumbs) {
@@ -953,7 +964,7 @@ function Thumbs(cover_switch_callback_arg) {
             btn_text_format.trimming = StringTrimming.ellipsis_char;
             btn_text_format.format_flags = StringFormatFlags.no_wrap;
 
-            g.DrawString(btnText, gdi.font('Segoe Ui', 14), _.RGB(70, 70, 70), 0, 0, w, h, btn_text_format.value());
+            g.DrawString(btnText, g_art_module_fonts.box, g_art_module_colors.box, 0, 0, w, h, btn_text_format.value());
         }
 
         switch (state) {//0=normal, 1=hover, 2=down;

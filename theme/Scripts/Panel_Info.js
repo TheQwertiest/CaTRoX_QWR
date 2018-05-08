@@ -41,8 +41,9 @@ var g_has_modded_jscript = qwr_utils.has_modded_jscript();
 })();
 
 var g_tr_i_fonts = {
-    info_name:  gdi.font('Segoe Ui Semibold', 12),
-    info_value: gdi.font('Segoe Ui', 12)
+    info_name:  gdi.Font('Segoe Ui Semibold', 12),
+    info_value: gdi.Font('Segoe Ui', 12),
+    dummy_text: gdi.Font('Segoe Ui Semibold', 24)
 };
 
 var g_tr_i_colors = {
@@ -52,7 +53,8 @@ var g_tr_i_colors = {
     row_pressed_rect: _.RGB(80, 80, 80),
     line_color:       g_theme.colors.panel_line,
     info_name:        _.RGB(160, 162, 164),
-    info_value:       g_theme.colors.panel_text_normal
+    info_value:       g_theme.colors.panel_text_normal,
+    dummy_text:       _.RGB(70, 70, 70)
 };
 
 var mouse_move_suppress = new qwr_utils.MouseMoveSuppress();
@@ -209,7 +211,7 @@ function TrackInfoList() {
             track_info_format.trimming = StringTrimming.ellipsis_char;
             track_info_format.format_flags = StringFormatFlags.no_wrap;
 
-            gr.DrawString(text, gdi.font('Segoe Ui Semibold', 24), _.RGB(70, 70, 70), this.x, this.y, this.w, this.h, track_info_format.value());
+            gr.DrawString(text, g_tr_i_fonts.dummy_text, g_tr_i_colors.dummy_text, this.x, this.y, this.w, this.h, track_info_format.value());
         }
 
         if (this.is_scrollbar_available) {

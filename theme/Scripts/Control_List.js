@@ -133,7 +133,7 @@ List.prototype.on_paint = function (gr) {
     gr.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
 
     if (this.items_to_draw.length) {
-        _.forEachRight(this.items_to_draw, _.bind(function (item, i) {
+        _.forEachRight(this.items_to_draw, _.bind(function (item) {
             item.draw(gr);
         }, this));
 
@@ -148,7 +148,7 @@ List.prototype.on_paint = function (gr) {
         text_format.trimming = StringTrimming.ellipsis_char;
         text_format.format_flags = StringFormatFlags.no_wrap;
 
-        gr.DrawString('No rows to display', gdi.font('Segoe Ui Semibold', 24), _.RGB(70, 70, 70), this.x, this.y, this.w, this.h, text_format.value());
+        gr.DrawString('No rows to display', gdi.Font('Segoe Ui Semibold', 24), _.RGB(70, 70, 70), this.x, this.y, this.w, this.h, text_format.value());
     }
 
     if (this.is_scrollbar_available) {
