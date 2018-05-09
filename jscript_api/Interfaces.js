@@ -1,6 +1,6 @@
 /*
-Last Updated: 08.05.2018
-Corresponding JScript Commit: d4b61775913f5dab1ef66598244046c7fe1a4268
+Last Updated: 09.05.2018
+Corresponding JScript Commit: 6636ce8b28e18a8a922b41de475562146ba62062
 */
 
 /**
@@ -2642,14 +2642,14 @@ function IFbMetadbHandleList() {
     /**
      * Should be faster than looping a handle list with {@link fb.GetLibraryRelativePath}.
      *
-     * @return {VBArray<IFbMetadbHandle>}
+     * @return {VBArray<string>}
      */
     this.GetLibraryRelativePaths = function () {}; //(VBArray)
     /*
     Example:
     var items = fb.GetLibraryItems();
     items.OrderByRelativePath();
-    var relative_paths = items.GetRelativePaths().toArray();
+    var relative_paths = items.GetLibraryRelativePaths().toArray();
     */
 
     /**
