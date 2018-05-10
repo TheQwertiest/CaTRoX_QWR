@@ -1,6 +1,6 @@
 /*
-Last Updated: 09.05.2018
-Corresponding JScript Commit: 6636ce8b28e18a8a922b41de475562146ba62062
+Last Updated: 10.05.2018
+Corresponding JScript Commit: 306e11a1467d76812e4700877c15820614f0f192
 */
 
 /**
@@ -352,6 +352,8 @@ function IFbUtils() {
     this.GetLibraryItems = function () {}; // (IFbMetadbHandleList)
 
     /**
+     * NOTE: Do not use this while looping a handle list. Use {@link IFbMetadbHandleList.GetLibraryRelativePaths} instead.
+     *
      * Returns an empty string when used on track not in Media Library
      *
      * @param {IFbMetadbHandle} handle
@@ -365,10 +367,6 @@ function IFbUtils() {
 
     var handle = fb.GetNowPlaying();
     console.log(fb.GetLibraryRelativePath(handle)); // Albums\Artist\Some Album\Some Song.flac
-
-    NOTE: If you intend to loop through a large handle list and you have no control over what is
-    happening in the background, consider using try/catch as errors may occur if the Media Library
-    settings/content changes.
     */
 
     /**
@@ -2070,6 +2068,8 @@ function IGdiGraphics() {
     */
 
     /**
+     * Calculates text height for {@link IGdiGraphics.GdiDrawText}.
+     *
      * @param {string} str
      * @param {IGdiFont} font
      * @return {number}
@@ -2078,6 +2078,8 @@ function IGdiGraphics() {
     // This will only calulate the text height of one line.
 
     /**
+     * Calculates text width for {@link IGdiGraphics.GdiDrawText}.
+     *
      * @param {string} str
      * @param {IGdiFont} font
      * @return {number}
@@ -2127,6 +2129,8 @@ function IGdiGraphics() {
     this.DrawPolygon = function (colour, line_width, points) {}; // (void)
 
     /**
+     * Should be only used when {@link IGdiGraphics.GdiDrawText} is not applicable.
+     *
      * @param {string} str
      * @param {IGdiFont} font
      * @param {number} colour
@@ -2245,6 +2249,8 @@ function IGdiGraphics() {
     this.GdiAlphaBlend = function (img, dstX, dstY, dstW, dstH, srcX, srcY, srcW, srcH, alpha) {}; // (void) [, alpha]
 
     /**
+     * Always faster than {IGdiGraphics.DrawImage}, does not support alpha channel.
+     *
      * @param {IGdiRawBitmap} img
      * @param {number} dstX
      * @param {number} dstY
@@ -2256,9 +2262,17 @@ function IGdiGraphics() {
      * @param {number} srcH
      */
     this.GdiDrawBitmap = function (img, dstX, dstY, dstW, dstH, srcX, srcY, srcW, srcH) {}; // (void)
-    // Always faster than DrawImage, does not support alpha channel.
 
     /**
+     * Provides faster and better rendering than {@link IGdiGraphics.DrawString}.
+     *
+     * Do not use this to draw text on transparent background or
+     * with IGdiGraphics other than the one passed in on_paint callback:
+     * this will result in visual artifacts caused by ClearType hinting.
+     * Use {@link IGdiGraphics.DrawString} instead in such cases.
+     *
+     * To calculate text dimensions use {@link IGdiGraphics.CalcTextHeight}, {@link IGdiGraphics.CalcTextWidth} or DT_CALCRECT flag.
+     *
      * @param {string} str
      * @param {IGdiFont} font
      * @param {number} colour
@@ -2280,6 +2294,8 @@ function IGdiGraphics() {
     */
 
     /**
+     * Calculates text dimensions for {@link IGdiGraphics.DrawString}.
+     *
      * @param {string} str
      * @param {IGdiFont} font
      * @param {number} x
@@ -2354,8 +2370,6 @@ function IGdiGraphics() {
      */
     this.SetTextRenderingHint = function (mode) {}; // (void)
 }
-
-var gr = new IGdiGraphics();
 
 /**
  * @constructor
@@ -2640,7 +2654,9 @@ function IFbMetadbHandleList() {
     this.Find = function (handle) {}; // (int)
 
     /**
-     * Should be faster than looping a handle list with {@link fb.GetLibraryRelativePath}.
+     * See {@link fb.GetLibraryRelativePath}.
+     *
+     * This should be faster than looping a handle list manually and using the aforementioned method.
      *
      * @return {VBArray<string>}
      */
