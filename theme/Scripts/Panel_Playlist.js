@@ -3567,7 +3567,7 @@ function Header(parent, x, y, w, h, idx) {
         var first_data = _.head(rows_with_header_data)[1];
 
         var owned_rows = [];
-        _.forEach(rows_with_header_data, _.bind(function (item, i) {
+        _.forEach(rows_with_header_data, _.bind(function (item) {
             if (first_data !== item[1]) {
                 return false;
             }
@@ -3779,7 +3779,12 @@ function Header(parent, x, y, w, h, idx) {
 
         //---> SUB TITLE
         if (grouping_handler.get_sub_title_query()) {
-            var album_text = _.tf(grouping_handler.get_sub_title_query(), metadb);
+            var subtitle_query = grouping_handler.get_sub_title_query();
+            if (g_properties.show_disc_header && grouping_handler.show_cd()) {
+                subtitle_query = subtitle_query.replace(/%discnumber%/, '').replace(/%totaldiscs%/, '').replace(/%subtitle%/, '');
+            }
+
+            var album_text = _.tf(subtitle_query, metadb);
             if (album_text) {
                 var album_h = part_h;
                 var album_y = part_h;
