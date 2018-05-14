@@ -12,7 +12,7 @@
 })();
 
 (function check_jscript_version() {
-    var required_version = 2100;
+    var required_version = 2140;
     if (utils.Version < required_version) {
         function version_to_string(version) {
             var version_string = version.toString();

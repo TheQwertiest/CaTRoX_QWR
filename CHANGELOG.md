@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+
+## [4.3.0] - 2018-05-14
 ### Added
 - Playlist Panel:
   - Added disc sub-header.
@@ -10,7 +12,7 @@
 ### Changed
 - Playlist Panel:
   - Increased playlist initialization speed by 30%!
-  - Swapped rating and duration in rows.
+  - Swapped rating and duration positions in rows.
   - Corrected query for album sub-title: standard `%subtitle%` instead of non-standard `%albumsubtitle%`.
 
 ### Fixed
@@ -269,7 +271,8 @@ Playlist Panel:
 ### Fixed
 - Fixed various crashes caused by incompatibility with JScript.
 
-[Unreleased]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.2.1...HEAD
+[Unreleased]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.3.0...HEAD
+[4.3.0]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.2.1...v4.3.0
 [4.2.1]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.2.0b...v4.2.1
 [4.2.0b]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.2.0a...v4.2.0b
 [4.2.0a]: https://github.com/theqwertiest/CaTRoX_QWR/compare/v4.2.0...v4.2.0a

@@ -3475,10 +3475,6 @@ function DiscHeader(parent, x, y, w, h, idx) {
         clipImg.Dispose();
     };
 
-    this.has_data = function () {
-        return this.cd_num !== -1 || !_.isEmpty(this.cd_title);
-    };
-
     this.cd_num = -1;
     this.cd_title = '';
 }
