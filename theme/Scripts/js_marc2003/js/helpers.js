@@ -348,9 +348,6 @@ _.mixin({
     },
     dispose:              function () {
         _.forEach(arguments, function (item) {
-            if (item) {
-                item.Dispose();
-            }
         });
     },
     drawImage:            function (gr, img, src_x, src_y, src_w, src_h, aspect, border, alpha) {
@@ -535,7 +532,6 @@ _.mixin({
                 _.run(ha_links[idx - 100][1]);
                 break;
         }
-        _.dispose(m);
     },
     img:                  function (value) {
         if (_.isFile(value)) {
@@ -598,7 +594,6 @@ _.mixin({
             result.push.apply(result, _.map(lines, _.trim));
         });
         temp_bmp.ReleaseGraphics(temp_gr);
-        _.dispose(temp_bmp);
         temp_gr = null;
         temp_bmp = null;
         return result;
@@ -668,7 +663,6 @@ _.mixin({
                 mm6.ExecuteByID(idx - 6000);
                 break;
         }
-        _.dispose(m1, s1, s2, s3, s4, s5, s6, mm1, mm2, mm3, mm4, mm5, mm6);
     },
     menu_item:            function (x, y, name, flags) {
         var menuManager = fb.CreateMainMenuManager();
@@ -686,7 +680,6 @@ _.mixin({
             }
         }
 
-        _.dispose(menuManager, menu);
     },
     nest:                 function (collection, keys) {
         if (!keys.length) {
@@ -861,7 +854,6 @@ _.mixin({
         var temp_gr = temp_bmp.GetGraphics();
         var width = temp_gr.CalcTextWidth(value, font);
         temp_bmp.ReleaseGraphics(temp_gr);
-        _.dispose(temp_bmp);
         temp_gr = null;
         temp_bmp = null;
         return width;
@@ -872,13 +864,11 @@ _.mixin({
         }
         var tfo = fb.TitleFormat(t);
         var str = tfo.EvalWithMetadb(metadb);
-        _.dispose(tfo);
         return str;
     },
     tfe:                  function (t, force) {
         var tfo = fb.TitleFormat(t);
         var str = tfo.Eval(force);
-        _.dispose(tfo);
         return str;
     },
     toDb:                 function (volume) {

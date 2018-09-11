@@ -12,6 +12,7 @@
 })();
 
 (function check_jscript_version() {
+    return;
     var required_version = 2140;
     if (utils.Version < required_version) {
         function version_to_string(version) {
@@ -75,8 +76,8 @@ g_properties.add_properties(
         }
     }
 
-    g_hta_window.popup_with_checkbox(-10000, -10000, 'JScript incompatibility warning', msg, 'Do not show this dialog again', false, on_ok_fn);
-    g_hta_window.manager.center();
+    //g_hta_window.popup_with_checkbox(-10000, -10000, 'JScript incompatibility warning', msg, 'Do not show this dialog again', false, on_ok_fn);
+    //g_hta_window.manager.center();
 })();
 
 qwr_utils.check_fonts(['Segoe Ui', 'Segoe Ui Semibold', 'Segoe Ui Symbol', 'Consolas', 'Marlett', 'Guifx v2 Transports', 'FontAwesome']);
@@ -246,7 +247,7 @@ function Menu() {
                 if (title_text) {
                     title_text += separator_text;
                 }
-                title_text += fb.TitleFormat('%_foobar2000_version%').eval(true);
+                title_text += fb.TitleFormat('%_foobar2000_version%').Eval(true);
             }
 
             var title_text_format = StringFormat();
@@ -780,7 +781,6 @@ function Menu() {
                     g.MeasureString(item.ico, item.font, 0, 0, 0, 0).Width
                 ) + 17;
                 img.ReleaseGraphics(g);
-                img.Dispose();
                 item.h = 21;
             }
 
@@ -883,7 +883,7 @@ function WindowModeHandler() {
 
             UIHacks.MinSize.Width = 300;
             UIHacks.MinSize.Height = 250;
-            UIHacks.MinSize = true;
+            UIHacks.MinSize.Enabled = true;
         }
         else if (new_minimode_state === 'Full') {
             pss_switch.minimode.state = new_minimode_state;
@@ -892,7 +892,7 @@ function WindowModeHandler() {
 
             UIHacks.MinSize.Width = 650;
             UIHacks.MinSize.Height = 600;
-            UIHacks.MinSize = true;
+            UIHacks.MinSize.Enabled = true;
         }
         else {
             if (UIHacks.FullScreen) {
@@ -919,7 +919,7 @@ function WindowModeHandler() {
 
             UIHacks.MinSize.Width = 200;
             UIHacks.MinSize.Height = 200 + 28;
-            UIHacks.MinSize = true;
+            UIHacks.MinSize.Enabled = true;
         }
     };
 
@@ -943,7 +943,7 @@ function WindowModeHandler() {
 
             UIHacks.MinSize.Width = 300;
             UIHacks.MinSize.Height = 250;
-            UIHacks.MinSize = true;
+            UIHacks.MinSize.Enabled = true;
         }
         else {
             if (UIHacks.FullScreen) {
@@ -962,7 +962,7 @@ function WindowModeHandler() {
 
             UIHacks.MinSize.Width = 650;
             UIHacks.MinSize.Height = 600;
-            UIHacks.MinSize = true;
+            UIHacks.MinSize.Enabled = true;
         }
     };
 
@@ -1017,33 +1017,32 @@ function WindowModeHandler() {
 
     function set_window_size(width, height) {
         //To avoid resizing bugs, when the window is bigger\smaller than the saved one.
-        UIHacks.MinSize = false;
-        UIHacks.MaxSize = false;
+        UIHacks.MinSize.Enabled = false;
+        UIHacks.MaxSize.Enabled = false;
         UIHacks.MinSize.Width = width;
         UIHacks.MinSize.Height = height;
         UIHacks.MaxSize.Width = width;
         UIHacks.MaxSize.Height = height;
 
-        UIHacks.MaxSize = true;
-        UIHacks.MaxSize = false;
-        UIHacks.MinSize = true;
-        UIHacks.MinSize = false;
+        UIHacks.MaxSize.Enabled = true;
+        UIHacks.MaxSize.Enabled = false;
+        UIHacks.MinSize.Enabled = true;
+        UIHacks.MinSize.Enabled = false;
 
         window.NotifyOthers('minimode_state_size', pss_switch.minimode.state);
     }
 
     function set_window_size_limits(min_w, max_w, min_h, max_h) {
-        UIHacks.MinSize = !!min_w;
+        UIHacks.MinSize.Enabled = false;
+        UIHacks.MaxSize.Enabled = false;
+        
         UIHacks.MinSize.Width = min_w;
-
-        UIHacks.MaxSize = !!max_w;
         UIHacks.MaxSize.Width = max_w;
-
-        UIHacks.MinSize = !!min_h;
         UIHacks.MinSize.Height = min_h;
-
-        UIHacks.MaxSize = !!max_h;
         UIHacks.MaxSize.Height = max_h;
+        
+        UIHacks.MinSize.Enabled = !!min_w || !!min_h;
+        UIHacks.MaxSize.Enabled = !!max_w || !!max_h;
     }
 
     var fb_handle = g_has_modded_jscript ? qwr_utils.get_top_theme_window() : undefined;

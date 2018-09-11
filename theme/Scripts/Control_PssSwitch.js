@@ -56,7 +56,7 @@ var pss_switch = new function() {
             }
 
             var default_idx = states_list.indexOf(default_state);
-            fso.CreateTextFile(pathToState + default_idx, true);
+            fso.CreateTextFile(pathToState + default_idx, true).Close();
             return default_state;
         }
 
@@ -73,7 +73,7 @@ var pss_switch = new function() {
                 _.deleteFile(pathToState + i);
             });
             if (!fso.FileExists(pathToState + index_new)) {
-                fso.CreateTextFile(pathToState + index_new, true);
+                fso.CreateTextFile(pathToState + index_new, true).Close();
             }
 
             window.NotifyOthers(name + '_state', new_state);

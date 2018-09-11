@@ -143,7 +143,7 @@ function panel_operations() {
     var defArtPth = "%profile%\\yttm\\art_img\\$lower($cut($meta(artist,0),1))\\$meta(artist,0)";
     this.add_loc = []; this.plmanAddloc = window.GetProperty("ADV.Add Locations fb2k-0 JScript-1", 1) ? 1 : 0; this.alb_id = -1; this.btn_mode = window.GetProperty(" Button Mode", false); this.sbar_o = 0; this.sbar_x = 0;
     this.Thirty_Days = 2592000000; this.TwentyEight_Days = 2419200000; this.One_Day = this.TwentyEight_Days / 28; this.One_Week = this.TwentyEight_Days / 4;
-    this.add_fb2k_locations = function(p_locations, radio, p_top50, p_alb_set) {if (!p_top50 && !p_alb_set && radio && plman.ActivePlaylist != pl.rad && plman.PlayingPlaylist == pl.rad) {if (p_locations.replace(/[\.\/\\]/g, "").indexOf("youtubecomwatch") != -1) return plman.AddLocations(pl.rad, [p_locations]); else {var handles = fb.CreateHandleList(), item = fb.CreateHandleList(), pn = pl.rad; try {item = fb.GetQueryItems(lib.get_lib_items(), "(%path% IS " + p_locations + ") OR (\"$replace($info(@REFERENCED_FILE),file:'//',)\" IS " + p_locations + ")")} catch (e) {} if (item.Count) {handles.Add(item.Item(0)); if (handles.Count) plman.InsertPlaylistItems(pn, plman.PlaylistItemCount(pn), handles);} if (handles) handles.Dispose(); if (item) item.Dispose(); return;}} var str = "\"" + fb.FoobarPath + "\\foobar2000.exe\"" + (radio ? " /immediate" : "") + " /add \"" + p_locations + "\""; this.run(str, 0);}
+    this.add_fb2k_locations = function(p_locations, radio, p_top50, p_alb_set) {if (!p_top50 && !p_alb_set && radio && plman.ActivePlaylist != pl.rad && plman.PlayingPlaylist == pl.rad) {if (p_locations.replace(/[\.\/\\]/g, "").indexOf("youtubecomwatch") != -1) return plman.AddLocations(pl.rad, [p_locations]); else {var handles = fb.CreateHandleList(), item = fb.CreateHandleList(), pn = pl.rad; try {item = fb.GetQueryItems(lib.get_lib_items(), "(%path% IS " + p_locations + ") OR (\"$replace($info(@REFERENCED_FILE),file:'//',)\" IS " + p_locations + ")")} catch (e) {} if (item.Count) {handles.Add(item.Item(0)); if (handles.Count) plman.InsertPlaylistItems(pn, plman.PlaylistItemCount(pn), handles);} return;}} var str = "\"" + fb.FoobarPath + "\\foobar2000.exe\"" + (radio ? " /immediate" : "") + " /add \"" + p_locations + "\""; this.run(str, 0);}
     this.add_locations = function(p_locations, p_pn, radio, p_top50, p_alb_set) {plman.AddLocations(p_pn, p_locations, !p_top50 && !p_alb_set && radio && plman.ActivePlaylist != pl.rad && plman.PlayingPlaylist == pl.rad ? false : true);}
     this.box = function(n) {return n != null ? 'Unescape("' + encodeURIComponent(n + "") + '")' : "Empty";}
     this.browser = function(c) {if (!this.run(c)) fb.ShowPopupMessage("Unable to launch your default browser.", "YouTube Track Manager");}
@@ -156,8 +156,8 @@ function panel_operations() {
     this.ec_saved = window.GetProperty("ADV.Allow Playing Saved Echonest Radio Stations", false);
     this.expired = function(f, exp) {if (!this.file(f)) return true; try {return Date.now() - Date.parse(this.fs.GetFile(f).DateLastModified) > exp;} catch (e) {return true;}}
     this.ir = function () {return fb.IsPlaying && fb.PlaybackLength <= 0}
-    this.eval = function(n, focus) {if (!n) return ""; var tfo = fb.TitleFormat(n); if (this.ir()) {var str = tfo.Eval(); tfo.Dispose(); return str;} var handle = fb.IsPlaying && !focus ? fb.GetNowPlaying() : fb.GetFocusItem(); if (!handle) {tfo.Dispose(); return "";} var str = tfo.EvalWithMetadb(handle); tfo.Dispose(); return str;}
-    this.file = function(f) {return this.fs.fileExists(f);}; this.folder = function(fo) {return this.fs.FolderExists(fo);}; var q = function(s) {return s.split("").reverse().join("");}
+    this.eval = function(n, focus) {if (!n) return ""; var tfo = fb.TitleFormat(n); if (this.ir()) {var str = tfo.Eval();return str;} var handle = fb.IsPlaying && !focus ? fb.GetNowPlaying() : fb.GetFocusItem(); if (!handle) {return "";} var str = tfo.EvalWithMetadb(handle); return str;}
+    this.file = function(f) {return this.fs.FileExists(f);}; this.folder = function(fo) {return this.fs.FolderExists(fo);}; var q = function(s) {return s.split("").reverse().join("");}
     this.buildFullPth = function(pth) {var tmpFileLoc = "", pattern = /(.*?)\\/gm; while (result = pattern.exec(pth)) {tmpFileLoc = tmpFileLoc.concat(result[0]); try {this.create(tmpFileLoc);} catch (e) {}}}
     this.cleanPth = function(pth) {pth = pth.trim().replace(/\//g, "\\"); if (pth.toLowerCase().indexOf("%profile%") != -1) {var fbPth = fb.ProfilePath.replace(/'/g, "''").replace(/(\(|\)|\[|\]|%|,)/g, "'$1'"); if (fbPth.indexOf("$") != -1) {var fbPthSplit = fbPth.split("$"); fbPth = fbPthSplit.join("'$$'");} pth = pth.replace(/%profile%(\\|)/gi, fbPth);} pth = this.eval(pth); if (pth) pth += "\\"; else return ""; var c_pos = pth.indexOf(":"); pth = pth.replace(/[\/|:]/g, "-").replace(/\*/g, "x").replace(/"/g, "''").replace(/[<>]/g, "_").replace(/\?/g, "").replace(/\\\./g, "\\_").replace(/\.+\\/, "\\").replace(/\s*\\\s*/g, "\\"); if(c_pos < 3 && c_pos != -1) pth = replaceAt(pth, c_pos, ":"); return pth.trim();}
     this.img_exp = function(img_folder, exp) {var f = img_folder + "update.txt"; if (!p.file(f)) return true; try {var last_upd = Date.parse(this.fs.GetFile(f).DateLastModified); return (Date.now() - last_upd > exp);} catch (e) {return true;}}
@@ -174,7 +174,7 @@ function panel_operations() {
     var WshShell = new ActiveXObject("WScript.Shell"); this.run = function(c, w) {try {WshShell.Run(c, w); return true;} catch (e) {return false;}}
     this.save = function(n, l, t) {try {return utils.WriteTextFile(n, l, t);} catch (e) {return false;}}
     this.scrollbar_show = window.GetProperty(" Scrollbar Show", true);  if (this.btn_mode) {this.np_graphic = false; this.scrollbar_show = false;} try {this.scr_type = parseFloat(window.GetProperty(" Scrollbar Type Default-0 Styled-1 Themed-2", "0").replace(/\s+/g, "").split("")[0]); if (isNaN(this.scr_type)) this.scr_type = 0;  if (this.scr_type > 2 || this.scr_type < 0) this.scr_type = 0; if (this.scr_type ==2)  window.SetProperty(" Scrollbar Type Default-0 Styled-1 Themed-2", "2 // Scrollbar Settings N/A For Themed"); else window.SetProperty(" Scrollbar Type Default-0 Styled-1 Themed-2", "" + this.scr_type + "");} catch (e) {this.scr_type = 0; window.SetProperty(" Scrollbar Type Default-0 Styled-1 Themed-2", "" + 0 + "");} this.scr_col = Math.min(Math.max( window.GetProperty(" Scrollbar Colour Grey-0 Blend-1", 1), 0), 1);
-    if (this.scr_type == 2) {this.theme = window.CreateThemeManager("scrollbar"); var im = gdi.CreateImage(21, 21), j = im.GetGraphics(); try {this.theme.SetPartAndStateId(6, 1); this.theme.DrawThemeBackground(j, 0, 0, 21, 50); for (var i = 0; i < 3; i++) {this.theme.SetPartAndStateId(3, i + 1); this.theme.DrawThemeBackground(j, 0, 0, 21, 50);} for (i = 0; i < 3; i++) {this.theme.SetPartAndStateId(1, i + 1); this.theme.DrawThemeBackground(j, 0, 0, 21, 21);}} catch (e) {this.scr_type = 1; window.SetProperty(" Scrollbar Type Default-0 Styled-1 Themed-2", "" + 1 + "");} im.ReleaseGraphics(j); im.Dispose();}
+    if (this.scr_type == 2) {this.theme = window.CreateThemeManager("scrollbar"); var im = gdi.CreateImage(21, 21), j = im.GetGraphics(); try {this.theme.SetPartAndStateId(6, 1); this.theme.DrawThemeBackground(j, 0, 0, 21, 50); for (var i = 0; i < 3; i++) {this.theme.SetPartAndStateId(3, i + 1); this.theme.DrawThemeBackground(j, 0, 0, 21, 50);} for (i = 0; i < 3; i++) {this.theme.SetPartAndStateId(1, i + 1); this.theme.DrawThemeBackground(j, 0, 0, 21, 21);}} catch (e) {this.scr_type = 1; window.SetProperty(" Scrollbar Type Default-0 Styled-1 Themed-2", "" + 1 + "");} im.ReleaseGraphics(j); }
     var themed_w = 21; try {themed_w = utils.GetSystemMetrics(2);} catch (e) {}
     var sbw = window.GetProperty(" Scrollbar Size"); if (sbw && sbw.indexOf("GripMinHeight") == -1) window.SetProperty(" Scrollbar Size", sbw + ",GripMinHeight,12");
     var sbar_w = window.GetProperty(" Scrollbar Size", "Bar,11,Arrow,11,Gap(+/-),0,GripMinHeight,12").replace(/\s+/g, "").split(",");
@@ -270,7 +270,7 @@ function playlists() {
         var rdio_text = index.rad_type == 2 ? " And Similar Artists" : "", save_pl_index = plman.FindOrCreatePlaylist(pl_name[3] + " [" + index.rad_source + rdio_text + "]", false);
         var items = fb.CreateHandleList(), save_pl_count = plman.PlaylistItemCount(save_pl_index), sav_list = plman.GetPlaylistItems(save_pl_index);
         for (var i = 0; i < np.Count; i++) if (!index.arr_contains(rad_tracks, np.Item(i).Path)) {var found = false; for (var j = 0; j < sav_list.Count; j++) if (np.Item(i).Path == sav_list.Item(j).Path) found = true; if (!found) items.Add(np.Item(i)); rad_tracks.push(np.Item(i).Path);}
-        plman.InsertPlaylistItems(save_pl_index, save_pl_count, items); if (rad_tracks.length > rad.limit * 2) rad_tracks.splice(0, 1); if (np) np.Dispose(); if (sav_list) sav_list.Dispose(); if (items) items.Dispose();
+        plman.InsertPlaylistItems(save_pl_index, save_pl_count, items); if (rad_tracks.length > rad.limit * 2) rad_tracks.splice(0, 1);
     }
 }
 pl = new playlists();
@@ -297,10 +297,10 @@ function library_manager() {
     var load_lib = function(path, id, v, p_ar, p_ti, p_t50) {!p_t50 ? p.add_loc.push({"path":path,"id":id}) : p.t50_loc.push({"path":path,"id":id}); if (verbose) p.trace((!v ? "STANDARD MATCH " : v == 1 ? "FUZZY TITLE MATCH " : "TRUNCATE TITLE MATCH ") + "FOUND :: SEARCH: " + p_ar + " - " + p_ti);}
     var load_lib_sel = function(orig_artist, p_title, path, id, p_lfm_pc) {if (!obj_contains(p.add_loc, id)) p.add_loc.push({"artist":orig_artist,"title":p_title,"path":path,"id":id,"playcount":p_lfm_pc});}
     var obj_contains = function(arr, p_id) {var i = arr.length; while (i--) if (arr[i].id == p_id) return true; return false;}
-    this.alb_playlist = function(a_n) {if (!a_n) return; var n = false, d_l = fb.CreateHandleList(); try {d_l = fb.GetQueryItems(this.get_lib_items(), name.q_a + " IS " + a_n)} catch (e) {}; if (d_l.Count) n = true; if (!n) {var d_a = fb.CreateHandleList(); try {d_a = fb.GetQueryItems(db_alb, name.q_a + " IS " + a_n)} catch (e) {}; if (d_a.Count) n = true;} if (d_a) d_a.Dispose(); if (d_l) d_l.Dispose(); return n;}
-    this.get_album_artist = function() {var pn = plIX(pl.alb_yttm); if (pn == -1 || !plman.PlaylistItemCount(pn)) return; var db_aa = plman.GetPlaylistItems(pn); this.albumartist = tf.a0.EvalWithMetadb(db_aa.Item(0)); if (db_aa) db_aa.Dispose();}
-    this.get_album_metadb = function() {if (db_alb) db_alb.Dispose(); db_alb = plman.GetPlaylistItems(pl.alb_orig);}
-    this.get_lib_items = function() {if (!this.update) return db_lib; this.update = false; if (db_lib) db_lib.Dispose(); db_lib = fb.GetLibraryItems(); if (this.filterID) try {db_lib = fb.GetQueryItems(db_lib, this.filter[this.filterID]);} catch (e) {}; return db_lib;}
+    this.alb_playlist = function(a_n) {if (!a_n) return; var n = false, d_l = fb.CreateHandleList(); try {d_l = fb.GetQueryItems(this.get_lib_items(), name.q_a + " IS " + a_n)} catch (e) {}; if (d_l.Count) n = true; if (!n) {var d_a = fb.CreateHandleList(); try {d_a = fb.GetQueryItems(db_alb, name.q_a + " IS " + a_n)} catch (e) {}; if (d_a.Count) n = true;} return n;}
+    this.get_album_artist = function() {var pn = plIX(pl.alb_yttm); if (pn == -1 || !plman.PlaylistItemCount(pn)) return; var db_aa = plman.GetPlaylistItems(pn); this.albumartist = tf.a0.EvalWithMetadb(db_aa.Item(0)); }
+    this.get_album_metadb = function() { db_alb = plman.GetPlaylistItems(pl.alb_orig);}
+    this.get_lib_items = function() {if (!this.update) return db_lib; this.update = false;  db_lib = fb.GetLibraryItems(); if (this.filterID) try {db_lib = fb.GetQueryItems(db_lib, this.filter[this.filterID]);} catch (e) {}; return db_lib;}
     this.in_library_art = function(p_artist) {if (!p_artist) return false; var art_array = this.get_lib_artists(), n = false; for (var i = 0; i < art_array.length; i++) {if (art_array[i] == p_artist.toLowerCase()) {n = true; break;}} return n;}
     var plIX = function(Playlist_Name) {var n = -1; for (var i = 0; i < plman.PlaylistCount; i++) if (plman.GetPlaylistName(i).indexOf(Playlist_Name) != -1) {n = i; break;} return n;}
     var remove_playlist = function(name) {var i = plman.PlaylistCount; while (i--) if (plman.GetPlaylistName(i).indexOf(name) != -1) plman.RemovePlaylist(i);};
@@ -308,7 +308,7 @@ function library_manager() {
     this.get_lib_artists = function() {
         if (!this.upd) return art_arr; art_arr = []; var art_o = "", db_artists = this.get_lib_items().Clone(); db_artists.OrderByFormat(tf.a0, 0); var art = tf.a0.EvalWithMetadbs(db_artists).toArray();
         for (var j = 0; j < db_artists.Count; j++) {if (db_artists.Item(j).Path.slice(-7).toLowerCase() == "!!.tags" || db_artists.Item(j).Path.slice(-4).toLowerCase() == ".cue") continue; art[j] = art[j].toLowerCase(); if (art[j] && art_o != art[j]) art_arr.push(art[j]); art_o = art[j];}
-        this.upd = false; if (db_artists) db_artists.Dispose(); return art_arr;
+        this.upd = false;  return art_arr;
     }
 
     this.in_library = function(p_artist, p_title, i, p_top50, p_alb_set) {
@@ -319,7 +319,7 @@ function library_manager() {
         if (trunc_art) p_artist = p_artist.cut().trim();
         if (this.pm_art && ((p_top50 && this.pmt[7] != 0) || (p_alb_set && this.pmt[9] != 0) || (!p_top50 && !p_alb_set && this.pmt[3] != 0))) q = " HAS ";
         if (verbose) p.trace("MATCH: ARTIST QUERY:" + q + p_artist);
-        if (p_artist != o_artist || lib_upd.Time - last_time > 2000) {if (db_art) db_art.Dispose(); try {db_art = fb.GetQueryItems(this.get_lib_items(), "(" + name.q_a + q + p_artist + ") AND (NOT %path% HAS !!.tags) AND (NOT \"$ext(%path%)\" IS cue)")} catch (e) {db_art = fb.CreateHandleList()}; db_art.OrderByFormat(tf.r, 1); if (!ml.sort_rand) db_art.OrderByFormat(ml.item_sort, ml.dir);}
+        if (p_artist != o_artist || lib_upd.Time - last_time > 2000) { try {db_art = fb.GetQueryItems(this.get_lib_items(), "(" + name.q_a + q + p_artist + ") AND (NOT %path% HAS !!.tags) AND (NOT \"$ext(%path%)\" IS cue)")} catch (e) {db_art = fb.CreateHandleList()}; db_art.OrderByFormat(tf.r, 1); if (!ml.sort_rand) db_art.OrderByFormat(ml.item_sort, ml.dir);}
         p1[i] = ""; o_artist = p_artist; p_title = p_title.strip(); lib_upd.Reset(); last_time = lib_upd.Time;
         var titles = tf.t0.EvalWithMetadbs(db_art).toArray();
         for (var j = 0; j < db_art.Count; j++) {
@@ -356,7 +356,7 @@ function library_manager() {
         this.art_ed = fb.CreateHandleList(); this.art_ed_tags = fb.CreateHandleList(); if (!p_album_artist) return; var d_lb = this.get_lib_items().Clone();
         try {this.art_ed = fb.GetQueryItems(d_lb, "(" + name.q_a + q_alb + p_album_artist + ") AND (NOT %path% HAS .tags) AND (NOT \"$ext(%path%)\" IS cue)")} catch (e) {}; this.art_ed.OrderByFormat(tf.r, 1); if (!ml.sort_rand) this.art_ed.OrderByFormat(ml.item_sort, ml.dir);
         try {this.art_ed_tags = fb.GetQueryItems(d_lb, "(" + name.q_a + q_alb + p_album_artist + ") AND (%path% HAS .tags) AND (NOT \"$ext(%path%)\" IS cue)")} catch (e) {};
-        this.art_ed_tags.OrderByFormat(tf.r, 1); if (!ml.sort_rand) this.art_ed_tags.OrderByFormat(ml.item_sort, ml.dir); if (d_lb) d_lb.Dispose();
+        this.art_ed_tags.OrderByFormat(tf.r, 1); if (!ml.sort_rand) this.art_ed_tags.OrderByFormat(ml.item_sort, ml.dir); 
     }
 
     this.in_library_alb = function(p_alb_id, p_artist, p_title, p_album, p_date, i, p_upd) {
@@ -392,7 +392,7 @@ function library_manager() {
         try {li_add = fb.GetQueryItems(db_alb, name.q_a + " IS " + this.albumartist)} catch (e) {}
         d_li.AddRange(li_add); d_li.OrderByFormat(tf.pl, 1);
         var pn = plman.FindOrCreatePlaylist("Albums [" + this.albumartist + "]" + pl.alb_yttm, false);
-        plman.InsertPlaylistItems(pn, 0, d_li); if (d_li) d_li.Dispose(); if (li_add) li_add.Dispose();
+        plman.InsertPlaylistItems(pn, 0, d_li); 
         plman.ActivePlaylist = pn; plman.SetPlaylistFocusItem(pn, 0); plman.ClearPlaylistSelection(pn);
     }
 }
@@ -972,7 +972,7 @@ function musicbrainz_artist_id(state_callback, on_search_done_callback) {
                 for (i = 0; i < artists.length; i++) list[i] = {name: artists[i].name, id: artists[i].id, disambiguation: artists[i].disambiguation}
                 if (!list.length) return this.mb_return();
                 for (i = 0; i < list.length; i++) if (artist == list[i].name.strip()) {ar_mbid = list[i].id; break;}
-                if (!ar_mbid) {var tfo = fb.TitleFormat("$ascii(" + artist + ")"); artist = tfo.eval(true); tfo.Dispose(); for (i = 0; i < list.length; i++) if (artist == list[i].name.strip()) {ar_mbid = list[i].id; break;}}
+                if (!ar_mbid) {var tfo = fb.TitleFormat("$ascii(" + artist + ")"); artist = tfo.eval(true); for (i = 0; i < list.length; i++) if (artist == list[i].name.strip()) {ar_mbid = list[i].id; break;}}
                 if (!ar_mbid) {list.unshift({name:alb.artist + " [Related]:", id:""});}
                 else if (list.length == 1) list[0] = {name: alb.artist + " [No Related Artists]", id: "", disambiguation: ""}
                 else list[0] = {name:alb.artist + " [Related]:", id:ar_mbid};
@@ -1594,7 +1594,7 @@ function new_radio() {
             if (!rad.read_file) {if (!lic || !lic.Count) return; handles.Add(lic.Item(list[h_ind].id));}
             else {try {item = fb.GetQueryItems(lib.get_lib_items(), "(%path% IS " +  list[h_ind].path + ") OR (\"$replace($info(@REFERENCED_FILE),file:'//',)\" IS " + list[h_ind].path + ")")} catch (e) {}; if (item.Count) handles.Add(item.Item(0));}
             if (l) {played_artist_arr.push(list[h_ind].artist.strip()); if (played_artist_arr.length > 6) played_artist_arr.splice(0, 1); window.SetProperty("SYSTEM.Radio Played Artists", JSON.stringify(played_artist_arr));} if (l && p_rt != 1 && p_rt != 3) {played_track_arr.push(list[h_ind].title); if (played_track_arr.length > Math.floor(l * 0.9)) played_track_arr = []; window.SetProperty("SYSTEM.Radio Played Tracks", JSON.stringify(played_track_arr));}
-        } if (handles.Count) plman.InsertPlaylistItems(pn, plman.PlaylistItemCount(pn), handles); if (handles) handles.Dispose(); if (item) item.Dispose();
+        } if (handles.Count) plman.InsertPlaylistItems(pn, plman.PlaylistItemCount(pn), handles); 
     }
 
     this.load_my_sel = function(list, p_rt) {
@@ -1602,7 +1602,7 @@ function new_radio() {
         for (var i = 0; i < no; i++) {
             h_ind = this.pop(2, list, l, p_rt ? 1 : 0, 0); handles.Add(list.Item(h_ind));
             if (l) {played_artist_arr.push(tf.a0.EvalWithMetadb(list.Item(h_ind)).strip()); played_track_arr.push(tf.t0.EvalWithMetadb(list.Item(h_ind)).strip()); if (played_artist_arr.length > 6) played_artist_arr.splice(0, 1); window.SetProperty("SYSTEM.Radio Played Artists", JSON.stringify(played_artist_arr)); if (played_track_arr.length > Math.floor(l * 0.9)) played_track_arr = []; window.SetProperty("SYSTEM.Radio Played Tracks", JSON.stringify(played_track_arr));}
-        } if (handles.Count) plman.InsertPlaylistItems(pn, plman.PlaylistItemCount(pn), handles); if (handles) handles.Dispose();
+        } if (handles.Count) plman.InsertPlaylistItems(pn, plman.PlaylistItemCount(pn), handles); ;
     }
 
     this.pop = function(rad_lib, list, l, ar, ti) {
@@ -1638,8 +1638,8 @@ function radio_manager() {
     var iSelect_timeout = 120000; try {var iS_timeout = window.GetProperty("ADV.Radio Search Timeout (secs >=30)", index.n[2] + ",120").replace(/^[,\s]+|[,\s]+$/g, "").split(","); if (iS_timeout[0] != index.n[2]) window.SetProperty("ADV.Radio Search Timeout (secs >=30)", index.n[2] + "," + iS_timeout[1]); iSelect_timeout = Math.max(iS_timeout[1] * 1000, 30000); if (isNaN(iSelect_timeout)) iSelect_timeout = 120000;} catch (e) {} if (!p.v) {this.limit = Math.min(window.GetProperty(" Radio Playlist Track Limit 2-25", 5), 25); window.SetProperty(" Radio Playlist Track Limit 2+", null);} else {window.SetProperty(" Radio Playlist Track Limit 2-25", null); this.limit = window.GetProperty(" Radio Playlist Track Limit 2+", 5);}
     this.auto = window.GetProperty("SYSTEM.Auto Radio", true); this.bypass_read_file = false; this.force_refresh = 0; this.full = window.GetProperty("SYSTEM.Image Full", false); if (this.full) p.rel_imgs = 1;
     if (!index.rem_played) this.limit = 0; this.list_index = 0; this.list = false; this.list_type = false; this.param = false; this.read_file = false; this.text = ""; this.search; this.sync = false; this.t50_array = [];
-    var calc_text = function(f) {var i = gdi.CreateImage(1, 1), g = i.GetGraphics(); font_h = Math.round(g.CalcTextHeight("String", f)); i.ReleaseGraphics(g); i.Dispose();}
-    var create_softplaylist = function(list, p_rs, p_rt) {try {var handles = fb.CreateHandleList(), pln = plman.FindOrCreatePlaylist("'" + p_rs + (p_rt == 2 ? " Similar Artists" : "") + "' " + pl.soft_playlist, false); for (var i = 0; i < list.length; i++) handles.Add(li.Item(list[i].id)); plman.ClearPlaylist(pln); plman.InsertPlaylistItems(pln, 0, handles, false); if (index.activate) plman.ActivePlaylist = pln; if (handles) handles.Dispose();} catch (e) {p.trace("Unable to Create Soft Playlist");}}
+    var calc_text = function(f) {var i = gdi.CreateImage(1, 1), g = i.GetGraphics(); font_h = Math.round(g.CalcTextHeight("String", f)); i.ReleaseGraphics(g); }
+    var create_softplaylist = function(list, p_rs, p_rt) {try {var handles = fb.CreateHandleList(), pln = plman.FindOrCreatePlaylist("'" + p_rs + (p_rt == 2 ? " Similar Artists" : "") + "' " + pl.soft_playlist, false); for (var i = 0; i < list.length; i++) handles.Add(li.Item(list[i].id)); plman.ClearPlaylist(pln); plman.InsertPlaylistItems(pln, 0, handles, false); if (index.activate) plman.ActivePlaylist = pln; } catch (e) {p.trace("Unable to Create Soft Playlist");}}
     this.feedback = function() {if (this.text == text_o) return; t.repaint(); this.search = false; text_o = this.text; if (fav.auto && update_fav) fav.add_current_station(rad_source); update_fav = false;}
     this.cancel_iSelect = function() {add_loc(rad_mode, rad_type, true, 1, false, false); finished = true; timer.reset(timer.sim1, timer.sim1i); timer.reset(timer.sim2, timer.sim2i); timer.reset(timer.yt, timer.yti); on_dld_radio_tracks_done(false, "", 0, "", "", "", true);}
     if (!window.GetProperty("SYSTEM.Library Check", false)) {var db_lib = fb.GetLibraryItems(); try {var db_pl = fb.GetQueryItems(db_lib, "%play_count% GREATER 4").Count;} catch (e) {var db_pl = 0} try {var db_r = fb.GetQueryItems(db_lib, (p.use_local ? "%_autorating%" : "%rating%") + " GREATER 1").Count;} catch (e) {var db_r = 0} if (db_r < 5000 || db_r / db_lib.Count < 0.2) db_r = 0; if (db_pl < 5000 || db_pl / db_lib.Count < 0.2) db_pl = 0; window.SetProperty("SYSTEM.Library Filter MySelect ID", db_pl || db_r  ? db_r > db_pl ? 1 : 2 : 0);} window.SetProperty("SYSTEM.Library Check", true);
@@ -1810,7 +1810,7 @@ function radio_manager() {
         if (p.add_loc.length > rad.limit + 1) {
             if (ended) on_dld_radio_tracks_done(true, p_rm);
             if (load) {
-                if (!ended) index.radio_found(); if (li_c) li_c.Dispose(); li_c = li.clone(); rad.list = p.add_loc.slice(0); index.track_count = rad.list.length; t.repaint(); window.SetProperty("SYSTEM.Track Count",index.track_count);
+                if (!ended) index.radio_found(); li_c = li.clone(); rad.list = p.add_loc.slice(0); index.track_count = rad.list.length; t.repaint(); window.SetProperty("SYSTEM.Track Count",index.track_count);
                 if (load == 2 || !part_load) {
                     var syn = rad.sync && plman.PlayingPlaylist == pl.rad && index.rem_played; if (syn) var np = plman.GetPlayingItemLocation();
                     if (syn && np.IsValid) {var affectedItems = [], pid = np.PlaylistItemIndex, pn = pl.rad; for (var i = pid + 1; i < plman.PlaylistItemCount(pn); i++) affectedItems.push(i); plman.ClearPlaylistSelection(pn); plman.SetPlaylistSelection(pn, affectedItems, true); plman.RemovePlaylistSelection(pn, false);}
@@ -1870,7 +1870,7 @@ function radio_manager() {
     }
 
     this.med_lib_radio = function(data, p_rad_source, p_rad_mode, p_rad_type, p_art_variety, p_song_hot, p_query) {
-        var a = "", i = 0, j = 0; index.reset_add_loc(); if (rad_id == 19) rad_id = 0; else rad_id++; if (li) li.Dispose(); li = fb.CreateHandleList();
+        var a = "", i = 0, j = 0; index.reset_add_loc(); if (rad_id == 19) rad_id = 0; else rad_id++; li = fb.CreateHandleList();
         finished = true; part_load = true; sim1_set = true; timer.reset(timer.sim1, timer.sim1i); timer.reset(timer.sim2, timer.sim2i); timer.reset(timer.yt, timer.yti); if (!data && p_rad_mode == 2 && (p_rad_type == 2 || p_rad_type == 4)) return on_dld_radio_tracks_done(false, "", 0, 0, true); if (!lib) return on_dld_radio_tracks_done(false, "", 0, 0, false, true);
         finished = false; part_load = false; sim1_set = false; rad_source = p_rad_source; rad_mode = p_rad_mode; rad_type = p_rad_type; art_variety = p_art_variety; if (p_song_hot) song_hot = p_song_hot; rad_query = p_query;
         switch (rad_mode) {
@@ -1919,9 +1919,9 @@ function album_manager(p_album_name_callback) {
     var bor = window.GetProperty(" Border", 25), extra_sbar_w = window.GetProperty(" Border Increase Right Margin By Scrollbar Width", false), lfm_type = ["Top Albums", "Top Tracks", "Top Songs"]; if (!p.scrollbar_show) extra_sbar_w = false;
     var alb_h = 0, alb_m_i = -1, alb_m_i_o = 0, alb_y = 0, alb_r = 0, alb_sp = 0, art_l = 0, art_m_i = -1, art_m_i_o = 0, art_r = 0, art_sp = 0, art_y = 0, ln_sp = 0, ln1_y = 0, ln2_y = 0, margin = p.scrollbar_show && !extra_sbar_w ? Math.max(p.sbar_sp + 10, bor) : bor, pc_h = 0, sel_x = 0, sel_w = 0, text_w = 0, top = bor * 0.625 + 8, tot_r = 0, tx1_w = 0, tx2_w = 0, txt_w = 0, txt1_w = 0, txt2_w = 0, type = 0;
     var bot = 0, cursor = false, cx = 0, end = 0, shift = false, htmlfile = new ActiveXObject('htmlfile'), lbtn_dn = false, lfm_width = [], mb_width = [], mb_type = ["All Releases", "Releases", "Albums", "Compilations", "Singles and EPs", "Remixes"], alb_search = false, lg = [], log = [], offset = 0, search_txt = "", shift_x = 0, start = 0, tx_w = 0, w1 = 0, w2 = 0, w3 = 0; window.DlgCode = 0x004;
-    var calc_txt = function () {var im = gdi.CreateImage(1, 1), g = im.GetGraphics(); tx_w = g.CalcTextWidth(search_txt.substr(offset), ui.font); im.ReleaseGraphics(g); im.Dispose();}
+    var calc_txt = function () {var im = gdi.CreateImage(1, 1), g = im.GetGraphics(); tx_w = g.CalcTextWidth(search_txt.substr(offset), ui.font); im.ReleaseGraphics(g); }
     var do_youtube_search = function(p_alb_id, p_artist, p_title, p_date) {plman.ActivePlaylist = pl.alb; if (ml.alb && ml.mtags_installed) plman.ClearPlaylist(plman.ActivePlaylist); var yt_search = new youtube_search(function() {yt_search.on_state_change();}, on_youtube_search_done); yt_search.Search(p_alb_id, p_artist, p_title, "", "", "", "", ml.alb && ml.mtags_installed ? "" : "&fb2k_album=" + encodeURIComponent(p_title) + (p_date ? ("&fb2k_date=" + encodeURIComponent(p_date)) : ""), "", true);}
-    var get_cursor_x = function (pos) {var im = gdi.CreateImage(1, 1), g = im.GetGraphics(), x = 0; if (pos >= offset) x = g.CalcTextWidth(search_txt.substr(offset, pos - offset), ui.font); im.ReleaseGraphics(g); im.Dispose(); return x;}
+    var get_cursor_x = function (pos) {var im = gdi.CreateImage(1, 1), g = im.GetGraphics(), x = 0; if (pos >= offset) x = g.CalcTextWidth(search_txt.substr(offset, pos - offset), ui.font); im.ReleaseGraphics(g); return x;}
     var get_mb_tracks = function(alb_id, a, alb_n) {var mb_releases = new musicbrainz_releases(function() {mb_releases.on_state_change();}, on_mb_releases_search_done); mb_releases.Search(alb_id, "", a, alb_n);}
     var get_width = function() {w_arr = ["date", "sp", "rank", "pc", "score", "lfm"]; for (var i = 0; i < w_arr.length; i++) this[w_arr[i]] = 0;}; var w = new get_width();
     var num = function(x) {if (!x) return; return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");}
@@ -1936,7 +1936,7 @@ function album_manager(p_album_name_callback) {
     this.drawcursor = function (gr) {if (alb_search && cursor && start == end && cx >= offset) {var x1 = margin + this.release_w() + get_cursor_x(cx), x2 = x1; gr.DrawLine(x1, top, x2, top + ht - 1, 1, ui.textcol);}}
     this.drawsel = function(gr) {if (start == end) return; var clamp = margin + this.release_w() + (w3 - this.release_w()); gr.DrawLine(Math.min(margin + this.release_w() + get_cursor_x(start), clamp), top + ht / 2, Math.min(margin + this.release_w() + get_cursor_x(end), clamp), top + ht / 2, ht - 1, ui.ibeamcol2);}
     this.done = function(new_artist) {if (nm[!this.mb ? this.lfm_mode : 3] == (!this.songs_mode() ? new_artist : this.artist_title)) return true; else return false}
-    this.get_cursor_pos = function (x) {var im = gdi.CreateImage(1, 1), g = im.GetGraphics(), nx = x - margin - this.release_w(), pos = 0; for (var i = offset; i < search_txt.length; i++) {pos += g.CalcTextWidth(search_txt.substr(i, 1), ui.font); if (pos >= nx + 3) break;} im.ReleaseGraphics(g); im.Dispose(); return i;}
+    this.get_cursor_pos = function (x) {var im = gdi.CreateImage(1, 1), g = im.GetGraphics(), nx = x - margin - this.release_w(), pos = 0; for (var i = offset; i < search_txt.length; i++) {pos += g.CalcTextWidth(search_txt.substr(i, 1), ui.font); if (pos >= nx + 3) break;} im.ReleaseGraphics(g); return i;}
     this.get_offset = function (gr) {var tx = gr.CalcTextWidth(search_txt.substr(offset, cx - offset), ui.font); var j = 0; while (tx >= w3 - this.release_w() && j < 500) {j++; offset++; tx = gr.CalcTextWidth(search_txt.substr(offset, cx - offset), ui.font);}}
     this.fit = function() {return [margin, top, ht];}; this.lbtn_up = function(x, y, mask) {if (start != end) timer.reset(timer.search_cursor, timer.search_cursori); lbtn_dn = false;}
     this.focus = function() {if (fb.IsPlaying && this.orig_artist != this.artist) return; if (!this.lock_artist) this.orig_artist = this.artist = name.artist(); if (!this.artist) return; this.on_playback_new_track();};
@@ -2063,7 +2063,7 @@ function album_manager(p_album_name_callback) {
         for (i = 0; i < 5; i++) type_width[i] = gb.CalcTextWidth(rel_name[i], ui.font);
         for (i = 0; i < 3; i++) lfm_width[i] = gb.CalcTextWidth(lfm_type[i], ui.font);
         for (i = 0; i < 6; i++) mb_width[i] = gb.CalcTextWidth(mb_type[i], ui.font);
-        g.ReleaseGraphics(gb); g.Dispose();
+        g.ReleaseGraphics(gb);
         txt1_w = txt_w - w.score - w.sp; txt2_w = w.score; tx1_w = txt_w - w.pc; tx2_w = txt_w - w.rank - w.sp - w.pc;
         text_w = this.mb ? txt_w - w.date - type_width[this.release_type] : !this.lfm_mode ? tx1_w : tx2_w;
         if (!this.show_similar) {txt1_w = txt_w * 2 / 3 - w.sp; txt2_w = txt_w / 3};
@@ -2399,7 +2399,7 @@ function button_manager() {
     var scroll = function() {return p.scrollbar_show && alb.show;}
     var scroll_alb = function() {return scroll() && alb_scrollbar.scrollable_lines > 0;}
     var scroll_art = function() {return scroll() && art_scrollbar.scrollable_lines > 0;}
-    var tooltip = function(n) {if (tt.text == n) return; tt.text = n; tt.activate();}
+    var tooltip = function(n) {if (tt.text == n) return; tt.text = n; tt.Activate();}
     this.create_images = function() {var alpha = [75, 192, 228], col = [ui.textcol & 0x44ffffff, ui.textcol & 0x99ffffff, ui.textcol], g, sz = arrow_symb == 0 ? Math.max(Math.round(p.but_h * 1.666667), 1) : 100, sc = sz / 100; for (j = 0; j < 3; j++) {scr[j] = gdi.CreateImage(sz, sz); g = scr[j].GetGraphics(); g.SetTextRenderingHint(3); g.SetSmoothingMode(2); if (p.scr_col) {arrow_symb == 0 ? g.FillPolygon(col[j], 1, [50 * sc, 0, 100 * sc, 76 * sc, 0, 76 * sc]) : g.DrawString(arrow_symb, gdi.Font(icon_f_name, sz, icon_f_style), col[j], 0, sz * pad, sz, sz, StringFormat(1, 1));} else {arrow_symb == 0 ? g.FillPolygon(RGBA(ui.ct, ui.ct, ui.ct, alpha[j]), 1, [50 * sc, 0, 100 * sc, 76 * sc, 0, 76 * sc]) : g.DrawString(arrow_symb, gdi.Font(icon_f_name, sz, icon_f_style), RGBA(ui.ct, ui.ct, ui.ct, alpha[j]), 0, sz * pad, sz, sz, StringFormat(1, 1));} g.SetSmoothingMode(0); scr[j].ReleaseGraphics(g);}}; this.create_images();
     this.lbtn_dn = function(x, y) {this.move(x, y); if (!this.b) return false; this.Dn = this.b;
         if (scroll()) for (j = 0; j < b3.length; j++) if (this.b == b3[j]) {if (this.btns[this.b].trace(x, y)) this.btns[this.b].down = true; this.btns[this.b].changestate("down");} this.btns[this.b].lbtn_dn(x, y); return true;}
@@ -2537,10 +2537,10 @@ function image_manager() {
     this.artist_reset = function() {this.blurCheck(); var artist_o = artistBlur; artist = name.artist(); artistBlur = artist + (!ui.blur ? "" : p.IsVideo()); var new_artist = artist && artistBlur != artist_o || !artist || covBlur && alb_id != alb_id_o; if (new_artist) {folder = p.cleanPth(p.imgArtPth); this.clear_art_cache(); if (p.cycle_art_img) a_run = 1; all_files_o_length = 0; ix = 0;}}
     this.blurCheck = function() {if (!covBlur && !this.smoothTrans) return; alb_id_o = alb_id; alb_id = !p.eval("[%album%]") ? p.eval("%album artist%%path%") : p.eval("%album artist%%album%%discnumber%%date%"); if (alb_id != alb_id_o) new_BlurAlb = true;}
     this.change = function(incr) {ix += incr; if (ix < 0) ix = this.arr.length - 1; else if (ix >= this.arr.length) ix = 0; this.artist_image();}
-    this.clear_a_rs_cache = function() {for (var i = 0; i < a_im.length; i++) {rsimgA[i] = false; if (a_im[i]) a_im[i].Dispose(); a_im = [];} for (i = 0; i < b_aim.length; i++) {if (b_aim[i]) b_aim[i].Dispose(); b_aim = [];} rsimgL[1] = false; if (f_im[1]) f_im[1].Dispose(); f_im[1] = false; if (b_fim[1]) b_fim[1].Dispose(); b_fim[1] = false;}
-    this.clear_art_cache = function() {if (artist_img) artist_img.Dispose(); for (var i = 0; i < a_img.length; i++) if (a_img[i]) a_img[i].Dispose(); a_img = []; this.arr = []; if (core_img[1]) core_img[1].Dispose(); artist_img = core_img[1] = false; this.clear_a_rs_cache();}
-    this.clear_c_rs_cache = function() {rsimgL[0] = false; if (f_im[0]) f_im[0].Dispose(); f_im[0] = false; if (b_fim[0]) b_fim[0].Dispose(); b_fim[0] = false;}
-    this.clear_cov_cache = function() {if (core_img[0]) core_img[0].Dispose(); core_img[0] = false; this.clear_c_rs_cache();}
+    this.clear_a_rs_cache = function() {for (var i = 0; i < a_im.length; i++) {rsimgA[i] = false; a_im = [];} for (i = 0; i < b_aim.length; i++) { b_aim = [];} rsimgL[1] = false; f_im[1] = false; b_fim[1] = false;}
+    this.clear_art_cache = function() { a_img = []; this.arr = []; artist_img = core_img[1] = false; this.clear_a_rs_cache();}
+    this.clear_c_rs_cache = function() {rsimgL[0] = false; f_im[0] = false; b_fim[0] = false;}
+    this.clear_cov_cache = function() { core_img[0] = false; this.clear_c_rs_cache();}
     var exclArr = [6473, 6500, 24104, 35875, 37235, 68626, 86884, 92172];
     this.focus = function() {r++; if (r == 1) {this.on_playback_new_track(); timer.reset(timer.focus, timer.focusi); timer.focus = window.SetTimeout(function() {r = 0; timer.focus = false;}, 250); return;} timer.reset(timer.focus, timer.focusi); timer.focus = window.SetTimeout(function() {img.on_playback_new_track(); r = 0; timer.focus = false;}, 250);}
     this.get_img_fallback = function() {if (!this.get) return; if (p.video_mode && !alb.show) p.set_video(); if (this.artistart && p.cycle_art_img) {timer.image(); this.artist_reset(); update = 0; this.grab_a_img();} else this.grab_f_img(); this.get = false;}
@@ -2552,7 +2552,7 @@ function image_manager() {
     this.paint = function() {if (!this.smoothTrans || alb.show) {alpha = 255; t.paint(); return;} imgID_o = imgID; imgID = this.artistart && this.arr.length && p.cycle_art_img ? this.arr[ix] : image_path_o; if (imgID_o != imgID && imgID_o) alpha = transLevel; else alpha = 255; timer.reset(timer.transition, timer.transitioni); timer.transition = window.SetInterval(function() {alpha = Math.min(alpha *= transIncr, 255); t.paint(); if (alpha == 255) timer.reset(timer.transition, timer.transitioni);}, 12);}
     var refl_mask = false, reflSetup = window.GetProperty(" Image Reflection Setting (0-100)", "Strength,14.5,Size,100,Gradient,10").split(",");
     var reflAlpha = parseFloat(reflSetup[1]), reflSlope = parseFloat(reflSetup[5]), reflSz = parseFloat(reflSetup[3]); if (isNaN(reflAlpha)) reflAlpha = 14.5; reflAlpha =  255 * reflAlpha / 100; reflAlpha = Math.max(Math.min(reflAlpha, 255), 0);  if (isNaN(reflSlope)) reflSlope = 10; reflSlope /= 10; reflSlope = Math.max(Math.min(reflSlope - 1, 9), -1); if (isNaN(reflSz)) reflSz = 100; reflSz /= 100; reflSz = Math.max(Math.min(reflSz, 1), 0.1);
-    this.setReflStrength = function(n) {reflAlpha += n; reflAlpha = Math.max(Math.min(reflAlpha, 255), 0); window.SetProperty(" Image Reflection Setting (0-100)", "Strength," + Math.round(reflAlpha / 2.55) + ",Size," + reflSetup[3] + ",Gradient," + reflSetup[5]); if (refl_mask) refl_mask.Dispose(); refl_mask = false; bp = true; if (this.artistart && p.cycle_art_img) this.clear_a_rs_cache(); if (this.artistart) this.grab_a_img(); else this.grab_f_img();}
+    this.setReflStrength = function(n) {reflAlpha += n; reflAlpha = Math.max(Math.min(reflAlpha, 255), 0); window.SetProperty(" Image Reflection Setting (0-100)", "Strength," + Math.round(reflAlpha / 2.55) + ",Size," + reflSetup[3] + ",Gradient," + reflSetup[5]); refl_mask = false; bp = true; if (this.artistart && p.cycle_art_img) this.clear_a_rs_cache(); if (this.artistart) this.grab_a_img(); else this.grab_f_img();}
     var shuffle = function(ary) {for (var i = ary.length - 1; i >= 0; i--) {var randomIndex = Math.floor(Math.random() * (i + 1)), itemAtIndex = ary[randomIndex]; ary[randomIndex] = ary[i]; ary[i] = itemAtIndex;} return ary;}
     var uniq = function(a) {var j = 0, len = a.length, out = [], seen = {}; for (var i = 0; i < len; i++) {var item = a[i]; if (seen[item] !== 1) {seen[item] = 1; out[j++] = item;}} return out;}
     this.update = function() {update = 1; if (t.block()) return; this.grab_a_img(); update = 0;}
@@ -2587,7 +2587,7 @@ function image_manager() {
         var all_files = utils.Glob(folder + "*").toArray();
         if (all_files.length == all_files_o_length) return;
         var newArr = false;
-        var j = 0; if (!this.arr.length) {newArr = true; for (j = 0; j < a_im.length; j++) {rsimgA[j] = false; if (a_im[j]) a_im[j].Dispose(); a_im = [];} for (j = 0; j < a_img.length; j++)  if (a_img[j]) a_img[j].Dispose(); a_img = [];}
+        var j = 0; if (!this.arr.length) {newArr = true; for (j = 0; j < a_im.length; j++) {rsimgA[j] = false; a_im = [];} a_img = [];}
         all_files_o_length = all_files.length;
         var incl_lge = 0; // 0 & 1 - exclude & include artist images > 8 MB
         for (j = 0; j < all_files.length; j++) {
@@ -2633,7 +2633,7 @@ function image_manager() {
                     if (this.border > 1 && !this.reflection) gb.DrawImage(sh_img, 0, 0, Math.floor(tw + bor_w2 + imgb), Math.floor(th + bor_w2 + imgb), 0, 0, sh_img.Width, sh_img.Height);
                     if (this.border == 1 || this.border == 3) gb.FillSolidRect(0, 0, tw + bor_w2, th + bor_w2, RGB(255, 255, 255));
                     image = image.Resize(tw, th, 2); gb.DrawImage(image, bor_w1, bor_w1, image.Width, image.Height, 0, 0, image.Width, image.Height);
-                    bor_img.ReleaseGraphics(gb); if (sh_img) sh_img.Dispose(); sh_img = false;
+                    bor_img.ReleaseGraphics(gb); sh_img = false;
                     if (this.reflection) {bor_img = this.refl_img(bor_img, i, tx, ty, bor_img.Width, bor_img.Height, o_sz); tx = o_sz[i].x; ty = o_sz[i].y;}
                     if (ui.blur && bor_img ) {
                         if (!this.smoothTrans) bor_img = this.blur_img(p_im[i], bor_img, tx, ty, bor_img.Width, bor_img.Height);
@@ -2646,7 +2646,7 @@ function image_manager() {
     this.blur_img = function(image, im, x, y, w, h) {
         if (!image || !im || !p.w || !p.h) return;
         if (covBlur && this.artistart && new_BlurAlb) {
-            if (f_blur) f_blur.Dispose(); f_blur = false;
+            f_blur = false;
             var handle = fb.IsPlaying && !p.focus ? fb.GetNowPlaying() : fb.GetFocusItem(); if (handle) f_blur = utils.GetAlbumArtV2(handle, 0);
             if (!f_blur) f_blur = this.noimg[0].Clone(0, 0, this.noimg[0].Width, this.noimg[0].Height); new_BlurAlb = false; if (f_blur && !blurAutofill) f_blur = f_blur.Resize(p.w, p.h);
         }
@@ -2668,7 +2668,7 @@ function image_manager() {
     this.refl_img = function(image, i, x, y, w, h, o_sz) {
         if (!refl_mask) {refl_mask = gdi.CreateImage(500, 500), gb = refl_mask.GetGraphics(), km = reflSlope != -1 ? reflAlpha / 500 + reflSlope  / 10 : 0; for (var k = 0; k < 500; k++) {var c = 255 - Math.min(Math.max(reflAlpha - k * km, 0), 255); gb.FillSolidRect(0, k, 500, 1, RGB(c, c, c));} refl_mask.ReleaseGraphics(gb);}
         var ref_sz = Math.round(Math.min(p.h - y - h, image.Height * reflSz)); if (ref_sz <= 0) return image; var refl = image.Clone(0, image.Height - ref_sz, image.Width, ref_sz), r_mask = refl_mask.Clone(0, 0, refl_mask.Width, refl_mask.Height); if (refl) {r_mask = r_mask.Resize(refl.Width, refl.Height); refl.RotateFlip(6); refl.ApplyMask(r_mask);} var reflImg = gdi.CreateImage(w, h + ref_sz), gb = reflImg.GetGraphics(); gb.DrawImage(image, 0, 0, w, h, 0, 0, w, h); gb.DrawImage(refl, 0, h, w, h, 0, 0, w, h); o_sz[i].h = h + ref_sz; reflImg.ReleaseGraphics(gb);
-        if (r_mask) r_mask.Dispose(); if (refl) refl.Dispose(); return reflImg;
+        return reflImg;
     }
 
     this.draw = function(gr) {
@@ -2810,7 +2810,7 @@ function menu_object() {
 
     this.AlbumTypeMenu = function(Menu, StartIndex) {var Index = StartIndex; for (var i = 0; i < (ml.mtags_installed ? lib_n.length : 1); i++) {this.NewMenuItem(Index, "Album", i + 1); Menu.AppendMenuItem(i < 2 ? MF_GRAYED : ml.mtags_installed ? MF_STRING : MF_GRAYED, Index, lib_n[i]); Menu.CheckMenuItem(Index++, i > 1 && ml.alb == i - 1);} return Index;}
     this.ArtistTypeMenu = function(Menu, StartIndex) {var Index = StartIndex, n = ["Favour Higher Similarity (Recommended)", "Random Pick"]; for (var i = 0; i < n.length; i++) {this.NewMenuItem(Index, "Artist", i + 1); Menu.AppendMenuItem(MF_STRING, Index, n[i]); Index++;} Menu.CheckMenuRadioItem(StartIndex, StartIndex + 1, StartIndex + index.random_artist); return Index;}
-    this.button = function(x, y) {var menu = window.CreatePopupMenu(), idx, Index = 1; Index = this.MoreMenu(menu, Index); idx = menu.TrackPopupMenu(x, y); if (idx >= 1 && idx <= Index) {var i = MenuMap[idx].value; switch (i) {case 1: alb.toggle("show_live"); break; case 2: alb.toggle("mb_sort"); break; case 3: alb.toggle("lfm_sort"); break; case 4: alb.toggle("more"); alb.more && alb.set_similar(); break; case 5: window.Reload(); break;}} menu.Dispose();}
+    this.button = function(x, y) {var menu = window.CreatePopupMenu(), idx, Index = 1; Index = this.MoreMenu(menu, Index); idx = menu.TrackPopupMenu(x, y); if (idx >= 1 && idx <= Index) {var i = MenuMap[idx].value; switch (i) {case 1: alb.toggle("show_live"); break; case 2: alb.toggle("mb_sort"); break; case 3: alb.toggle("lfm_sort"); break; case 4: alb.toggle("more"); alb.more && alb.set_similar(); break; case 5: window.Reload(); break;}} }
     this.CancelTypeMenu = function(Menu, StartIndex) {var Index = StartIndex; this.NewMenuItem(Index, "Cancel",1); Menu.AppendMenuItem(MF_STRING, Index, "Cancel iSelect Search"); Menu.AppendMenuItem(MF_SEPARATOR, 0, 0); Index++; return Index;}
     this.ChooseArtistTypeMenu = function(Menu, StartIndex) {var Index = StartIndex; this.NewMenuItem(Index, "Search", 1); Menu.AppendMenuItem(MF_STRING, Index, "Choose"); Menu.AppendMenuItem(MF_SEPARATOR, 0, 0); Index++; return Index;}
     this.DefaultMenu = function(Menu, StartIndex) {var Index = StartIndex, n = ["Panel Properties", "Configure..."]; Menu.AppendMenuItem(MF_SEPARATOR, 0, 0); for (var i = 0; i < 2; i++) {this.NewMenuItem(Index, "Default", i + 1); if (!i || i && utils.IsKeyPressed(0x10)) Menu.AppendMenuItem(MF_STRING, Index++, n[i]);} return Index;}
@@ -2833,7 +2833,7 @@ function menu_object() {
     this.RadioModeMenu = function(Menu, StartIndex) {if (!p.use_saved || !p.ec_saved) {var Index = StartIndex; for (var i = 0; i < 4; i++) {this.NewMenuItem(Index, "Mode", i + 1); Menu.AppendMenuItem(MF_STRING, Index, i < 3 ? index.n[i + 1] : index.n[2] + " / Save Soft Playlists"); Index++; if (i == 2) Menu.AppendMenuItem(MF_SEPARATOR, 0, 0);} Menu.CheckMenuRadioItem(StartIndex, StartIndex + 3, StartIndex + (index.mode == 1 && !index.softplaylist ? 0 : index.mode == 2 && !index.softplaylist ? 1 : index.mode == 3 && !index.softplaylist ? 2 : index.softplaylist ? 3 : -1)); return Index;} else {var Index = StartIndex; for (var i = 0; i < 5; i++) {this.NewMenuItem(Index, "Mode", i + 1); Menu.AppendMenuItem(MF_STRING, Index, i < 4 ? index.n[i] : index.n[2] + " / Save Soft Playlists"); Index++; if (i == 3) Menu.AppendMenuItem(MF_SEPARATOR, 0, 0);} Menu.CheckMenuRadioItem(StartIndex, StartIndex + 4, StartIndex + (!index.mode && !index.softplaylist ? 0 : index.mode == 1 && !index.softplaylist ? 1 : index.mode == 2 && !index.softplaylist ? 2 : index.mode == 3 && !index.softplaylist ? 3 : index.softplaylist ? 4 : -1)); return Index;}}
     this.RadioTopTagsMenu = function(Menu, StartIndex) {var Index = StartIndex; this.NewMenuItem(Index, "TopTags", 1); Menu.AppendMenuItem(MF_STRING, Index, index.mode != 3 ? "Open Tag Search..." : "Open Query Search..."); Menu.AppendMenuItem(MF_SEPARATOR, 0, 0); Index++; var topArr = index.mode != 3 ? t.TopTags : t.TopGenre; for (var i = 0; i <topArr.length; i++) {this.NewMenuItem(Index, "TopTags", i + 2); Menu.AppendMenuItem(MF_STRING, Index, topArr[i]); Index++;} return Index;}
     this.search = function(Menu, StartIndex, start, end, paste) {var Index = StartIndex, n = ["Copy", "Cut", "Paste"]; for (var i = 0; i < n.length; i++) {this.NewMenuItem(Index, "Search", i + 1); Menu.AppendMenuItem(start == end && i < 2 || i == 2 && !paste ? MF_GRAYED : MF_STRING, Index, n[i]); Index++; if (i == 1) Menu.AppendMenuItem(MF_SEPARATOR, 0, 0);} return Index;}
-    this.search_menu = function(x, y, start, end, paste) {var menu = window.CreatePopupMenu(), idx, Index = 1; Index = this.search(menu, Index, start, end, paste); idx = menu.TrackPopupMenu(x, y); if (idx >= 1 && idx <= Index) {var i = MenuMap[idx].value; switch (i) {case 1: alb.on_char(v.copy); break; case 2: alb.on_char(v.cut); break; case 3: alb.on_char(v.paste, true); break;}} menu.Dispose();}
+    this.search_menu = function(x, y, start, end, paste) {var menu = window.CreatePopupMenu(), idx, Index = 1; Index = this.search(menu, Index, start, end, paste); idx = menu.TrackPopupMenu(x, y); if (idx >= 1 && idx <= Index) {var i = MenuMap[idx].value; switch (i) {case 1: alb.on_char(v.copy); break; case 2: alb.on_char(v.cut); break; case 3: alb.on_char(v.paste, true); break;}} }
     this.SearchMenu1 = function(Menu, StartIndex) {var Index = StartIndex; Menu.AppendMenuItem(MF_SEPARATOR, 0, 0); this.NewMenuItem(Index, "New", 5); Menu.AppendMenuItem(MF_STRING, Index, "Search for Artist..."); Index++; return Index;}
     this.SearchMenu2 = function(Menu, StartIndex) {var Index = StartIndex; this.NewMenuItem(Index, "New", 6); Menu.AppendMenuItem(MF_STRING, Index, "Search for Genre..."); Index++; return Index;}
     this.SearchMenu3 = function(Menu, StartIndex) {var Index = StartIndex, n = ["Search for Similar Artists...", "Search for Similar Songs..."]; for (var i = 0; i < 2; i++) {this.NewMenuItem(Index, "New", i + 7); Menu.AppendMenuItem(index.mode == 3 && i == 1 ? MF_GRAYED : MF_STRING, Index, n[i]); Index++;} return Index;}
@@ -3035,7 +3035,6 @@ function menu_object() {
                 case "Default": switch (i) {case 1: window.ShowProperties(); break; case 2: window.ShowConfigure(); break;} break;
             }
         }
-        AlbumMenu.Dispose(); ArtistMenu.Dispose(); BlackMenu.Dispose(); CancelMenu.Dispose(); FavMenu.Dispose(); GenreMenu.Dispose(); HotMenu.Dispose(); ImageMenu.Dispose(); LibFilterMenu.Dispose(); LibOptMenu.Dispose(); LibMenu.Dispose(); LibraryMenu.Dispose(); ManageMenu.Dispose(); MoreMenu.Dispose(); ModeMenu.Dispose(); NewMenu.Dispose(); NowplayingMenu.Dispose(); PlaylistsMenu.Dispose(); RadFilterMenu.Dispose(); RadioOptMenu.Dispose(); RadLibMenu.Dispose(); SongMenu.Dispose(); ThemeMenu.Dispose(); TopLibMenu.Dispose(); TopTagsMenu.Dispose(); TrackListMenu.Dispose(); TracksMenu.Dispose(); VarietyMenu.Dispose(); menu.Dispose(); for (var j in pl_me) pl_me[j].Dispose();
     }
 }
 var men = new menu_object();

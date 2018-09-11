@@ -121,17 +121,7 @@ Context.Menu = function (text_arg, optional_args) {
     };
 
     this.dispose = function () {
-        this.cm.Dispose();
         this.cm = null;
-
-        var items = this.menu_items;
-        for (var i = 0; i < items.length; ++i) {
-            if (items[i].dispose) {
-                items[i].dispose();
-            }
-            items[i] = null;
-        }
-
         this.menu_items = null;
     };
 
@@ -326,7 +316,6 @@ Context.FoobarMenu = function (metadb_handles_arg) {
     Context.BaseObject.call(this, '');
 
     this.dispose = function() {
-        this.cm.Dispose();
         this.cm = null;
     };
 

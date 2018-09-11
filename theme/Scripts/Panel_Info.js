@@ -696,11 +696,9 @@ function Row(x, y, w, h, metadb_arg, tag_name_arg, value_text_arg) {
     this.draw = function (gr) {
         if (!this.is_pressed && !this.hover_alpha) {
             if (row_normal_image) {
-                row_normal_image.Dispose();
                 row_normal_image = null;
             }
             if (row_pressed_image) {
-                row_pressed_image.Dispose();
                 row_pressed_image = null;
             }
 
@@ -813,11 +811,9 @@ function Row(x, y, w, h, metadb_arg, tag_name_arg, value_text_arg) {
 
     function clear_image() {
         if (row_normal_image) {
-            row_normal_image.Dispose();
             row_normal_image = null;
         }
         if (row_pressed_image) {
-            row_pressed_image.Dispose();
             row_pressed_image = null;
         }
     }
