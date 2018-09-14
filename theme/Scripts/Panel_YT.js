@@ -161,7 +161,7 @@ function panel_operations() {
     this.buildFullPth = function(pth) {var tmpFileLoc = "", pattern = /(.*?)\\/gm; while (result = pattern.exec(pth)) {tmpFileLoc = tmpFileLoc.concat(result[0]); try {this.create(tmpFileLoc);} catch (e) {}}}
     this.cleanPth = function(pth) {pth = pth.trim().replace(/\//g, "\\"); if (pth.toLowerCase().indexOf("%profile%") != -1) {var fbPth = fb.ProfilePath.replace(/'/g, "''").replace(/(\(|\)|\[|\]|%|,)/g, "'$1'"); if (fbPth.indexOf("$") != -1) {var fbPthSplit = fbPth.split("$"); fbPth = fbPthSplit.join("'$$'");} pth = pth.replace(/%profile%(\\|)/gi, fbPth);} pth = this.eval(pth); if (pth) pth += "\\"; else return ""; var c_pos = pth.indexOf(":"); pth = pth.replace(/[\/|:]/g, "-").replace(/\*/g, "x").replace(/"/g, "''").replace(/[<>]/g, "_").replace(/\?/g, "").replace(/\\\./g, "\\_").replace(/\.+\\/, "\\").replace(/\s*\\\s*/g, "\\"); if(c_pos < 3 && c_pos != -1) pth = replaceAt(pth, c_pos, ":"); return pth.trim();}
     this.img_exp = function(img_folder, exp) {var f = img_folder + "update.txt"; if (!p.file(f)) return true; try {var last_upd = Date.parse(this.fs.GetFile(f).DateLastModified); return (Date.now() - last_upd > exp);} catch (e) {return true;}}
-    this.InputBox = function(prompt, title, msg) {var vb = new ActiveXObject("ScriptControl"); vb.Language = "VBScript"; var tmp = vb.eval('InputBox(' + [this.box(prompt), this.box(title), this.box(msg)].join(",") + ')'); if (typeof tmp == "undefined") return; if (tmp.length == 254) fb.ShowPopupMessage("Your entry is too long and will be truncated.\n\nEntries are limited to 254 characters.", "YouTube Track Manager"); return tmp.trim();}
+    this.InputBox = function(prompt, title, msg) {var vb = new ActiveXObject("ScriptControl"); vb.Language = "VBScript"; var tmp = vb.Eval('InputBox(' + [this.box(prompt), this.box(title), this.box(msg)].join(",") + ')'); if (typeof tmp == "undefined") return; if (tmp.length == 254) fb.ShowPopupMessage("Your entry is too long and will be truncated.\n\nEntries are limited to 254 characters.", "YouTube Track Manager"); return tmp.trim();}
     this.IsVideo = function() {if (!fb.IsPlaying || fb.PlaybackLength <= 0) return false; var yt_video = this.eval("%path%").indexOf(".tags") == -1 ? this.eval("%path%").replace(/[\.\/\\]/g, "") : this.eval("$info(@REFERENCED_FILE)").replace(/[\.\/\\]/g, ""); return yt_video.indexOf("youtubecomwatch") != -1 ? true : false;}
     this.h = 0; this.loading = []; this.loc_add = []; this.loc_ix = 0; this.m_x = 0; this.m_y = 0; this.mtags = []; for (var i = 0; i < 20; i++) {this.loading[i] = []; this.loc_add[i] = []; this.mtags[i] = [];}; this.w = 0;
     this.json_parse = function(text, prop, test) {if (test) {test = test.split("|"); for (var i in test) {if (text.indexOf(test[i]) != -1) continue; else return false;}} try {var data = JSON.parse(text);} catch (e) {return false;} if (prop) {prop = prop.split("."); for (var i in prop) {if (data === null || typeof data[prop[i]] === 'undefined') return false; data = data[prop[i]];}} return data;}
@@ -298,7 +298,7 @@ function library_manager() {
     var load_lib_sel = function(orig_artist, p_title, path, id, p_lfm_pc) {if (!obj_contains(p.add_loc, id)) p.add_loc.push({"artist":orig_artist,"title":p_title,"path":path,"id":id,"playcount":p_lfm_pc});}
     var obj_contains = function(arr, p_id) {var i = arr.length; while (i--) if (arr[i].id == p_id) return true; return false;}
     this.alb_playlist = function(a_n) {if (!a_n) return; var n = false, d_l = fb.CreateHandleList(); try {d_l = fb.GetQueryItems(this.get_lib_items(), name.q_a + " IS " + a_n)} catch (e) {}; if (d_l.Count) n = true; if (!n) {var d_a = fb.CreateHandleList(); try {d_a = fb.GetQueryItems(db_alb, name.q_a + " IS " + a_n)} catch (e) {}; if (d_a.Count) n = true;} return n;}
-    this.get_album_artist = function() {var pn = plIX(pl.alb_yttm); if (pn == -1 || !plman.PlaylistItemCount(pn)) return; var db_aa = plman.GetPlaylistItems(pn); this.albumartist = tf.a0.EvalWithMetadb(db_aa.Item(0)); }
+    this.get_album_artist = function() {var pn = plIX(pl.alb_yttm); if (pn == -1 || !plman.PlaylistItemCount(pn)) return; var db_aa = plman.GetPlaylistItems(pn); this.albumartist = tf.a0.EvalWithMetadb(db_aa[0]); }
     this.get_album_metadb = function() { db_alb = plman.GetPlaylistItems(pl.alb_orig);}
     this.get_lib_items = function() {if (!this.update) return db_lib; this.update = false;  db_lib = fb.GetLibraryItems(); if (this.filterID) try {db_lib = fb.GetQueryItems(db_lib, this.filter[this.filterID]);} catch (e) {}; return db_lib;}
     this.in_library_art = function(p_artist) {if (!p_artist) return false; var art_array = this.get_lib_artists(), n = false; for (var i = 0; i < art_array.length; i++) {if (art_array[i] == p_artist.toLowerCase()) {n = true; break;}} return n;}
@@ -306,7 +306,7 @@ function library_manager() {
     var remove_playlist = function(name) {var i = plman.PlaylistCount; while (i--) if (plman.GetPlaylistName(i).indexOf(name) != -1) plman.RemovePlaylist(i);};
 
     this.get_lib_artists = function() {
-        if (!this.upd) return art_arr; art_arr = []; var art_o = "", db_artists = this.get_lib_items().Clone(); db_artists.OrderByFormat(tf.a0, 0); var art = tf.a0.EvalWithMetadbs(db_artists).toArray();
+        if (!this.upd) return art_arr; art_arr = []; var art_o = "", db_artists = this.get_lib_items().Clone(); db_artists.OrderByFormat(tf.a0, 0); var art = tf.a0.EvalWithMetadbs(db_artists);
         for (var j = 0; j < db_artists.Count; j++) {if (db_artists.Item(j).Path.slice(-7).toLowerCase() == "!!.tags" || db_artists.Item(j).Path.slice(-4).toLowerCase() == ".cue") continue; art[j] = art[j].toLowerCase(); if (art[j] && art_o != art[j]) art_arr.push(art[j]); art_o = art[j];}
         this.upd = false;  return art_arr;
     }
@@ -344,7 +344,7 @@ function library_manager() {
 
     this.get_lib_sel = function(li) {
         var i = 0, nm_o = "#get_node#", pth, total = li.Count; li.OrderByFormat(tf.r, 1); li.OrderByFormat(tf.t, 1); if (!ml.sort_rand) li.OrderByFormat(ml.item_sort, ml.dir); li.OrderByFormat(tf.a, 1); var total = li.Count; this.sel = [];
-        var artists = tf.a0.EvalWithMetadbs(li).toArray(), titles = tf.t0.EvalWithMetadbs(li).toArray();
+        var artists = tf.a0.EvalWithMetadbs(li), titles = tf.t0.EvalWithMetadbs(li);
         for (var l = 0; l < total; l++) {artists[l] = artists[l].toUpperCase();
             if (artists[l] != nm_o) {nm_o = artists[l]; this.sel[i] = {artist:artists[l], item:[]}; if (li.Item(l).Path.slice(-5) == ".tags") {pth = tf.i.EvalWithMetadb(li.Item(l)); if (pth.indexOf("file://") == -1 || pth.slice(-5) == ".tags") pth = ""; else pth = pth.replace("file://", "")} else pth = li.Item(l).Path; if (pth.length) this.sel[i].item.push({title:titles[l].strip(), path:pth, id:l}); i++;}
             else {if (li.Item(l).Path.slice(-5) == ".tags") {pth = tf.i.EvalWithMetadb(li.Item(l)); if (pth.indexOf("file://") == -1 || pth.slice(-5) == ".tags") pth = ""; else pth = pth.replace("file://", "")} else pth = li.Item(l).Path; if (pth.length) this.sel[i - 1].item.push({title:titles[l].strip(),path:pth, id:l});}}
@@ -361,7 +361,7 @@ function library_manager() {
 
     this.in_library_alb = function(p_alb_id, p_artist, p_title, p_album, p_date, i, p_upd) {
         if (!p_title) return false; n[i] = 0; p2[i] = ""; var search_title= p_title, title = p_title, type_arr = ["", "YouTube Track", "Prefer Library Track", "Library Track"]; p_title = p_title.strip();
-        var titles = tf.t0.EvalWithMetadbs(this.art_ed).toArray(), titles_tags = tf.t0.EvalWithMetadbs(this.art_ed_tags).toArray();
+        var titles = tf.t0.EvalWithMetadbs(this.art_ed), titles_tags = tf.t0.EvalWithMetadbs(this.art_ed_tags);
         for (var k = 0; k < this.art_ed.Count; k++) if (titles[k].strip() == p_title) {p2[i] = this.art_ed.Item(k).Path; n[i] = 1; break;}
         if (!n[i]) for (k = 0; k < this.art_ed_tags.Count; k++) if (titles_tags[k].strip() == p_title) {p2[i] = tf.i.EvalWithMetadb(this.art_ed_tags.Item(k));
             if (p2[i].indexOf("file://") != -1 && p2[i].slice(-5) != ".tags") {p2[i] = p2[i].replace("file://", ""); n[i] = 2; break;}}
@@ -415,7 +415,7 @@ function youtube_search(state_callback, on_search_done_callback) {
         if (this.xmlhttp != null && this.func != null) if (this.xmlhttp.readyState == 4) {
             window.ClearTimeout(this.ie_timer); this.ie_timer = false;
             if (this.xmlhttp.status == 200) this.func();
-            else {this.Null(); p.trace("youtube N/A: " + this.xmlhttp.responsetext || "Status error: " + this.xmlhttp.status);}
+            else {this.Null(); p.trace("youtube N/A: " + this.xmlhttp.responseText || "Status error: " + this.xmlhttp.status);}
         }
     }
 
@@ -432,7 +432,7 @@ function youtube_search(state_callback, on_search_done_callback) {
     }
 
     this.Analyse = function() {
-        var data = p.json_parse(this.xmlhttp.responsetext, "items"), i = 0, url = "";
+        var data = p.json_parse(this.xmlhttp.responseText, "items"), i = 0, url = "";
         if (data && !get_length) {for (i = 0; i < data.length; i++) {if (data[i].id && data[i].id.videoId) {title.push(data[i].snippet.title); link.push(data[i].id.videoId); if (yt_filt || index.yt_pref) {var d = data[i].snippet.description; description.push(d ? d : "");} if (index.yt_pref) {var ct = data[i].snippet.channelTitle; channelTitle.push(ct ? ct : "");}}}; get_length = true; return this.Search();} var v_length = 0;
         if (data && get_length) {
             for (i = 0; i < data.length; i++) {length[i] = secs(data[i].contentDetails.duration); if (!length[i]) length[i] = ""; link[i] = "v=" + link[i];}
@@ -474,7 +474,7 @@ function youtube_video_available(state_callback, on_search_done_callback) {
     this.on_state_change = function() {
         if (this.xmlhttp != null && this.func != null) if (this.xmlhttp.readyState == 4) {
             if (this.xmlhttp.status == 200) this.func();
-            else {p.trace("youtube N/A: " + this.xmlhttp.responsetext || "Status error: " + this.xmlhttp.status);}
+            else {p.trace("youtube N/A: " + this.xmlhttp.responseText || "Status error: " + this.xmlhttp.status);}
         }
     }
 
@@ -485,7 +485,7 @@ function youtube_video_available(state_callback, on_search_done_callback) {
         this.func = this.Analyse; this.xmlhttp.open("GET", URL); this.xmlhttp.onreadystatechange = this.ready_callback; this.xmlhttp.send();
     }
 
-    this.Analyse = function() {this.on_search_done_callback(alb_id, artist, title, i, done, full_alb, fn, type, na(this.xmlhttp.responsetext));}
+    this.Analyse = function() {this.on_search_done_callback(alb_id, artist, title, i, done, full_alb, fn, type, na(this.xmlhttp.responseText));}
 }
 
 function check_mtags() {
@@ -607,7 +607,7 @@ function lfm_similar_artists(state_callback, on_search_done_callback) {
         if (this.xmlhttp != null && this.func != null) if (this.xmlhttp.readyState == 4) {
             window.ClearTimeout(this.ie_timer); this.ie_timer = false;
             if (this.xmlhttp.status == 200) this.func();
-            else {if (art_variety && cache) {cache = false; if (p.file(fln)) lfm_cache_file = true; return this.Search();} this.on_search_done_callback(""); if (art_variety && rad_mode > 1) rad.med_lib_radio("", source, rad_mode, rad_type, art_variety); p.trace("last.fm similar artists N/A: " + this.xmlhttp.responsetext || "Status error: " + this.xmlhttp.status);}
+            else {if (art_variety && cache) {cache = false; if (p.file(fln)) lfm_cache_file = true; return this.Search();} this.on_search_done_callback(""); if (art_variety && rad_mode > 1) rad.med_lib_radio("", source, rad_mode, rad_type, art_variety); p.trace("last.fm similar artists N/A: " + this.xmlhttp.responseText || "Status error: " + this.xmlhttp.status);}
         }
     }
 
@@ -635,7 +635,7 @@ function lfm_similar_artists(state_callback, on_search_done_callback) {
     }
 
     this.Analyse = function() {
-        var data = rad_type != 4 ? p.json_parse(this.xmlhttp.responsetext, "similarartists.artist", "name\":") : this.xmlhttp.responsetext;
+        var data = rad_type != 4 ? p.json_parse(this.xmlhttp.responseText, "similarartists.artist", "name\":") : this.xmlhttp.responseText;
         if (cache && (!data)) {cache = false; if (art_variety && p.file(fln)) lfm_cache_file = true; return this.Search();}
         if (data) {
             if (rad_type == 4) {
@@ -661,7 +661,7 @@ function lfm_radio_tracks_search(state_callback, on_search_done_callback) {
         if (this.xmlhttp != null && this.func != null) if (this.xmlhttp.readyState == 4) {
             window.ClearTimeout(this.ie_timer); this.ie_timer = false;
             if (this.xmlhttp.status == 200) this.func();
-            else if (cache) {cache = false; if (p.file(fn)) lfm_cache_f = true; if (p.file(fnc)) lfm_cache_c = true; return this.Search();} else if (rad_type != 2 || rad_mode == 2) {this.on_search_done_callback("", "", ix, done, top50, pn, rad_mode, rad_type); p.trace("last.fm top tracks N/A: " + this.xmlhttp.responsetext || "Status error: " + this.xmlhttp.status);}
+            else if (cache) {cache = false; if (p.file(fn)) lfm_cache_f = true; if (p.file(fnc)) lfm_cache_c = true; return this.Search();} else if (rad_type != 2 || rad_mode == 2) {this.on_search_done_callback("", "", ix, done, top50, pn, rad_mode, rad_type); p.trace("last.fm top tracks N/A: " + this.xmlhttp.responseText || "Status error: " + this.xmlhttp.status);}
         }
     }
 
@@ -724,14 +724,14 @@ function lfm_radio_tracks_search(state_callback, on_search_done_callback) {
     }
 
     this.Analyse = function() {
-        var new_t = this.xmlhttp.responsetext, data = false, items = 0; list = [];
+        var new_t = this.xmlhttp.responseText, data = false, items = 0; list = [];
         switch (rad_type) {
             case 3:
                 if (top50 != 3) data = p.json_parse(new_t, "similartracks.track", "name\":");
-                else {var doc = new ActiveXObject("htmlfile"); doc.open();var div = doc.createElement("div"); div.innerHTML = this.xmlhttp.responsetext; var data = div.getElementsByTagName("td");}
+                else {var doc = new ActiveXObject("htmlfile"); doc.open();var div = doc.createElement("div"); div.innerHTML = this.xmlhttp.responseText; var data = div.getElementsByTagName("td");}
                 break;
             default:
-                if (curr_pop) {var doc = new ActiveXObject("htmlfile"); doc.open(); var div = doc.createElement("div"); div.innerHTML = this.xmlhttp.responsetext; var data = div.getElementsByTagName("a"), span = div.getElementsByTagName("span");}
+                if (curr_pop) {var doc = new ActiveXObject("htmlfile"); doc.open(); var div = doc.createElement("div"); div.innerHTML = this.xmlhttp.responseText; var data = div.getElementsByTagName("a"), span = div.getElementsByTagName("span");}
                 else if (rad_type != 1) data = p.json_parse(new_t, "toptracks.track", "name\":"); else data = p.json_parse(new_t, "tracks.track", "name\":");
                 break;
         }
@@ -783,7 +783,7 @@ function lfm_alb_cov(state_callback) {
         if (this.xmlhttp != null && this.func != null) if (this.xmlhttp.readyState == 4) {
             window.ClearTimeout(this.ie_timer); this.ie_timer = false;
             if (this.xmlhttp.status == 200) this.func();
-            else {p.trace("last.fm album cover N/A: " + this.xmlhttp.responsetext || "Status error: " + this.xmlhttp.status);}
+            else {p.trace("last.fm album cover N/A: " + this.xmlhttp.responseText || "Status error: " + this.xmlhttp.status);}
         }
     }
 
@@ -798,7 +798,7 @@ function lfm_alb_cov(state_callback) {
     }
 
     this.Analyse = function() {
-        var data = p.json_parse(this.xmlhttp.responsetext, "album.image", "name\":"); if (!data || data.length < 5) return p.trace("last.fm album cover N/A");
+        var data = p.json_parse(this.xmlhttp.responseText, "album.image", "name\":"); if (!data || data.length < 5) return p.trace("last.fm album cover N/A");
         var pth = data[4]["#text"]; if (pth) {var pthSplit = pth.split("/"); pthSplit.splice(pthSplit.length - 2, 1); pth = pthSplit.join("/");} else return p.trace("last.fm album cover N/A");
         p.run("cscript //nologo \"" + fb.ProfilePath + "yttm\\foo_lastfm_img.vbs\" \"" + pth + "\" \"" + fna + "cover" + pth.slice(-4) + "\"", 0);
     }
@@ -815,7 +815,7 @@ function musicbrainz_releases(state_callback, on_search_done_callback) {
             if (this.xmlhttp.status == 200) this.func();
             else if (server && this.xmlhttp.status == 503 && attempt < 5) {var that = this; window.SetTimeout(function() {attempt++; that.Search();}, 450);}
             else if (server) {server = false; this.Search();}
-            else {p.trace("musicbrainz releases N/A: " + this.xmlhttp.responsetext || "Status error: " + this.xmlhttp.status); this.Null();}
+            else {p.trace("musicbrainz releases N/A: " + this.xmlhttp.responseText || "Status error: " + this.xmlhttp.status); this.Null();}
         }
     }
 
@@ -832,7 +832,7 @@ function musicbrainz_releases(state_callback, on_search_done_callback) {
 
     this.Analyse = function() {
         var indextest = "\"releases\":|\"id\":|\"title\":" +  ((p.btn_mode || !alb.mb) ? "|\"date\":" : "");
-        var data = p.json_parse(this.xmlhttp.responsetext, "", indextest);
+        var data = p.json_parse(this.xmlhttp.responseText, "", indextest);
         if (!data) return this.Null();
         var items = data.releases.length;
         var album_id = "";
@@ -864,7 +864,7 @@ function album_tracks(state_callback, on_search_done_callback) {
             if (this.xmlhttp.status == 200) this.func();
             else if (alb.track_source && server && this.xmlhttp.status == 503 && attempt < 5) {var that = this; window.SetTimeout(function() {attempt++; that.Search();}, 450);}
             else if (alb.track_source && server) {server = false; this.Search();}
-            else {p.trace((alb.track_source ? "musicbrainz" : "last.fm") + " album tracks N/A: " + this.xmlhttp.responsetext || "Status error: " + this.xmlhttp.status); alb.track_source ? this.mb_return() : this.lfm_return();}
+            else {p.trace((alb.track_source ? "musicbrainz" : "last.fm") + " album tracks N/A: " + this.xmlhttp.responseText || "Status error: " + this.xmlhttp.status); alb.track_source ? this.mb_return() : this.lfm_return();}
         }
     }
 
@@ -886,7 +886,7 @@ function album_tracks(state_callback, on_search_done_callback) {
     }
 
     this.Analyse = function() {
-        var new_t = this.xmlhttp.responsetext;
+        var new_t = this.xmlhttp.responseText;
         switch (alb.track_source) {
             case 0:
                 var items = 0, data = p.json_parse(new_t, "album", "track\":");
@@ -927,8 +927,8 @@ function musicbrainz_artist_id(state_callback, on_search_done_callback) {
             else if (server) {server = false; this.Search();}
             else if (mbid_search) {alb.artist = search_param; return this.on_search_done_callback("", "", mode);
             } else switch (mbid_source) {
-                case 0: lfm_done = true; mbid_source = 1; p.trace("last.fm mbid N/A: " + this.xmlhttp.responsetext || "Status error: " + this.xmlhttp.status); this.lfm_return(); break;
-                case 1:mb_done = true; mbid_source = 0; p.trace("musicbrainz mbid N/A: " + this.xmlhttp.responsetext || "Status error: " + this.xmlhttp.status); this.mb_return(); break;
+                case 0: lfm_done = true; mbid_source = 1; p.trace("last.fm mbid N/A: " + this.xmlhttp.responseText || "Status error: " + this.xmlhttp.status); this.lfm_return(); break;
+                case 1:mb_done = true; mbid_source = 0; p.trace("musicbrainz mbid N/A: " + this.xmlhttp.responseText || "Status error: " + this.xmlhttp.status); this.mb_return(); break;
             }
         }
     }
@@ -949,7 +949,7 @@ function musicbrainz_artist_id(state_callback, on_search_done_callback) {
     }
 
     this.Analyse = function() {
-        var new_t = this.xmlhttp.responsetext;
+        var new_t = this.xmlhttp.responseText;
         if (search_param.uuid()) {
             var data = p.json_parse(new_t, "", "\"name\":");
             if (!data) {alb.artist = search_param; return this.on_search_done_callback("", "", mode);}
@@ -993,7 +993,7 @@ function album_names(state_callback, on_search_done_callback) {
             if (this.xmlhttp.status == 200) {if (alb.mb) offset += 100; this.func();}
             else if (alb.mb && server && this.xmlhttp.status == 503 && attempt < 5) {var that = this; window.SetTimeout(function() {attempt++; that.Search();}, 450);}
             else if (alb.mb && server) {server = false; this.Search();}
-            else {p.trace((alb.mb ? "musicbrainz album names N/A: " : "last.fm " + (!mode ? "top albums N/A: " : mode == 1 ? "top tracks N/A: " : "similar songs N/A: ")) + this.xmlhttp.responsetext || "Status error: " + this.xmlhttp.status); this.on_search_done_callback("", ar_mbid, mode);}
+            else {p.trace((alb.mb ? "musicbrainz album names N/A: " : "last.fm " + (!mode ? "top albums N/A: " : mode == 1 ? "top tracks N/A: " : "similar songs N/A: ")) + this.xmlhttp.responseText || "Status error: " + this.xmlhttp.status); this.on_search_done_callback("", ar_mbid, mode);}
         }
     }
 
@@ -1033,7 +1033,7 @@ function album_names(state_callback, on_search_done_callback) {
     this.Analyse = function() {
         var data = [];
         if (alb.mb) {
-            var response = p.json_parse(this.xmlhttp.responsetext, "", "\"release-groups\":");
+            var response = p.json_parse(this.xmlhttp.responseText, "", "\"release-groups\":");
             if (!response) return this.on_search_done_callback("", ar_mbid, mode);
             json_data = json_data.concat(response["release-groups"]);
             if (offset == 100) releases = response["release-group-count"];
@@ -1044,15 +1044,15 @@ function album_names(state_callback, on_search_done_callback) {
             } else {attempt = 0; this.Search();}
         } else {
             switch (mode) {
-                case 0: data = []; data = p.json_parse(this.xmlhttp.responsetext, "topalbums.album", "name\":"); break;
+                case 0: data = []; data = p.json_parse(this.xmlhttp.responseText, "topalbums.album", "name\":"); break;
                 case 1:
-                    data = []; var list = p.json_parse(this.xmlhttp.responsetext, "toptracks.track", "name\":"); if (!list) break; var save_list = [];
+                    data = []; var list = p.json_parse(this.xmlhttp.responseText, "toptracks.track", "name\":"); if (!list) break; var save_list = [];
                     if (list.length < lmt && cache) {cache = false; return this.Search();}
                     for (i = 0; i < list.length; i++) {data[i] = {title: list[i].name, playcount: list[i].playcount}; save_list[i] = {title: list[i].name, playcount: list[i].playcount}} data.length = Math.min(99, data.length);
                     try {save_list.unshift({artist: list[0].artist.name, ar_mbid: ar_mbid});} catch (e) {save_list.unshift({artist: alb.artist, ar_mbid: "N/A"});} if (save_list.length) {p.create(f3); p.save(fn, JSON.stringify(save_list), true);}
                     break;
                 case 2:
-                    data = []; var list = p.json_parse(this.xmlhttp.responsetext, "similartracks.track", "name\":"); if (!list) break; var save_list = [];
+                    data = []; var list = p.json_parse(this.xmlhttp.responseText, "similartracks.track", "name\":"); if (!list) break; var save_list = [];
                     for (i = 0; i < list.length; i++) {data[i] = {artist: list[i].artist.name, title: list[i].name, playcount: list[i].playcount}; save_list[i] = {artist: list[i].artist.name, title: list[i].name, playcount: list[i].playcount}} data.length = Math.min(99, data.length); if (save_list.length) {p.create(f3); p.save(fn, JSON.stringify(save_list), true);}
                     break;
             }
@@ -1624,8 +1624,8 @@ function new_radio() {
 
     this.best_saved_match = function(source, radtype) {
         var all_files = [], fa, rs = source.clean(), fp = rad.e1 + rs.substr(0, 1).toLowerCase() + "\\" + rs + (radtype == 2 ? " And Similar Artists\\" : radtype == 3 ? " [Similar Songs]\\" : "\\");
-        if (p.folder(fp)) for (var k = this.ec_variety / 10; k < 11; k++) {fa = fp + "\\" + (radtype == 0 ? "" : k * 10 + "\\"); if (p.folder(fa)) all_files = utils.Glob(fa + "\\*").toArray(); if (all_files.length) break;}
-        if (p.folder(fp) && !p.folder(fa)) for (var k = this.ec_variety / 10 - 1; k >= 0; k--) {fa = fp + "\\" + (radtype == 0 ? "" : k * 10 + "\\"); if (p.folder(fa)) all_files = utils.Glob(fa + "\\*").toArray(); if (all_files.length) break;}
+        if (p.folder(fp)) for (var k = this.ec_variety / 10; k < 11; k++) {fa = fp + "\\" + (radtype == 0 ? "" : k * 10 + "\\"); if (p.folder(fa)) all_files = utils.Glob(fa + "\\*"); if (all_files.length) break;}
+        if (p.folder(fp) && !p.folder(fa)) for (var k = this.ec_variety / 10 - 1; k >= 0; k--) {fa = fp + "\\" + (radtype == 0 ? "" : k * 10 + "\\"); if (p.folder(fa)) all_files = utils.Glob(fa + "\\*"); if (all_files.length) break;}
         return all_files;
     }
 }
@@ -2155,8 +2155,8 @@ function album_manager(p_album_name_callback) {
 
     this.library_test = function(p_album_artist, p_album) {
         if (!lib) return; var j = 0; lib.artist_edit(p_album_artist); var orig_alb = false, mtags_alb = false;
-        var albums = tf.l0.EvalWithMetadbs(lib.art_ed).toArray(); if (lib.art_ed.Count) for (j = 0; j < lib.art_ed.Count; j++) if (albums[j].strip() == p_album.strip()) {orig_alb = true; break;}
-        albums = tf.l0.EvalWithMetadbs(lib.art_ed_tags).toArray(); if (lib.art_ed_tags.Count) for (j = 0; j < lib.art_ed_tags.Count; j++) if (albums[j].strip() == p_album.strip()) {mtags_alb = true; break;}
+        var albums = tf.l0.EvalWithMetadbs(lib.art_ed); if (lib.art_ed.Count) for (j = 0; j < lib.art_ed.Count; j++) if (albums[j].strip() == p_album.strip()) {orig_alb = true; break;}
+        albums = tf.l0.EvalWithMetadbs(lib.art_ed_tags); if (lib.art_ed_tags.Count) for (j = 0; j < lib.art_ed_tags.Count; j++) if (albums[j].strip() == p_album.strip()) {mtags_alb = true; break;}
         if ((orig_alb || mtags_alb) && album_in_ml(p_album_artist, p_album, orig_alb, mtags_alb)) return true; return false;
     }
 
@@ -2182,7 +2182,7 @@ function album_manager(p_album_name_callback) {
         if (!p_full_alb) p.num_sort(p.mtags[p_alb_id],"TRACKNUMBER");
         var pth = fna + a + " !!.tags"; if (pth.length > 259) pth = fna + a.titlecase().match(/[A-Z0-9]/g).join('') + " !!.tags"; if (pth.length > 259) {fna = fns + a.titlecase().match(/[A-Z0-9]/g).join('') + "\\"; pth = fna + a.titlecase().match(/[A-Z0-9]/g).join('') + " !!.tags";} p.create(fna);
         if (!ml.abs_path) for (j = 0; j < p.mtags[p_alb_id].length; j++) if (p.mtags[p_alb_id][j]["@"].charAt(0) == "/")  p.mtags[p_alb_id][j]["@"] = ml.getRelativePath("/" + pth, p.mtags[p_alb_id][j]["@"]);
-        if (!p.save(pth, JSON.stringify(p.mtags[p_alb_id], null, 3), true)) return; var all_files = utils.Glob(fna + "*").toArray(), cov = false;
+        if (!p.save(pth, JSON.stringify(p.mtags[p_alb_id], null, 3), true)) return; var all_files = utils.Glob(fna + "*"), cov = false;
         for (j = 0; j < all_files.length; j++) if ((/(?:jpe?g|gif|png|bmp)$/i).test(p.fs.GetExtensionName(all_files[j]))) {cov = true; break;}
         if (!cov) {var lfm_cov = new lfm_alb_cov(function() {lfm_cov.on_state_change();}); lfm_cov.Search(p_artist, p_album, fna);}
         plman.ClearPlaylist(plman.ActivePlaylist); p.plmanAddloc ? p.add_locations([pth], plman.ActivePlaylist) : p.add_fb2k_locations(pth);
@@ -2584,7 +2584,7 @@ function image_manager() {
 
     this.read_arr = function() {
         if (!p.dl_art_img) timer.decelerating();
-        var all_files = utils.Glob(folder + "*").toArray();
+        var all_files = utils.Glob(folder + "*");
         if (all_files.length == all_files_o_length) return;
         var newArr = false;
         var j = 0; if (!this.arr.length) {newArr = true; for (j = 0; j < a_im.length; j++) {rsimgA[j] = false; a_im = [];} a_img = [];}
@@ -2658,7 +2658,7 @@ function image_manager() {
             g.DrawImage(iFull, 0 - offset, 0 - offset, p.w + offset * 2, p.h + offset * 2, 0, 0, iFull.Width, iFull.Height, 0, 63 * ui.blurAlpha);
         } else {
             g.DrawImage(image, 0, 0, p.w, p.h, 0, 0, image.Width, image.Height); if (ui.blurLevel > 1) this.blurImg.StackBlur(ui.blurLevel);
-            var colorScheme_array = this.blurImg.GetColourScheme(1).toArray(), light_cover = ui.get_textselcol(colorScheme_array[0], true) == 50 ? true : false;
+            var colorScheme_array = this.blurImg.GetColourScheme(1), light_cover = ui.get_textselcol(colorScheme_array[0], true) == 50 ? true : false;
             g.FillSolidRect(0, 0, p.w, p.h, light_cover ? ui.bg_color_light : ui.bg_color_dark);
         }
         if (!alb.show && (!p.show_video || !p.IsVideo())&& !this.smoothTrans) g.DrawImage(im, x, y, w, h, 0, 0, im.Width, im.Height); this.blurImg.ReleaseGraphics(g);
@@ -2739,7 +2739,7 @@ function lfm_art_img(state_callback) {
 
     this.Analyse = function() {
         var artist = dl_ar.clean(), doc = new ActiveXObject("htmlfile"); doc.open();
-        var div = doc.createElement("div"); div.innerHTML = this.xmlhttp.responsetext;
+        var div = doc.createElement("div"); div.innerHTML = this.xmlhttp.responseText;
         var list = div.getElementsByTagName("img"), links = []; if (!list) return; for (var i = 0; i < list.length; i++) if (list[i].className == "image-list-image") links.push(list[i].src.replace("avatar170s/", ""));
         if (links.length) {p.buildFullPth(img_folder); if (p.folder(img_folder)) {p.save(img_folder + "update.txt", "", true); for (var j = 0; j < Math.min(links.length, 5); j++)
             p.run("cscript //nologo \"" + fb.ProfilePath + "yttm\\foo_lastfm_img.vbs\" \"" + links[j] + "\" \"" + img_folder + artist + "_" + links[j].substring(links[j].lastIndexOf("/") + 1) + ".jpg" + "\"", 0);}}  doc.close();
@@ -2825,10 +2825,10 @@ function menu_object() {
     this.MoreMenu = function(Menu, StartIndex) {var Index = StartIndex, c =[alb.show_live, alb.mb_sort,, !alb.more], n =["Musicbrainz \"All\" Releases: Include \"Live\" + \"Other\"", "Musicbrainz \"All\" Releases: Group", "Last.fm Sorted by " + (alb.lfm_sort ? "Playcount" : "Last.fm Rank (Listeners)") +  ": Sort by " + (alb.lfm_sort ? "Last.fm Rank (Listeners)..." : "Playcount..."), "Hide Artists", "Reload"]; for (var i = 0; i < 5; i++) {this.NewMenuItem(Index, "Settings", i + 1); Menu.AppendMenuItem(MF_STRING, Index, n[i]); if (i != 2 && i != 4) Menu.CheckMenuItem(Index++, c[i]); else Index++; if (i != 0 && i != 4) Menu.AppendMenuItem(MF_SEPARATOR, 0, 0);} return Index;}
     this.NowplayingTypeMenu = function(Menu, StartIndex) {var Index = StartIndex, c = [p.rel_imgs != 1, p.video_mode], n = ["Show Text", "Prefer Video"]; for (var i = 0; i < (p.f_yt_ok ? 2 : 1); i++) {this.NewMenuItem(Index, "Nowplaying", i + 1); Menu.AppendMenuItem(MF_STRING, Index, n[i]); Menu.CheckMenuItem(Index++, c[i]);} return Index;}
     this.PlaylistMenu = function(i, Menu, StartIndex) {Index = StartIndex; for (var j = i * 30; j < Math.min(pl.menu.length, 30 + i * 30); j++) {this.NewMenuItem(Index, "Playlists", j + 5); Menu.AppendMenuItem(MF_STRING, Index, pl.menu[j].name); Index++;} Menu.CheckMenuRadioItem(StartIndex, StartIndex + 30 + i * 30, StartIndex - i * 30 + plman.ActivePlaylist); return Index;}
-    this.PlaylistsTypeMenu = function(Menu, StartIndex) {var Index = StartIndex, n = ["Radio Playlist", "Album Playlist", "TopTracks Playlist", "Loved Playlist"]; for (var i = 0; i < 4; i++) {this.NewMenuItem(Index, "Playlists", i + 1); Menu.AppendMenuItem(MF_STRING, Index, n[i]); Index++;} Menu.CheckMenuRadioItem(StartIndex, StartIndex + 3, StartIndex + (plman.ActivePlaylist == pl.rad ? 0 : plman.ActivePlaylist == pl.alb ? 1 : plman.ActivePlaylist == pl.tracks ? 2 : plman.ActivePlaylist == pl.loved ? 3 : -1)); Menu.AppendMenuItem(MF_SEPARATOR, 0, 0); return Index;}
+    this.PlaylistsTypeMenu = function(Menu, StartIndex) {var Index = StartIndex, n = ["Radio Playlist", "Album Playlist", "TopTracks Playlist", "Loved Playlist"]; for (var i = 0; i < 4; i++) {this.NewMenuItem(Index, "Playlists", i + 1); Menu.AppendMenuItem(MF_STRING, Index, n[i]); Index++;} var checkedMenuIndex = (plman.ActivePlaylist == pl.rad ? 0 : plman.ActivePlaylist == pl.alb ? 1 : plman.ActivePlaylist == pl.tracks ? 2 : plman.ActivePlaylist == pl.loved ? 3 : -1); if (checkedMenuIndex != -1) Menu.CheckMenuRadioItem(StartIndex, StartIndex + 3, StartIndex + checkedMenuIndex); Menu.AppendMenuItem(MF_SEPARATOR, 0, 0); return Index;}
     this.RadioOptTypeMenu = function(Menu, StartIndex) {var Index = StartIndex; this.NewMenuItem(Index, "RadioOpt", 1); Menu.AppendMenuItem(MF_STRING, Index, "Remove Played Tracks From Radio Playlist"); Menu.CheckMenuItem(Index++, index.rem_played); Menu.AppendMenuItem(MF_SEPARATOR, 0, 0); return Index;}
-    this.RadioVarietyMenu = function(Menu, StartIndex) {var Index = StartIndex, n = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 125, 150, 200, 250], r = index.mode ? index.lfm_variety : index.ec_variety; for (var i = 0; i < (index.mode ? 14 : 10); i++) {this.NewMenuItem(Index, "Variety", i + 1); Menu.AppendMenuItem(MF_STRING, Index, n[i]); Index++; Menu.CheckMenuRadioItem(StartIndex + i, StartIndex + i, StartIndex + i + (r != n[i])); if (index.mode && i == 9) Menu.AppendMenuItem(MF_SEPARATOR, 0, 0);} return Index;}
-    this.RadioHotMenu = function(Menu, StartIndex) {var Index = StartIndex; for (var i = 0; i < index.preset.length; i++) {this.NewMenuItem(Index, "Hotness", i + 1); Menu.AppendMenuItem(MF_STRING, Index, index.preset[i]); Index++; Menu.CheckMenuRadioItem(StartIndex + i, StartIndex + i, StartIndex + i + (index.preset[i] != index.preset[index.range])); if (i % 3 == 2 && i !=index.preset.length - 1) Menu.AppendMenuItem(MF_SEPARATOR, 0, 0)} return Index;}
+    this.RadioVarietyMenu = function(Menu, StartIndex) {var Index = StartIndex, n = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 125, 150, 200, 250], r = index.mode ? index.lfm_variety : index.ec_variety; for (var i = 0; i < (index.mode ? 14 : 10); i++) {this.NewMenuItem(Index, "Variety", i + 1); Menu.AppendMenuItem(MF_STRING, Index, n[i]); Index++; if (r == n[i]) Menu.CheckMenuRadioItem(StartIndex + i, StartIndex + i, StartIndex + i); if (index.mode && i == 9) Menu.AppendMenuItem(MF_SEPARATOR, 0, 0);} return Index;}
+    this.RadioHotMenu = function(Menu, StartIndex) {var Index = StartIndex; for (var i = 0; i < index.preset.length; i++) {this.NewMenuItem(Index, "Hotness", i + 1); Menu.AppendMenuItem(MF_STRING, Index, index.preset[i]); Index++; if (index.preset[i] == index.preset[index.range]) Menu.CheckMenuRadioItem(StartIndex + i, StartIndex + i, StartIndex + i); if (i % 3 == 2 && i !=index.preset.length - 1) Menu.AppendMenuItem(MF_SEPARATOR, 0, 0)} return Index;}
     this.RadLibTypeMenu = function(Menu, StartIndex) {var Index = StartIndex, n = ["Library Not Used", "Prefer Library Tracks"]; for (var i = 0; i < n.length; i++) {this.NewMenuItem(Index, "RadLib", i + 1); Menu.AppendMenuItem(MF_STRING, Index, n[i]); Index++;} Menu.CheckMenuRadioItem(StartIndex, StartIndex + 1, StartIndex + ml.rad); return Index;}
     this.RadioModeMenu = function(Menu, StartIndex) {if (!p.use_saved || !p.ec_saved) {var Index = StartIndex; for (var i = 0; i < 4; i++) {this.NewMenuItem(Index, "Mode", i + 1); Menu.AppendMenuItem(MF_STRING, Index, i < 3 ? index.n[i + 1] : index.n[2] + " / Save Soft Playlists"); Index++; if (i == 2) Menu.AppendMenuItem(MF_SEPARATOR, 0, 0);} Menu.CheckMenuRadioItem(StartIndex, StartIndex + 3, StartIndex + (index.mode == 1 && !index.softplaylist ? 0 : index.mode == 2 && !index.softplaylist ? 1 : index.mode == 3 && !index.softplaylist ? 2 : index.softplaylist ? 3 : -1)); return Index;} else {var Index = StartIndex; for (var i = 0; i < 5; i++) {this.NewMenuItem(Index, "Mode", i + 1); Menu.AppendMenuItem(MF_STRING, Index, i < 4 ? index.n[i] : index.n[2] + " / Save Soft Playlists"); Index++; if (i == 3) Menu.AppendMenuItem(MF_SEPARATOR, 0, 0);} Menu.CheckMenuRadioItem(StartIndex, StartIndex + 4, StartIndex + (!index.mode && !index.softplaylist ? 0 : index.mode == 1 && !index.softplaylist ? 1 : index.mode == 2 && !index.softplaylist ? 2 : index.mode == 3 && !index.softplaylist ? 3 : index.softplaylist ? 4 : -1)); return Index;}}
     this.RadioTopTagsMenu = function(Menu, StartIndex) {var Index = StartIndex; this.NewMenuItem(Index, "TopTags", 1); Menu.AppendMenuItem(MF_STRING, Index, index.mode != 3 ? "Open Tag Search..." : "Open Query Search..."); Menu.AppendMenuItem(MF_SEPARATOR, 0, 0); Index++; var topArr = index.mode != 3 ? t.TopTags : t.TopGenre; for (var i = 0; i <topArr.length; i++) {this.NewMenuItem(Index, "TopTags", i + 2); Menu.AppendMenuItem(MF_STRING, Index, topArr[i]); Index++;} return Index;}
@@ -2839,7 +2839,7 @@ function menu_object() {
     this.SearchMenu3 = function(Menu, StartIndex) {var Index = StartIndex, n = ["Search for Similar Artists...", "Search for Similar Songs..."]; for (var i = 0; i < 2; i++) {this.NewMenuItem(Index, "New", i + 7); Menu.AppendMenuItem(index.mode == 3 && i == 1 ? MF_GRAYED : MF_STRING, Index, n[i]); Index++;} return Index;}
     this.SearchMenu4 = function(Menu, StartIndex) {var Index = StartIndex; if (p.btn_mode) {var n = ["Current Radio: " + (!rad.search && index.rad_source.length && rad_on ? index.rad_source ? index.rad_source.replace(/&/g, "&&") + (index.rad_type == 2 ? " And Similar Artists (" : " (") + index.n[index.rad_mode] + ")" : "None" : "None"), "Search for Album..."]; for (var i = 0; i < 2; i++) {this.NewMenuItem(Index, "New", i + 9); Menu.AppendMenuItem(MF_STRING, Index, n[i]); Menu.AppendMenuItem(MF_SEPARATOR, 0, 0); Index++;}} return Index;}
     this.SongTypeMenu = function(Menu, StartIndex) {var Index = StartIndex, n = ["Current Popularity", "All-Time Popularity"]; for (var i = 0; i < n.length; i++) {this.NewMenuItem(Index, "Song", i + 1); Menu.AppendMenuItem(MF_STRING, Index, n[i]); Index++;} Menu.CheckMenuRadioItem(StartIndex, StartIndex + 1, StartIndex + !index.curr_pop); return Index;}
-    this.ThemeTypeMenu = function(Menu, StartIndex) {var Index = StartIndex, c = [!ui.blur_dark && !ui.blur_blend && !ui.blur_light, ui.blur_dark, ui.blur_blend, ui.blur_light], n = ["None", "Dark", "Blend", "Light"]; for (var i = 0; i < n.length; i++) {this.NewMenuItem(Index, "Theme", i + 1); Menu.AppendMenuItem(MF_STRING, Index, n[i]); Index++; Menu.CheckMenuRadioItem(StartIndex + i, StartIndex + i, StartIndex + i + 1 - c[i]); if (!i) Menu.AppendMenuItem(MF_SEPARATOR, 0, 0);} return Index;}
+    this.ThemeTypeMenu = function(Menu, StartIndex) {var Index = StartIndex, c = [!ui.blur_dark && !ui.blur_blend && !ui.blur_light, ui.blur_dark, ui.blur_blend, ui.blur_light], n = ["None", "Dark", "Blend", "Light"]; for (var i = 0; i < n.length; i++) {this.NewMenuItem(Index, "Theme", i + 1); Menu.AppendMenuItem(MF_STRING, Index, n[i]); Index++; if (1 == c[i]) Menu.CheckMenuRadioItem(StartIndex + i, StartIndex + i, StartIndex + i); if (!i) Menu.AppendMenuItem(MF_SEPARATOR, 0, 0);} return Index;}
     this.TopLibTypeMenu = function(Menu, StartIndex) {var Index = StartIndex, n = ["Library Not Used", "Prefer Library Tracks"]; for (var i = 0; i < n.length; i++) {this.NewMenuItem(Index, "TopLib", i + 1); Menu.AppendMenuItem(MF_STRING, Index, n[i]); Index++;} Menu.CheckMenuRadioItem(StartIndex, StartIndex + 1, StartIndex + ml.top); return Index;}
     this.TrackListTypeMenu = function(Menu, StartIndex) {var Index = StartIndex, c = [!alb.pref_mb_tracks, alb.pref_mb_tracks], n = ["Prefer Last.fm", "Prefer Musicbrainz"]; for (var i = 0; i < n.length; i++) {this.NewMenuItem(Index, "TrackList", i + 1); Menu.AppendMenuItem(MF_STRING, Index, n[i]); Index++;} Menu.CheckMenuRadioItem(StartIndex, StartIndex + 1, StartIndex + alb.pref_mb_tracks); return Index;}
 
@@ -2867,28 +2867,28 @@ function menu_object() {
         var Index = StartIndex, available = false;
         this.NewMenuItem(Index, "Tracks", 1); alb_playlist = lib.alb_playlist(a_n);
         Menu.AppendMenuItem(alb_playlist ? MF_STRING : MF_GRAYED, Index, "Albums" + " [" + an + (alb_playlist ? "" : (an ? " - " : "") + "None Found") + "]");
-        Index++; Menu.CheckMenuRadioItem(StartIndex, StartIndex, StartIndex + (pl_active.indexOf(pl.alb_yttm) == -1 || lib.albumartist != a_n)); Menu.AppendMenuItem(MF_SEPARATOR, 0, 0);
+        Index++; if (pl_active.indexOf(pl.alb_yttm) != -1 && lib.albumartist == a_n) Menu.CheckMenuRadioItem(StartIndex, StartIndex, StartIndex); Menu.AppendMenuItem(MF_SEPARATOR, 0, 0);
         this.NewMenuItem(Index, "Tracks", 2);
         if (pl_active.indexOf(pl.t50_playlist) != -1 && pl_active.indexOf(" | ") == -1 && pl_active.indexOf("Singles Chart") == -1) t50_n = pl_active.indexOf(pl.t50_playlist + ": ") == -1 ? pl_active.replace(pl.t50_playlist + " [","").slice(0, -1) : pl_active.replace(pl.t50_playlist + ": ","");
         if (p.use_saved) {var rs = t50_n.clean(); available = p.file(rad.f2 + rs.substr(0, 1).toLowerCase() + "\\" + rs + ".json");}
         var text = p.use_saved && !available ? "Saved N/A " : "";
         Menu.AppendMenuItem(text == "Saved N/A " ? MF_GRAYED : MF_STRING, Index, text + "Top " + pl.top50 + " Tracks" + " [" + (t50_n ? t50_n.replace(/&/g, "&&") : "N/A") + "]");
         var pn1 = pl_active.toLowerCase(), pn2 = pl.t50_playlist + ": " + t50_n, pn3 = pl.t50_playlist + " [" + t50_n + "]"; pn2 = pn2.toLowerCase(); pn3 = pn3.toLowerCase();
-        Menu.CheckMenuRadioItem(Index, Index, Index + (pn1 != pn2 && pn1 != pn3)); Index++;
+        if (pn1 == pn2 || pn1 == pn3)Menu.CheckMenuRadioItem(Index, Index, Index); Index++;
         this.NewMenuItem(Index, "Tracks", 3); available = false;
         if (pl_active.indexOf(pl.t50_playlist) != -1 && pl_active.indexOf(" | ") != -1 && pl_active.indexOf("Singles Chart") == -1) a_t = pl_active.indexOf(pl.t50_playlist + ": ") == -1 ? pl_active.replace(pl.t50_playlist + " [","").slice(0, -1) : pl_active.replace(pl.t50_playlist + ": ","");
         if (p.use_saved) {var rs = a_t.clean(); available = p.file(rad.f2 + rs.substr(0, 1).toLowerCase() + "\\" + rs + " [Similar Songs].json");}
         text = p.use_saved && !available ? "Saved N/A " : "";
         Menu.AppendMenuItem(text == "Saved N/A " ? MF_GRAYED : MF_STRING, Index, text + "Top " + pl.top50 + " Similar Tracks" + " [" + a_t.replace(/&/g, "&&") + "]");
         var pn4 = pl.t50_playlist + ": " + a_t, pn5 = pl.t50_playlist + " [" + a_t + "]"; pn4 = pn4.toLowerCase(); pn5 = pn5.toLowerCase();
-        Menu.CheckMenuRadioItem(Index, Index, Index + (pn1 != pn4 && pn1 != pn5)); Index++; Menu.AppendMenuItem(MF_SEPARATOR, 0, 0);
+        if ((pn1 == pn4 || pn1 == pn5)) Menu.CheckMenuRadioItem(Index, Index, Index); Index++; Menu.AppendMenuItem(MF_SEPARATOR, 0, 0);
         this.NewMenuItem(Index, "Tracks", 4); available = false;
         if (pl_active.indexOf(pl.t40_playlist) != -1 && pl_active.indexOf(" | ") == -1 && pl_active.indexOf("Singles Chart") != -1) c_t = pl_active.indexOf(pl.t40_playlist + ": ") == -1 ? pl_active.replace(pl.t40_playlist + " [","").slice(0, -1) : pl_active.replace(pl.t40_playlist + ": ","");
         if (p.use_saved) {var rs = c_t.clean(); available = p.file(rad.f2 + rs.substr(0, 1).toLowerCase() + "\\" + rs + ".json");}
         text = p.use_saved && !available ? "Saved N/A " : "";
         Menu.AppendMenuItem(text == "Saved N/A " ? MF_GRAYED : MF_STRING, Index, text + "Top 40" + " [" + c_t.replace(/&/g, "&&") + "]");
         var pn6 = pl.t40_playlist + ": " + c_t, pn7 = pl.t40_playlist + " [" + c_t + "]"; pn6 = pn6.toLowerCase(); pn7 = pn7.toLowerCase();
-        Menu.CheckMenuRadioItem(Index, Index, Index + (pn1 != pn6 && pn1 != pn7)); Index++;
+        if (pn1 == pn6 || pn1 == pn7) Menu.CheckMenuRadioItem(Index, Index, Index); Index++;
         if (pl_active.indexOf(pl.t50_playlist) != -1 || pl_active.indexOf(pl.t40_playlist) != -1) {Menu.AppendMenuItem(MF_SEPARATOR, 0, 0); this.NewMenuItem(Index, "Tracks", 5); Menu.AppendMenuItem(MF_STRING, Index, "Refresh " + pl_active.replace(/&/g, "&&")); Index++;}
         return Index;
     }

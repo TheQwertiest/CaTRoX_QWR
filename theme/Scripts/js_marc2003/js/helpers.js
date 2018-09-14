@@ -549,7 +549,7 @@ _.mixin({
         var p = prompt.replace(/"/g, _.q(' + Chr(34) + ')).replace(/\n/g, _.q(' + Chr(13) + '));
         var t = title.replace(/"/g, _.q(' + Chr(34) + '));
         var v = value.replace(/"/g, _.q(' + Chr(34) + '));
-        var tmp = vb.eval('InputBox(' + _.q(p) + ', ' + _.q(t) + ', ' + _.q(v) + ')');
+        var tmp = vb.Eval('InputBox(' + _.q(p) + ', ' + _.q(t) + ', ' + _.q(v) + ')');
         return _.isString(tmp) ? tmp.trim() : tmp;
     },
     isFile:               function (file) {
