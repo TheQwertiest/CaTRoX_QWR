@@ -581,14 +581,14 @@ _.mixin({
         return _.jsonParse(_.open(file));
     },
     lastModified:         function (file) {
-        return Date.parse(fso.Getfile(file).DateLastModified);
+        return Date.parse(fso.GetFile(file).DateLastModified);
     },
     lineWrap:             function (value, font, width) {
         var temp_bmp = gdi.CreateImage(1, 1);
         var temp_gr = temp_bmp.GetGraphics();
         var result = [];
         _.forEach(value.split('\n'), function (paragraph) {
-            var lines = _.filter(temp_gr.EstimateLineWrap(paragraph, font, width).toArray(), function (item, i) {
+            var lines = _.filter(temp_gr.EstimateLineWrap(paragraph, font, width), function (item, i) {
                 return i % 2 === 0;
             });
             result.push.apply(result, _.map(lines, _.trim));
@@ -769,7 +769,7 @@ _.mixin({
         }
     },
     save:                 function (file, value) {
-        if (_.isNil(value) || !_.isFolder(utils.FileTest(file, 'split').toArray()[0])) {
+        if (_.isNil(value) || !_.isFolder(utils.FileTest(file, 'split')[0])) {
             return;
         }
         if (!utils.WriteTextFile(file, value)) {

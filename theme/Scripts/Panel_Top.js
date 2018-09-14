@@ -295,7 +295,7 @@ function TopPanel() {
         if (g_component_scrobble) {
             buttons.buttons.scrobble = new _.button(x, y, w, h, is_scrobbling_enabled ? button_images.LastFM_Disable : button_images.LastFM_Enable, function () {
                 fb.RunMainMenuCommand('Playback/Scrobble Tracks');
-                is_scrobbling_enabled = g_has_modded_jscript ? fb.IsMainMenuCommandChecked('Playback/Scrobble Tracks') : false;
+                is_scrobbling_enabled = fb.IsMainMenuCommandChecked('Playback/Scrobble Tracks');
                 buttons.buttons.scrobble.set_image(is_scrobbling_enabled ? button_images.LastFM_Disable : button_images.LastFM_Enable);
                 buttons.buttons.scrobble.tiptext = is_scrobbling_enabled ? 'Disable Last.FM Scrobbling' : 'Enable Last.FM Scrobbling';
                 buttons.buttons.scrobble.repaint();
@@ -309,7 +309,7 @@ function TopPanel() {
         if (is_youtube) {
             buttons.buttons.yt_video = new _.button(x, y, w, h, is_youtube_video_displayed ? button_images.VideoHide : button_images.VideoShow, function () {
                 fb.RunMainMenuCommand('View/Visualizations/Video');
-                is_youtube_video_displayed = g_has_modded_jscript ? fb.IsMainMenuCommandChecked('View/Visualizations/Video') : false;
+                is_youtube_video_displayed = fb.IsMainMenuCommandChecked('View/Visualizations/Video');
                 buttons.buttons.yt_video.set_image(is_youtube_video_displayed ? button_images.VideoHide : button_images.VideoShow);
                 buttons.buttons.yt_video.tiptext = is_youtube_video_displayed ? 'Hide Youtube Video' : 'Show Youtube Video';
                 buttons.buttons.yt_video.repaint();
@@ -437,8 +437,8 @@ function TopPanel() {
 
     var show_tooltips = false;
     
-    var is_youtube_video_displayed = g_has_modded_jscript ? fb.IsMainMenuCommandChecked('View/Visualizations/Video') : false;
-    var is_scrobbling_enabled = (g_has_modded_jscript && g_component_scrobble) ? fb.IsMainMenuCommandChecked('Playback/Scrobble Tracks') : false;
+    var is_youtube_video_displayed = fb.IsMainMenuCommandChecked('View/Visualizations/Video');
+    var is_scrobbling_enabled = g_component_scrobble ? fb.IsMainMenuCommandChecked('Playback/Scrobble Tracks') : false;
     
     var right_pad = 0;
 

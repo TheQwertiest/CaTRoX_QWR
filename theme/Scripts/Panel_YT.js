@@ -321,7 +321,7 @@ function library_manager() {
         if (verbose) p.trace("MATCH: ARTIST QUERY:" + q + p_artist);
         if (p_artist != o_artist || lib_upd.Time - last_time > 2000) { try {db_art = fb.GetQueryItems(this.get_lib_items(), "(" + name.q_a + q + p_artist + ") AND (NOT %path% HAS !!.tags) AND (NOT \"$ext(%path%)\" IS cue)")} catch (e) {db_art = fb.CreateHandleList()}; db_art.OrderByFormat(tf.r, 1); if (!ml.sort_rand) db_art.OrderByFormat(ml.item_sort, ml.dir);}
         p1[i] = ""; o_artist = p_artist; p_title = p_title.strip(); lib_upd.Reset(); last_time = lib_upd.Time;
-        var titles = tf.t0.EvalWithMetadbs(db_art).toArray();
+        var titles = tf.t0.EvalWithMetadbs(db_art);
         for (var j = 0; j < db_art.Count; j++) {
             var item = db_art.Item(j); titles[j] = titles[j].strip()
             if (titles[j] == p_title) {if (item.Path.slice(-5) != ".tags") {p1[i] = item.Path; load_lib(p1[i], i, 0, p_artist, p_title, p_top50); return true;} else if (!p1[i]) p1[i] = item; if (p1[i]) {p1[i] = tf.i.EvalWithMetadb(p1[i]); if (p1[i].indexOf("file://") != -1 && p1[i].slice(-5) != ".tags") {p1[i] = p1[i].replace("file://", ""); load_lib(p1[i], i, 0, p_artist, p_title, p_top50); return true;} else p1[i] = "";}}
