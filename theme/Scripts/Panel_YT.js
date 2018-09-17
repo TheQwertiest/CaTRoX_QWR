@@ -2452,7 +2452,7 @@ function button_manager() {
                 if (!ui.dkMode) {var c1 = [RGBA(210, 19, 9, 114), RGBA(227, 222, 248, 100)], c2 = [RGBA(210, 19, 9, 228), RGBA(227, 222, 248, 200)], c3 = [,,RGBA(244, 31, 19, 255), RGBA(238, 234, 251, 228)]; gr.FillRoundRect(this.x, this.y, this.w, this.h, 2 * but.scale, 2 * but.scale, c1[l]); gr.FillRoundRect(this.x, this.y, this.w, this.h - 1, 2 * but.scale, 2 * but.scale, l < 2 ? c2[l] : c3[l]);}
                 else {gr.FillRoundRect(this.x, this.y, this.w, this.h, 2 * but.scale, 2 * but.scale, l < 2 ? ui.btnBlur1 : ui.btnBlur2); gr.DrawRoundRect(this.x, this.y, this.w, this.h, 2 * but.scale, 2 * but.scale, 1, l < 2 ? ui.btnBlur3 : ui.btnBlur4);}
             }
-            if (type == 1 && ui.dkMode) gr.gdiDrawText(txt, ft, this.img, this.x + 1 * but.scale, this.y, this.w, this.h, t.cc); else if (type < 2) gr.gdiDrawText(txt, ft, this.img, this.x, this.y, this.w, this.h, t.cc);
+            if (type == 1 && ui.dkMode) gr.GdiDrawText(txt, ft, this.img, this.x + 1 * but.scale, this.y, this.w, this.h, t.cc); else if (type < 2) gr.GdiDrawText(txt, ft, this.img, this.x, this.y, this.w, this.h, t.cc);
             if (type == 2) {
                 var cc = StringFormat(1, 1), fd1 = 25, fd2 = 42, norm = !p.np_graphic || !rad.full || alb.show ? true : false; gr.SetSmoothingMode(2);
                 if (norm || this.img) gr.FillRoundRect(this.x, this.y, 11 * but.scale, 14 * but.scale, 2 * but.scale, 2 * but.scale, RGBA(0, 0, 0, this.img ? 200 : 128));
