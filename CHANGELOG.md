@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+- Art Mode:  
+  - Fixed borked art image on playback stop.
+
 ## [4.3.0] - 2018-05-14
 ### Added
 - Playlist Panel:

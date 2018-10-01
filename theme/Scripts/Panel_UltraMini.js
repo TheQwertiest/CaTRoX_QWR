@@ -281,6 +281,9 @@ function UltraMini() {
         art_module.playback_stop();
         seekbar_obj.playback_stop();
         buttons.refresh_play_button();
+        if (reason !== 2) {
+            this.repaint();
+        }
     };
 
     this.on_playback_seek = function () {
