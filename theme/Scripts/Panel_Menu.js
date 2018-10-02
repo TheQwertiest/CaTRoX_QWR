@@ -3,30 +3,6 @@
 // @author 'TheQwertiest'
 // ==/PREPROCESSOR==
 
-(function check_es5_availability() {
-    var test = !!Date.now && !!Array.isArray && !!Array.prototype.forEach;
-    if (!test) {
-        var error_msg = 'ES5 is not supported by your system! Cannot use this theme!';
-        throw ThemeError(error_msg);
-    }
-})();
-
-(function check_jscript_version() {
-    return;
-    var required_version = 2140;
-    if (utils.Version < required_version) {
-        function version_to_string(version) {
-            var version_string = version.toString();
-            return version_string[0] + '.' + version_string[1] + '.' + version_string[2] + '.' + version_string[3];
-        }
-
-        var error_msg = 'JScript (modded or vanilla) v' + version_to_string(required_version) + ' or higher is required!\n';
-        error_msg += 'Your JScript version: ' + version_to_string(utils.Version);
-
-        throw ThemeError(error_msg);
-    }
-})();
-
 var trace_call = false;
 var trace_on_paint = false;
 var trace_on_move = false;
@@ -52,33 +28,6 @@ g_properties.add_properties(
         incompatibility_version:  ['system.jscript_incompatibility.version', utils.Version]
     }
 );
-
-(function check_jscript_compatibility() {
-    if (qwr_utils.has_modded_jscript()
-        || (g_properties.incompatibility_notified && utils.Version === g_properties.incompatibility_version)) {
-        return;
-    }
-
-    // Needed in case of JScript update
-    g_properties.incompatibility_version = utils.Version;
-    g_properties.incompatibility_notified = false;
-
-    var msg = 'Warning: Vanilla JScript component detected, so some features will be unavailable!\n\n';
-    msg += 'Disabled features:\n';
-    msg += '    - Persistent window size for Full Mode and Playlist Mode.\n';
-    msg += '    - Top Panel: dynamic button state for \'YouTube Video Toggle\' and \'Last.FM Scrobbling Toggle\' buttons.\n';
-    msg += '\nAlso some dialog windows (like this one) may spawn outside of the main fb2k window.\n';
-    msg += '\nSources for modded JScript are available at <a href="https://github.com/TheQwertiest/foo-jscript-panel">https://github.com/TheQwertiest/foo-jscript-panel</a>\n';
-
-    function on_ok_fn(do_not_remind) {
-        if (do_not_remind) {
-            g_properties.incompatibility_notified = true;
-        }
-    }
-
-    //g_hta_window.popup_with_checkbox(-10000, -10000, 'JScript incompatibility warning', msg, 'Do not show this dialog again', false, on_ok_fn);
-    //g_hta_window.manager.center();
-})();
 
 qwr_utils.check_fonts(['Segoe Ui', 'Segoe Ui Semibold', 'Segoe Ui Symbol', 'Consolas', 'Marlett', 'Guifx v2 Transports', 'FontAwesome']);
 

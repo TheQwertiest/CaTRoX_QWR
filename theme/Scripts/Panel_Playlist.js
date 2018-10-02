@@ -5993,7 +5993,9 @@ function GroupingHandler() {
      * @param {function()} on_execute_callback_fn
      */
     function manage_groupings(on_execute_callback_fn) {
-        var on_ok_fn = function (ret_val) {
+        var on_ok_fn = function (ret_val_json) {
+            ret_val = JSON.parse(ret_val_json);
+            
             settings.group_presets = ret_val[0];
             settings.default_group_name = ret_val[2];
             initalize_name_to_preset_map();
@@ -6008,16 +6010,22 @@ function GroupingHandler() {
 
             on_execute_callback_fn();
         };
+        
+        var htmlCode = function() {
+            var htmlCode = utils.ReadTextFile( `${fb.FoobarPath}${g_theme.script_folder}html\\GroupPresetsMngr.html`);
+            
+            var cssPath = `${fb.FoobarPath}${g_theme.script_folder}html\\`;
+            if ( qwr_utils.get_windows_version() === '6.1' ) {
+                cssPath += "styles7.css";
+            }
+            else {
+                cssPath += "styles10.css";
+            }
+            htmlCode = htmlCode.replace(/href="styles10.css"/i, `href="${cssPath}"`);
+            return htmlCode;
+        }();
 
-        g_hta_window.group_presets_mngr(-10000, -10000, settings.group_presets, cur_group.name, settings.default_group_name, on_ok_fn);
-
-        var fb_handle = g_has_modded_jscript ? qwr_utils.get_fb2k_window() : undefined;
-        if (fb_handle) {
-            g_hta_window.manager.center(fb_handle.Left, fb_handle.Top, fb_handle.Width, fb_handle.Height);
-        }
-        else {
-            g_hta_window.manager.center();
-        }
+        utils.CreateHtmlWindow(htmlCode, { width: 650, height: 425, title: 'Foobar2000: Manage grouping presets', data: JSON.stringify([settings.group_presets, cur_group.name, settings.default_group_name]), fn: on_ok_fn });
     }
 
     function initialize_playlists() {
