@@ -5994,7 +5994,9 @@ function GroupingHandler() {
      */
     function manage_groupings(on_execute_callback_fn) {
         var on_ok_fn = function (ret_val_json) {
+            console.log(`here $(ret_val_json)`)
             ret_val = JSON.parse(ret_val_json);
+            console.log(`there $(ret_val)`)
             
             settings.group_presets = ret_val[0];
             settings.default_group_name = ret_val[2];
@@ -6025,7 +6027,7 @@ function GroupingHandler() {
             return htmlCode;
         }();
 
-        utils.CreateHtmlWindow(htmlCode, { width: 650, height: 425, title: 'Foobar2000: Manage grouping presets', data: JSON.stringify([settings.group_presets, cur_group.name, settings.default_group_name]), fn: on_ok_fn });
+        utils.ShowHtmlDialog(window.ID, htmlCode, { width: 650, height: 425, data: [JSON.stringify([settings.group_presets, cur_group.name, settings.default_group_name]), on_ok_fn] });
     }
 
     function initialize_playlists() {

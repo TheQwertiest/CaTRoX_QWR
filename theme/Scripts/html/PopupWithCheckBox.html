@@ -14,6 +14,7 @@
             .input_cnt_block { position: absolute; left: 14px; bottom: 15px; } 
             .button_ok { width: 70px; position: absolute; right: 8px; bottom: 8px; } 
         </style>
+        <title>Placeholder title</title>
     </head>
     <body>
         <div id="div_text" class="cnt">Placeholder main text</div>
@@ -23,21 +24,21 @@
         </div>
         <button class="button_ok" id="btn_ok">OK</button>
         <script>
-            var window_w = 358;
-            var window_h = 425;
-
-            var parsed_data;
+            var parsed_args;
             try {
-                parsed_data = window.stored_data.toArray();
+                parsed_args = window.external.dialogArguments.toArray();
             }
             catch(e) {
             }
-            if (parsed_data) {
-                window.div_text.innerText = parsed_data[0];
+            if (parsed_args) {
+                document.title = parsed_args[0];
+                window.div_text.innerText = parsed_args[1];
                 var labelInnerHtml = window.label_for_checkbox.innerHTML;
-                window.label_for_checkbox.innerHTML = labelInnerHtml.replace(/Placeholder checkbox text/g, parsed_data[1]);
+                window.label_for_checkbox.innerHTML = labelInnerHtml.replace(/Placeholder checkbox text/g, parsed_args[2]);
             }
 
+            var window_w = 358;
+            var window_h = 425;
             window_h = 83 + window.div_text.offsetHeight + window.btn_ok.offsetHeight;
             if (window_w < window_h + 50) {
                 window_w += 50;

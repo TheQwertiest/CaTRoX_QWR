@@ -26,6 +26,7 @@
             .button_cancel { position: absolute; right:88px; bottom:8px; } 
             .button_apply { position: absolute; right:8px; bottom:8px; } 
         </style>
+        <title>Foobar2000: Manage grouping presets</title>
     </head>
     <body>
         <div class="cnt"> 
@@ -84,7 +85,6 @@
             var VK_DELETE = 0x2E;
     
             // helpers
-            
             Array.isArray = function (obj) {
                 return Object.prototype.toString.call(obj) === "[object Array]";
             };
@@ -210,16 +210,24 @@
             }
     
             // parse input data
-            var parsed_data = [];
+            var parsed_args;
+            var group_data_list_copy;
+            var cur_group_name;
+            var default_group_name;
+            var callbackFn;
+            
             try {
-                parsed_data = JSON.parse(window.stored_data);
+                parsed_args = window.external.dialogArguments.toArray();
             }
             catch (e) {
             }
-    
-            var group_data_list_copy = [];
-            if (Array.isArray(parsed_data[0])) {
+            
+            if (parsed_args) {
+                var parsed_data = JSON.parse(parsed_args[0]);
                 group_data_list_copy = parsed_data[0];
+                cur_group_name = parsed_data[1];
+                default_group_name = parsed_data[2];
+                callbackFn = parsed_args[1];
             }
             else {
                 group_data_list_copy = [{
@@ -231,9 +239,9 @@
                     show_date: false,
                     show_cd: false
                 }];
-            }
-            var cur_group_name = parsed_data[1] || 'preset name';
-            var default_group_name = parsed_data[2] || 'preset name';
+                cur_group_name = 'preset name';
+                default_group_name = 'preset name';
+            }    
     
             // main script
             find(group_data_list_copy, function (item) { return item.name === default_group_name; }).is_default = true;
@@ -388,7 +396,7 @@
     
                 window.btn_update.onclick();
                     
-                window.stored_function && window.stored_function(prepare_output_data(group_data_list_copy));
+                callbackFn && callbackFn(prepare_output_data(group_data_list_copy));
     
                 window.btn_apply.setAttribute('disabled');
             };
@@ -404,7 +412,7 @@
                 var output_data = prepare_output_data(group_data_list_copy);
     
                 window.close();
-                window.stored_function && window.stored_function(output_data);
+                callbackFn && callbackFn(output_data);
             };
     
             populate_select(findIndex(group_data_list_copy, function (item) { return item.name === cur_group_name; }));
