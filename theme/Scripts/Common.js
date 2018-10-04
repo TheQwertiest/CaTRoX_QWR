@@ -424,17 +424,17 @@ var qwr_utils = {
         }
     },
     /**
-     * @return{boolean}
+     * @param{string} path
+     * @return{string}
      */
-    has_modded_jscript:   _.once(function () {
-        var ret = _.attempt(function () {
-            // Methods from modded JScript
-            wsh_utils.GetWndByHandle(666);
-            fb.IsMainMenuCommandChecked('View/Always on Top');
-        });
+    prepare_html_file: function(path) {
+        var html_code = utils.ReadTextFile( path );
+    
+        const new_css = ( qwr_utils.get_windows_version() === '6.1' ) ? 'styles7.css' : 'styles10.css';
+        const css_path = `${fb.FoobarPath}${g_theme.script_folder}html\\${new_css}`;
 
-        return !_.isError(ret);
-    }),
+        return html_code.replace(/href="styles10.css"/i, `href="${css_path}"`);
+    },
     /**
      * @param{string} site
      * @param{IFbMetadbHandle} metadb

@@ -17,7 +17,7 @@ var g_is_mini_panel = _.includes(window.Name.toLowerCase(), 'mini');
 // Niceties:
 // TODO: grouping presets manager: other EsPlaylist grouping features - sorting, playlist association
 // Low priority:
-// TODO: bug marc2003 about on_visibility_change callback
+// TODO: think about on_visibility_change callback
 // TODO: research the source of hangs with big art image loading (JScript? fb2k?)
 // TODO: measure draw vs backend performance
 g_properties.add_properties(
@@ -56,7 +56,6 @@ g_properties.add_properties(
 
 var g_component_playcount = _.cc('foo_playcount');
 var g_component_utils = _.cc('foo_utils');
-var g_has_modded_jscript = qwr_utils.has_modded_jscript();
 
 // Fixup properties
 (function () {
@@ -5978,15 +5977,9 @@ function GroupingHandler() {
         };
 
         var parsed_query = cur_group.name === 'user_defined' ? [cur_group.group_query, cur_group.title_query] : ['', '[%album artist%]'];
-        g_hta_window.msg_box_multiple(-10000, -10000, ['Grouping Query', 'Title Query'], 'Foobar2000: Group by', [parsed_query[0], parsed_query[1]], on_ok_fn);
 
-        var fb_handle = g_has_modded_jscript ? qwr_utils.get_fb2k_window() : undefined;
-        if (fb_handle) {
-            g_hta_window.manager.center(fb_handle.Left, fb_handle.Top, fb_handle.Width, fb_handle.Height);
-        }
-        else {
-            g_hta_window.manager.center();
-        }
+        var htmlCode = qwr_utils.prepare_html_file(`${fb.FoobarPath}${g_theme.script_folder}html\\MsgBox.html`);
+        utils.ShowHtmlDialog(window.ID, htmlCode, { width: 650, height: 425, data: ['Foobar2000: Group by', ['Grouping Query', 'Title Query'], [parsed_query[0], parsed_query[1]], on_ok_fn] });
     }
 
     /**
@@ -5994,9 +5987,7 @@ function GroupingHandler() {
      */
     function manage_groupings(on_execute_callback_fn) {
         var on_ok_fn = function (ret_val_json) {
-            console.log(`here $(ret_val_json)`)
             ret_val = JSON.parse(ret_val_json);
-            console.log(`there $(ret_val)`)
             
             settings.group_presets = ret_val[0];
             settings.default_group_name = ret_val[2];
@@ -6013,20 +6004,7 @@ function GroupingHandler() {
             on_execute_callback_fn();
         };
         
-        var htmlCode = function() {
-            var htmlCode = utils.ReadTextFile( `${fb.FoobarPath}${g_theme.script_folder}html\\GroupPresetsMngr.html`);
-            
-            var cssPath = `${fb.FoobarPath}${g_theme.script_folder}html\\`;
-            if ( qwr_utils.get_windows_version() === '6.1' ) {
-                cssPath += "styles7.css";
-            }
-            else {
-                cssPath += "styles10.css";
-            }
-            htmlCode = htmlCode.replace(/href="styles10.css"/i, `href="${cssPath}"`);
-            return htmlCode;
-        }();
-
+        var htmlCode = qwr_utils.prepare_html_file(`${fb.FoobarPath}${g_theme.script_folder}html\\GroupPresetsMngr.html`);
         utils.ShowHtmlDialog(window.ID, htmlCode, { width: 650, height: 425, data: [JSON.stringify([settings.group_presets, cur_group.name, settings.default_group_name]), on_ok_fn] });
     }
 
