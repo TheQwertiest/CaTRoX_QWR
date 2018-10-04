@@ -78,13 +78,21 @@
         <button class="normal_button button_cancel" id="btn_cancel">Cancel</button> 
         <button class="normal_button button_apply" id="btn_apply" disabled>Apply</button> 
         <script>
-            window.resizeTo(650, 425);
-
             // consts
             var VK_BACKSPACE = 0x08;
             var VK_DELETE = 0x2E;
     
             // helpers
+            function resizeToImpl(w,h) {
+                if (window.dialogWidth != undefined && window.dialogHeight != undefined) {
+                    window.dialogWidth  = '' + w + 'px';
+                    window.dialogHeight = '' + h + 'px';
+                }
+                else {
+                    window.resizeTo(w, h);
+                }
+            }
+            
             Array.isArray = function (obj) {
                 return Object.prototype.toString.call(obj) === "[object Array]";
             };
@@ -208,7 +216,9 @@
                 }
                 return new_name + '(' + new_name_idx + ')';
             }
-    
+            
+            resizeToImpl(650, 425);
+            
             // parse input data
             var parsed_args;
             var group_data_list_copy;
@@ -379,10 +389,6 @@
                 populate_select(selected_idx + 1);
     
                 window.btn_apply.removeAttribute('disabled');
-            };
-    
-            window.document.body.onbeforeunload = function () {
-                //window.close();
             };
     
             window.btn_cancel.onclick = function () {

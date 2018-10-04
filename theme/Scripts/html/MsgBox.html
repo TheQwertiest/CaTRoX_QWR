@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <meta http-equiv="x-ua-compatible" content="IE=8"/>
+        <meta http-equiv="x-ua-compatible" content="IE=7"/>
+        <!-- IE=8 is broken on Windows 10: document.documentElement.clientHeight is totally wrong -->
         <link rel="stylesheet" type="text/css" href="styles10.css">
         <style type="text/css">
             div { overflow: hidden; } 
@@ -19,6 +20,16 @@
         </div>
         <script>
             // helpers
+            function resizeToImpl(w,h) {
+                if (window.dialogWidth != undefined && window.dialogHeight != undefined) {
+                    window.dialogWidth  = '' + w + 'px';
+                    window.dialogHeight = '' + h + 'px';
+                }
+                else {
+                    window.resizeTo(w, h);
+                }
+            }
+            
             function forEach(arr, func) {
                 for (var i = 0; i < arr.length; ++i) {
                     func(arr[i], i);
@@ -60,8 +71,7 @@
                     '</div>';
             }
             
-            var mainDiv = document.getElementById('main_div');
-            mainDiv.innerHTML = input_text + mainDiv.innerHTML;
+            window.main_div.innerHTML = input_text + window.main_div.innerHTML;
                         
             var labels = [];
             var label_max_width = 0;
@@ -90,11 +100,11 @@
             };
             
             // Adjust size size
-            window.resizeTo(300, 100);
+            resizeToImpl(300, 100);
             var padW = 300 - document.documentElement.clientWidth;
-            var padH = 100 - document.documentElement.clientHeight;       
+            var padH = 100 - document.documentElement.clientHeight;
             if (document.documentElement.scrollHeight > document.body.clientHeight) {
-                window.resizeTo(370 + padW, document.documentElement.scrollHeight + padH);
+                resizeToImpl(370 + padW, document.documentElement.scrollHeight + padH);
             }
             
             window.document.body.focus();

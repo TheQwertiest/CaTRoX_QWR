@@ -24,7 +24,20 @@
         </div>
         <button class="button_ok" id="btn_ok">OK</button>
         <script>
+            // helpers
+            function resizeToImpl(w,h) {
+                if (window.dialogWidth != undefined && window.dialogHeight != undefined) {
+                    window.dialogWidth  = '' + w + 'px';
+                    window.dialogHeight = '' + h + 'px';
+                }
+                else {
+                    window.resizeTo(w, h);
+                }
+            }
+        
+            // parse data
             var parsed_args;
+            var callback_fn;
             try {
                 parsed_args = window.external.dialogArguments.toArray();
             }
@@ -35,23 +48,25 @@
                 window.div_text.innerText = parsed_args[1];
                 var labelInnerHtml = window.label_for_checkbox.innerHTML;
                 window.label_for_checkbox.innerHTML = labelInnerHtml.replace(/Placeholder checkbox text/g, parsed_args[2]);
+                callback_fn = parsed_args[3];
             }
 
+            // main script
             var window_w = 358;
             var window_h = 425;
             window_h = 83 + window.div_text.offsetHeight + window.btn_ok.offsetHeight;
             if (window_w < window_h + 50) {
                 window_w += 50;
             
-                window.resizeTo(window_w, window_h);
+                resizeToImpl(window_w, window_h);
                 window_h = 83 + window.div_text.offsetHeight + window.btn_ok.offsetHeight;
             }
-            window.resizeTo(window_w, window_h);
+            resizeToImpl(window_w, window_h);
             
             window.input_checkbox.checked = false;
 
             window.btn_ok.onclick = function () {
-                window.stored_function && window.stored_function("ok", window.input_checkbox.checked);
+                callback_fn && callback_fn("ok", window.input_checkbox.checked);
                 window.close();
             };
 
