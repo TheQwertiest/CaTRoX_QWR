@@ -16,7 +16,6 @@ g_properties.add_properties(
     }
 );
 
-var g_has_modded_jscript = qwr_utils.has_modded_jscript();
 var g_component_scrobble = _.cc('foo_scrobble');
 
 /** @type {Object<string, IGdiFont>} */

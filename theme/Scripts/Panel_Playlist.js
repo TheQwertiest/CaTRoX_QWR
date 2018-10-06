@@ -5976,10 +5976,12 @@ function GroupingHandler() {
             on_execute_callback_fn();
         };
 
-        var parsed_query = cur_group.name === 'user_defined' ? [cur_group.group_query, cur_group.title_query] : ['', '[%album artist%]'];
+        var parsed_query = cur_group.name === 'user_defined' 
+            ? [cur_group.group_query, cur_group.title_query] 
+            : ['', '[%album artist%]'];
 
         var htmlCode = qwr_utils.prepare_html_file(`${fb.FoobarPath}${g_theme.script_folder}html\\MsgBox.html`);
-        utils.ShowHtmlDialog(window.ID, htmlCode, { width: 650, height: 425, data: ['Foobar2000: Group by', ['Grouping Query', 'Title Query'], [parsed_query[0], parsed_query[1]], on_ok_fn] });
+        utils.ShowHtmlDialog(window.ID, htmlCode, { width: 650, height: 425, data: ['Foobar2000: Group by', ['Grouping Query', 'Title Query'], parsed_query, on_ok_fn] });
     }
 
     /**

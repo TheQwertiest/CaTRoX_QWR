@@ -23,8 +23,6 @@ g_properties.add_properties(
     }
 );
 
-var g_has_modded_jscript = qwr_utils.has_modded_jscript();
-
 // Fixup properties
 (function() {
     g_properties.track_mode = Math.max(1, Math.min(3, g_properties.track_mode));
@@ -642,14 +640,6 @@ function TrackInfoList() {
         };
 
         g_hta_window.msg_box_multiple(-10000, -10000, ['Tag Name', 'Value'], 'Foobar2000: Add new metadata tag', ['', ''], on_ok_fn);
-
-        var fb_handle = g_has_modded_jscript ? qwr_utils.get_fb2k_window() : undefined;
-        if (fb_handle) {
-            g_hta_window.manager.center(fb_handle.Left, fb_handle.Top, fb_handle.Width, fb_handle.Height);
-        }
-        else {
-            g_hta_window.manager.center();
-        }
     }
 
     // private:

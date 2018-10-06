@@ -31,8 +31,6 @@ g_properties.add_properties(
 
 qwr_utils.check_fonts(['Segoe Ui', 'Segoe Ui Semibold', 'Segoe Ui Symbol', 'Consolas', 'Marlett', 'Guifx v2 Transports', 'FontAwesome']);
 
-var g_has_modded_jscript = qwr_utils.has_modded_jscript();
-
 // Fixup properties
 (function() {
     var saved_mode = g_properties.saved_mode;
@@ -994,7 +992,7 @@ function WindowModeHandler() {
         UIHacks.MaxSize.Enabled = !!max_w || !!max_h;
     }
 
-    var fb_handle = g_has_modded_jscript ? qwr_utils.get_top_theme_window() : undefined;
+    var fb_handle = undefined;
 }
 
 /**
