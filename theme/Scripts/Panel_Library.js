@@ -1,800 +1,1261 @@
-﻿// ==PREPROCESSOR==
-// @name "Library Tree"
-// @author "WilB"
-// @version "1.4.0.2"
-// ==/PREPROCESSOR==
+﻿'use strict';
+window.DefinePanel('Library Tree', {author:'WilB', version: '2.0.0'});
+const requiredVersionStr = '1.1.4'; function is_compatible(requiredVersionStr) {const requiredVersion = requiredVersionStr.split('.'), currentVersion = utils.Version.split('.'); if (currentVersion.length > 3) currentVersion.length = 3; for (let i = 0; i < currentVersion.length; ++i) if (currentVersion[i] != requiredVersion[i]) return currentVersion[i] > requiredVersion[i]; return true;} if (!is_compatible(requiredVersionStr)) fb.ShowPopupMessage(`Library Tree requires v${requiredVersionStr}. Current component version is v${utils.Version}.`);
 
-if (!window.GetProperty("SYSTEM.Chakra Checked", false) && !Date.now) {fb.ShowPopupMessage("Use the 'Chakra' script engine if possible (requires IE9 or later) - it's faster. Select in the JScript panel configuration window (shift + right click)", "Library Tree"); window.SetProperty("SYSTEM.Chakra Checked", true);}
-if (!("Version" in utils) || utils.Version < 2100) fb.ShowPopupMessage("Requires: JScript Panel 2.1.0+", "Library Tree");
-String.prototype.strip = function() {return this.replace(/[\.,\!\?\:;'\u2019"\-_\u2010\s+]/g, "").toLowerCase();}
-if (!String.prototype.trim) {String.prototype.trim = function () {return this.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, '');};}
+const $ = {
+    equal : (arr1, arr2) => {let i = arr1.length; if (i != arr2.length) return false; while (i--) if (arr1[i] !== arr2[i]) return false; return true;},
+	getDpi : () => {let dpi = 120; try {dpi = $.WshShell.RegRead("HKCU\\Control Panel\\Desktop\\WindowMetrics\\AppliedDPI");} catch (e) {} return dpi < 121 ? 1 : dpi / 120;},
+    isArray : arr => Array.isArray(arr),
+	WshShell : new ActiveXObject("WScript.Shell")
+}
 
-function userinterface() {
-    var WshShell = new ActiveXObject("WScript.Shell"); try {var dpi = WshShell.RegRead("HKCU\\Control Panel\\Desktop\\WindowMetrics\\AppliedDPI");} catch (e) {var dpi = 120;} this.scale = dpi < 121 ? 1 : dpi / 120; this.zoomUpd = window.GetProperty("SYSTEM.Zoom Update", false);
-    var alpha = window.GetProperty(" Cover Opacity (0-100)", 10), autoFill = window.GetProperty(" Cover Auto-Fill", true), blend = "", blurImg = false, custom_col = window.GetProperty("_CUSTOM COLOURS/FONTS: USE", false), cust_icon_font = window.GetProperty("_Custom.Font Icon [Node] (Name,Style[0or1])", "Segoe UI Symbol,0"), k = 0, lightBg = false, icon = window.GetProperty(" Node: Custom Icon: +|- // Examples","| // (+)|(−) | | | | | | | | |").trim(), icon_f_name= "Segoe UI", icon_f_style = 0, iconcol_c = "", iconcol_e = "", iconcol_h = "", image_path_o = "", linecol = window.GetProperty(" Node: Lines: Hide-0 Grey-1 Blend-2 Text-3", 1), mix = 0, noimg = [], orig_font_sz = 16, tcol = "", tcol_h = "", s_col = window.GetProperty(" Search Style: Fade-0 Blend-1 Norm-2 Highlight-3", 0), s_linecol = window.GetProperty(" Search: Line Colour: Grey-0 Blend-1 Text-2", 0), sp = 6, sp1 = 6, sp2 = 6, sum = 0, node_sz = Math.round(11 * this.scale), zoom = 100, zoom_font_sz = 16, zoom_node = 100;
-    this.b1 = 0x04ffffff; this.b2 = 0x04000000; this.backcol = ""; this.backcol_h = ""; this.backcolsel = ""; this.backcoltrans = ""; this.bg = false;
-    this.blur_blend = window.GetProperty("SYSTEM.Blur Blend Theme", false); this.blur_dark = window.GetProperty("SYSTEM.Blur Dark Theme", false); this.blur_light = window.GetProperty("SYSTEM.Blur Light Theme", false); var blur_tmp = window.GetProperty("ADV.Image Blur Background Level (0-100)", 90), blurAutofill = window.GetProperty("ADV.Image Blur Background Auto-Fill", false); this.blurLevel = this.blur_blend ? 91.05 - Math.max(Math.min(blur_tmp, 90), 1.05) : Math.max(Math.min(blur_tmp * 2, 254), 0); this.blur = this.blur_blend || this.blur_dark || this.blur_light; this.collapse = ""; this.blurAlpha = window.GetProperty("ADV.Image Blur Background Opacity (0-100)", 30); this.blurAlpha = Math.min(Math.max(this.blurAlpha, 0), 100) / 30;
-    var changeBrightness = function (r, g, b, percent){return RGB(Math.min(Math.max(r + (256 - r) * percent / 100, 0), 255), Math.min(Math.max(g + (256 - g) * percent / 100, 0), 255), Math.min(Math.max(b + (256 - b) * percent / 100, 0), 255));}
-    this.countscol = ""; this.expand =  ""; this.ct = false; this.dui = window.InstanceType; this.fill = 0; this.font; this.framecol = ""; this.h = 0; this.icon_font; this.icon_pad = window.GetProperty(" Node: Custom Icon: Vertical Padding", -2); this.icon_w = 17; this.iconcol_c = ""; this.iconcol_e = ""; this.iconcol_h = ""; this.imgBg = window.GetProperty("SYSTEM.Image Background", false); this.j_font; this.l_s1 = 4; this.l_s2 = 6; this.l_s3 = 7; this.linecol = ""; this.pen = 1; this.pen_c = 0x55888888; this.row_h = 20; this.s_font; this.s_linecol = ""; this.searchcol = ""; this.sel = 3; this.textcol = ""; this.textcol_h = ""; this.textselcol = ""; this.txt_box = ""; this.w = 0; this.alternate = window.GetProperty(" Row Stripes", false); this.local = typeof conf === 'undefined' ? false : true; this.margin = window.GetProperty(" Margin", 8); this.node_sz = Math.round(11 * this.scale);
-    this.trace = function(message) {var trace = true; if (trace) console.log("Library Tree" + ": " + message);}; alpha = alpha * 2.55; alpha = Math.min(Math.max(alpha, 0), 255);
-    if (custom_col) {if (cust_icon_font.length) {cust_icon_font = cust_icon_font.split(","); try {var st = Math.round(parseFloat(cust_icon_font[1])); if (!st) st = 0; var font_test = gdi.Font(cust_icon_font[0], 16, st); icon_f_name = cust_icon_font[0]; icon_f_style = st;} catch (e) {this.trace("JScript Panel is unable to use your node icon font. Using Segoe UI instead");}}}
-    try {var win_node = parseFloat(window.GetProperty("ADV.Node [Default]: Themed 0 or 1", "0").replace(/\s+/g, "").charAt(0)); if (isNaN(win_node)) win_node = 0;  if (win_node != 0 && win_node != 1) win_node = 0; if (win_node == 1)  window.SetProperty("ADV.Node [Default]: Themed 0 or 1", "1 // Highlight & Custom Colours N/A For Themed"); else window.SetProperty("ADV.Node [Default]: Themed 0 or 1", "" + 0 + "");} catch (e) {win_node = 0; window.SetProperty("ADV.Node [Default]: Themed 0 or 1", "" + 0 + "");}
-    this.node_style = window.GetProperty(" Node: Custom (No Lines)", false) ? 0 : !win_node ? 1 : 2; if (this.node_style > 2 || this.node_style < 0) this.node_style = 1; this.node_win = this.node_style == 2 ? 1 : 0;
-    if (!this.node_style) {if (!icon.charAt(0).length) this.node_style = 1; else try {icon = icon.split("//"); icon = icon[0].split("|"); this.expand = icon[0].trim(); this.collapse = icon[1].trim();} catch (e) {this.node_style = 1;}} if (!this.expand.length || !this.collapse.length) this.node_style = 1;
-    this.hot = window.GetProperty(" Node: Hot Highlight", true); this.pad = window.GetProperty(" Tree Indent", 19); window.SetProperty("_CUSTOM COLOURS/FONTS: EMPTY = DEFAULT", "R-G-B (any) or R-G-B-A (not Text...), e.g. 255-0-0");
-    this.scrollbar_show = window.GetProperty(" Scrollbar Show", true);
-    try {this.scr_type = parseFloat(window.GetProperty(" Scrollbar Type Default-0 Styled-1 Themed-2", "0").replace(/\s+/g, "").charAt(0)); if (isNaN(this.scr_type)) this.scr_type = 0;  if (this.scr_type > 2 || this.scr_type < 0) this.scr_type = 0; if (this.scr_type ==2)  window.SetProperty(" Scrollbar Type Default-0 Styled-1 Themed-2", "2 // Scrollbar Settings N/A For Themed"); else window.SetProperty(" Scrollbar Type Default-0 Styled-1 Themed-2", "" + this.scr_type + "");} catch (e) {this.scr_type = 0; window.SetProperty(" Scrollbar Type Default-0 Styled-1 Themed-2", "" + 0 + "");}
-    this.scr_col = Math.min(Math.max( window.GetProperty(" Scrollbar Colour Grey-0 Blend-1", 1), 0), 1);
-    if (this.scr_type == 2) {this.theme = window.CreateThemeManager("scrollbar"); var im = gdi.CreateImage(21, 21), j = im.GetGraphics(); try {this.theme.SetPartAndStateId(6, 1); this.theme.DrawThemeBackground(j, 0, 0, 21, 50); for (var i = 0; i < 3; i++) {this.theme.SetPartAndStateId(3, i + 1); this.theme.DrawThemeBackground(j, 0, 0, 21, 50);} for (i = 0; i < 3; i++) {this.theme.SetPartAndStateId(1, i + 1); this.theme.DrawThemeBackground(j, 0, 0, 21, 21);}} catch(e) {this.scr_type = 1; window.SetProperty(" Scrollbar Type Default-0 Styled-1 Themed-2", "" + 1 + "");} im.ReleaseGraphics(j);}
-    var themed_w = 21; try {themed_w = utils.GetSystemMetrics(2);} catch (e) {}
-    var sbw = window.GetProperty(" Scrollbar Size"); if (sbw && sbw.indexOf("GripMinHeight") == -1) window.SetProperty(" Scrollbar Size", sbw + ",GripMinHeight,20");
-    var sbar_w = window.GetProperty(" Scrollbar Size", "Bar,11,Arrow,11,Gap(+/-),0,GripMinHeight,20").replace(/\s+/g, "").split(",");
-    this.scr_w = parseFloat(sbar_w[1]); if (isNaN(this.scr_w)) this.scr_w = 11; this.scr_w = Math.min(Math.max(this.scr_w, 0), 400);
-    var scr_w_o = Math.min(Math.max(window.GetProperty("SYSTEM.Scrollbar Width Bar", 11), 0), 400);
-    this.arrow_pad = parseFloat(sbar_w[5]); if (isNaN(this.arrow_pad)) this.arrow_pad = 0;
-    this.grip_h = parseFloat(sbar_w[7]); if (isNaN(this.grip_h)) this.grip_h = 20;
-    if (this.scr_w != scr_w_o) {this.scr_but_w = parseFloat(sbar_w[3]); if (isNaN(this.scr_but_w)) this.scr_but_w = 11; this.scr_but_w = Math.min(this.scr_but_w, this.scr_w, 400); window.SetProperty(" Scrollbar Size", "Bar," + this.scr_w +",Arrow," + this.scr_but_w + ",Gap(+/-)," + this.arrow_pad + ",GripMinHeight," + this.grip_h);}
-    else {this.scr_but_w = parseFloat(sbar_w[3]); if (isNaN(this.scr_but_w)) this.scr_but_w = 11; this.scr_but_w = Math.min(Math.max(this.scr_but_w, 0), 400); this.scr_w = parseFloat(sbar_w[1]); if (isNaN(this.scr_w)) this.scr_w = 11; this.scr_w = Math.min(Math.max(this.scr_w, this.scr_but_w), 400); window.SetProperty(" Scrollbar Size", "Bar," + this.scr_w +",Arrow," + this.scr_but_w + ",Gap(+/-)," + this.arrow_pad + ",GripMinHeight," + this.grip_h);}
-    window.SetProperty("SYSTEM.Scrollbar Width Bar", this.scr_w);
-    if (this.scr_type == 2) this.scr_w = themed_w; if (!this.scrollbar_show) this.scr_w = 0;
-    this.but_h = this.scr_w + (this.scr_type != 2 ? 1 : 0); if (this.scr_type != 2) this.scr_but_w += 1;
-    this.sbar_sp = this.scr_w ? this.scr_w + (this.scr_w - this.scr_but_w < 5 || this.scr_type == 2 ? 1 : 0) : 0;
-    this.arrow_pad = Math.min(Math.max(-this.but_h / 5, this.arrow_pad), this.but_h / 5);
-    var R = function(c) {return c >> 16 & 0xff;}; var G = function(c) {return c >> 8 & 0xff;}; var B = function(c) {return c & 0xff;}; var A = function (c) {return c >> 24 & 0xff;}
-    var RGBAtoRGB = function(col, bg) {var r = R(col) / 255, g = G(col) / 255, b = B(col) / 255, a = A(col) / 255, bgr = R(bg) / 255, bgg = G(bg) / 255, bgb = B(bg) / 255, nR = ((1 - a) * bgr) + (a * r), nG = ((1 - a) * bgg) + (a * g), nB = ((1 - a) * bgb) + (a * b); nR = Math.max(Math.min(Math.round(nR * 255), 255), 0); nG = Math.max(Math.min(Math.round(nG * 255), 255), 0); nB = Math.max(Math.min(Math.round(nB * 255), 255), 0); return RGB(nR, nG, nB);}
-    var get_blend = function(c1, c2, f) {var nf = 1 - f, r = (R(c1) * f + R(c2) * nf), g = (G(c1) * f + G(c2) * nf), b = (B(c1) * f + B(c2) * nf); return RGB(r, g, b);}
-    var get_grad = function (c, f1, f2) {return [RGB(Math.min(R(c) + f1, 255), Math.min(G(c) + f1, 255), Math.min(B(c) + f1, 255)), RGB(Math.max(R(c) + f2, 0), Math.max(G(c) + f2, 0), Math.max(B(c) + f2, 0))];}
-    var get_textselcol = function(c, n) {var cc = [R(c), G(c), B(c)]; var ccc = []; for (var i = 0; i < cc.length; i++) {ccc[i] = cc[i] / 255; ccc[i] = ccc[i] <= 0.03928 ? ccc[i] / 12.92 : Math.pow(((ccc[i] + 0.055 ) / 1.055), 2.4);} var L = 0.2126 * ccc[0] + 0.7152 * ccc[1] + 0.0722 * ccc[2]; if (L > 0.31) return n ? 50 : RGB(0, 0, 0); else return n ? 200 : RGB(255, 255, 255);}
-    this.outline = function(c, but) {if (but) {if (window.IsTransparent || R(c) + G(c) + B(c) > 30) return RGBA(0, 0, 0, 36); else return RGBA(255, 255, 255, 36);} else if (R(c) + G(c) + B(c) > 255 * 1.5) return RGB(30, 30, 10); else return RGB(225, 225, 245);}
-    this.reset_colors = function () {iconcol_c = ""; iconcol_e = ""; iconcol_h = ""; this.backcol = ""; this.backcol_h = ""; this.backcolsel = ""; this.backcoltrans = ""; this.countscol = ""; this.framecol = ""; this.iconcol_c = ""; this.iconcol_e = ""; this.iconcol_h = ""; this.linecol = ""; this.s_linecol = ""; this.searchcol = ""; tcol = ""; tcol_h = ""; this.textcol = ""; this.textcol_h = ""; this.textselcol = ""; this.txt_box = "";}
-    var set_custom_col = function(c, t) {if (!custom_col) return ""; try {var cc = "", col = []; col = c.split("-"); if (col.length != 3 && col.length != 4) return ""; switch (t) {case 0: cc = RGB(col[0], col[1], col[2]); break; case 1: switch (col.length) {case 3: cc = RGB(col[0], col[1], col[2]); break; case 4: cc = RGBA(col[0], col[1], col[2], col[3]); break;} break;} return cc;} catch (e) {return ""};}
+const s = {
+    browser : c => {if (!s.run(c)) fb.ShowPopupMessage("Unable to launch your default browser.", "Library Tree");},
+    clamp : (num, min, max) => {num = num <= max ? num : max; num = num >= min ? num : min; return num;},
+    debounce : (e,r,i) => {var o,u,a,c,v,f,d=0,m=!1,j=!1,n=!0;if("function"!=typeof e)throw new TypeError(FUNC_ERROR_TEXT);function T(i){var n=o,t=u;return o=u=void 0,d=i,c=e.apply(t,n)}function b(i){var n=i-f;return void 0===f||r<=n||n<0||j&&a<=i-d}function l(){var i,n,t=Date.now();if(b(t))return w(t);v=setTimeout(l,(n=r-((i=t)-f),j?Math.min(n,a-(i-d)):n))}function w(i){return v=void 0,n&&o?T(i):(o=u=void 0,c)}function t(){var i,n=Date.now(),t=b(n);if(o=arguments,u=this,f=n,t){if(void 0===v)return d=i=f,v=setTimeout(l,r),m?T(i):c;if(j)return v=setTimeout(l,r),T(f)}return void 0===v&&(v=setTimeout(l,r)),c}return r=parseFloat(r)||0,s.isObject(i)&&(m=!!i.leading,a=(j="maxWait"in i)?Math.max(parseFloat(i.maxWait)||0,r):a,n="trailing"in i?!!i.trailing:n),t.cancel=function(){void 0!==v&&clearTimeout(v),o=f=u=v=void(d=0)},t.flush=function(){return void 0===v?c:w(Date.now())},t}, isObject : function(t) {var e=typeof t;return null!=t&&("object"==e||"function"==e)},
+    file : f => s.fs.FileExists(f),
+    fs : new ActiveXObject("Scripting.FileSystemObject"),
+    gr : (w, h, im, func) => {let i = gdi.CreateImage(w, h), g = i.GetGraphics(); func(g, i); i.ReleaseGraphics(g); g = null; if (im) return i; else i = null;},
+    padNumber : (num, len, base) => {if (!base) base = 10; return ('000000' + num.toString(base)).substr(-len);},
+    query : (h, q) => {let l = FbMetadbHandleList(); try {l = fb.GetQueryItems(h, q);} catch (e) {} return l;},
+    replaceAt: (str, pos, chr) => str.substring(0, pos) + chr + str.substring(pos + 1),
+    run : c => {try {$.WshShell.Run(c); return true;} catch (e) {return false;}},
+	scale : $.getDpi(),
+    throttle : (e,i,t) => {var n=!0,r=!0;if("function"!=typeof e)throw new TypeError(FUNC_ERROR_TEXT);return s.isObject(t)&&(n="leading"in t?!!t.leading:n,r="trailing"in t?!!t.trailing:r),s.debounce(e,i,{leading:n,maxWait:i,trailing:r})},
+    trace : message => console.log("Library Tree" + ": " + message),
+    value : (num, def, type) => {num = parseFloat(num); if (isNaN(num)) return def; switch (type) {case 0: return num; case 1: if (num !== 1 && num !== 0) return def; break; case 2: if (num > 2 || num < 0) return def; break;} return num;},
+}
 
-    this.icon_col = function() {
-        if (iconcol_c === "") {this.iconcol_c = this.node_style ? [RGB(252, 252, 252), RGB(223, 223, 223)] : this.textcol;} else if (this.node_style) {if (A(iconcol_c) != 255) {this.iconcol_c = RGBAtoRGB(iconcol_c, this.backcol);} else this.iconcol_c = iconcol_c; this.iconcol_c = get_grad(this.iconcol_c, 15, -14);}
-        if (iconcol_e === "") {this.iconcol_e = this.node_style ? [RGB(252, 252, 252), RGB(223, 223, 223)] : this.textcol & 0xC0ffffff;} else if (this.node_style) {if (A(iconcol_e) != 255) {this.iconcol_e = RGBAtoRGB(iconcol_e, this.backcol);} else this.iconcol_e = iconcol_e; this.iconcol_e = get_grad(this.iconcol_e, 15, -14);}
-        this.iconpluscol = get_textselcol(this.iconcol_e[0], true) == 50 ? RGB(41, 66, 114) : RGB(225, 225, 245);
-        this.iconminuscol_c = get_textselcol(this.iconcol_c[0], true) == 50 ? RGB(75, 99, 167) : RGB(225, 225, 245);
-        this.iconminuscol_e = get_textselcol(this.iconcol_e[0], true) == 50 ? RGB(75, 99, 167) : RGB(225, 225, 245);
-        if (!this.hot) return;
-        if (iconcol_h === "") {this.iconcol_h = this.node_style ? !this.blur_dark && !this.blur_light ? !this.local ? (R(this.textcol_h) + G(this.textcol_h) + B(this.textcol_h) < 650 ? this.textcol_h : this.textcol) : (R(c_iconcol_h) + G(c_iconcol_h) + B(c_iconcol_h) < 650 ? c_iconcol_h : c_textcol): RGB(50, 50, 50) : this.textcol_h; iconcol_h = this.iconcol_h} if (this.node_style) {if (A(iconcol_h) != 255) {this.iconcol_h = RGBAtoRGB(iconcol_h, this.backcol);} else if (iconcol_h !== "") this.iconcol_h = iconcol_h; this.iconcol_h = get_grad(this.iconcol_h, 15, -14);}
-        this.iconpluscol_h = get_textselcol(this.iconcol_h[0], true) == 50 ? RGB(41, 66, 114) : RGB(225, 225, 245);
-        this.iconminuscol_h = get_textselcol(this.iconcol_h[0], true) == 50 ? RGB(75, 99, 167) : RGB(225, 225, 245);
+class PanelProperty {
+    constructor(name, default_value) {
+		this.name = name;
+		this.value = ppt.get(this.name, default_value);
     }
 
-    this.get_colors = function() {
-        this.backcol = set_custom_col(window.GetProperty("_Custom.Colour Background", ""), 1);
-        this.backcol_h = set_custom_col(window.GetProperty("_Custom.Colour Background Highlight", ""), 1);
-        this.backcolsel = set_custom_col(window.GetProperty("_Custom.Colour Background Selected", ""), 1);
-        this.countscol = set_custom_col(window.GetProperty("_Custom.Colour Item Counts", ""), 1);
-        this.linecol = set_custom_col(window.GetProperty("_Custom.Colour Node Lines", ""), 1);
-        this.txt_box = set_custom_col(window.GetProperty("_Custom.Colour Search Name", ""), 0);
-        this.s_linecol = set_custom_col(window.GetProperty("_Custom.Colour Search Line", ""), 1);
-        this.searchcol = set_custom_col(window.GetProperty("_Custom.Colour Search Text", ""), 0);
-        this.framecol = set_custom_col(window.GetProperty("_Custom.Colour Frame Highlight", ""), 1);
-        this.textcol = set_custom_col(window.GetProperty("_Custom.Colour Text", ""), 0);
-        this.textcol_h = set_custom_col(window.GetProperty("_Custom.Colour Text Highlight", ""), 0);
-        this.textselcol = set_custom_col(window.GetProperty("_Custom.Colour Text Selected", ""), 0);
-        this.iconcol_c = set_custom_col(window.GetProperty("_Custom.Colour Node Collapse", ""), 1); iconcol_c = this.iconcol_c;
-        this.iconcol_e = set_custom_col(window.GetProperty("_Custom.Colour Node Expand", ""), 1); iconcol_e = this.iconcol_e;
-        this.iconcol_h = set_custom_col(window.GetProperty("_Custom.Colour Node Highlight", ""), 1); iconcol_h = this.iconcol_h;
-        this.backcoltrans = set_custom_col(window.GetProperty("_Custom.Colour Transparent Fill", ""), 1);
-        this.blur = this.blur_blend || this.blur_dark || this.blur_light; if (this.blur_dark) {this.bg_color_light = RGBA(0, 0, 0, Math.min(160 / this.blurAlpha, 255)); this.bg_color_dark = RGBA(0, 0, 0, Math.min(80 / this.blurAlpha, 255));} if (this.blur_light) {this.bg_color_light = RGBA(255, 255, 255, Math.min(160 / this.blurAlpha, 255)); this.bg_color_dark = RGBA(255, 255, 255, Math.min(205 / this.blurAlpha, 255));}
+    get() {return this.value;}
+	set(new_value) {if (this.value !== new_value) {ppt.set(this.name, new_value); this.value = new_value;}}
+}
+
+class PanelProperties {
+    constructor() {
+        this.name_list = {}; // collision checks only
+    }
+    init(type, properties, thisArg) {
+        switch (type) {
+			case 'auto':
+                properties.forEach(v => {
+                    // this.validate(v); // debug
+                    this.add(v);
+                });
+				break;
+			case 'manual':
+				properties.forEach(v => thisArg[v[2]] = this.get(v[0], v[1]));
+				break;
+		}
+    }
+
+    validate(item) {
+        if (!$.isArray(item) || item.length !== 3 || typeof item[2] !== 'string') {
+            throw ('invalid property: requires array: [string, any, string]');
+        }
+        if (item[2] === 'add') {
+            throw ('property_id: '+ item[2] + '\nThis id is reserved');
+        }
+        if (this[item[2]] != null || this[item[2] + '_internal'] != null) {
+            throw ('property_id: '+ item[2] + '\nThis id is already occupied');
+        }
+        if (this.name_list[item[0]] != null) {
+            throw ('property_name: '+ item[0] + '\nThis name is already occupied');
+        }
+    }
+
+    add(item) {
+        this.name_list[item[0]] = 1;
+
+        this[item[2] + '_internal'] = new PanelProperty(item[0], item[1]);
+
+        Object.defineProperty(this, item[2], {
+            get() {return this[item[2] + '_internal'].get();},
+            set(new_value) {this[item[2] + '_internal'].set(new_value);}
+        });
+    }
+
+	get(n, v) {return window.GetProperty(`\u200A${n}`, v);}
+	set(n, v) {return window.SetProperty(`\u200A${n}`, v);}
+}
+
+let properties = [
+	[" Auto Fit", true, "autoFit"],
+	[" Cover Auto-Fill", true, "autoFill"],
+	[" Cover Opacity (0-100)", 10, "covAlpha"],
+	[" Margin", Math.round(8 * s.scale), "margin"],
+	[" Node: Custom (No Lines)", false, "nodeStyle"],
+	[" Node: Custom Icon: +|- // Examples","| // (+)|(−) | | | | | | | | |", "iconCustom"],
+	[" Node: Custom Icon: Vertical Padding", -2, "iconVerticalPad"],
+	[" Node: Lines: Hide-0 Grey-1 Blend-2 Text-3", 1, "nodeLineCol"],
+	[" Playlist: Custom Sort", "", "customSort"],
+	[" Row Vertical Item Padding", 3, "verticalPad"],
+	[" Scroll Step 0-10 (0 = Page)", 3, "scrollStep"],
+	[" Scrollbar Arrow Custom: Icon // Examples", " // ▲  ⮝    ⯅ ⏫ ⏶ ⤊   ", "arrowSymbol"],
+	[" Scrollbar Arrow Custom: Icon: Vertical Offset %", -24, "sbarButPad"],
+	[" Scrollbar Colour Grey-0 Blend-1", 1, "sbarCol"],
+	[" Scrollbar Size", "Bar," + Math.round(11 * s.scale) + ",Arrow," + Math.round(11 * s.scale) + ",Gap(+/-),0,GripMinHeight," + Math.round(20 * s.scale), "sbarMetrics"],
+	[" Scrollbar Type Default-0 Styled-1 Themed-2", "0", "sbarType"],
+	[" Search Style: Fade-0 Blend-1 Norm-2 Highlight-3", 0, "searchCol"],
+	[" Search: Line Colour: Grey-0 Blend-1 Text-2", 0, "searchLnCol"],
+	[" Touch Step 1-10", 1, "touchStep"],
+	[" Tree Indent", Math.round(19 * s.scale), "treeIndent"],
+	[" Zoom Filter Size (%)", 100, "zoomFilter"],
+	[" Zoom Font Size (%)", 100, "zoomFont"],
+	[" Zoom Node Size (%)", 100, "zoomNode"],
+	["_CUSTOM COLOURS/FONTS: EMPTY = DEFAULT", "R-G-B (any) or R-G-B-A (not Text...), e.g. 255-0-0", "customInfo"],
+	["_CUSTOM COLOURS/FONTS: USE", false, "customCol"],
+	["_Custom.Font (Name,Size,Style[0-4])", "Segoe UI,16,0", "custFont"],
+	["_Custom.Font Icon [Node] (Name,Style[0or1])", "Segoe UI Symbol,0", "custIconFont"],
+	["_Custom.Font Icon [Scroll] (Name,Style[0or1])", "Segoe UI Symbol,0", "butCustIconFont"],
+	["ADV.$swapbranchprefix. Prefixes to Swap (| Separator)", "A|The", "prefix"],
+	["ADV.Height Auto [Expand/Collapse With Root]", false, "pn_h_auto"],
+	["ADV.Height Auto-Collapse", 100, "pn_h_min"],
+	["ADV.Height Auto-Expand", 578, "pn_h_max"],
+	["ADV.Hot Key: 1-10 // Assign Spider Monkey Panel index in keyboard shortcuts", "CollapseAll,0,PlaylistAdd,0,PlaylistInsert,0,Search,0,SearchClear,0", "hotKeys"],
+	["ADV.Image Blur Background Auto-Fill", false, "blurAutofill"],
+	["ADV.Image Blur Background Level (0-100)", 90, "blurTemp"],
+	["ADV.Image Blur Background Opacity (0-100)", 30, "blurAlpha"],
+	["ADV.Library Sync: Auto-0, Initialisation Only-1", 0, "syncType"],
+	["ADV.Limit Menu Expand: 10-6000", 500, "treeExpandLimit"],
+	["ADV.Node [Default]: Themed 0 or 1", "0", "winNode"],
+	["ADV.Scrollbar Height Always Full", true, "sbarStyle"],
+	["ADV.Smooth Duration 0-5000 msec (Max)", "Scroll,500,TouchFlick,3000", "duration"],
+	["ADV.Touch Flick Distance 0-10", 0.8, "flickDistance"],
+	["ADV.Zoom Key CTRL+ALT-0 CTRL-1 ALT-2 ESC-3 TAB-4", 0, "zoomKey"],
+	["SYSTEM.Blur Blend Theme", false, "blurBlend"],
+	["SYSTEM.Blur Dark Theme", false, "blurDark"],
+	["SYSTEM.Blur Light Theme", false, "blurLight"],
+	["SYSTEM.Colour Swap", false, "swapCol"],
+	["SYSTEM.Double-Click Action", 1, "dblClickAction"],
+	["SYSTEM.Filter By", 0, "filterBy"],
+	["SYSTEM.Font Size", 16, "baseFontSize"],
+	["SYSTEM.Full Line Selection", false, "fullLineSelection"],
+	["SYSTEM.Height", 578, "pn_h"],
+	["SYSTEM.Image Background", false, "imgBg"],
+	["SYSTEM.Key: Send to Playlist", false, "keyAction"],
+	["SYSTEM.Limit Tree Auto Expand: 10-1000", 350, "autoExpandLimit"],
+	["SYSTEM.Node: Auto Collapse", false, "autoCollapse"],
+	["SYSTEM.Node: Highlight on Hover", true, "nodeHighlight"],
+	["SYSTEM.Node: Item Counts Hide-0 Tracks-1 Sub-Items-2", 1, "nodeCounts"],
+	["SYSTEM.Node: Root Hide-0 All Music-1 View Name-2", 1, "rootNode"],
+	["SYSTEM.Node: Show Tracks", true, "showTracks"],
+	["SYSTEM.Nowplaying Show", false, "showNowplaying"],
+	["SYSTEM.Play on Enter or Send from Menu", false, "autoPlay"],
+	["SYSTEM.Playlist: ADD to Default [Alt+Click]", true, "altClickPlaylist"],
+	["SYSTEM.Playlist: ADD to Default [MiddleClick]", false, "middleClickPlaylist"],
+	["SYSTEM.Playlist: Default", "Library View", "libPlaylist"],
+	["SYSTEM.Playlist: Send to Default", true, "sendPlaylist"],
+	["SYSTEM.Remember.Exp",JSON.stringify([]), "exp"],
+	["SYSTEM.Remember.Proc", false, "process"],
+	["SYSTEM.Remember.Scr",JSON.stringify([]), "scr"],
+	["SYSTEM.Remember.Search Text", "", "s_txt"],
+	["SYSTEM.Remember.Sel",JSON.stringify([]), "sel"],
+	["SYSTEM.Remember.Tree", 1, "rememberTree"],
+	["SYSTEM.Reset Tree", false, "reset"],
+	["SYSTEM.Row Stripes", false, "rowStripes"],
+	["SYSTEM.Scroll: Smooth Scroll", true, "smooth"],
+	["SYSTEM.Scrollbar Show", true, "sbarShow"],
+	["SYSTEM.Scrollbar Width Bar", 11, "sbarBase_w"],
+	["SYSTEM.Search: Hide-0, SearchOnly-1, Search+Filter-2", 2, "searchShow"],
+	["SYSTEM.Single-Click Action", 1, "clickAction"],
+	["SYSTEM.Tree Auto Expand", false, "treeAutoExpand"],
+	["SYSTEM.Tooltip Show", false, "tooltip"],
+	["SYSTEM.Touch Control", false, "touchControl"],
+	["SYSTEM.View By", 1, "viewBy"]
+];
+const ppt = new PanelProperties();
+ppt.init('auto', properties); properties = undefined;
+
+String.prototype.splt = function(n) {switch (n) {case 0: return this.replace(/\s+|^,+|,+$/g, "").split(","); case 1: return this.replace(/^[,\s]+|[,\s]+$/g, "").split(",");}}
+const ui = new UserInterface(), p = new Panel(), sbar = new Scrollbar(), vk = new Vkeys(), lib = new Library(), pop = new Populate(), sL = new SearchLibrary(ppt.searchShow), jS = new JumpSearch(), but = new Buttons(), men = new MenuItems(), timer = new Timers(); window.DlgCode = 0x004;
+
+function UserInterface() {
+    const pptCol = [["_Custom.Colour Background", "", "bg", 1], ["_Custom.Colour Background Highlight", "", "bg_h", 1], ["_Custom.Colour Background Selected", "", "bgSel", 1], ["_Custom.Colour Item Counts", "", "counts", 1], ["_Custom.Colour Node Lines", "", "line", 1], ["_Custom.Colour Search Name", "", "txt_box", 0], ["_Custom.Colour Search Line", "", "s_line", 1], ["_Custom.Colour Search Text", "", "search", 0], ["_Custom.Colour Frame Highlight", "", "frame", 1], ["_Custom.Colour Text", "", "text", 0], ["_Custom.Colour Text Highlight", "", "text_h", 0], ["_Custom.Colour Text Nowplaying", "", "nowp", 0], ["_Custom.Colour Text Selected", "", "textSel", 0], ["_Custom.Colour Node Collapse", "", "icon_c", 1], ["_Custom.Colour Node Expand", "", "icon_e", 1], ["_Custom.Colour Node Highlight", "", "icon_h", 1], ["_Custom.Colour Transparent Fill", "", "bgTrans", 1]];
+    let blurAlpha = s.clamp(ppt.blurAlpha, 0, 100) / 30, blurImg = null, blurLevel = ppt.blurBlend ? 91.05 - s.clamp(ppt.blurTemp, 1.05, 90) : s.clamp(ppt.blurTemp * 2, 0, 254), cur_handle = null, iconFontName = "Segoe UI", iconFontStyle = 0, iconcol_c = "", iconcol_e = "", iconcol_h = "", image_path_o = "", node_sz = Math.round(11 * s.scale), noimg = [], sbarMetrics = ppt.sbarMetrics.splt(0), sp = 6, sp1 = 6, sp2 = 6, tcol = "", tcol_h = "", zoomFontSize = 16;
+    this.covAlpha = s.clamp(ppt.covAlpha * 2.55, 0, 255); this.arrow_pad = s.value(sbarMetrics[5], 0, 0); this.bg = false; this.col = {}; this.collapse = ""; this.expand = ""; this.drag_drop_id = -1; this.dui = window.InstanceType; this.fill = 0; this.font = ""; this.grip_h = s.value(sbarMetrics[7], 20, 0); this.h = 0; this.icon = ppt.iconCustom.trim(); this.iconFont = ""; this.icon_w = 17; this.jumpFont = ""; this.l_s1 = 4; this.l_s2 = 6; this.l_s3 = 7; this.l_w = Math.round(1 * s.scale); this.l_wc = 0; this.local = typeof conf === 'undefined' ? false : true; this.node_sz = Math.round(11 * s.scale); this.pen = 1; this.pen_c = 0x55888888; this.row_h = 20; this.searchFont = ""; ppt.sbarCol = s.clamp(ppt.sbarCol, 0, 1); this.sel = 3; this.touch_dn_id = -1; this.w = 0; this.y_start = 0;
+
+    const A = c => c >> 24 & 0xff;
+    const chgBrightness = (c, percent) => {c = toRGB(c); return RGB(s.clamp(c[0] + (256 - c[0]) * percent / 100, 0, 255), s.clamp(c[1] + (256 - c[1]) * percent / 100, 0, 255), s.clamp(c[2] + (256 - c[2]) * percent / 100, 0, 255));}
+    const colSat = c => {c = toRGB(c); return c[0] + c[1] + c[2];}
+	const get_grad = (c, f1, f2) => {c = toRGB(c); return [RGB(Math.min(c[0] + f1, 255), Math.min(c[1] + f1, 255), Math.min(c[2] + f1, 255)), RGB(Math.max(c[0] + f2, 0), Math.max(c[1] + f2, 0), Math.max(c[2] + f2, 0))];}
+	const get_txtboxcol = c => {if (ppt.blurDark) c = 0xff0F0F0F; if (ppt.blurLight) c = 0xffF0F0F0; return ppt.searchCol < 2 ? this.get_blend(!ppt.searchCol ? this.col.text : this.col.text_h, c == 0 ? 0xff000000 : c, !ppt.searchCol ? 0.65 : 0.7) : ppt.searchCol == 2 ? this.col.text : this.col.text_h;}
+    const get_textselcol = (c, n) => {c = toRGB(c); const cc = c.map(v => {v /= 255; return v <= 0.03928 ? v /= 12.92 : Math.pow(((v + 0.055 ) / 1.055), 2.4);}); const L = 0.2126 * cc[0] + 0.7152 * cc[1] + 0.0722 * cc[2]; if (L > 0.31) return n ? 50 : RGB(0, 0, 0); else return n ? 200 : RGB(255, 255, 255);}
+	const pptColour = () => {pptCol.forEach(v => this.col[v[2]] = this.set_custom_col(ppt.get(v[0], v[1]), v[3]));}
+    const RGBAtoRGB = (c, bg) => {c = toRGBA(c); bg = toRGB(bg); const r = c[0] / 255, g = c[1] / 255, b = c[2] / 255, a = c[3] / 255, bgr = bg[0] / 255, bgg = bg[1] / 255, bgb = bg[2] / 255, nR = ((1 - a) * bgr) + (a * r), nG = ((1 - a) * bgg) + (a * g), nB = ((1 - a) * bgb) + (a * b); nR = s.clamp(Math.round(nR * 255), 0, 255); nG = s.clamp(Math.round(nG * 255), 0, 255); nB = s.clamp(Math.round(nB * 255), 0, 255); return RGB(nR, nG, nB);}
+    const RGBtoRGBA = (rgb, a) => a << 24 | rgb & 0x00FFFFFF;
+    const toRGB = c => [c >> 16 & 0xff, c >> 8 & 0xff, c & 0xff];
+    const toRGBA = c => [c >> 16 & 0xff, c >> 8 & 0xff, c & 0xff, c >> 24 & 0xff];
+
+    this.get_blend = (c1, c2, f, alpha) => {const nf = 1 - f; let r, g, b, a; switch (true) {case !alpha: c1 = toRGB(c1); c2 = toRGB(c2); r = c1[0] * f + c2[0] * nf; g = c1[1] * f + c2[1] * nf; b = c1[2] * f + c2[2] * nf; return RGB(r, g, b); case alpha: c1 = toRGBA(c1); c2 = toRGBA(c2); r = c1[0] * f + c2[0] * nf; g = c1[1] * f + c2[1] * nf; b = c1[2] * f + c2[2] * nf; a = c1[3] * f + c2[3] * nf; return RGBA(r, g, b, a);}}
+    this.reset_colors = () => {pptCol.forEach(v => this.col[v[2]] = ""); iconcol_c = ""; iconcol_e = ""; iconcol_h = ""; tcol = ""; tcol_h = "";}
+    this.set_custom_col = (c, t) => {if (!ppt.customCol) return ""; c = c.split("-"); let cc = ""; if (c.length != 3 && c.length != 4) return ""; switch (t) {case 0: cc = RGB(c[0], c[1], c[2]); break; case 1: switch (c.length) {case 3: cc = RGB(c[0], c[1], c[2]); break; case 4: cc = RGBA(c[0], c[1], c[2], c[3]); break;} break;} return cc;}
+
+    if (ppt.customCol && ppt.custIconFont.length) {
+        const custIconFont = ppt.custIconFont.splt(1);
+        iconFontName = custIconFont[0];
+        iconFontStyle = Math.round(s.value(custIconFont[1], 0, 0));
+    }
+
+    const winNode = s.value(ppt.winNode.replace(/\s+/g, "").charAt(), 0, 1); if (winNode == 1) ppt.winNode = "1 // Highlight & Custom Colours N/A For Themed"; else ppt.winNode = "" + 0 + "";
+    this.nodeStyle = ppt.nodeStyle ? 0 : !winNode ? 1 : 2; this.nodeStyle = s.value(this.nodeStyle, 1, 2); this.nodeWin = this.nodeStyle == 2 ? 1 : 0;
+    if (!this.nodeStyle) {
+        if (!this.icon.charAt().length) this.nodeStyle = 1;
+        else {
+            this.icon = this.icon.split("//");
+            if (this.icon[0].includes("|")) {
+                this.icon = this.icon[0].split("|");
+                this.expand = this.icon[0].trim();
+                this.collapse = this.icon[1].trim();
+            } else this.nodeStyle = 1;
+        }
+    }
+    if (!this.expand.length || !this.collapse.length) this.nodeStyle = 1;
+
+    this.icon_col = () => {
+        if (iconcol_c === "") {this.col.icon_c = this.nodeStyle ? [RGB(252, 252, 252), RGB(223, 223, 223)] : this.col.text;} else if (this.nodeStyle) {if (A(iconcol_c) != 255) {this.col.icon_c = RGBAtoRGB(iconcol_c, this.col.bg);} else this.col.icon_c = iconcol_c; this.col.icon_c = get_grad(this.col.icon_c, 15, -14);}
+        if (iconcol_e === "") {this.col.icon_e = this.nodeStyle ? [RGB(252, 252, 252), RGB(223, 223, 223)] : this.col.text & 0xC0ffffff;} else if (this.nodeStyle) {if (A(iconcol_e) != 255) {this.col.icon_e = RGBAtoRGB(iconcol_e, this.col.bg);} else this.col.icon_e = iconcol_e; this.col.icon_e = get_grad(this.col.icon_e, 15, -14);}
+        this.col.iconPlus = get_textselcol(this.col.icon_e[0], true) == 50 ? RGB(41, 66, 114) : RGB(225, 225, 245);
+        this.col.iconMinus_c = get_textselcol(this.col.icon_c[0], true) == 50 ? RGB(75, 99, 167) : RGB(225, 225, 245);
+        this.col.iconMinus_e = get_textselcol(this.col.icon_e[0], true) == 50 ? RGB(75, 99, 167) : RGB(225, 225, 245);
+        if (!ppt.nodeHighlight) return;
+        if (iconcol_h === "") {this.col.icon_h = this.nodeStyle ? !ppt.blurDark && !ppt.blurLight ? !this.local ? (colSat(this.col.text_h) < 650 ? this.col.text_h : this.col.text) : (colSat(c_iconcol_h) < 650 ? c_iconcol_h : c_textcol): RGB(50, 50, 50) : this.col.text_h; iconcol_h = this.col.icon_h;} if (this.nodeStyle) {if (A(iconcol_h) != 255) {this.col.icon_h = RGBAtoRGB(iconcol_h, this.col.bg);} else if (iconcol_h !== "") this.col.icon_h = iconcol_h; this.col.icon_h = get_grad(this.col.icon_h, 15, -14);}
+        this.col.iconPlus_h = get_textselcol(this.col.icon_h[0], true) == 50 ? RGB(41, 66, 114) : RGB(225, 225, 245);
+        this.col.iconMinus_h = get_textselcol(this.col.icon_h[0], true) == 50 ? RGB(75, 99, 167) : RGB(225, 225, 245);
+    }
+
+    this.get_colors = () => {
+        pptColour();
+        iconcol_c = this.col.icon_c; iconcol_e = this.col.icon_e; iconcol_h = this.col.icon_h;
+        this.col.b1 = 0x04ffffff; this.col.b2 = 0x04000000;
+        this.blur = ppt.blurBlend || ppt.blurDark || ppt.blurLight; if (ppt.blurDark) {this.col.bg_light = RGBA(0, 0, 0, Math.min(160 / blurAlpha, 255)); this.col.bg_dark = RGBA(0, 0, 0, Math.min(80 / blurAlpha, 255));} if (ppt.blurLight) {this.col.bg_light = RGBA(255, 255, 255, Math.min(160 / blurAlpha, 255)); this.col.bg_dark = RGBA(255, 255, 255, Math.min(205 / blurAlpha, 255));}
         if (this.dui) { // custom colour mapping: DUI colours can be remapped by changing the numbers (0-3)
-            if (this.backcol === "") this.backcol = window.GetColourDUI(1);
-            if (this.backcolsel === "") this.backcolsel = this.blur_dark ? RGBA(255, 255, 255, 36) : this.blur_light ? RGBA(0, 0, 0, 36) : window.GetColourDUI(3);
+            if (this.col.bg === "") this.col.bg = window.GetColourDUI(1);
+            if (this.col.bgSel === "") this.col.bgSel = ppt.blurDark ? RGBA(255, 255, 255, 36) : ppt.blurLight ? RGBA(0, 0, 0, 36) : window.GetColourDUI(3);
             tcol = window.GetColourDUI(0); tcol_h = window.GetColourDUI(2);
         } else { // custom colour mapping: CUI colours can be remapped by changing the numbers (0-6)
-            if (this.backcol === "") this.backcol = window.GetColourCUI(3);
-            if (this.backcolsel === "") this.backcolsel = this.blur_dark ? RGBA(255, 255, 255, 36) : this.blur_light ? RGBA(0, 0, 0, 36) : window.GetColourCUI(4);
+            if (this.col.bg === "") this.col.bg = window.GetColourCUI(3);
+            if (this.col.bgSel === "") this.col.bgSel = ppt.blurDark ? RGBA(255, 255, 255, 36) : ppt.blurLight ? RGBA(0, 0, 0, 36) : window.GetColourCUI(4);
             tcol = window.GetColourCUI(0); tcol_h = window.GetColourCUI(2);
         }
-        lightBg = get_textselcol(this.backcol == 0 ? 0xff000000 : this.backcol, true) == 50;
-        if (this.textcol === "") this.textcol = this.blur_blend ? changeBrightness(R(tcol), G(tcol), B(tcol), lightBg ? -10 : 10) : this.blur_dark ? RGB(255, 255, 255) : this.blur_light ? RGB(0, 0, 0) : tcol;
-        if (this.textcol_h === "") this.textcol_h = this.blur_blend ? changeBrightness(R(tcol_h), G(tcol_h), B(tcol_h), lightBg ? -10 : 10) : this.blur_dark ? RGB(255, 255, 255) : this.blur_light ? RGB(71, 129, 183) : tcol_h;
-        if (this.backcol_h === "") this.backcol_h = this.blur_dark ? 0x24000000 : 0x1E30AFED;
-        if (s_linecol == 1 && window.IsTransparent && !this.dui) s_linecol = 0;
-        if (this.framecol === "") this.framecol = this.blur_dark ? 0xff808080 : 0xA330AFED;
-        var blend = get_blend(this.backcol == 0 ? 0xff000000 : this.backcol, this.textcol, 0.75);
-        var ln_col = [0, RGBA(136, 136, 136, 85), blend, this.textcol];
-        if (this.linecol === "") this.linecol = ln_col[linecol];
-        if (this.searchcol === "") this.searchcol = s_col < 3 ? this.textcol : this.textcol_h;
-        if (!this.dui && this.textselcol === "") this.textselcol = !this.blur_dark && !this.blur_light ? window.GetColourCUI(1) : this.textcol;
-        if (this.textselcol === "") this.textselcol = !this.blur_dark && !this.blur_light ? get_textselcol(this.backcolsel, false) : this.textcol;
-        blend = get_blend(this.backcol == 0 ? 0xff000000 : this.backcol, !s_col || s_col == 2 ? this.textcol : this.textcol_h, 0.75);
-        if (this.txt_box === "") this.txt_box = this.blur_dark ?  0xffF0F0F0 : this.blur_light ?  0xff0F0F0F :  s_col < 2 ? get_blend(!s_col ? this.textcol : this.textcol_h, this.backcol == 0 ? 0xff000000 : this.backcol, !s_col ? 0.65 : 0.7) : s_col == 2 ? this.textcol : this.textcol_h;
-        if (this.s_linecol === "") this.s_linecol = s_linecol == 0 ? RGBA(136, 136, 136, 85) : s_linecol == 1 ? blend : this.txt_box;
-        if (window.IsTransparent && this.backcoltrans) {this.bg = true; this.backcol = this.backcoltrans}
-        if (!window.IsTransparent || this.dui) {this.bg = true; if ((R(this.backcol) + G(this.backcol) + B(this.backcol)) > 759) this.b2 = 0x06000000;}
+
+        const lightBg = get_textselcol(this.col.bg == 0 ? 0xff000000 : this.col.bg, true) == 50;
+		if (ppt.blurDark) {tcol = RGB(255, 255, 255); tcol_h = RGB(255, 255, 255);}
+		if (ppt.blurLight) {tcol = RGB(0, 0, 0); tcol_h = RGB(71, 129, 183);}
+        if (this.col.text === "") this.col.text = ppt.blurBlend ? chgBrightness(tcol, lightBg ? -10 : 10) : tcol;
+        if (this.col.text_h === "") this.col.text_h = ppt.blurBlend ? chgBrightness(tcol_h, lightBg ? -10 : 10) : tcol_h;
+        if (ppt.swapCol) {const colH = this.col.text_h; this.col.text_h = this.col.text; this.col.text = colH;}
+        if (this.col.nowp === "") this.col.nowp = !ppt.blurDark ? this.col.text_h : RGB(103, 240, 98);
+        if (this.col.bg_h === "") this.col.bg_h = ppt.blurDark ? 0x24000000 : 0x1E30AFED;
+		this.searchLnCol = ppt.searchLnCol == 1 && window.IsTransparent && !this.dui ? 0 : ppt.searchLnCol;
+        if (this.col.frame === "") this.col.frame = ppt.blurDark ? 0xff808080 : 0xA330AFED;
+
+        let blend = this.get_blend(this.col.bg == 0 ? 0xff000000 : this.col.bg, this.col.text, 0.75);
+        const ln_col = [0, RGBA(136, 136, 136, 85), blend, this.col.text];
+        if (this.col.line === "") this.col.line = ln_col[ppt.nodeLineCol];
+        if (this.col.search === "") this.col.search = ppt.searchCol < 3 ? this.col.text : this.col.text_h;
+        if (!this.dui && this.col.textSel === "") this.col.textSel = !ppt.blurDark && !ppt.blurLight ? window.GetColourCUI(1) : this.col.text;
+        if (this.col.textSel === "") this.col.textSel = !ppt.blurDark && !ppt.blurLight ? get_textselcol(this.col.bgSel, false) : this.col.text;
+
+        blend = this.get_blend(this.col.bg == 0 ? 0xff000000 : this.col.bg, !ppt.searchCol || ppt.searchCol == 2 ? this.col.text : this.col.text_h, 0.75);
+        if (this.col.txt_box === "") this.col.txt_box = get_txtboxcol(this.col.bg);
+        this.col.txt_filter = toRGB(this.col.txt_box);
+        if (this.col.s_line === "") this.col.s_line = this.searchLnCol == 0 ? RGBA(136, 136, 136, 85) : this.searchLnCol == 1 ? blend : this.col.txt_box;
+        if (window.IsTransparent && this.col.bgTrans) {this.bg = true; this.col.bg = this.col.bgTrans;}
+        if (!window.IsTransparent || this.dui) {this.bg = true; if (colSat(this.col.bg) > 759) this.col.b2 = 0x06000000;}
         this.icon_col();
-        this.ct = this.bg ? get_textselcol(this.backcol, true) : 200;
-        if (this.local) {this.textcol = this.blur_blend ? changeBrightness(R(c_textcol), G(c_textcol), B(c_textcol), get_textselcol(this.backcol == 0 ? 0xff000000 : this.backcol, true) == 50 ? -10 : 10) : this.blur_dark ? RGB(255, 255, 255) : this.blur_light ? RGB(0, 0, 0) : c_textcol; this.textcol_h = this.blur_blend ? changeBrightness(R(c_textcol_h), G(c_textcol_h), B(c_textcol_h), get_textselcol(this.backcol == 0 ? 0xff000000 : this.backcol, true) == 50 ? -10 : 10) : this.blur_dark || !this.bg && this.trans && !this.blur_light ? RGB(255, 255, 255) : this.blur_light ? RGB(0, 0, 0) : c_textcol_h; this.textselcol = c_textselcol; this.backcolsel = c_backcolsel; this.alternate = c_alternate; this.fill = c_fill; this.pen = c_pen; this.pen_c = c_pen_c; this.searchcol = this.txt_box = c_txt_box; this.b1 = c_b1; this.b2 = c_b2;}
-        this.ibeamcol1 = window.IsTransparent ? 0xffe1e1f5 : this.outline(this.backcol);
-        this.ibeamcol2 = window.IsTransparent || !this.backcolsel ? 0xff0099ff : this.backcolsel != this.searchcol ? this.backcolsel : 0xff0099ff;
+        this.col.t = this.bg ? get_textselcol(this.col.bg, true) : 200;
+        if (this.local) {this.col.text = ppt.blurBlend ? chgBrightness(c_textcol, get_textselcol(this.col.bg == 0 ? 0xff000000 : this.col.bg, true) == 50 ? -10 : 10) : ppt.blurDark ? RGB(255, 255, 255) : ppt.blurLight ? RGB(0, 0, 0) : c_textcol; this.col.text_h = ppt.blurBlend ? chgBrightness(c_textcol_h, get_textselcol(this.col.bg == 0 ? 0xff000000 : this.col.bg, true) == 50 ? -10 : 10) : ppt.blurDark || !this.bg && this.trans && !ppt.blurLight ? RGB(255, 255, 255) : ppt.blurLight ? RGB(0, 0, 0) : c_textcol_h; this.col.textSel = c_textselcol; this.col.bgSel = c_backcolsel; ppt.rowStripes = c_alternate; this.fill = c_fill; this.pen = c_pen; this.pen_c = c_pen_c; this.col.search = this.col.txt_box = c_txt_box; this.col.b1 = c_b1; this.col.b2 = c_b2;}
+        this.col.searchSel = window.IsTransparent || !this.col.bgSel ? 0xff0099ff : this.col.bgSel != this.col.search ? this.col.bgSel : 0xff0099ff;
     }
     this.get_colors();
 
-    this.get_font = function() {
-        var cust_f = window.GetProperty("_Custom.Font (Name,Size,Style[0-4])", "Segoe UI,16,0");
-        if (custom_col && cust_f.length) {cust_f = cust_f.split(",");try {this.font = gdi.Font(cust_f[0], Math.round(parseFloat(cust_f[1])), Math.round(parseFloat(cust_f[2])));} catch (e) {}}
+    this.get_font = () => {
+        if (ppt.customCol && ppt.custFont.length) {const custFont = ppt.custFont.splt(1); this.font = gdi.Font(custFont[0], Math.round(s.value(custFont[1], 16, 0)), Math.round(s.value(custFont[2], 0, 0)));}
         else if (this.dui) this.font = window.GetFontDUI(2); else this.font = window.GetFontCUI(0);
-        try {this.font.Name; this.font.Size; this.font.Style;} catch (e) {this.font = gdi.Font("Segoe UI", 16, 0); this.trace("JScript Panel is unable to use your default font. Using Segoe UI at default size & style instead");}
-        orig_font_sz = window.GetProperty("SYSTEM.Font Size", 16);
-        if (this.font.Size != orig_font_sz) window.SetProperty(" Zoom Font Size (%)", 100);
-        orig_font_sz = this.font.Size; window.SetProperty("SYSTEM.Font Size", this.font.Size);
-        if (!this.zoomUpd && window.GetProperty("SYSTEM.Software Notice Checked")) window.SetProperty(" Zoom Node Size (%)", window.GetProperty(" Zoom Node Size (%)", 100) / this.scale);
-        zoom = window.GetProperty(" Zoom Font Size (%)", 100);
-        zoom_node = window.GetProperty(" Zoom Node Size (%)", 100);
-        zoom_font_sz = Math.max(Math.round(orig_font_sz * zoom / 100), 1);
-        this.node_sz = this.node_style ? Math.round(node_sz * zoom_node / 100) : Math.round(orig_font_sz * zoom_node / 100);
-        this.font = gdi.Font(this.font.Name, zoom_font_sz, this.font.Style);
-        window.SetProperty(" Zoom Font Size (%)", Math.round(zoom_font_sz / orig_font_sz * 100));
-        this.s_font = gdi.Font(this.font.Name, this.font.Size, 2);
-        this.j_font = gdi.Font(this.font.Name, this.font.Size * 1.5, 1);
-        if (this.local) {this.font = c_font; this.s_font = c_s_font; this.j_font = gdi.Font(this.font.Name, this.font.Size * 1.5, 1); this.margin = c_margin; this.pad = c_pad; this.row_h = c_row_h; if (this.scrollbar_show) {this.scr_type = 0; this.scr_w = c_scr_w; this.scr_but_w = this.scr_w + 1; this.but_h = this.scr_w + 1; this.sbar_sp = this.scr_w +1;}}
+        if (!this.font) {this.font = gdi.Font("Segoe UI", 16, 0); s.trace("Spider Monkey Panel is unable to use your default font. Using Segoe UI at default size & style instead", false);}
+        if (this.font.Size != ppt.baseFontSize) ppt.zoomFont = 100;
+        ppt.baseFontSize = this.font.Size;
+        zoomFontSize = Math.max(Math.round(ppt.baseFontSize * ppt.zoomFont / 100), 1);
+        this.node_sz = this.nodeStyle ? Math.round(node_sz * ppt.zoomNode / 100) : Math.round(ppt.baseFontSize * ppt.zoomNode / 100);
+        this.font = gdi.Font(this.font.Name, zoomFontSize, this.font.Style);
+        ppt.zoomFont = Math.round(zoomFontSize / ppt.baseFontSize * 100);
+        this.searchFont = gdi.Font(this.font.Name, this.font.Size, 2);
+        this.jumpFont = gdi.Font(this.font.Name, this.font.Size * 1.5, 1);
+        if (this.local) {this.font = c_font; this.searchFont = c_s_font; this.jumpFont = gdi.Font(this.font.Name, this.font.Size * 1.5, 1); ppt.margin = c_margin; ppt.treeIndent = c_pad; this.row_h = c_row_h; if (ppt.sbarShow) {this.sbarType = 0; this.sbar_w = c_scr_w; this.scr_but_w = this.sbar_w + 1; this.but_h = this.sbar_w + 1; this.sbar_sp = this.sbar_w +1;}}
+        calc_text();
+    }
+
+    const calc_text = () => {
+        s.gr(1, 1, false, g => {
+            if (!this.local) this.row_h = Math.max(Math.round(g.CalcTextHeight("String", this.font)) + ppt.verticalPad, 2);
+            if (this.nodeStyle) {
+                this.node_sz = Math.round(s.clamp(this.node_sz, 7, this.row_h - 2));
+                pop.create_images();
+                ppt.zoomNode = Math.round(this.node_sz / node_sz * 100);}
+            else {
+                this.node_sz = Math.round(s.clamp(this.node_sz, 7, this.row_h * 1.15));
+                this.iconFont = gdi.Font(iconFontName, this.node_sz, iconFontStyle);
+                ppt.zoomNode = Math.round(this.node_sz / ppt.baseFontSize * 100);
+            }
+            sp = Math.max(Math.round(g.CalcTextWidth(" ", this.font)), 4);
+            sp1 = Math.max(Math.round(sp * 1.5), 6);
+            if (!this.nodeStyle) {const sp_e = g.MeasureString(this.expand, this.iconFont, 0, 0, 500, 500).Width, sp_c = g.MeasureString(this.collapse, this.iconFont, 0, 0, 500, 500).Width; sp2 = Math.round(Math.max(sp_e, sp_c) + sp / 3);}
+        });
+        this.l_s1 = Math.max(sp1 / 2, 4);
+        this.l_wc = this.l_w - 1;
+        this.l_s2 = Math.floor(this.node_sz / 2) + this.l_wc + 1;
+        this.l_s3 = Math.max(7, this.node_sz / 2) - this.l_wc / 2;
+        this.icon_w = this.nodeStyle ? this.node_sz + sp1 : sp + sp2;
+        this.sel = (this.nodeStyle ? sp1 : sp + Math.round(sp / 3)) / 2;
+        this.tt = this.nodeStyle ? -Math.ceil(sp1 / 2 - 3) + sp1 : sp;
+    }
+
+    this.dragZoom = (x, y) => {if (sbar.touch.dn && vk.k('zoom')) {const y_delta = (y - this.y_start); if (Math.abs(y_delta) > this.h / 50) {this.wheel(y - this.y_start >=0 ? -1 : 1, true); this.y_start = y;}}}
+    const nodeZoom = step => {this.node_sz += step; calc_text(); p.on_size();}
+
+    const filterZoom = step => {
+        if (p.zoomFilter < 0.7) return; p.zoomFilter += step * 0.1; p.zoomFilter = Math.max(p.zoomFilter, 0.7);
+        p.filterFont = gdi.Font("Segoe UI", p.zoomFilter > 1.05 ? Math.floor(11 * s.scale * p.zoomFilter) : 11 * s.scale * p.zoomFilter, 1);
+        p.filterBtnFont = gdi.Font("Segoe UI", p.zoomFilter > 1.05 ? Math.floor(9 * s.scale * p.zoomFilter) : 9 * s.scale * p.zoomFilter, 1);
+        p.calc_text(); but.refresh(true);
+		ppt.zoomFilter = Math.round(p.zoomFilter * 100);
+    }
+
+    const txtZoom = step => {
+        zoomFontSize += step;
+        zoomFontSize = Math.max(zoomFontSize, 1);
+        const fnm = this.font.Name, fst = this.font.Style;
+        this.font = gdi.Font(fnm, zoomFontSize, fst);
+        this.searchFont = gdi.Font(fnm, zoomFontSize, 2);
+        this.jumpFont = gdi.Font(fnm, zoomFontSize * 1.5, 1);
+        calc_text(); p.on_size(); jS.on_size();
+        pop.create_tooltip(); if (ppt.searchShow || ppt.sbarShow) but.refresh(true); sbar.reset(); ppt.zoomFont = Math.round(zoomFontSize / ppt.baseFontSize * 100);
+    }
+
+    this.wheel = (step, all) => {
+        const textZoom = p.m_x >= Math.round(this.icon_w + ppt.margin + (ppt.rootNode ? ppt.treeIndent : 0));
+        if (p.m_y > p.s_h && textZoom || all) txtZoom(step);
+        if (p.m_y > p.s_h && !textZoom || all) nodeZoom(step);
+        if (p.m_y <= p.s_h || all) filterZoom(step);
+        window.Repaint();
+    }
+
+    const getImgFallback = () => {if (sbar.draw_timer || !this.get) return; getFbImg(); this.get = false;}
+    const getFbImg = handle => {if (!handle) handle = fb.IsPlaying ? fb.GetNowPlaying() : fb.GetFocusItem(); if (handle) {cur_handle = handle; utils.GetAlbumArtAsync(window.ID, handle, 0); return;} if (fb.IsPlaying) return; image = stub(1); if (!image) {blurImg = null; return;} blur_img(image);}
+    const stub = n => {image_path_o = n ? "noitem" : "stub"; return noimg[n].Clone(0, 0, noimg[n].Width, noimg[n].Height);}
+    this.block = () => {return this.w <= 10 || this.h <= 10 || !window.IsVisible;}
+    this.blurReset = clear => { blurImg = null; image_path_o = ""; if (clear) on_colours_changed(); this.on_playback_new_track();}
+    this.chgBlur = n => {ppt.blurDark = false; ppt.blurBlend = false; ppt.blurLight = false; ppt.imgBg = false; switch (n) {case 1: ppt.blurDark = true; break; case 2: ppt.blurBlend = true; break; case 3: ppt.blurLight = true; break; case 4: ppt.imgBg = true; break;} blurLevel = ppt.blurBlend ? 91.05 - s.clamp(ppt.blurTemp, 1.05, 90) : s.clamp(ppt.blurTemp * 2, 0, 254); this.blurReset(true);}
+    this.create_images = () => {const cc = StringFormat(1, 1), font1 = gdi.Font("Segoe UI", 270, 1), font2 = gdi.Font("Segoe UI", 120, 1), font3 = gdi.Font("Segoe UI", 200, 1), font4 = gdi.Font("Segoe UI", 90, 1), tcol = !ppt.blurDark && !ppt.blurLight ? this.col.text : this.dui ? window.GetColourDUI(0) : window.GetColourCUI(0); noimg = ["COVER", "SELECTION"]; for (let i = 0; i < noimg.length; i++) {let n = noimg[i]; noimg[i] = s.gr(500, 500, true, g => {g.SetSmoothingMode(2); if (!ppt.blurDark && !ppt.blurLight) {g.FillSolidRect(0, 0, 500, 500, tcol); g.FillGradRect(-1, 0, 505, 500, 90, this.col.bg & 0xbbffffff, this.col.bg, 1.0);} g.SetTextRenderingHint(3); g.DrawString("NO", i ? font3 : font1, tcol & 0x25ffffff, 0, 0, 500, 275, cc); g.DrawString(n, i ? font4 : font2, tcol & 0x20ffffff, 2.5, 175, 500, 275, cc); g.FillSolidRect(60, 388, 380, 50, tcol & 0x15ffffff);});} this.get = true;}; this.create_images();
+    this.focus_changed = s.debounce(() => {this.on_playback_new_track();}, 250, {'leading':true, 'trailing': true});
+	this.get_album_art_done = (handle, image, image_path) => {if (!cur_handle.Compare(handle)) return; if (image_path_o == image_path && blurImg && image) return window.Repaint(); image_path_o = image_path; if (!image) image = stub(0); if (!image) {blurImg = null; return;} blur_img(image);}
+	this.on_playback_new_track = handle => {if (!this.blur && !ppt.imgBg) return; if (this.block()) this.get = true; else {getFbImg(handle); this.get = false;}}
+
+    const blur_img = image => {
+        if (!this.w || !this.h) return; let imgw, imgh, imgx, imgy;
+        if (!this.blur && ppt.autoFill || this.blur && ppt.blurAutofill) {const s1 = image.Width / this.w, s2 = image.Height / this.h; if (!this.blur && ppt.autoFill && Math.abs(s1 / s2 - 1) < 0.05) {imgx = 0; imgy = 0; imgw = image.Width; imgh = image.Height;} else {if (s1 > s2) {imgw = Math.round(this.w * s2); imgh = image.Height; imgx = Math.round((image.Width - imgw) / 2); imgy = 0;} else {imgw = image.Width; imgh = Math.round(this.h * s1); imgx = 0; imgy = Math.round((image.Height - imgh) / 8);}}}
+        blurImg = s.gr(this.w, this.h, true, (g, gi) => {
+            switch (true) {
+                case this.blur:
+                    g.SetInterpolationMode(0); if (ppt.blurAutofill) image = image.Clone(imgx, imgy, imgw, imgh);
+                    if (ppt.blurBlend) {
+                        let iSmall = image.Resize(this.w * blurLevel / 100, this.h * blurLevel / 100, 2), iFull = iSmall.Resize(this.w, this.h, 2), offset = 90 - blurLevel;
+                        g.DrawImage(iFull, 0 - offset, 0 - offset, this.w + offset * 2, this.h + offset * 2, 0, 0, iFull.Width, iFull.Height, 0, 63 * blurAlpha);
+                    } else {
+                        g.DrawImage(image, 0, 0, this.w, this.h, 0, 0, image.Width, image.Height); if (blurLevel > 1) gi.StackBlur(blurLevel);
+                        const colorScheme_array = gi.GetColourScheme(1), light_cover = get_textselcol(colorScheme_array[0], true) == 50 ? true : false;
+                        g.FillSolidRect(0, 0, this.w, this.h, light_cover ? this.col.bg_light : this.col.bg_dark);
+                    } break;
+                case !this.blur:
+                    if (ppt.autoFill) g.DrawImage(image, 0, 0, this.w, this.h, imgx, imgy, imgw, imgh, 0, this.covAlpha);
+                    else {const sc = Math.min(this.h / image.Height, this.w / image.Width), tw = Math.round(image.Width * sc), th = Math.round(image.Height * sc); g.DrawImage(image, (this.w - tw) / 2, (this.h - th) / 2, tw, th, 0, 0, image.Width, image.Height, 0, this.covAlpha);}
+                    break;
+            }
+        });
+        window.Repaint();
+    }
+
+    this.draw = gr => {
+        if (this.bg) gr.FillSolidRect(0, 0, this.w, this.h, this.col.bg);
+        if (!this.blur && !ppt.imgBg) return;
+        getImgFallback();
+        if (blurImg) gr.DrawImage(blurImg, 0, 0, this.w, this.h, 0, 0, blurImg.Width, blurImg.Height);
+    }
+
+    this.sbarType = s.value(ppt.sbarType.replace(/\s+/g, "").charAt(), 0, 2); if (this.sbarType == 2)  ppt.sbarType = "2 // Scrollbar Settings N/A For Themed"; else ppt.sbarType = "" + this.sbarType + "";
+    if (this.sbarType == 2) {this.theme = window.CreateThemeManager("scrollbar"); s.gr(21, 21, false, g => {try {this.theme.SetPartAndStateID(6, 1); this.theme.DrawThemeBackground(g, 0, 0, 21, 50); for (let i = 0; i < 3; i++) {this.theme.SetPartAndStateID(3, i + 1); this.theme.DrawThemeBackground(g, 0, 0, 21, 50);} for (let i = 0; i < 3; i++) {this.theme.SetPartAndStateID(1, i + 1); this.theme.DrawThemeBackground(g, 0, 0, 21, 21);}} catch (e) {this.sbarType = 1; ppt.sbarType = "" + 1 + "";}});}
+	this.sbarSet = () => {
+		this.sbar_w = s.clamp(s.value(sbarMetrics[1], 11, 0), 0, 400); ppt.sbarBase_w = s.clamp(ppt.sbarBase_w, 0, 400);
+		if (this.sbar_w != ppt.sbarBase_w) {this.scr_but_w = Math.min(s.value(sbarMetrics[3], 11, 0), this.sbar_w, 400); ppt.sbarMetrics = "Bar," + this.sbar_w +",Arrow," + this.scr_but_w + ",Gap(+/-)," + this.arrow_pad + ",GripMinHeight," + this.grip_h;} else {this.scr_but_w = s.clamp(s.value(sbarMetrics[3], 11, 0), 0, 400); this.sbar_w = s.clamp(this.sbar_w, this.scr_but_w, 400); ppt.sbarMetrics = "Bar," + this.sbar_w +",Arrow," + this.scr_but_w + ",Gap(+/-)," + this.arrow_pad + ",GripMinHeight," + this.grip_h;} ppt.sbarBase_w = this.sbar_w;
+		if (this.sbarType == 2) {let themed_w = 21; try {themed_w = utils.GetSystemMetrics(2);} catch (e) {}; this.sbar_w = themed_w;} if (!ppt.sbarShow) this.sbar_w = 0; this.but_h = this.sbar_w + (this.sbarType != 2 ? 1 : 0); if (this.sbarType != 2) this.scr_but_w += 1; this.sbar_sp = this.sbar_w ? this.sbar_w + (this.sbar_w - this.scr_but_w < 5 || this.sbarType == 2 ? 1 : 0) : 0; this.arrow_pad = s.clamp(-this.but_h / 5, this.arrow_pad, this.but_h / 5);
+	}; this.sbarSet();
+}
+
+function Bezier(){const i=4,c=.001,o=1e-7,v=10,l=11,s=1/(l-1),n=typeof Float32Array==="function";function e(r,n){return 1-3*n+3*r}function u(r,n){return 3*n-6*r}function a(r){return 3*r}function w(r,n,t){return((e(n,t)*r+u(n,t))*r+a(n))*r}function y(r,n,t){return 3*e(n,t)*r*r+2*u(n,t)*r+a(n)}function h(r,n,t,e,u){let a,f,i=0;do{f=n+(t-n)/2;a=w(f,e,u)-r;if(a>0){t=f}else{n=f}}while(Math.abs(a)>o&&++i<v);return f}function A(r,n,t,e){for(let u=0;u<i;++u){const a=y(n,t,e);if(a===0){return n}const f=w(n,t,e)-r;n-=f/a}return n}function f(r){return r}function bezier(i,t,o,e){if(!(0<=i&&i<=1&&0<=o&&o<=1)){throw new Error("Bezier x values must be in [0, 1] range")}if(i===t&&o===e){return f}const v=n?new Float32Array(l):new Array(l);for(let r=0;r<l;++r){v[r]=w(r*s,i,o)}function u(r){const e=l-1;let n=0,t=1;for(;t!==e&&v[t]<=r;++t){n+=s}--t;const u=(r-v[t])/(v[t+1]-v[t]),a=n+u*s,f=y(a,i,o);if(f>=c){return A(r,a,i,o)}else if(f===0){return a}else{return h(r,n,n+s,i,o)}}return function r(n){if(n===0){return 0}if(n===1){return 1}return w(u(n),t,e)}} this.scroll = bezier(0.25, 0.1, 0.25, 1); this.bar = bezier(0.165,0.84,0.44,1); this.barFast = bezier(0.19, 1, 0.22, 1); this.inertia = bezier(0.23, 1, 0.32, 1);}; const ease = new Bezier();
+function on_colours_changed() {ui.reset_colors(); ui.get_colors(); if (ui.nodeStyle) pop.create_images(); but.create_images(); but.refresh(); ui.create_images(); ui.blurReset(); window.Repaint();}
+function on_font_changed() {ui.get_font(); sbar.reset(); p.on_size(); pop.create_tooltip(); if (ppt.searchShow || ppt.sbarShow) but.refresh(true); window.Repaint();}
+
+function Panel() {
+    const def_ppt = ppt.get(" View by Folder Structure: Name // Pattern", "View by Folder Structure // Pattern Not Configurable"), DT_CENTER = 0x00000001, DT_VCENTER = 0x00000004, DT_SINGLELINE = 0x00000020, DT_CALCRECT = 0x00000400, DT_NOPREFIX = 0x00000800, DT_END_ELLIPSIS = 0x00008000, sbarStyle = !ppt.sbarStyle ? 2 : 0;
+    let grps = [], i = 0, sort = "";
+    this.cc = DT_CENTER | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX; this.f_y = 0; this.f_w = []; this.f_h = 0; this.f_menu = []; this.f_x1 = 0; this.filt = []; this.folder_view = 10; this.folderView = false; this.grp = []; this.grp_sort = ""; this.grp_split = []; this.grp_split_clone = []; this.grp_split_orig = []; this.l = DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX; this.lc = DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS; this.last_pressed_coord = {x: -1, y: -1}; this.list = FbMetadbHandleList(); this.menu = []; this.multi_value = []; this.m_x = 0; this.m_y = 0; this.pos = -1; this.s_cursor = false; this.s_lc = StringFormat(0, 1); this.search = false; this.s_txt = ""; this.s_x = 0; this.s_h = 0; this.s_w1 = 0; this.s_w2 = 0; if (!ppt.searchShow) ppt.autoFit = true; this.zoomFilter = Math.max(ppt.zoomFilter / 100, 0.7); this.splitter = "¦"; this.sp_splitter = ` ${this.splitter}`; ppt.zoomFilter = this.zoomFilter * 100;
+
+	let props = v => ppt.get(v[0], v[1]);
+    let pt = [
+        [" View 01: Name // Pattern", "View by Artist // %artist%|%album%|[[%discnumber%.]%tracknumber%. ][%track artist% - ]%title%"],
+        [" View 02: Name // Pattern", "View by Album Artist // %album artist%|%album%|[[%discnumber%.]%tracknumber%. ][%track artist% - ]%title%"],
+        [" View 03: Name // Pattern", "View by Album Artist - Album // [%album artist% - ]['['%date%']' ]%album%|[[%discnumber%.]%tracknumber%. ][%track artist% - ]%title%"],
+        [" View 04: Name // Pattern", "View by Album // %album%[ '['%album artist%']']|[[%discnumber%.]%tracknumber%. ][%track artist% - ]%title%"],
+        [" View 05: Name // Pattern", "View by Genre // %<genre>%|[%album artist% - ]%album%|[[%discnumber%.]%tracknumber%. ][%track artist% - ]%title%"],
+        [" View 06: Name // Pattern", "View by Year // %date%|[%album artist% - ]%album%|[[%discnumber%.]%tracknumber%. ][%track artist% - ]%title%"]
+    ];
+    const view_ppt = pt.map(props), ppt_l = view_ppt.length + 1;
+    let nm = ""; ; for (i = ppt_l; i < ppt_l + 93; i++) {nm = ppt.get(" View " + s.padNumber(i, 2) + ": Name // Pattern"); if (nm && nm != " // ") view_ppt.push(ppt.get(" View " + s.padNumber(i, 2) + ": Name // Pattern"));}
+    pt = [
+        [" View Filter 01: Name // Query", "Filter // Query Not Configurable"],
+        [" View Filter 02: Name // Query", "Lossless // \"$info(encoding)\" IS lossless"],
+        [" View Filter 03: Name // Query", "Lossy // \"$info(encoding)\" IS lossy"],
+        [" View Filter 04: Name // Query", "Missing Replaygain // %replaygain_track_gain% MISSING"],
+        [" View Filter 05: Name // Query", "Never Played // %play_count% MISSING"],
+        [" View Filter 06: Name // Query", "Played Often // %play_count% GREATER 9"],
+        [" View Filter 07: Name // Query", "Recently Added // %added% DURING LAST 2 WEEKS"],
+        [" View Filter 08: Name // Query", "Recently Played // %last_played% DURING LAST 2 WEEKS"],
+        [" View Filter 09: Name // Query", "Top Rated // %rating% IS 5"],
+		[" View Filter 10: Name // Query", "Nowplaying Artist // artist IS $nowplaying{%artist%}"]
+    ];
+    const filter_ppt = pt.map(props), filt_l = filter_ppt.length + 1; pt = undefined;
+    for (i = filt_l; i < filt_l + 90; i++) {nm = ppt.get(" View Filter " + s.padNumber(i, 2) + ": Name // Query"); if (nm && nm != " // ") filter_ppt.push(ppt.get(" View Filter " + s.padNumber(i, 2) + ": Name // Query"));}
+    this.filterFont = gdi.Font("Segoe UI", this.zoomFilter > 1.05 ? Math.floor(11 * s.scale * this.zoomFilter) : 11 * s.scale * this.zoomFilter, 1);
+    this.filterBtnFont = gdi.Font("Segoe UI", this.zoomFilter > 1.05 ? Math.floor(9 * s.scale * this.zoomFilter) : 9 * s.scale * this.zoomFilter, 1);
+    this.pn_h_auto = ppt.pn_h_auto && ppt.rootNode; this.init = true; if (this.pn_h_auto) {window.MaxHeight = window.MinHeight = ppt.pn_h;}
+
+    let paint_y = Math.floor(ppt.searchShow || !ppt.sbarShow ? this.s_h : 0);
+    this.search_paint = () => {window.RepaintRect(ppt.margin, 0, ui.w - ppt.margin, this.s_h);}
+    this.setHeight = n => {if (!this.pn_h_auto) return; ppt.pn_h = n ? ppt.pn_h_max : ppt.pn_h_min; window.MaxHeight = window.MinHeight = ppt.pn_h;}
+	this.setRootName = () => {this.rootName = ppt.rootNode == 2 ? this.grp[ppt.viewBy].name : "All Music";}
+    this.sort = li => {switch (this.folderView) {case true: li.OrderByRelativePath(); break; default: let tfo = FbTitleFormat(this.grp_sort); li.OrderByFormat(tfo, 1); break;}}
+    this.tree_paint = () => {window.RepaintRect(0, paint_y, ui.w, ui.h - paint_y + 1);}
+
+    this.calc_text = () => {
+        s.gr(1, 1, false, g => {
+            this.f_h = g.CalcTextHeight("String", this.filterFont);
+            this.f_w = this.filt.map(v => g.CalcTextWidth(v.name, this.filterFont));
+            this.f_sw = g.CalcTextWidth("   ▼", this.filterBtnFont);
+        });
+        this.f_x1 = ui.w - ppt.margin - this.f_w[ppt.filterBy] - this.f_sw;
+        this.s_w2 = ppt.searchShow > 1 ? this.f_x1 - this.s_x - 11 : this.s_w1 - Math.round(ui.row_h * 0.75) - this.s_x + 1;
+    }
+
+    this.fields = (view, filter) => {
+        this.filt = []; this.folder_view = 10; this.grp = []; this.grp_sort = ""; this.multiProcess = false; this.multi_swap = false; ppt.filterBy = filter; this.mv_sort = ""; this.view = ""; ppt.viewBy = view;
+        view_ppt.forEach((v, i) => {if (v.includes("//")) {grps = v.split("//"); this.grp[i] = {name:grps[0].trim(), type:grps[1]}}}); grps = [];
+        filter_ppt.forEach((v, i) => {if (v.includes("//")) {grps = v.split("//"); this.filt[i] = {name:grps[0].trim(), type:grps[1].trim()}}});
+
+        const name = v => v.name;
+        const removeEmpty = v => v && v.name != "" && v.type != "";
+
+        this.grp = this.grp.filter(removeEmpty);
+        this.filt = this.filt.filter(removeEmpty);
+        this.grp[this.grp.length] = {name: def_ppt.split("//")[0].trim(), type: ""}
+        this.folder_view = this.grp.length - 1; ppt.filterBy = Math.min(ppt.filterBy, this.filt.length - 1); ppt.viewBy = Math.min(ppt.viewBy, this.grp.length - 1);
+        if (this.grp[ppt.viewBy].type.includes("%<")) this.multiProcess = true;
+		this.folderView = ppt.viewBy == this.folder_view;
+		if (!this.folderView) {
+            if (this.multiProcess) {
+                if (this.grp[ppt.viewBy].type.includes("$swapbranchprefix{%<")) this.multi_swap = true;
+                this.mv_sort = FbTitleFormat((this.grp[ppt.viewBy].type.includes("album artist") || !this.grp[ppt.viewBy].type.includes("%artist%") && !this.grp[ppt.viewBy].type.includes("%<artist>%") && !this.grp[ppt.viewBy].type.includes("$meta(artist") ? "%album artist%" : "%artist%") + "|%album%|[[%discnumber%.]%tracknumber%. ][%track artist% - ]%title%");
+            }
+            this.grp_split = this.grp[ppt.viewBy].type.replace(/^\s+/, "").split("|");
+            this.grp_split.forEach((v, i) => {
+                this.multi_value[i] = v.includes("%<") ? true : false;
+                if (this.multi_value[i]) {
+                    this.grp_split_orig[i] = v.slice();
+                    if (v.includes("$swapbranchprefix{%<")) {
+                        let ip1 = v.indexOf("$swapbranchprefix{%<"), ip2 = v.indexOf(">%}", ip1) + 2;
+                        v = s.replaceAt(v, ip2, "");
+                        this.grp_split_orig[i] = v.replace(/\$swapbranchprefix{%</g, "%<");
+                        v = v.replace(/\$swapbranchprefix{%</g, "~%<");
+                    }
+                    v = v.replace(/%<album artist>%/i,"$if3(%<#album artist#>%,%<#artist#>%,%<#composer#>%,%<#performer#>%)").replace(/%<album>%/i,"$if2(%<#album#>%,%<#venue#>%)").replace(/%<artist>%/i,"$if3(%<artist>%,%<album artist>%,%<composer>%,%<performer>%)").replace(/<#/g,"<").replace(/#>/g,">");
+                    this.grp_split_clone[i] = v.slice();
+                    v = this.grp_split_orig[i].replace(/[<>]/g,"");
+                }
+                this.grp_sort += (v + this.sp_splitter);
+                if (this.multi_value[i]) v = this.grp_split_clone[i].replace(/%</g, "#!#$meta_sep(").replace(/>%/g, "," + "@@)#!#");
+                this.view += (v + this.splitter);
+            });
+            let ix1 = -1, ix2 = -1;
+            if (!this.multiProcess) this.view = this.view.replace(/\$nodisplay{.*?}/gi, "");
+            else while(this.view.includes("$nodisplay{")) {ix1 = this.view.indexOf("$nodisplay{"); ix2 = this.view.indexOf("}", ix1); this.view = s.replaceAt(this.view, ix2, " #@#"); this.view = this.view.replace("$nodisplay{", "#@#");}
+            this.view = this.view.slice(0, -this.splitter.length);
+            while(this.grp_sort.includes("$nodisplay{")) {ix1 = this.grp_sort.indexOf("$nodisplay{"); ix2 = this.grp_sort.indexOf("}", ix1); this.grp_sort = s.replaceAt(this.grp_sort, ix2, " "); this.grp_sort = this.grp_sort.replace("$nodisplay{", "");}
+        }
+        this.setRootName();
+        this.f_menu = this.filt.map(name);
+        this.menu = this.grp.map(name);
         this.calc_text();
     }
+    this.fields(ppt.viewBy, ppt.filterBy);
 
-    this.calc_text = function() {
-        var i = gdi.CreateImage(1, 1), g = i.GetGraphics();
-        if (!this.local) this.row_h = Math.round(g.CalcTextHeight("String", this.font)) + window.GetProperty(" Row Vertical Item Padding", 3);
-        if (this.node_style) {this.node_sz = Math.round(Math.max(Math.min(this.node_sz, this.row_h - 2), 7)); pop.create_images();}
-        else {this.node_sz = Math.round(Math.max(Math.min(this.node_sz, this.row_h * 1.15), 7)); this.icon_font = gdi.Font(icon_f_name, this.node_sz, icon_f_style);}
-        if (this.node_style) {this.node_sz = Math.round(Math.max(Math.min(this.node_sz, this.row_h - 2), 7)); pop.create_images(); zoom_node = Math.round(this.node_sz / node_sz * 100);}
-        else {this.node_sz = Math.round(Math.max(Math.min(this.node_sz, this.row_h * 1.15), 7)); this.icon_font = gdi.Font(icon_f_name, this.node_sz, icon_f_style); zoom_node = Math.round(this.node_sz / orig_font_sz * 100);}
-        window.SetProperty(" Zoom Node Size (%)", zoom_node);
-        sp = Math.max(Math.round(g.CalcTextWidth(" ", this.font)), 4);
-        sp1 = Math.max(Math.round(sp * 1.5), 6);
-        if (!this.node_style) {var sp_e = g.MeasureString(this.expand, this.icon_font, 0, 0, 500, 500).Width; var sp_c = g.MeasureString(this.collapse, this.icon_font, 0, 0, 500, 500).Width; sp2 = Math.round(Math.max(sp_e, sp_c) + sp / 3);}
-        this.l_s1 = Math.max(sp1 / 2, 4);
-        this.l_s2 = Math.ceil(this.node_sz / 2);
-        this.l_s3 = Math.max(7, this.node_sz / 2)
-        this.icon_w = this.node_style ? this.node_sz + sp1 : sp + sp2;
-        this.sel = (this.node_style ? sp1 : sp + Math.round(sp / 3)) / 2;
-        this.tt = this.node_style ? -Math.ceil(sp1 / 2 - 3) + sp1 : sp;
-        i.ReleaseGraphics(g);
-    }
+    let k = 1; for (i = 0; i < 100; i++) {nm = ppt.get(" View " + (i < 10 ? "0" + i : i) + ": Name // Pattern"); if (nm && nm != " // ") {ppt.set(" View " + (k < 10 ? "0" + k : k) + ": Name // Pattern", nm); k += 1} else ppt.set(" View " + (i < 10 ? "0" + i : i) + ": Name // Pattern", null);}
+    for (i = k; i < k + 5; i++) ppt.set(" View " + (i < 10 ? "0" + i : i) + ": Name // Pattern", " // ");
+    k = 1; for (i = 0; i < 100; i++) {nm = ppt.get(" View Filter " + (i < 10 ? "0" + i : i) + ": Name // Query"); if (nm && nm != " // ") {ppt.set(" View Filter " + (k < 10 ? "0" + k : k) + ": Name // Query", nm); k += 1} else ppt.set(" View Filter " + (i < 10 ? "0" + i : i) + ": Name // Query", null);}
+    for (i = k; i < k + 5; i++) ppt.set(" View Filter " + (i < 10 ? "0" + i : i) + ": Name // Query", " // ");
 
-    this.wheel = function(step) {
-        if (p.m_y > p.s_h) {
-            if (p.m_x >= Math.round(this.icon_w + this.margin + (p.base ? this.pad : 0))) {
-                zoom_font_sz += step;
-                zoom_font_sz = Math.max(zoom_font_sz, 1);
-                this.font = gdi.Font(this.font.Name, zoom_font_sz, this.font.Style);
-                this.s_font = gdi.Font(this.font.Name, this.font.Size, 2);
-                this.j_font = gdi.Font(this.font.Name, this.font.Size * 1.5, 1);
-                this.calc_text(); p.on_size(); jS.on_size();
-                pop.create_tooltip(); if (p.s_show || this.scrollbar_show) but.refresh(true); sbar.reset();
-                window.Repaint(); window.SetProperty(" Zoom Font Size (%)", Math.round(zoom_font_sz / orig_font_sz * 100));
-            } else {this.node_sz += step; this.calc_text(); p.on_size(); window.Repaint();}
-        } else {
-            if (p.scale < 0.7) return; p.scale += step * 0.1; p.scale = Math.max(p.scale, 0.7);
-            p.f_font = gdi.Font("Segoe UI", p.scale > 1.05 ? Math.floor(11 * this.scale * p.scale) : 11 * this.scale * p.scale, 1);
-            p.f_but_ft = gdi.Font("Segoe UI", p.scale > 1.05 ? Math.floor(9 * this.scale * p.scale) : 9 * this.scale * p.scale, 1);
-            p.calc_text(); but.refresh(true);
-            window.SetProperty(" Zoom Filter Size (%)", Math.round(p.scale * 100)); p.search_paint();
-        }
+    this.on_size = () => {
+        this.f_x1 = ui.w - ppt.margin - this.f_w[ppt.filterBy] - this.f_sw;
+        this.s_x = Math.round(ppt.margin + ui.row_h);
+        this.s_w1 = ui.w - ppt.margin;
+        this.s_w2 = ppt.searchShow > 1 ? this.f_x1 - this.s_x - 11 : this.s_w1 - Math.round(ui.row_h * 0.75) - this.s_x + 1;
+        this.ln_sp = ppt.searchShow && !ui.local ? Math.floor(ui.row_h * 0.1) : 0;
+        this.s_h = ppt.searchShow ? ui.row_h + (!ui.local ? this.ln_sp * 2 : 0) : ppt.margin;
+        this.s_sp = this.s_h - this.ln_sp;
+        this.sp = ui.h - this.s_h - (ppt.searchShow ? 0 : ppt.margin);
+        this.rows = this.sp / ui.row_h;
+        if (ppt.autoFit) {this.rows = Math.floor(this.rows); this.sp = ui.row_h * this.rows;}
+        this.node_y = Math.round((ui.row_h - ui.node_sz) / 1.75);
+        const sbar_top = !ui.sbarType ? 5 : ppt.searchShow ? 3 : 0, sbar_bot = !ui.sbarType ? 5 : 0;
+        this.sbar_o = [ui.arrow_pad, Math.max(Math.floor(ui.scr_but_w * 0.2), 3) + ui.arrow_pad * 2, 0][ui.sbarType];
+        this.sbar_x = ui.w - ui.sbar_sp;
+        const top_corr = [this.sbar_o - (ui.but_h - ui.scr_but_w) / 2, this.sbar_o, 0][ui.sbarType];
+        const bot_corr = [(ui.but_h - ui.scr_but_w) / 2 - this.sbar_o, -this.sbar_o, 0][ui.sbarType];
+        let sbar_y = (ui.sbarType < sbarStyle || ppt.searchShow ? this.s_sp + 1 : 0) + sbar_top + top_corr;
+        let sbar_h = ui.sbarType < sbarStyle && ppt.autoFit ? this.sp + 1 - sbar_top - sbar_bot + bot_corr * 2 : ui.h - sbar_y  - sbar_bot + bot_corr;
+        if (ui.sbarType == 2) {sbar_y += 1; sbar_h -= 2;}
+        this.f_y = this.sp + this.s_h - ui.row_h * 0.9;
+        if (this.init) sbar.item_y = this.s_h;
+		paint_y = Math.floor(ppt.searchShow || !ppt.sbarShow ? this.s_h : 0);
+        sbar.metrics(this.sbar_x, sbar_y, ui.sbar_w, sbar_h, this.rows, ui.row_h);
     }
 
-    this.block = function() {return this.w <= 10 || this.h <= 10 || !window.IsVisible;}
-    this.blur_img = function(image) {
-        if (!this.w || !this.h) return; blurImg = gdi.CreateImage(this.w, this.h), gb = blurImg.GetGraphics();
-        if (!this.blur && autoFill || this.blur && blurAutofill) {var s1 = image.Width / this.w, s2 = image.Height / this.h; if (!this.blur && autoFill && Math.abs(s1 / s2 - 1) < 0.05) {var imgx = 0,imgy = 0, imgw = image.Width, imgh = image.Height;} else {if (s1 > s2) {var imgw = Math.round(this.w * s2), imgh = image.Height, imgx = Math.round((image.Width - imgw) / 2), imgy = 0;} else {var imgw = image.Width, imgh = Math.round(this.h * s1), imgx = 0, imgy = Math.round((image.Height - imgh) / 8);}}}
-        switch (true) {
-            case this.blur:
-                gb.SetInterpolationMode(0); if (blurAutofill) image = image.Clone(imgx, imgy, imgw, imgh);
-                if (this.blur_blend) {
-                    var iSmall = image.Resize(this.w * this.blurLevel / 100, this.h * this.blurLevel / 100, 2), iFull = iSmall.resize(this.w, this.h, 2), offset = 90 - this.blurLevel;
-                    gb.DrawImage(iFull, 0 - offset, 0 - offset, this.w + offset * 2, this.h + offset * 2, 0, 0, iFull.Width, iFull.Height, 0, 63 * ui.blurAlpha);
-                } else {
-                    gb.DrawImage(image, 0, 0, this.w, this.h, 0, 0, image.Width, image.Height); if (this.blurLevel > 1) blurImg.StackBlur(this.blurLevel);
-                    var colorScheme_array = blurImg.GetColourScheme(1), light_cover = get_textselcol(colorScheme_array[0], true) == 50 ? true : false;
-                    gb.FillSolidRect(0, 0, this.w, this.h, light_cover ? this.bg_color_light : this.bg_color_dark);
-                } break;
-            case !this.blur:
-                if (autoFill) gb.DrawImage(image, 0, 0, this.w, this.h, imgx, imgy, imgw, imgh, 0, alpha);
-                else {var s = Math.min(this.h / image.Height, this.w / image.Width); var tw = Math.round(image.Width * s); var th = Math.round(image.Height * s); gb.DrawImage(image, (this.w - tw) / 2, (this.h - th) / 2, tw, th, 0, 0, image.Width, image.Height, 0, alpha);}
-                break;
-        }
-        blurImg.ReleaseGraphics(gb); window.Repaint();
-    }
-    this.blurChange = function(n) {
-        this.blur_dark = false; this.blur_blend = false; this.blur_light = false; this.imgBg = false; switch (n) {case 2: this.blur_dark = true; break; case 3: this.blur_blend = true; break; case 4: this.blur_light = true; break; case 5: this.imgBg = true; break;}
-        var blur_tmp = window.GetProperty("ADV.Image Blur Background Level (0-100)"); this.blurLevel = this.blur_blend ? 91.05 - Math.max(Math.min(blur_tmp, 90), 1.05) : Math.max(Math.min(blur_tmp * 2, 254), 0); window.SetProperty("SYSTEM.Blur Blend Theme", this.blur_blend); window.SetProperty("SYSTEM.Blur Dark Theme", this.blur_dark); window.SetProperty("SYSTEM.Blur Light Theme", this.blur_light); window.SetProperty("SYSTEM.Image Background", this.imgBg); this.blurReset(true);
-    }
-    this.blurReset = function(clear) {blurImg = false; image_path_o = ""; if (clear) on_colours_changed(); this.on_playback_new_track();}
-    this.create_images = function() {var cc = StringFormat(1, 1), font1 = gdi.Font("Segoe UI", 270, 1), font2 = gdi.Font("Segoe UI", 120, 1), font3 = gdi.Font("Segoe UI", 200, 1), font4 = gdi.Font("Segoe UI", 90, 1), gb, tcol = !this.blur_dark && !this.blur_light ? this.textcol : this.dui ? window.GetColourDUI(0) : window.GetColourCUI(0); noimg = ["COVER", "SELECTION"]; for (var i = 0; i < noimg.length; i++) {var n = noimg[i]; noimg[i] = gdi.CreateImage(500, 500); gb = noimg[i].GetGraphics(); gb.SetSmoothingMode(2); if (!this.blur_dark && !this.blur_light) {gb.FillSolidRect(0, 0, 500, 500, tcol); gb.FillGradRect(-1, 0, 505, 500, 90, this.backcol & 0xbbffffff, this.backcol, 1.0);} gb.SetTextRenderingHint(3); gb.DrawString("NO", i ? font3 : font1, tcol & 0x25ffffff, 0, 0, 500, 275, cc); gb.DrawString(n, i ? font4 : font2, tcol & 0x20ffffff, 2.5, 175, 500, 275, cc); gb.FillSolidRect(60, 388, 380, 50, tcol & 0x15ffffff); noimg[i].ReleaseGraphics(gb);} this.get = true;}; this.create_images();
-    this.draw = function(gr) {try {if (this.bg) gr.FillSolidRect(0, 0, this.w, this.h, this.backcol); if (!this.blur && !this.imgBg) return; this.get_img_fallback(); if (blurImg) gr.DrawImage(blurImg, 0, 0, this.w, this.h, 0, 0, blurImg.Width, blurImg.Height);} catch (e) {}}
-    this.focus_changed = function(ms) {k++; if (k == 1) {this.on_playback_new_track(); timer.reset(timer.focus, timer.focusi); timer.focus = window.SetTimeout(function() {k = 0; timer.focus = false;}, ms); return;} timer.reset(timer.focus, timer.focusi); timer.focus = window.SetTimeout(function() {ui.on_playback_new_track(); k = 0; timer.focus = false;}, ms);}
-    this.get_album_art_done = function(image, image_path) {if (image_path_o == image_path && blurImg && image) return window.Repaint(); image_path_o = image_path; if (!image) image = stub(0); if (!image) { blurImg = false; return;} this.blur_img(image);}
-    this.get_img_fallback = function() {if (sbar.draw_timer || !this.get) return; this.grab_f_img(); this.get = false;}
-    this.grab_f_img = function(handle) {if (!handle) handle = fb.IsPlaying ? fb.GetNowPlaying() : fb.GetFocusItem(); if (handle) return utils.GetAlbumArtAsync(window.ID, handle, 0); if (fb.IsPlaying) return; image = stub(1); if (!image) { blurImg = false; return;} this.blur_img(image);}
-    this.on_playback_new_track = function(handle) {if (!this.blur && !this.imgBg) return; if (this.block()) this.get = true; else {this.grab_f_img(handle); this.get = false;}}
-    var stub = function(n) {image_path_o = n ? "noitem" : "stub"; return noimg[n].Clone(0, 0, noimg[n].Width, noimg[n].Height);}
+	this.resetZoom = () => {
+		ppt.zoomFont = 100;
+		ppt.zoomNode = 100;
+		this.zoomFilter = 1;
+		ppt.zoomFilter = 100;
+		ppt.set(" Zoom Tooltip [Button] (%)", 100);
+		this.filterFont = gdi.Font("Segoe UI", 11 * s.scale * this.zoomFilter, 1);
+		this.filterBtnFont = gdi.Font("Segoe UI", 9 * s.scale * this.zoomFilter, 1);
+		this.calc_text();
+		ui.get_font();
+		this.on_size(); jS.on_size();
+		but.create_tooltip();
+		pop.create_tooltip();
+		if (ppt.searchShow || ppt.sbarShow) but.refresh(true); sbar.reset();
+		window.Repaint();
+	}
+
+	this.set = (n, i) => {
+		switch (n) {
+			case 'itemCounts': ppt.nodeCounts = i; pop.set(); lib.rootNodes(1, true); break;
+			case 'rootNode': ppt.rootNode = i; pop.set(); this.setRootName(); lib.rootNodes(1); this.pn_h_auto = ppt.pn_h_auto && ppt.rootNode; if (this.pn_h_auto) {window.MaxHeight = window.MinHeight = ppt.pn_h;} break;
+			case 'view': lib.time.Reset(); if (this.s_txt) lib.upd_search = true; this.fields(i < this.grp.length ? i : ppt.viewBy, i < this.grp.length ? ppt.filterBy : i - this.grp.length); pop.subCounts =  {"standard": {}, "search": {}, "filter": {}}; lib.getLibrary(); lib.rootNodes(); if (this.pn_h_auto && ppt.pn_h == ppt.pn_h_min && pop.tree[0]) pop.clear_child(pop.tree[0]); break;
+		}
+	}
+	
+	this.toggle = n => {
+		switch (n) {
+			case 'fullLineSelection': ppt.fullLineSelection = !ppt.fullLineSelection; pop.set(); this.tree_paint(); break;
+			case 'nodeHighlight': ppt.nodeHighlight = !ppt.nodeHighlight; pop.set(); break;
+			case 'nowPlaying': ppt.showNowplaying = !ppt.showNowplaying; pop.set(); if (ppt.showNowplaying) {pop.getNowplaying(); pop.nowPlayingShow()} else pop.nowp = -1; break;
+			case 'rowStripes': ppt.rowStripes = !ppt.rowStripes; pop.set(); ui.get_colors(); sbar.reset(); this.tree_paint(); break;
+			case 'scrollbar': ppt.sbarShow = !ppt.sbarShow;  ui.sbarSet(); ui.get_font(); but.create_images(); this.on_size(); but.refresh(true); but.set_scroll_btns_hide(true); this.tree_paint(); break;
+			case 'search': ppt.searchShow = ppt.searchShow != 1 ? 1 : 0; window.Reload(); break;
+			case 'search+filter': ppt.searchShow = ppt.searchShow != 2 ? 2 : 0; window.Reload(); break;
+			case 'showTracks': ppt.showTracks = !ppt.showTracks; pop.set(); lib.rootNodes(1, true); break;
+			case 'tooltip': ppt.tooltip = !ppt.tooltip; pop.set(); break;
+		}
+	}
 }
-var ui = new userinterface();
 
-function on_colours_changed() {ui.reset_colors(); ui.get_colors(); if (ui.node_style) pop.create_images(); if (p.s_show) {but.create_images(); but.refresh();} ui.create_images(); ui.blurReset(); window.Repaint();}
-function on_font_changed() {ui.get_font(); sbar.reset(); p.on_size(); pop.create_tooltip(); if (p.s_show || ui.scrollbar_show) but.refresh(true); window.Repaint();}
+function Scrollbar() {
+    let period = ppt.duration.splt(0); period = {drag : 200, inertia : s.clamp(s.value(period[3], 3000, 0), 0, 5000), scroll : s.clamp(s.value(period[1], 500, 0), 0, 5000)}; period.step = period.scroll * 2 / 3;
+    let alpha = !ppt.sbarCol ? 75 : (!ui.sbarType ? 68 : 51), amplitude, b_is_dragging = false, bar_ht = 0, bar_timer = null, bar_y = 0, but_h = 0, clock = Date.now(), counter = 0, drag_distance_per_row = 0, duration = period.scroll, elap = 0, event = "", fast = false, frame, hover = false, hover_o = false, init = true, initial_drag_y = 0, initial_scr = 1, initial_y = -1, ix = -1, lastTouchDn = Date.now(), max_scroll, offset = 0, ratio = 1, reference = -1, rows = 0, scrollbar_height = 0, scrollbar_travel = 0, start = 0, startTime = 0, ticker, timestamp, ts, velocity;
+    const alpha1 = alpha, alpha2 = !ppt.sbarCol ? 128 : (!ui.sbarType ? 119 : 85), inStep = ui.sbarType && ppt.sbarCol ? 12 : 18, ln_sp = ppt.searchShow && !ui.local ? Math.floor(ui.row_h * 0.1) : 0, min = 10 * s.scale, mv = 2 * s.scale;
+    this.count = -1; this.delta = 0; ppt.flickDistance = s.clamp(ppt.flickDistance, 0, 10); this.draw_timer = null; this.item_y = ppt.searchShow ? ui.row_h + (!ui.local ? ln_sp * 2 : 0) : ppt.margin; this.row_count = 0; this.rows_drawn = 0; this.row_h = 0; this.scroll = 0; this.scrollable_lines = 0; ppt.scrollStep = s.clamp(ppt.scrollStep, 0, 10); ppt.touchStep = s.clamp(ppt.touchStep, 1, 10); this.stripe_w = 0; this.timer_but = null; this.touch = {dn: false, end: 0, start: 0}; this.tree_w = 0; this.x = 0; this.y = 0; this.w = 0; this.h = 0;
 
-function scrollbar() {
-    var smoothness = 1 - window.GetProperty("ADV.Scroll: Smooth Scroll Level 0-1", 0.6561); smoothness = Math.max(Math.min(smoothness, 0.99), 0.01); this.bar_timer = false; this.count = -1; this.draw_timer = false; this.hover = false; this.s1 = 0; this.s2 = 0; this.scroll_step = window.GetProperty(" Scroll - Mouse Wheel: Page Scroll", true); this.smooth = window.GetProperty(" Scroll: Smooth Scroll", true); this.timer_but = false;
-    this.alpha = !ui.scr_col ? 75 : (!ui.scr_type ? 68 : 51); this.init = true; var alpha1 = this.alpha, alpha2 = !ui.scr_col ? 128 : (!ui.scr_type ? 119 : 85), inStep = ui.scr_type && ui.scr_col ? 12 : 18;
-    this.x = 0; this.y = 0; this.w = 0; this.h = 0; this.bar_ht = 0; this.but_h = 0; this.bar_y = 0; this.row_count = 0; this.scroll = 0; this.delta = 0; this.ratio = 1; this.rows_drawn = 0; this.row_h = 0; this.scrollbar_height = 0; this.scrollable_lines = 0; this.scrollbar_travel = 0; this.stripe_w = 0; this.tree_w = 0;
-    this.b_is_dragging = false; this.drag_distance_per_row; this.initial_drag_y = 0; // dragging
-    this.leave = function() {if (this.b_is_dragging) return; this.hover = !this.hover; this.paint(); this.hover = false; this.hover_o = false;}
-    this.nearest = function(y) {y = (y - this.but_h) / this.scrollbar_height * this.scrollable_lines * this.row_h; y = y / this.row_h; y = Math.round(y) * this.row_h; return y;}
-    this.reset = function() {this.delta = this.scroll = this.s1 = this.s2 = 0; this.metrics(this.x, this.y, this.w, this.h, this.rows_drawn, this.row_h);}
-    this.scroll_timer = function() {var that = this; this.draw_timer = window.SetInterval(function() {if (ui.w < 1 || !window.IsVisible) return; that.smooth_scroll();}, 16);}
-    this.set_rows = function(row_count) {this.row_count = row_count; this.metrics(this.x, this.y, this.w, this.h, this.rows_drawn, this.row_h);}
-    this.wheel = function(step, pgkey) {this.check_scroll(this.scroll + step * - (this.scroll_step || pgkey ? this.rows_drawn : 3) * this.row_h);}
+    const upd_debounce = s.debounce(() => lib.treeState(false, ppt.rememberTree), 400);
+    const nearest = y => {y = (y - but_h) / scrollbar_height * max_scroll; y = y / this.row_h; y = Math.round(y) * this.row_h; return y;}
+    const scroll_throttle = s.throttle(() => {this.delta = this.scroll; scroll_to();}, 16);
+    const scroll_timer = () => this.draw_timer = setInterval(() => {if (ui.w < 1 || !window.IsVisible) return; smooth_scroll();}, 16);
 
-    this.metrics = function(x, y, w, h, rows_drawn, row_h) {
-        this.x = x; this.y = Math.round(y); this.w = w; this.h = h; this.rows_drawn = rows_drawn; if (!p.autofit) this.rows_drawn = Math.floor(this.rows_drawn); this.row_h = row_h; this.but_h = ui.but_h;
+    this.leave = () => {if (this.touch.dn) this.touch.dn = false; if (b_is_dragging) return; hover = !hover; this.paint(); hover = false; hover_o = false;}
+    this.page_throttle = s.throttle(dir => this.check_scroll(Math.round((this.scroll + dir * -(this.rows_drawn - 1) * this.row_h) / this.row_h) * this.row_h), 100);
+    this.reset = () => {this.delta = this.scroll = 0; this.item_y = p.s_h; this.metrics(this.x, this.y, this.w, this.h, this.rows_drawn, this.row_h);}
+    this.set_rows = row_count => {if (!row_count) this.item_y = p.s_h; this.row_count = row_count; this.metrics(this.x, this.y, this.w, this.h, this.rows_drawn, this.row_h);}
+    this.wheel = step => this.check_scroll(Math.round((this.scroll + step * - (!ppt.scrollStep ? this.rows_drawn - 1 : ppt.scrollStep) * this.row_h) / this.row_h) * this.row_h, ppt.scrollStep ? 'step' : "");
+
+    this.metrics = (x, y, w, h, rows_drawn, row_h) => {
+        this.x = x; this.y = Math.round(y); this.w = w; this.h = h; this.rows_drawn = rows_drawn; if (!ppt.autoFit) this.rows_drawn = Math.floor(this.rows_drawn); this.row_h = row_h; but_h = ui.but_h;
         // draw info
-        this.scrollbar_height = Math.round(this.h - this.but_h * 2);
-        this.bar_ht = Math.max(Math.round(this.scrollbar_height * this.rows_drawn / this.row_count), Math.max(Math.min(this.scrollbar_height / 2, ui.grip_h), 5));
-        this.scrollbar_travel = this.scrollbar_height - this.bar_ht;
+        scrollbar_height = Math.round(this.h - but_h * 2);
+        bar_ht = Math.max(Math.round(scrollbar_height * this.rows_drawn / this.row_count), s.clamp(scrollbar_height / 2, 5, ui.grip_h));
+        scrollbar_travel = scrollbar_height - bar_ht;
         // scrolling info
         this.scrollable_lines = this.row_count - this.rows_drawn;
-        this.ratio = this.row_count / this.scrollable_lines;
-        this.bar_y = this.but_h + this.scrollbar_travel * (this.delta * this.ratio) / (this.row_count * this.row_h);
-        this.drag_distance_per_row = this.scrollbar_travel / this.scrollable_lines;
+        ratio = this.row_count / this.scrollable_lines;
+        bar_y = but_h + scrollbar_travel * (this.delta * ratio) / (this.row_count * this.row_h);
+        drag_distance_per_row = scrollbar_travel / this.scrollable_lines;
         // panel info
-        this.tree_w = ui.w - Math.max(ui.scrollbar_show && this.scrollable_lines > 0 ? ui.sbar_sp + ui.sel : ui.sel, ui.margin);
-        if (ui.alternate) this.stripe_w = ui.scrollbar_show && this.scrollable_lines > 0 ? ui.w - ui.sbar_sp : ui.w;
+        this.tree_w = ui.w - Math.max(ppt.sbarShow && this.scrollable_lines > 0 ? ui.sbar_sp + ui.sel : ui.sel, ppt.margin);
+        if (ppt.rowStripes) this.stripe_w = ppt.sbarShow && this.scrollable_lines > 0 ? ui.w - ui.sbar_sp - Math.round(3 * s.scale) : ui.w;
+        max_scroll = this.scrollable_lines * this.row_h;
+        but.set_scroll_btns_hide();
     }
 
-    this.draw = function(gr) {if (this.scrollable_lines > 0) {try {
-        switch (ui.scr_type) {
-            case 0:
-                switch (ui.scr_col) {
-                    case 0: gr.FillSolidRect(this.x, this.y + this.bar_y, this.w, this.bar_ht, RGBA(ui.ct, ui.ct, ui.ct, !this.hover && !this.b_is_dragging ? this.alpha : this.hover && !this.b_is_dragging ? this.alpha : 192)); break;
-                    case 1: gr.FillSolidRect(this.x, this.y + this.bar_y, this.w, this.bar_ht, ui.textcol & (!this.hover && !this.b_is_dragging ? RGBA(255, 255, 255, this.alpha) : this.hover && !this.b_is_dragging ? RGBA(255, 255, 255, this.alpha) : 0x99ffffff)); break;
-                } break;
-            case 1:
-                switch (ui.scr_col) {
-                    case 0: gr.FillSolidRect(this.x, this.y - p.sbar_o, this.w, this.h + p.sbar_o * 2, RGBA(ui.ct, ui.ct, ui.ct, 15)); gr.FillSolidRect(this.x, this.y + this.bar_y, this.w, this.bar_ht, RGBA(ui.ct, ui.ct, ui.ct, !this.hover && !this.b_is_dragging ? this.alpha : this.hover && !this.b_is_dragging ? this.alpha : 192)); break;
-                    case 1: gr.FillSolidRect(this.x, this.y - p.sbar_o, this.w, this.h + p.sbar_o * 2, ui.textcol & 0x15ffffff); gr.FillSolidRect(this.x, this.y + this.bar_y, this.w, this.bar_ht, ui.textcol & (!this.hover && !this.b_is_dragging ? RGBA(255, 255, 255, this.alpha) : this.hover && !this.b_is_dragging ? RGBA(255, 255, 255, this.alpha) : 0x99ffffff)); break;
-                } break;
-            case 2: ui.theme.SetPartAndStateId(6, 1); ui.theme.DrawThemeBackground(gr, this.x, this.y, this.w, this.h); ui.theme.SetPartAndStateId(3, !this.hover && !this.b_is_dragging ? 1 : this.hover && !this.b_is_dragging ? 2 : 3); ui.theme.DrawThemeBackground(gr, this.x, this.y + this.bar_y, this.w, this.bar_ht); break;
-        }} catch (e) {}}
-    }
-
-    this.paint = function() {
-        if (this.hover) this.init = false; if (this.init) return; this.alpha = this.hover ? alpha1 : alpha2; var that = this
-        window.ClearTimeout(this.bar_timer); this.bar_timer = false;
-        this.bar_timer = window.SetInterval(function() {that.alpha = that.hover ? Math.min(that.alpha += inStep, alpha2) : Math.max(that.alpha -= 3, alpha1); window.RepaintRect(that.x, that.y, that.w, that.h);
-            if (that.hover && that.alpha == alpha2 || !that.hover && that.alpha == alpha1) {that.hover_o = that.hover; window.ClearTimeout(that.bar_timer); that.bar_timer = false;}}, 25);
-    }
-
-    this.lbtn_up = function(p_x, p_y) {
-        var x = p_x - this.x; var y = p_y - this.y;
-        if (!this.hover && this.b_is_dragging) this.paint(); else window.RepaintRect(this.x, this.y, this.w, this.h); if (this.b_is_dragging) {this.b_is_dragging = false; but.Dn = false;} this.initial_drag_y = 0;
-        if (this.timer_but) {window.ClearTimeout(this.timer_but); this.timer_but = false;}; this.count = -1;
-    }
-
-    this.lbtn_dn = function(p_x, p_y) {
-        var x = p_x - this.x; var y = p_y - this.y;
-        if (x < 0 || x > this.w || y < 0 || y > this.h || this.row_count <= this.rows_drawn) return;
-        if (y < this.but_h || y > this.h - this.but_h) return;
-        if (y < this.bar_y) var dir = 1; // above bar
-        else if (y > this.bar_y + this.bar_ht) var dir = -1; // below bar
-        if (y < this.bar_y || y > this.bar_y + this.bar_ht)
-            this.check_scroll(this.nearest(y));
-        else { // on bar
-            this.b_is_dragging = true; but.Dn = true; window.RepaintRect(this.x, this.y, this.w, this.h);
-            this.initial_drag_y = y - this.bar_y;
+    this.draw = gr => {
+        if (this.scrollable_lines > 0) {
+            switch (ui.sbarType) {
+                case 0:
+                    if (ppt.rowStripes) gr.FillSolidRect(this.x, this.y, this.w, this.h, ui.col.b1);
+                    switch (ppt.sbarCol) {
+                        case 0: gr.FillSolidRect(this.x, this.y + bar_y, this.w, bar_ht, RGBA(ui.col.t, ui.col.t, ui.col.t, !hover && !b_is_dragging ? alpha : hover && !b_is_dragging ? alpha : 192)); break;
+                        case 1: gr.FillSolidRect(this.x, this.y + bar_y, this.w, bar_ht, ui.col.text & (!hover && !b_is_dragging ? RGBA(255, 255, 255, alpha) : hover && !b_is_dragging ? RGBA(255, 255, 255, alpha) : 0x99ffffff)); break;
+                    } break;
+                case 1:
+                    switch (ppt.sbarCol) {
+                        case 0: gr.FillSolidRect(this.x, this.y - p.sbar_o, this.w, this.h + p.sbar_o * 2, RGBA(ui.col.t, ui.col.t, ui.col.t, 15)); gr.FillSolidRect(this.x, this.y + bar_y, this.w, bar_ht, RGBA(ui.col.t, ui.col.t, ui.col.t, !hover && !b_is_dragging ? alpha : hover && !b_is_dragging ? alpha : 192)); break;
+                        case 1: gr.FillSolidRect(this.x, this.y - p.sbar_o, this.w, this.h + p.sbar_o * 2, ui.col.text & 0x15ffffff); gr.FillSolidRect(this.x, this.y + bar_y, this.w, bar_ht, ui.col.text & (!hover && !b_is_dragging ? RGBA(255, 255, 255, alpha) : hover && !b_is_dragging ? RGBA(255, 255, 255, alpha) : 0x99ffffff)); break;
+                    } break;
+                case 2: ui.theme.SetPartAndStateID(6, 1); ui.theme.DrawThemeBackground(gr, this.x, this.y, this.w, this.h); ui.theme.SetPartAndStateID(3, !hover && !b_is_dragging ? 1 : hover && !b_is_dragging ? 2 : 3); ui.theme.DrawThemeBackground(gr, this.x, this.y + bar_y, this.w, bar_ht); break;
+            }
         }
     }
 
-    this.move = function(p_x, p_y) {
-        var x = p_x - this.x; var y = p_y - this.y;
-        if (x < 0 || x > this.w || y > this.bar_y + this.bar_ht || y < this.bar_y || but.Dn) this.hover = false; else this.hover = true;
-        if (this.hover != this.hover_o && !this.bar_timer) this.paint();
-        if (!this.b_is_dragging || this.row_count <= this.rows_drawn) return;
-        this.check_scroll(Math.round((y - this.initial_drag_y - this.but_h) / this.drag_distance_per_row) * this.row_h);
+    this.paint = () => {
+        if (hover) init = false; if (init) return; alpha = hover ? alpha1 : alpha2;
+        clearTimeout(bar_timer); bar_timer = null;
+        bar_timer = setInterval(() => {alpha = hover ? Math.min(alpha += inStep, alpha2) : Math.max(alpha -= 3, alpha1); window.RepaintRect(this.x, this.y, this.w, this.h);
+        if (hover && alpha == alpha2 || !hover && alpha == alpha1) {hover_o = hover; clearTimeout(bar_timer); bar_timer = null;}}, 25);
     }
 
-    this.check_scroll = function(new_scroll) {
-        var s = Math.max(0, Math.min(new_scroll, this.scrollable_lines * this.row_h));
-        if (s == this.scroll) return; this.scroll = s;
-        if (this.smooth) {if (!this.draw_timer) this.scroll_timer();}
-        if (!this.smooth) {this.delta = this.scroll; this.bar_y = this.but_h + this.scrollbar_travel * (this.delta * this.ratio) / (this.row_count * this.row_h); p.tree_paint(); lib.treeState(false, lib.rememberTree);}
+    this.lbtn_dn = (p_x, p_y) => {
+        if (!ppt.sbarShow && ppt.touchControl) return tap(p_y);
+        const x = p_x - this.x, y = p_y - this.y; let dir;
+        if (x > this.w || y < 0 || y > this.h || this.row_count <= this.rows_drawn) return;
+        if (x < 0) {if (!ppt.touchControl) return; else return tap(p_y);}
+        if (y < but_h || y > this.h - but_h) return;
+        if (y < bar_y) dir = 1; // above bar
+        else if (y > bar_y + bar_ht) dir = -1; // below bar
+        if (y < bar_y || y > bar_y + bar_ht) shift_page(dir, nearest(y));
+        else { // on bar
+            b_is_dragging = true; but.Dn = true; window.RepaintRect(this.x, this.y, this.w, this.h);
+            initial_drag_y = y - bar_y + but_h;
+        }
     }
 
-    this.smooth_scroll = function() {
-        if (this.delta <= 0.5) {this.delta = 0; this.bar_y = this.but_h + this.scrollbar_travel * (this.delta * this.ratio) / (this.row_count * this.row_h); p.tree_paint();}
-        if (Math.abs(this.scroll - this.delta) > 0.5) {
-            this.s1 += (this.scroll - this.s1) * smoothness; this.s2 += (this.s1 - this.s2) * smoothness; this.delta += (this.s2 - this.delta) * smoothness;
-            this.bar_y = this.but_h + this.scrollbar_travel * (this.delta * this.ratio) / (this.row_count * this.row_h); p.tree_paint();
-        } else if (this.draw_timer) {window.ClearTimeout(this.draw_timer); this.draw_timer = false; lib.treeState(false, lib.rememberTree);}
+    this.lbtn_dblclk = (p_x, p_y) => {
+        const x = p_x - this.x, y = p_y - this.y; let dir;
+        if (x < 0 || x > this.w || y < 0 || y > this.h || this.row_count <= this.rows_drawn) return;
+        if (y < but_h || y > this.h - but_h) return;
+        if (y < bar_y) dir = 1; // above bar
+        else if (y > bar_y + bar_ht) dir = -1; // below bar
+        if (y < bar_y || y > bar_y + bar_ht) shift_page(dir, nearest(y));
     }
 
-    this.but = function(dir) {
-        this.check_scroll(this.scroll + (dir * -this.row_h));
-        if (!this.timer_but) {var that = this; this.timer_but = window.SetInterval(function() {if (that.count > 6) {that.check_scroll(that.scroll + (dir * -that.row_h));} else that.count++;}, 40);}
-    }
-}
-var sbar = new scrollbar();
-
-function panel_operations() {
-    var def_ppt = window.GetProperty(" View by Folder Structure: Name // Pattern", "View by Folder Structure // Pattern Not Configurable");
-    var DT_LEFT = 0x00000000, DT_CENTER = 0x00000001, DT_RIGHT = 0x00000002, DT_VCENTER = 0x00000004, DT_SINGLELINE = 0x00000020, DT_CALCRECT = 0x00000400, DT_NOPREFIX = 0x00000800, DT_END_ELLIPSIS = 0x00008000, grps = [], i = 0, sort = "", js_stnd = window.GetProperty("ADV.Scrollbar Height Always Full", true); js_stnd = !js_stnd ? 2 : 0;
-    var view_ppt = [
-        window.GetProperty(" View 01: Name // Pattern", "View by Artist // %artist%|%album%|[[%discnumber%.]%tracknumber%. ][%track artist% - ]%title%"),
-        window.GetProperty(" View 02: Name // Pattern", "View by Album Artist // %album artist%|%album%|[[%discnumber%.]%tracknumber%. ][%track artist% - ]%title%"),
-        window.GetProperty(" View 03: Name // Pattern", "View by Album Artist - Album // [%album artist% - ]['['%date%']' ]%album%|[[%discnumber%.]%tracknumber%. ][%track artist% - ]%title%"),
-        window.GetProperty(" View 04: Name // Pattern", "View by Album // %album%[ '['%album artist%']']|[[%discnumber%.]%tracknumber%. ][%track artist% - ]%title%"),
-        window.GetProperty(" View 05: Name // Pattern", "View by Genre // %<genre>%|[%album artist% - ]%album%|[[%discnumber%.]%tracknumber%. ][%track artist% - ]%title%"),
-        window.GetProperty(" View 06: Name // Pattern", "View by Year // %date%|[%album artist% - ]%album%|[[%discnumber%.]%tracknumber%. ][%track artist% - ]%title%")
-    ];
-    var nm = "", ppt_l = view_ppt.length + 1; for (i = ppt_l; i < ppt_l + 93; i++) {nm = window.GetProperty(" View " + (i < 10 ? "0" + i : i) + ": Name // Pattern"); if (nm && nm != " // ") view_ppt.push(window.GetProperty(" View " + (i < 10 ? "0" + i : i) + ": Name // Pattern"));}
-    if (!window.GetProperty("SYSTEM.View Update", false)) {i = view_ppt.length + 1; window.SetProperty(" View " + (i < 10 ? "0" + i : i) + ": Name // Pattern", null); view_ppt.push(window.GetProperty(" View " + (i < 10 ? "0" + i : i) + ": Name // Pattern", "View by Path // $directory_path(%path%)|%filename_ext%$nodisplay{%subsong%}")); window.SetProperty("SYSTEM.View Update", true);}
-
-    var filter_ppt = [
-        window.GetProperty(" View Filter 01: Name // Query", "Filter // Query Not Configurable"),
-        window.GetProperty(" View Filter 02: Name // Query", "Lossless // \"$info(encoding)\" IS lossless"),
-        window.GetProperty(" View Filter 03: Name // Query", "Lossy // \"$info(encoding)\" IS lossy"),
-        window.GetProperty(" View Filter 04: Name // Query", "Missing Replaygain // %replaygain_track_gain% MISSING"),
-        window.GetProperty(" View Filter 05: Name // Query", "Never Played // %play_count% MISSING"),
-        window.GetProperty(" View Filter 06: Name // Query", "Played Often // %play_count% GREATER 9"),
-        window.GetProperty(" View Filter 07: Name // Query", "Recently Added // %added% DURING LAST 2 WEEKS"),
-        window.GetProperty(" View Filter 08: Name // Query", "Recently Played // %last_played% DURING LAST 2 WEEKS"),
-        window.GetProperty(" View Filter 09: Name // Query", "Top Rated // %rating% IS 5")
-    ];
-    var filt_l = filter_ppt.length + 1; for (i = filt_l; i < filt_l + 90; i++) {nm = window.GetProperty(" View Filter " + (i < 10 ? "0" + i : i) + ": Name // Query"); if (nm && nm != " // ") filter_ppt.push(window.GetProperty(" View Filter " + (i < 10 ? "0" + i : i) + ": Name // Query"));}
-
-    this.cc = DT_CENTER | DT_VCENTER | DT_CALCRECT | DT_NOPREFIX; this.l = DT_LEFT | DT_VCENTER | DT_SINGLELINE | DT_CALCRECT | DT_NOPREFIX; this.lc = DT_VCENTER | DT_CALCRECT | DT_NOPREFIX | DT_END_ELLIPSIS; this.rc = DT_RIGHT | DT_VCENTER | DT_CALCRECT | DT_NOPREFIX; this.s_lc = StringFormat(0, 1)
-    this.f_w = []; this.f_h = 0; this.f_x1 = 0; this.filt = []; this.folder_view = 10; this.grp = []; this.grp_sort = ""; this.grp_split = []; this.grp_split_clone = []; this.grp_split_orig = []; this.f_menu = []; this.menu = []; this.multi_value = []; this.m_x = 0; this.m_y = 0; this.pos = -1; this.s_cursor = false; this.s_search = false; this.s_txt = ""; this.s_x = 0; this.s_h = 0; this.s_w1 = 0; this.s_w2 = 0; this.tf = "";
-    this.autofit = window.GetProperty(" Auto Fit", true);
-    if (window.GetProperty(" Node: Show All Music")) window.SetProperty(" Node: Root Hide-0 All Music-1 View Name-2", 1);
-    this.base = window.GetProperty(" Node: Root Hide-0 All Music-1 View Name-2", 0); this.base = Math.max(Math.min(this.base, 2), 0);
-    this.syncType = window.GetProperty(" Library Sync: Auto-0, Initialisation Only-1", 0);
-    this.s_show = window.GetProperty(" Search: Hide-0, SearchOnly-1, Search+Filter-2", 2);
-    if (!this.s_show) this.autofit = true;
-    if (!ui.zoomUpd && window.GetProperty("SYSTEM.Software Notice Checked")) window.SetProperty(" Zoom Filter Size (%)", window.GetProperty(" Zoom Filter Size (%)", 100) / ui.scale);
-    this.scale = Math.max(window.GetProperty(" Zoom Filter Size (%)", 100) / 100, 0.7); window.SetProperty(" Zoom Filter Size (%)", this.scale * 100);
-    this.f_font = gdi.Font("Segoe UI", this.scale > 1.05 ? Math.floor(11 * ui.scale * this.scale) : 11 * ui.scale * this.scale, 1);
-    this.f_but_ft = gdi.Font("Segoe UI", this.scale > 1.05 ? Math.floor(9 * ui.scale * this.scale) : 9 * ui.scale * this.scale, 1);
-    this.filter_by = window.GetProperty("SYSTEM.Filter By", 0);
-    this.full_line = window.GetProperty(" Text Whole Line Clickable", false);
-    this.pn_h_auto = window.GetProperty("ADV.Height Auto [Expand/Collapse With Root]", false) && this.base; this.init = true;
-    this.pn_h_max = window.GetProperty("ADV.Height Auto-Expand", 578); this.pn_h_min = window.GetProperty("ADV.Height Auto-Collapse", 100);
-    if (this.pn_h_auto) {this.pn_h = window.GetProperty("SYSTEM.Height", 578); window.MaxHeight = window.MinHeight = this.pn_h;}
-    var replaceAt = function(s, n, t) {return s.substring(0, n) + t + s.substring(n + 1);}
-    this.reset = window.GetProperty("SYSTEM.Reset Tree", false);
-    this.search_paint = function() {window.RepaintRect(ui.margin, 0, ui.w - ui.margin, this.s_h);}
-    this.setHeight = function(n) {if (!this.pn_h_auto) return; this.pn_h = n ? this.pn_h_max : this.pn_h_min; window.MaxHeight = window.MinHeight = this.pn_h; window.SetProperty("SYSTEM.Height", this.pn_h);}
-    if (window.GetProperty(" Node: Item Counts 0-Hide 1-Tracks 2-Sub-Items")) window.SetProperty(" Node: Item Counts Hide-0 Tracks-1 Sub-Items-2", window.GetProperty(" Node: Item Counts 0-Hide 1-Tracks 2-Sub-Items"));
-    this.show_counts = window.GetProperty(" Node: Item Counts Hide-0 Tracks-1 Sub-Items-2", 1);
-    this.show_tracks = window.GetProperty(" Node: Show Tracks", true);
-    this.sort = function(li) {switch (this.view_by) {case this.folder_view: li.OrderByRelativePath(); break; default: var tfo = fb.TitleFormat(this.grp_sort); li.OrderByFormat(tfo, 1);  break;}}
-    var paint_y = Math.floor(this.s_show || !ui.scrollbar_show ? this.s_h : 0);
-    this.tree_paint = function() {window.RepaintRect(0, paint_y, ui.w, ui.h - paint_y + 1);}
-    this.view_by = window.GetProperty("SYSTEM.View By", 1);
-    this.calc_text = function() {
-        this.f_w = []; var im = gdi.CreateImage(1, 1), g = im.GetGraphics();
-        for (i = 0; i < this.filt.length; i++) {this.f_w[i] = g.CalcTextWidth(this.filt[i].name, this.f_font); if (!i) this.f_h = g.CalcTextHeight("String", this.f_font);}
-        this.f_sw = g.CalcTextWidth("   ▼", this.f_but_ft);
-        this.f_x1 = ui.w - ui.margin - this.f_w[this.filter_by] - this.f_sw;
-        this.s_w2 = this.s_show > 1 ? this.f_x1 - this.s_x - 11 : this.s_w1 - Math.round(ui.row_h * 0.75) - this.s_x + 1;
-        im.ReleaseGraphics(g);
-    }
-
-    this.fields = function(view, filter) {
-        this.filt = []; this.folder_view = 10; this.grp = []; this.grp_sort = ""; this.multi_process = false; this.multi_swap = false; this.filter_by = filter; this.mv_sort = ""; this.view = ""; this.view_by = view;
-        for (i = 0; i < view_ppt.length; i++) {if (view_ppt[i].indexOf("//") != -1) {grps = view_ppt[i].split("//"); this.grp[i] = {name:grps[0].trim(), type:grps[1]}}} grps = [];
-        for (i = 0; i < filter_ppt.length; i++) {if (filter_ppt[i].indexOf("//") != -1) {grps = filter_ppt[i].split("//"); this.filt[i] = {name:grps[0].trim(), type:grps[1].trim()}}}
-        i = this.grp.length; while (i--) if (!this.grp[i] || this.grp[i].name == "" || this.grp[i].type == "") this.grp.splice(i, 1);
-        i = this.filt.length; while (i--) if (!this.filt[i] || this.filt[i].name == "" || this.filt[i].type == "") this.filt.splice(i, 1);
-        this.grp[this.grp.length] = {name: def_ppt.split("//")[0].trim(), type: ""}
-        this.folder_view = this.grp.length - 1; this.filter_by = Math.min(this.filter_by, this.filt.length - 1); this.view_by = Math.min(this.view_by, this.grp.length - 1);
-        if (this.grp[this.view_by].type.indexOf("%<") != -1) this.multi_process = true;
-        if (this.view_by != this.folder_view) {
-            if (this.multi_process) {
-                if (this.grp[this.view_by].type.indexOf("$swapbranchprefix{%<") != -1) this.multi_swap = true;
-                this.mv_sort = fb.TitleFormat((this.grp[this.view_by].type.indexOf("album artist") != -1 || this.grp[this.view_by].type.indexOf("%artist%") == -1 && this.grp[this.view_by].type.indexOf("%<artist>%") == -1 && this.grp[this.view_by].type.indexOf("$meta(artist") == -1 ? "%album artist%" : "%artist%") + "|%album%|[[%discnumber%.]%tracknumber%. ][%track artist% - ]%title%");
+    this.move = (p_x, p_y) => {
+        if (ppt.touchControl) {
+            const delta = reference - p_y;
+            if (delta > mv || delta < -mv) {
+                reference = p_y;
+                if (ppt.flickDistance) offset = s.clamp(offset + delta, 0, max_scroll);
+                if (this.touch.dn) {ui.drag_drop_id = ui.touch_dn_id = -1;}
             }
-            this.grp_split = this.grp[this.view_by].type.replace(/^\s+/, "").split("|");
-            for (i = 0; i < this.grp_split.length; i++) {
-                this.multi_value[i] = this.grp_split[i].indexOf("%<") != -1 ? true : false;
-                if (this.multi_value[i]) {
-                    this.grp_split_orig[i] = this.grp_split[i].slice();
-                    if (this.grp_split[i].indexOf("$swapbranchprefix{%<") != -1) {
-                        var ip1 = this.grp_split[i].indexOf("$swapbranchprefix{%<"), ip2 = this.grp_split[i].indexOf(">%}", ip1) + 2;
-                        this.grp_split[i] = replaceAt(this.grp_split[i], ip2, "");
-                        this.grp_split_orig[i] = this.grp_split[i].replace(/\$swapbranchprefix{%</g, "%<");
-                        this.grp_split[i] = this.grp_split[i].replace(/\$swapbranchprefix{%</g, "~%<");
-                    }
-                    this.grp_split[i] = this.grp_split[i].replace(/%<album artist>%/i,"$if3(%<#album artist#>%,%<#artist#>%,%<#composer#>%,%<#performer#>%)").replace(/%<album>%/i,"$if2(%<#album#>%,%<#venue#>%)").replace(/%<artist>%/i,"$if3(%<artist>%,%<album artist>%,%<composer>%,%<performer>%)").replace(/<#/g,"<").replace(/#>/g,">");
-                    this.grp_split_clone[i] = this.grp_split[i].slice();
-                    this.grp_split[i] = this.grp_split_orig[i].replace(/[<>]/g,"");
-                }
-                this.grp_sort += (this.grp_split[i] + "|");
-                if (this.multi_value[i]) this.grp_split[i] = this.grp_split_clone[i].replace(/%</g, "#!#$meta_sep(").replace(/>%/g, "," + "@@)#!#");
-                this.view += (this.grp_split[i] + "|");
+        }
+        if (this.touch.dn && !vk.k('zoom')) {ts = Date.now(); if (ts - startTime > 300) startTime = ts; lastTouchDn = ts; this.check_scroll(initial_scr + (initial_y - p_y) * ppt.touchStep, 'drag'); return;}
+        const x = p_x - this.x, y = p_y - this.y;
+        if (x < 0 || x > this.w || y > bar_y + bar_ht || y < bar_y || but.Dn) hover = false; else hover = true;
+        if (hover != hover_o && !bar_timer) this.paint();
+        if (!b_is_dragging || this.row_count <= this.rows_drawn) return;
+        this.check_scroll(Math.round((y - initial_drag_y) / drag_distance_per_row) * this.row_h);
+    }
+
+    this.lbtn_up = (p_x, p_y) => {
+        if (this.touch.dn) {
+            this.touch.dn = false;
+            clearInterval(ticker);
+            if (!counter) track(true);
+            if (Math.abs(velocity) > min && Date.now() - startTime < 300) {
+                amplitude = ppt.flickDistance * velocity * ppt.touchStep;
+                timestamp = Date.now();
+                this.check_scroll(Math.round((this.scroll + amplitude) / this.row_h) * this.row_h, 'inertia');
             }
-            if (!this.multi_process) this.view = this.view.replace(/\$nodisplay{.*?}/gi, "");
-            else while(this.view.indexOf("$nodisplay{") != -1) {var ix1 = this.view.indexOf("$nodisplay{"), ix2 = this.view.indexOf("}", ix1); this.view = replaceAt(this.view, ix2, " #@#"); this.view = this.view.replace("$nodisplay{", "#@#");}
-            this.view = this.view.slice(0, -1);
-            while(this.grp_sort.indexOf("$nodisplay{") != -1) {var ix1 = this.grp_sort.indexOf("$nodisplay{"), ix2 = this.grp_sort.indexOf("}", ix1); this.grp_sort = replaceAt(this.grp_sort, ix2, " "); this.grp_sort = this.grp_sort.replace("$nodisplay{", "");}
-        } window.SetProperty("SYSTEM.Filter By", filter); window.SetProperty("SYSTEM.View By", view);
-        this.baseName = this.base == 2 ? this.grp[this.view_by].name : "All Music";
-        this.f_menu = []; this.menu = []; for (i = 0; i < this.grp.length; i++) this.menu.push(this.grp[i].name);
-        for (i = 0; i < this.filt.length; i++) this.f_menu.push(this.filt[i].name);
-        this.calc_text();
+        }
+        const x = p_x - this.x, y = p_y - this.y;
+        if (!hover && b_is_dragging) this.paint(); else window.RepaintRect(this.x, this.y, this.w, this.h); if (b_is_dragging) {b_is_dragging = false; but.Dn = false;} initial_drag_y = 0;
+        if (this.timer_but) {clearTimeout(this.timer_but); this.timer_but = null;}; this.count = -1;
     }
-    this.fields(this.view_by, this.filter_by);
 
-    var k = 1; for (i = 0; i < 100; i++) {nm = window.GetProperty(" View " + (i < 10 ? "0" + i : i) + ": Name // Pattern"); if (nm && nm != " // ") {window.SetProperty(" View " + (k < 10 ? "0" + k : k) + ": Name // Pattern", nm); k += 1} else window.SetProperty(" View " + (i < 10 ? "0" + i : i) + ": Name // Pattern", null);}
-    for (i = k; i < k + 5; i++) window.SetProperty(" View " + (i < 10 ? "0" + i : i) + ": Name // Pattern", " // ");
-    k = 1; for (i = 0; i < 100; i++) {nm = window.GetProperty(" View Filter " + (i < 10 ? "0" + i : i) + ": Name // Query"); if (nm && nm != " // ") {window.SetProperty(" View Filter " + (k < 10 ? "0" + k : k) + ": Name // Query", nm); k += 1} else window.SetProperty(" View Filter " + (i < 10 ? "0" + i : i) + ": Name // Query", null);}
-    for (i = k; i < k + 5; i++) window.SetProperty(" View Filter " + (i < 10 ? "0" + i : i) + ": Name // Query", " // ");
-
-    this.on_size = function() {
-        this.f_x1 = ui.w - ui.margin - this.f_w[this.filter_by] - this.f_sw;
-        this.s_x = Math.round(ui.margin + ui.row_h);
-        this.s_w1 = ui.w - ui.margin;
-        this.s_w2 = this.s_show > 1 ? this.f_x1 - this.s_x - 11 : this.s_w1 - Math.round(ui.row_h * 0.75) - this.s_x + 1;
-        this.ln_sp = this.s_show && !ui.local ? Math.floor(ui.row_h * 0.1) : 0;
-        this.s_h = this.s_show ? ui.row_h + (!ui.local ? this.ln_sp * 2 : 0) : ui.margin;
-        this.s_sp = this.s_h - this.ln_sp;
-        this.sp = ui.h - this.s_h - (this.s_show ? 0 : ui.margin);
-        this.rows = this.sp / ui.row_h;
-        if (this.autofit) {this.rows = Math.floor(this.rows); this.sp = ui.row_h * this.rows;}
-        this.node_y = Math.round((ui.row_h - ui.node_sz) / 1.75);
-        var sbar_top = !ui.scr_type ? 5 : this.s_show ? 3 : 0, sbar_bot = !ui.scr_type ? 5 : 0;
-        this.sbar_o = [ui.arrow_pad, Math.max(Math.floor(ui.scr_but_w * 0.2), 3) + ui.arrow_pad * 2, 0][ui.scr_type];
-        this.sbar_x = ui.w - ui.sbar_sp;
-        var top_corr = [this.sbar_o - (ui.but_h - ui.scr_but_w) / 2, this.sbar_o, 0][ui.scr_type];
-        var bot_corr = [(ui.but_h - ui.scr_but_w) / 2 - this.sbar_o, -this.sbar_o, 0][ui.scr_type];
-        var sbar_y = (ui.scr_type < js_stnd || this.s_show ? this.s_sp + 1 : 0) + sbar_top + top_corr;
-        var sbar_h = ui.scr_type < js_stnd && this.autofit ? this.sp + 1 - sbar_top - sbar_bot + bot_corr * 2 : ui.h - sbar_y  - sbar_bot + bot_corr;
-        if (ui.scr_type == 2) {sbar_y += 1; sbar_h -= 2;}
-        sbar.metrics(this.sbar_x, sbar_y, ui.scr_w, sbar_h, this.rows, ui.row_h);
+    const tap = p_y => {
+        if (amplitude) {clock = 0; this.scroll = this.delta;}
+        counter = 0; initial_scr = this.scroll;
+        this.touch.dn = true; initial_y = reference = p_y;  if (!offset) offset = p_y;
+        velocity = amplitude = 0;
+        if (!ppt.flickDistance) return;
+        frame = offset;
+        startTime = timestamp = Date.now();
+        clearInterval(ticker);
+        ticker = setInterval(track, 100);
     }
+
+    const track = initial => {
+        let now, elapsed, delta, v;
+        counter++; now = Date.now();
+        if (now - lastTouchDn < 10000 && counter == 4) {ui.touch_dn_id = -1; p.last_pressed_coord = {x: -1, y: -1}}
+        elapsed = now - timestamp; if (initial) elapsed = Math.max(elapsed, 32);
+        timestamp = now;
+        delta = offset - frame;
+        frame = offset;
+        v = 1000 * delta / (1 + elapsed);
+        velocity = 0.8 * v + 0.2 * velocity;
+    }
+
+    this.check_scroll = (new_scroll, type) => {
+        const b = s.clamp(new_scroll, 0, max_scroll);
+        if (b == this.scroll) return; this.scroll = b;
+        if (ppt.smooth) {
+            elap = 16; event = type; this.item_y = p.s_h; start = this.delta;
+            if (event != 'drag' || ppt.touchStep > 1) {
+                duration = !event ? period.scroll : period[event];
+                if (b_is_dragging) {if (Math.abs(this.delta - this.scroll) < scrollbar_height) fast = false; else {fast = true; duration = period.step;}}
+                clock = Date.now(); if (!this.draw_timer) {scroll_timer(); smooth_scroll();}
+            } else scroll_drag();
+        } else {scroll_throttle(); upd_debounce();}
+    }
+
+    const calc_item_y = () => {ix = Math.round(this.delta / this.row_h + 0.4); this.item_y = Math.round(this.row_h * ix + p.s_h - this.delta);}
+    const position = (Start, End, Elapsed, Duration, Event) => {if (Elapsed > Duration) return End; const n = Elapsed / Duration; Event = b_is_dragging ? !fast ? ease.bar(n) : ease.barFast(n) : Event != 'inertia' ? ease.scroll(n) : ease.inertia(n); return Start + (End - Start) * Event;}
+    const scroll_drag = () => {this.delta = this.scroll; scroll_to(); calc_item_y(); upd_debounce();}
+    const scroll_finish = () => {if (!this.draw_timer) return; this.delta = this.scroll; bar_y = but_h + scrollbar_travel * (this.delta * ratio) / (this.row_count * this.row_h); ppt.rememberTree ? lib.treeState(false, ppt.rememberTree) : p.tree_paint(); calc_item_y(); clearTimeout(this.draw_timer); this.draw_timer = null;}
+    const scroll_to = () => {bar_y = but_h + scrollbar_travel * (this.delta * ratio) / (this.row_count * this.row_h); p.tree_paint();}
+    const shift = (dir, nearest_y) => {let target = Math.round((this.scroll + dir * -((this.rows_drawn - 1) * this.row_h)) / this.row_h) * this.row_h; if (dir == 1) target = Math.max(target, nearest_y); else target = Math.min(target, nearest_y); return target;}
+    const shift_page = (dir, nearest_y) => {this.check_scroll(shift(dir, nearest_y)); if (!this.timer_but) {this.timer_but = setInterval(() => {if (this.count > 1) {this.check_scroll(shift(dir, nearest_y));} else this.count++;}, 100);}}
+    const smooth_scroll = () => {
+        this.delta = position(start, this.scroll, Date.now() - clock + elap, duration, event);
+        if (Math.abs(this.scroll - this.delta) > 0.5) scroll_to(); else scroll_finish();
+    }
+
+    this.but = dir => {this.check_scroll(Math.round((this.scroll + dir * -this.row_h) / this.row_h) * this.row_h); if (!this.timer_but) {this.timer_but = setInterval(() => {if (this.count > 6) {this.check_scroll(this.scroll + dir * -this.row_h);} else this.count++;}, 40);}}
+    this.scroll_round = () => {if (this.item_y == p.s_h) return; this.check_scroll((this.item_y < p.s_h ? Math.floor(this.scroll / this.row_h) : Math.ceil(this.scroll / this.row_h)) * this.row_h);}
+    this.scroll_to_end = () => this.check_scroll(max_scroll);
 }
-var p = new panel_operations(); window.DlgCode = 0x004;
 
-function v_keys() {
+function Vkeys() {
+	ppt.zoomKey = s.clamp(ppt.zoomKey, 0, 4);
+    let zoomKey = ppt.zoomKey; if (zoomKey != 0) zoomKey = [, 0x11, 0x12, 0x1B, 0x09][zoomKey];
     this.selAll = 1; this.copy = 3; this.back = 8; this.enter = 13; this.shift = 16; this.paste = 22; this.cut = 24; this.redo = 25; this.undo = 26; this.pgUp = 33; this.pgDn = 34; this.end = 35; this.home = 36; this.left = 37; this.up = 38; this.right = 39; this.dn = 40; this.del = 46;
-    this.k = function(n) {switch (n) {case 0: return utils.IsKeyPressed(0x10); break; case 1: return utils.IsKeyPressed(0x11); break; case 2: return utils.IsKeyPressed(0x12); break; case 3: return utils.IsKeyPressed(0x11) && utils.IsKeyPressed(0x12); break;}}
+    this.k = n => {switch (n) {case 'enter': return utils.IsKeyPressed(0x0D); break; case 'shift': return utils.IsKeyPressed(0x10); break; case 'ctrl': return utils.IsKeyPressed(0x11); break; case 'alt': return utils.IsKeyPressed(0x12); break; case 'zoom': return !zoomKey ? utils.IsKeyPressed(0x11) && utils.IsKeyPressed(0x12) : utils.IsKeyPressed(zoomKey); break;}}
 }
-var v = new v_keys();
 
-function library_manager() {
-    var exp = [], full_list, full_list_need_sort = false, node = [], node_s = [],  scr = [], sel = [];
-    this.allmusic = []; this.init = false; this.list; this.none = ""; this.node = []; this.process = false; this.root = []; this.time = fb.CreateProfiler(); this.upd = 0, this.upd_search = false;
-    var prefix = window.GetProperty("ADV.$swapbranchprefix. Prefixes to Swap (| Separator)", "A|The").split("|");
-    this.rememberTree = window.GetProperty(" Tree: Remember State", true) ? 1 : 0;
-    if (this.rememberTree) {exp = JSON.parse(window.GetProperty("SYSTEM.Remember.Exp",JSON.stringify(exp))); this.process = window.GetProperty("SYSTEM.Remember.Proc", false); scr = JSON.parse(window.GetProperty("SYSTEM.Remember.Scr",JSON.stringify(scr))); sel = JSON.parse(window.GetProperty("SYSTEM.Remember.Sel",JSON.stringify(sel))); p.s_txt = window.GetProperty("SYSTEM.Remember.Search Text", "");} else {window.SetProperty("SYSTEM.Remember.Exp",JSON.stringify(exp)); window.SetProperty("SYSTEM.Remember.Scr",JSON.stringify(scr)); window.SetProperty("SYSTEM.Remember.Sel",JSON.stringify(sel)); window.SetProperty("SYSTEM.Remember.Search Text", "");}
-    var arraysIdentical = function(a, b) {var i = a.length; if (i != b.length) return false; while (i--) if (a[i] !== b[i]) return false; return true;}
-    var binaryInsert = function(arr, item) {var min = 0, max = arr.length, index = Math.floor((min + max) / 2); while (max > min) {if (sort(item, arr[index]) < 0) max = index; else min = index + 1; index = Math.floor((min + max) / 2);} return index;}
-    this.checkTree = function() {if (!this.upd && !(this.init && this.rememberTree)) return; this.init = false; timer.reset(timer.update, timer.updatei); this.time.Reset(); pop.subCounts =  {"standard": {}, "search": {}, "filter": {}}; this.rootNodes(this.upd == 2 ? 2 : 1, this.process); this.upd = 0;}
-    this.removed_f = function(handle_list) {var j = handle_list.Count; while (j--) {var i = this.list.Find(handle_list[j]); if (i != -1) {this.list.RemoveById(i); node.splice(i, 1);}}}
-    this.removed_s = function(handle_list) {var j = handle_list.Count; while (j--) {var i = p.list.Find(handle_list[j]); if (i != -1) {p.list.RemoveById(i); node_s.splice(i, 1);}}}
-    var sort = function (a, b) {return a.toString().replace(/^\?/,"").replace(/(\d+)/g, function (n) {return ('0000' + n).slice(-5)}).localeCompare(b.toString().replace(/^\?/,"").replace(/(\d+)/g, function (n) {return ('0000' + n).slice(-5)}));}
-    var tr_sort = function(data) {data.sort(function(a, b) {return parseFloat(a.tr) - parseFloat(b.tr)}); return data;}
+function Library() {
+    let exp = [], filterQuery = "", filterQueryID = "N/A", full_list, full_list_need_sort = false, node = [], node_s = [], noListUpd = false, scr = [], sel = [], validSearch = true;
+	const prefix = ppt.prefix.split("|"); ppt.autoExpandLimit = s.clamp(ppt.autoExpandLimit, 10, 1000);
+    this.allmusic = []; this.init = false; this.list; this.none = ""; this.node = []; this.root = []; this.time = FbProfiler(); this.upd = 0, this.upd_search = false;
+	
+    if (ppt.rememberTree) {
+		exp = JSON.parse(ppt.exp)
+		scr = JSON.parse(ppt.scr)		
+		sel = JSON.parse(ppt.sel)
+		p.s_txt = ppt.s_txt;
+	} else {
+		ppt.exp = JSON.stringify(exp);
+		ppt.process = false;
+		ppt.scr = JSON.stringify(scr);
+		ppt.sel = JSON.stringify(sel);
+		ppt.s_txt = "";
+	}
 
-    this.treeState = function(b, state, handle_list, n) {
-        if (!state) return; p.search_paint(); p.tree_paint(); try {
-            var i = 0, ix = -1, tr = 0; this.process = false;
-            if (pop.tree.length && (!b || b && !p.reset)) {
-                tr = 0; exp = []; this.process = true; sel = [];
-                for (i = 0; i < pop.tree.length; i++) {
-                    tr = !p.base ? pop.tree[i].tr : pop.tree[i].tr - 1; if (pop.tree[i].child.length) exp.push({tr:tr, a:tr < 1 ? pop.tree[i].name : pop.tree[pop.tree[i].par].name, b:tr < 1 ? "" : pop.tree[i].name});
-                    tr = pop.tree[i].tr; if (pop.tree[i].sel == true) sel.push({tr:tr, a:pop.tree[i].name, b:tr != 0 ? pop.tree[pop.tree[i].par].name : "", c:tr > 1 ? pop.tree[pop.tree[pop.tree[i].par].par].name : ""});
-                }
-                ix = pop.get_ix(0, p.s_h + ui.row_h / 2, true, false); tr = 0; var l = Math.min(Math.floor(ix + p.rows), pop.tree.length);
-                if (ix != -1) {scr = []; for (i = ix; i < l; i++) {tr = pop.tree[i].tr; scr.push({tr:tr, a:pop.tree[i].name, b:tr != 0 ? pop.tree[pop.tree[i].par].name : "", c:tr > 1 ? pop.tree[pop.tree[pop.tree[i].par].par].name : ""})}}
-                tr_sort(exp); if (this.rememberTree) {window.SetProperty("SYSTEM.Remember.Exp",JSON.stringify(exp)); window.SetProperty("SYSTEM.Remember.Proc", this.process); window.SetProperty("SYSTEM.Remember.Scr",JSON.stringify(scr)); window.SetProperty("SYSTEM.Remember.Sel",JSON.stringify(sel));}
-            }
-            if (!b || b && !p.reset && this.rememberTree) {window.SetProperty("SYSTEM.Remember.Search Text", p.s_txt); if (state == 1) return;}} catch (e) {}
-        if (!handle_list) {this.get_library(); this.rootNodes(1, this.process);}
+    const bInsert = (arr, item, folder) => {let min = 0, max = arr.length, index = Math.floor((min + max) / 2); item = item.replace(RegExp(p.splitter, "g"), p.sp_splitter); while (max > min) {if (sort(item, arr[index].join(!folder ? p.sp_splitter : "\\")) < 0) max = index; else min = index + 1; index = Math.floor((min + max) / 2);} return index;}
+	const ir = () => fb.IsPlaying && fb.PlaybackLength <= 0;
+    const lib_update = s.debounce(() => {this.time.Reset(); pop.subCounts =  {"standard": {}, "search": {}, "filter": {}}; this.rootNodes(2, ppt.process);}, 500);
+    const match = (a, b) =>  a && a.name.toUpperCase() == b.toUpperCase();
+    const removed_f = handleList => {let j = handleList.Count; while (j--) {let i = this.list.Find(handleList[j]); if (i != -1) {this.list.RemoveById(i); node.splice(i, 1);}}}
+    const removed_s = handleList => {let j = handleList.Count; while (j--) {let i = p.list.Find(handleList[j]); if (i != -1) {p.list.RemoveById(i); node_s.splice(i, 1);}}}
+    const sort = (a, b) => a.replace(/^\?/,"").replace(/(\d+)/g, n => ('0000' + n).slice(-5)).localeCompare(b.replace(/^\?/,"").replace(/(\d+)/g, n => ('0000' + n).slice(-5)));
+    const tr_sort = data => {data.sort((a, b) => parseFloat(a.tr) - parseFloat(b.tr)); return data;}
+
+    this.checkTree = () => {if (!this.upd && !(this.init && ppt.rememberTree)) return; this.init = false; lib_update.cancel(); this.time.Reset(); pop.subCounts =  {"standard": {}, "search": {}, "filter": {}}; this.rootNodes(this.upd == 2 ? 2 : 1, ppt.process); this.upd = 0;}
+	this.eval = (n) => {if (!n || !fb.IsPlaying) return ""; const tfo = FbTitleFormat(n); if (ir()) return tfo.Eval(); const handle = fb.GetNowPlaying(); return handle ? tfo.EvalWithMetadb(handle) : "";}
+	this.setAutoExpandLimit = () => {const ns = utils.InputBox(window.ID, "Enter number\n\nMinimum = 10\n\nMaximum = 1000", "Auto Expand Limit", ppt.autoExpandLimit); if (!ns || ns == ppt.autoExpandLimit) return false; ppt.autoExpandLimit = Math.round(ns); if (isNaN(ppt.autoExpandLimit)) ppt.autoExpandLimit = 350; ppt.autoExpandLimit = s.clamp(ppt.autoExpandLimit, 10, 1000); pop.collapseAll(); this.rootNodes(ppt.rememberTree, ppt.process);}
+
+	const checkAutoExpand = () => {
+		if (!ppt.treeAutoExpand || p.list.Count >= ppt.autoExpandLimit || !pop.tree.length) return false;
+		let m = pop.tree.length, rootNode = ppt.rootNode; const n = rootNode && pop.tree.length > 1 ? true : false;
+		while (m--) {pop.expandNodes(pop.tree[m], !rootNode || m ? false : true); if (n && m == 1) break;} sbar.set_rows(pop.tree.length); 
+		p.tree_paint(); return true;
+	}
+
+	this.checkFilter = () => {
+		pop.subCounts.filter = {}; pop.subCounts.search = {};
+		if (p.filt[ppt.filterBy].type.match(/\$nowplaying{(.+)}/)) {
+			getFilterQuery();
+			if (filterQuery != filterQueryID) {
+				if (!ppt.rememberTree && !ppt.reset) this.logTree(); this.getLibrary(); this.rootNodes(!ppt.reset ? 1 : 0, true);
+				pop.checkAutoHeight();
+			}
+		}
+	}
+
+	this.logTree = () => {
+		let i = 0, ix = -1, tr = 0; exp = []; ppt.process = true; sel = [];
+		pop.tree.forEach(v => {
+			tr = !ppt.rootNode ? v.tr : v.tr - 1; if (v.child.length) exp.push({tr:tr, a:tr < 1 ? v.name : pop.tree[v.par].name, b:tr < 1 ? "" : v.name});
+			tr = v.tr; if (v.sel == true) sel.push({tr:tr, a:v.name, b:tr != 0 ? pop.tree[v.par].name : "", c:tr > 1 ? pop.tree[pop.tree[v.par].par].name : ""});
+		});
+		ix = pop.get_ix(0, sbar.item_y + ui.row_h / 2, true, false); tr = 0; let l = Math.min(Math.floor(ix + p.rows), pop.tree.length);
+		if (ix != -1) {scr = []; for (i = ix; i < l; i++) {tr = pop.tree[i].tr; scr.push({tr:tr, a:pop.tree[i].name, b:tr != 0 ? pop.tree[pop.tree[i].par].name : "", c:tr > 1 ? pop.tree[pop.tree[pop.tree[i].par].par].name : ""})}}
+		tr_sort(exp);
+		if (ppt.rememberTree) {
+			ppt.exp = JSON.stringify(exp);
+			ppt.scr = JSON.stringify(scr);
+			ppt.sel = JSON.stringify(sel);
+		}
+	}
+
+    this.treeState = (reset, state, handleList, handleType) => {
+        if (!state) return; p.search_paint(); p.tree_paint();
+        let i = 0, ix = -1, tr = 0; ppt.process = false;
+        if (pop.tree.length && !reset) this.logTree();
+        if (ppt.rememberTree) {ppt.s_txt = p.s_txt; if (state == 1) return;}
+        if (!handleList) {this.getLibrary(); this.rootNodes(1, ppt.process);}
         else {
-            switch (n) {
-                case 0: this.added(handle_list); if (ui.w < 1 || !window.IsVisible) this.upd = 2; else timer.lib_update(); break;
+            noListUpd = false;
+            switch (handleType) {
+                case 0: added(handleList); if (noListUpd) break; if (ui.w < 1 || !window.IsVisible) this.upd = 2; else lib_update(); break;
                 case 1:
-                    var upd_done = false, tree_type = p.view_by != p.folder_view ? 0 : 1;
+                    let i, items, upd_done = false, tree_type = !p.folderView ? 0 : 1;
                     switch (tree_type) { // check for changes to items; any change updates all
                         case 0:
-                            var tfo = fb.TitleFormat(p.view), items_b = tfo.EvalWithMetadbs(handle_list);
-                            for (var j = 0; j < handle_list.Count; j++) {
-                                var h = this.list.Find(handle_list[j]);
-                                if (h != -1) {if (!arraysIdentical(node[h], items_b[j].split("|"))) {this.removed(handle_list); this.added(handle_list); if (ui.w < 1 || !window.IsVisible) this.upd = 2; else timer.lib_update(); upd_done = true; break;}}
-                            }
-                           break;
+                            let tfo = FbTitleFormat(p.view); items = tfo.EvalWithMetadbs(handleList);
+                            handleList.Convert().some((h, j) => {
+                                i = this.list.Find(h);
+                                if (i != -1) {
+                                    if (!$.equal(node[i], items[j].split(p.splitter))) {
+                                        removed(handleList); added(handleList); if (ui.w < 1 || !window.IsVisible) this.upd = 2; else lib_update();
+                                        return upd_done = true;
+                                    }
+                                }
+                            });
+                            break;
                         case 1:
-                            for (var j = 0; j < handle_list.Count; j++) {
-                                var h = this.list.Find(handle_list[j]);
-                                if (h != -1) {if (!arraysIdentical(node[h], fb.GetLibraryRelativePath(this.list[h]).split("\\"))) {this.removed(handle_list); this.added(handle_list); if (ui.w < 1 || !window.IsVisible) this.upd = 2; else timer.lib_update(); upd_done = true; break;}};
-                            }
+                            items = handleList.GetLibraryRelativePaths();
+                            handleList.Convert().some((h, j) => {
+                                i = this.list.Find(h);
+                                if (i != -1) {
+                                    if (!$.equal(node[i], items[j].split("\\"))) {
+                                        removed(handleList); added(handleList); if (ui.w < 1 || !window.IsVisible) this.upd = 2; else lib_update();
+                                        return upd_done = true;
+                                    }
+                                }
+                            });
                             break;
                     }
                     if (upd_done) break;
-                    if (p.filter_by > 0 && p.s_show > 1) { // filter: check for addns / removals if not done
-                        var startFilter = this.list.Clone(), new_filter_items = fb.CreateHandleList();
-                        try {new_filter_items = fb.GetQueryItems(handle_list, p.filt[p.filter_by].type);} catch (e) {}
-                        var newFilter = this.list.Clone();
-                        newFilter.InsertRange(newFilter.Count, new_filter_items);
+                    if (ppt.filterBy > 0 && ppt.searchShow > 1) { // filter: check for addns / removals if not done
+                        let startFilter = this.list.Clone(), newFilterItems = s.query(handleList, filterQuery), newFilter = this.list.Clone();
+                        newFilter.InsertRange(newFilter.Count, newFilterItems);
                         startFilter.Sort(); newFilter.Sort(); newFilter.MakeDifference(startFilter);
-                        if (newFilter.Count) {this.removed_f(handle_list); this.added_f(new_filter_items); if (!p.s_txt) p.list = this.list; if (ui.w < 1 || !window.IsVisible) this.upd = 2; else timer.lib_update();}
-
+                        if (newFilter.Count) {removed_f(handleList); added_f(newFilterItems); if (!p.s_txt) p.list = this.list; if (ui.w < 1 || !window.IsVisible) this.upd = 2; else lib_update();}
                     }
                     if (p.s_txt) { // search: check for addns / removals if not done
-                        var startSearch = p.list.Clone(), new_search_items = fb.CreateHandleList();
-                        try {new_search_items = fb.GetQueryItems(handle_list, p.s_txt);} catch (e) {}
-                        new_search_items.Sort();
-                        if (p.filter_by > 0 && p.s_show > 1) {var newFilt = this.list.Clone(); newFilt.Sort(); new_search_items.MakeIntersection(newFilt); }
-                        var newSearch = p.list.Clone();
-                        newSearch.InsertRange(newSearch.Count, new_search_items);
+                        let startSearch = p.list.Clone(), newSearchItems = FbMetadbHandleList();
+                        validSearch = true; try {newSearchItems = fb.GetQueryItems(handleList, p.s_txt);} catch (e) {validSearch = false;}
+                        newSearchItems.Sort();
+                        if (ppt.filterBy > 0 && ppt.searchShow > 1) {let newFilt = this.list.Clone(); newFilt.Sort(); newSearchItems.MakeIntersection(newFilt);}
+                        let newSearch = p.list.Clone();
+                        newSearch.InsertRange(newSearch.Count, newSearchItems);
                         startSearch.Sort(); newSearch.Sort(); newSearch.MakeDifference(startSearch);
                         if (newSearch.Count) {
-                            this.removed_s(handle_list); this.added_s(new_search_items); this.node = node_s.slice();
-                            if (!p.list.Count) {pop.tree = []; pop.line_l = 0; sbar.set_rows(0); this.none = "Nothing found"; p.tree_paint(); break;}
-                            if (ui.w < 1 || !window.IsVisible) this.upd = 2; else timer.lib_update();
+                            removed_s(handleList); added_s(newSearchItems); this.node = node_s.slice();
+                            if (!p.list.Count) {pop.tree = []; sbar.set_rows(0); this.none = validSearch ? "Nothing found" : "Invalid search expression"; p.tree_paint(); break;}
+                            if (ui.w < 1 || !window.IsVisible) this.upd = 2; else lib_update();
                         }
-
                     }
                     break;
-                case 2: this.removed(handle_list); if (ui.w < 1 || !window.IsVisible) this.upd = 2; else timer.lib_update(); break;
-
+                case 2: removed(handleList); if (noListUpd) break; if (ui.w < 1 || !window.IsVisible) this.upd = 2; else lib_update(); break;
             }
         }
     }
+	
+	const getFilterQuery = () => {
+		filterQuery = p.filt[ppt.filterBy].type;
+			while (filterQuery.includes("$nowplaying{")) {
+				const q = filterQuery.match(/\$nowplaying{(.+?)}/);
+				filterQuery = filterQuery.replace(q[0], this.eval(q[1]));
+			}
+	}
 
-    this.get_library = function() {
-        this.empty = "";  this.time.Reset(); this.none = ""; this.list = fb.GetLibraryItems(); full_list = this.list.Clone();
-        if (!this.list.Count || !fb.IsLibraryEnabled()) {pop.tree = []; pop.line_l = 0; sbar.set_rows(0); this.empty = "Nothing to show\n\nConfigure Media Library first\n\nFile>Preferences>Media library"; p.tree_paint(); return;}
-        if (p.filter_by > 0 && p.s_show > 1) try {this.list = fb.GetQueryItems(this.list, p.filt[p.filter_by].type)} catch (e) {};
-        if (!this.list.Count) {pop.tree = []; pop.line_l = 0; sbar.set_rows(0); this.none = "Nothing found"; p.tree_paint(); return;} this.rootNames("", 0);
+    this.getLibrary = () => {
+        this.empty = ""; this.time.Reset(); this.none = ""; this.list = fb.GetLibraryItems(); full_list = this.list.Clone();
+        if (!this.list.Count || !fb.IsLibraryEnabled()) {pop.tree = []; sbar.set_rows(0); this.empty = "Nothing to show\n\nConfigure Media Library first\n\nFile>Preferences>Media library"; p.tree_paint(); return;}
+        if (ppt.filterBy > 0 && ppt.searchShow > 1) {
+			getFilterQuery(); filterQueryID = filterQuery;
+			this.list = s.query(this.list, filterQuery);
+		}
+        if (!this.list.Count) {pop.tree = []; sbar.set_rows(0); this.none = "Nothing found"; p.tree_paint(); return;} rootNames("", 0);
     }
 
-    this.rootNames = function(li, search) {
-        var i = 0, total; switch (search) {case 0: p.sort(this.list); li = p.list = this.list; node = []; var arr = node; break; case 1: node_s = []; var arr = node_s; break;}
-        total = li.Count; var tree_type = p.view_by != p.folder_view ? 0 : 1;
-        switch (tree_type) {case 0: var tfo = fb.TitleFormat(p.view), items = tfo.EvalWithMetadbs(li); for (i = 0; i < total; i++) arr[i] = items[i].split("|");  break; case 1: for (i = 0; i < total; i++) arr[i] = fb.GetLibraryRelativePath(li[i]).split("\\"); break;}
+    const rootNames = (li, search) => {
+        let arr = []; switch (search) {case 0: p.sort(this.list); li = p.list = this.list; node = []; arr = node; break; case 1: node_s = []; arr = node_s; break;}
+        let tree_type = !p.folderView ? 0 : 1;
+        switch (tree_type) {
+            case 0: let tfo = FbTitleFormat(p.view); tfo.EvalWithMetadbs(li).forEach((v, i) => arr[i] = v.split(p.splitter)); break;
+            case 1: li.GetLibraryRelativePaths().forEach((v, i) => arr[i] = v.split("\\")); break;
+        }
     }
 
-    this.prefixes = function(n) {
-        if (n.indexOf("~#!#") == -1) return n;
-        var found = false, j = 0, ln = 0;
-        for (j = 0; j < prefix.length; j++) if (n.indexOf(prefix[j] + " ") != -1) {found = true; break;}
-        if (!found) return n.replace("~#!#", "#!#");
-        var pr1 = n.split("~#!#"), pr2 = pr1[1].split("#!#"), pr = pr2[0].split("@@");
-        for (var i = 0; i < pr.length; i++) for (j = 0; j < prefix.length; j++)  {ln = prefix[j].length + 1; if (pr[i].substr(0, ln) == prefix[j] + " ") pr[i] = pr[i].substr(ln) + ", " + prefix[j];}
+    this.prefixes = n => {
+        if (!n.includes("~#!#")) return n; let ln = 0;
+        const noPrefix = v => !n.includes(v + " ");
+        if (prefix.every(noPrefix)) return n.replace("~#!#", "#!#");
+        const pr1 = n.split("~#!#"), pr2 = pr1[1].split("#!#"), pr = pr2[0].split("@@");
+        pr.forEach((v, i) => {
+            prefix.forEach(w => {
+                ln = w.length + 1; if (v.substr(0, ln) == w + " ") pr[i] = v.substr(ln) + ", " + w;
+            });
+        });
         return pr1[0] + "#!#" + pr.join("@@") + "#!#" + pr2[1];
     }
 
-    this.rootNodes = function(lib_update, process) {
-        if (!this.list.Count) return; this.root = []; var i = 0, j = 1, h = 0, l = 0, n = "";
+    this.rootNodes = (lib_update, process) => {
+        if (!this.list.Count) return; this.root = []; let i = 0, n = "";
         if (p.s_txt && (this.upd_search || lib_update == 1)) {
-            this.none = ""; try {p.list = fb.GetQueryItems(this.list, p.s_txt);} catch (e) {};
-            if (!p.list.Count) {pop.tree = []; pop.line_l = 0; sbar.set_rows(0); this.none = "Nothing found"; p.tree_paint(); return;}
-            this.rootNames(p.list, 1); this.node = node_s.slice(); this.upd_search = false;
+            validSearch = true; this.none = ""; try {p.list = fb.GetQueryItems(this.list, p.s_txt);} catch (e) {this.list = this.list.Clone(); p.list.RemoveAll(); validSearch = false;}
+            if (!p.list.Count) {pop.tree = []; sbar.set_rows(0); this.none = validSearch ? "Nothing found" : "Invalid search expression"; p.tree_paint(); return;}
+            rootNames(p.list, 1); this.node = node_s.slice(); this.upd_search = false;
         } else if (!p.s_txt) {p.list = this.list; this.node = node.slice()};
-        var n_o = "#get_node#", nU = "", total = p.list.Count;
-        if (p.base) {this.root[0] = {name:p.baseName, sel:false, child:[], item:[]}; for (l = 0; l < total; l++) this.root[0].item.push(l);}
-        else switch (p.multi_process) {
-            case false: for (l = 0; l < total; l++) {n = this.node[l][0]; nU = n.toUpperCase(); if (nU != n_o) {n_o = nU; this.root[i] = {name:n, sel:false, child:[], item:[]}; this.root[i].item.push(l); i++;} else this.root[i - 1].item.push(l);} break;
-            case true:
-                switch (p.multi_swap) {
-                    case false: for (l = 0; l < total; l++) {n = this.node[l][0]; nU = n.toUpperCase(); if (nU != n_o) {n_o = nU; n = n.replace(/#!##!#/g, "?"); this.root[i] = {name:n.replace(/#@#.*?#@#/g,""), sel:false, child:[], item:[], srt:n}; this.root[i].item.push(l); i++;} else this.root[i - 1].item.push(l);} break;
-                    case true: for (l = 0; l < total; l++) {n = this.node[l][0]; nU = n.toUpperCase(); if (nU != n_o) {n_o = nU; n = n.replace(/~#!##!#|#!##!#/g, "?"); n = this.prefixes(n); this.root[i] = {name:n.replace(/#@#.*?#@#/g,""), sel:false, child:[], item:[], srt:n}; this.root[i].item.push(l); i++;} else this.root[i - 1].item.push(l);} break;
-                }
-                break;
-        }
-        if (!lib_update) sbar.reset();
-        /* Draw tree -> */ if (!p.base || p.s_txt) pop.buildTree(this.root, 0); if (p.base) pop.branch(this.root[0], true); if (p.pn_h_auto && (p.init || lib_update) && p.pn_h == p.pn_h_min && pop.tree[0]) pop.clear_child(pop.tree[0]); p.init = false; // ui.trace("populated in: " + this.time.Time / 1000 + " seconds");
-        if (lib_update && process) { try {
-            var exp_l =  exp.length, scr_l = scr.length, sel_l = sel.length, tree_l = pop.tree.length;
-            for (h = 0; h < exp_l; h++) {
-                if (exp[h].tr == 0) {for (j = 0; j < tree_l; j++) if (pop.tree[j].name.toUpperCase() == exp[h].a.toUpperCase()) {pop.branch(pop.tree[j]); tree_l = pop.tree.length; break;}}
-                else if (exp[h].tr > 0) {for (j = 0; j < tree_l; j++) if (pop.tree[j].name.toUpperCase() == exp[h].b.toUpperCase() && pop.tree[pop.tree[j].par].name.toUpperCase() == exp[h].a.toUpperCase()) {pop.branch(pop.tree[j]); tree_l = pop.tree.length; break;}}
-            }
-            for (h = 0; h < sel_l; h++) {
-                if (sel[h].tr == 0) {for (j = 0; j < tree_l; j++) if (pop.tree[j].name.toUpperCase() == sel[h].a.toUpperCase()) {pop.tree[j].sel = true; break;}}
-                else if (sel[h].tr == 1) {for (j = 0; j < tree_l; j++) if (pop.tree[j].name.toUpperCase() == sel[h].a.toUpperCase() && pop.tree[pop.tree[j].par].name.toUpperCase() == sel[h].b.toUpperCase()) {pop.tree[j].sel = true; break;}}
-                else if (sel[h].tr > 1) {for (j = 0; j < tree_l; j++) if (pop.tree[j].name.toUpperCase() == sel[h].a.toUpperCase() && pop.tree[pop.tree[j].par].name.toUpperCase() == sel[h].b.toUpperCase() && pop.tree[pop.tree[pop.tree[j].par].par].name.toUpperCase() == sel[h].c.toUpperCase()) {pop.tree[j].sel = true; break;}}
-            }
-            var scr_pos = false; h = 0;
-            while (h < scr_l && !scr_pos) {
-                if (scr[h].tr == 0) {for (j = 0; j < tree_l; j++) if (pop.tree[j].name.toUpperCase() == scr[h].a.toUpperCase()) {sbar.check_scroll(!h ? j * ui.row_h : (j - 3) * ui.row_h); scr_pos = true; break;}}
-                else if (scr[h].tr == 1 && !scr_pos) {for (j = 0; j < tree_l; j++) if (pop.tree[j].name.toUpperCase() == scr[h].a.toUpperCase() && pop.tree[pop.tree[j].par].name.toUpperCase() == scr[h].b.toUpperCase()) {sbar.check_scroll(!h ? j * ui.row_h : (j - 3) * ui.row_h); scr_pos = true; break;}}
-                else if (scr[h].tr > 1 && !scr_pos) {for (j = 0; j < tree_l; j++) if (pop.tree[j].name.toUpperCase() == scr[h].a.toUpperCase() && pop.tree[pop.tree[j].par].name.toUpperCase() == scr[h].b.toUpperCase() && pop.tree[pop.tree[pop.tree[j].par].par].name.toUpperCase() == scr[h].c.toUpperCase()) {sbar.check_scroll(!h ? j * ui.row_h : (j - 3) * ui.row_h); scr_pos = true; break;}}
-                h++;
-            }
-            if (!scr_pos) {sbar.reset(); p.tree_paint();}} catch (e) {};
-        } else this.treeState(false, this.rememberTree);
-        if (lib_update && !process) {sbar.reset(); p.tree_paint();}
-    }
-
-    this.binaryInsert = function(folder, insert, li, n) {
-        switch (true) {
-            case !folder: var tfo = fb.TitleFormat(p.view), item_a = tfo.EvalWithMetadbs(insert); for (var j = 0; j < insert.Count; j++) {var i = binaryInsert(n, item_a[j].split("|")); n.splice(i, 0, item_a[j].split("|")); li.Insert(i, insert[j]);} break;
-            case folder: for (var j = 0; j < insert.Count; j++) {var item_a = fb.GetLibraryRelativePath(insert[j]).split("\\"); var i = binaryInsert(n, item_a); if (i != -1) {n.splice(i, 0, item_a); li.Insert(i, insert[j]);}} break;
-        }
-    }
-
-    this.added = function(handle_list) {
-        var addType = p.multi_process || p.nodisplay || handle_list.Count > 100 ? 0 : 1;
-        switch (addType) {
-            case 0:
-                full_list.InsertRange(full_list.Count, handle_list); full_list_need_sort = true;
-                if (p.filter_by > 0 && p.s_show > 1) {
-                    var new_filter_items = fb.CreateHandleList();
-                    try {new_filter_items = fb.GetQueryItems(handle_list, p.filt[p.filter_by].type);} catch (e) {}
-                    this.list.InsertRange(this.list.Count, new_filter_items); p.sort(this.list);
-                }
-                else {if (full_list_need_sort) p.sort(full_list); this.list = full_list.Clone(); full_list_need_sort = false;} p.sort(handle_list);
-                var tfo = fb.TitleFormat(p.view), item_a = tfo.EvalWithMetadbs(handle_list); for (var j = 0; j < handle_list.Count; j++) {var i = this.list.Find(handle_list[j]); if (i != -1) node.splice(i, 0, item_a[j].split("|"));}
-                if (this.list.Count) this.empty = "";
-                if (p.s_txt) {
-                    var new_search_items = fb.CreateHandleList(), tree_type = p.view_by != p.folder_view ? 0 : 1;
-                    try {new_search_items = fb.GetQueryItems(handle_list, p.s_txt);} catch(e) {}
-                    p.list.InsertRange(p.list.Count, new_search_items); p.sort(p.list); p.sort(new_search_items);
-                    switch (tree_type) {
-                        case 0: var tfo = fb.TitleFormat(p.view), item_a = tfo.EvalWithMetadbs(new_search_items); for (var j = 0; j < new_search_items.Count; j++){var i = p.list.Find(new_search_items[j]); if (i != -1) node_s.splice(i, 0, item_a[j].split("|"));} break;
-                        case 1: for (var j = 0; j < new_search_items.Count; j++){var i = p.list.Find(new_search_items[j]); if (i != -1) node_s.splice(i, 0, fb.GetLibraryRelativePath(this.list[i]).split("\\"));} break;
-                    }
-                    this.node = node_s.slice();
-                    if (!p.list.Count) {pop.tree = []; pop.line_l = 0; sbar.set_rows(0); this.none = "Nothing found"; p.tree_paint();}
-                } else p.list = this.list;
-                break;
-            case 1:
-                var lis = fb.CreateHandleList();
-                if (p.filter_by > 0 && p.s_show > 1) {try {lis = fb.GetQueryItems(handle_list, p.filt[p.filter_by].type);} catch (e) {}} else lis = handle_list; p.sort(lis);
-                this.binaryInsert(p.view_by == p.folder_view, lis, this.list, node);
-                if (this.list.Count) this.empty = "";
-                if (p.s_txt) {
-                    var new_search_items = fb.CreateHandleList();
-                    try {new_search_items = fb.GetQueryItems(handle_list, p.s_txt);} catch(e) {}
-                    this.binaryInsert(p.view_by == p.folder_view, new_search_items, p.list, node_s);
-                    this.node = node_s.slice();
-                    if (!p.list.Count) {pop.tree = []; pop.line_l = 0; sbar.set_rows(0); this.none = "Nothing found"; p.tree_paint();}
-                } else p.list = this.list;
-                break
-        }
-    }
-
-    this.added_f = function(handle_list) {
-        var addType = p.multi_process || p.nodisplay || handle_list.Count > 100 ? 0 : 1;
-        switch (addType) {
-            case 0:
-                this.list.InsertRange(this.list.Count, handle_list); p.sort(this.list); p.sort(handle_list);
-                var tfo = fb.TitleFormat(p.view), item_a = tfo.EvalWithMetadbs(handle_list);
-                for (var j = 0; j < handle_list.Count; j++) {var i = this.list.Find(handle_list[j]); if (i != -1) node.splice(i, 0, item_a[j].split("|"));}
-                if (!this.list.Count) this.none = "Nothing found";
-                break;
-            case 1: this.binaryInsert(p.view_by == p.folder_view, handle_list, this.list, node); break;
-        }
-    }
-
-    this.added_s = function(handle_list) {
-        var addType = p.multi_process || p.nodisplay || handle_list.Count > 100 ? 0 : 1;
-        switch (addType) {
-            case 0:
-                p.list.InsertRange(p.list.Count, handle_list); p.sort(p.list);
-                var tfo = fb.TitleFormat(p.view), item_a = tfo.EvalWithMetadbs(handle_list); for (var j = 0; j < handle_list.Count; j++) {var i = p.list.Find(handle_list[j]); if (i != -1) node_s.splice(i, 0, item_a[j].split("|"));}
-                break;
-            case 1: this.binaryInsert(p.view_by == p.folder_view, handle_list, p.list, node_s);
-                break;
-        }
-    }
-
-    this.removed = function(handle_list) {
-        var j = handle_list.Count; while (j--) {var i = this.list.Find(handle_list[j]); if (i != -1) {this.list.RemoveById(i); node.splice(i, 1);}}
-        if (p.filter_by > 0 && p.s_show > 1) {j = handle_list.Count; if (full_list_need_sort) p.sort(full_list); full_list_need_sort = false; while (j--) {i = full_list.Find(handle_list[j]); if (i != -1) full_list.RemoveById(i);}}
-        else full_list = this.list.Clone();
-        if (p.s_txt) {
-            j = handle_list.Count; while (j--) {i = p.list.Find(handle_list[j]); if (i != -1) {p.list.RemoveById(i); node_s.splice(i, 1);}}
-            this.node = node_s.slice();
-            if (!p.list.Count) {pop.tree = []; pop.line_l = 0; sbar.set_rows(0); this.none = "Nothing found"; p.tree_paint();}
-        }
-        else p.list = this.list;
-        if (!full_list.Count) {this.empty = "Nothing to show\n\nConfigure Media Library first\n\nFile>Preferences>Media library"; this.root = []; pop.tree = []; pop.line_l = 0; sbar.set_rows(0); p.tree_paint();}
-    }
-}
-var lib = new library_manager();
-
-function populate() {
-    var get_pos = -1, handles = null, is_focused = false, ix_o = 0, last_pressed_coord = {x: undefined, y: undefined}, last_sel = -1, lbtn_dn = false, m_i = -1, m_br = -1, nd= [], row_o = 0, sent = false, tt = "", tooltip = window.GetProperty(" Tooltips", false), tt_c = 0, tt_y = 0, tt_id = -1;
-    var ap = window.GetProperty(" Playlist: Play On Send From Menu"); ap = ap === false ? false : ap === true ? true : false; var autoplay = window.GetProperty(" Playlist: Play On Enter Or Send From Menu", ap);
-    var btn_pl  = window.GetProperty(" Playlist Use: 0 or 1", "General,1,Alt+LeftBtn,1,MiddleBtn,1").replace(/\s+/g, "").split(",");
-    if (btn_pl[0] == "LeftBtn") window.SetProperty(" Playlist Use: 0 or 1", "General," + btn_pl[1] + ",Alt+LeftBtn," + btn_pl[3] + ",MiddleBtn," + btn_pl[5]);
-    var alt_lbtn_pl = btn_pl[3] == 1 ? true : false, mbtn_pl = btn_pl[5] == 1 ? true : false;
-    var hotKeys = window.GetProperty(" Hot Key: 1-10 // Assign JScript Panel index in keyboard shortcuts", "CollapseAll,0,PlaylistAdd,0,PlaylistInsert,0,Search,0,SearchClear,0").replace(/^[,\s]+|[,\s]+$/g, "").split(",");
-    var addIX = parseFloat(hotKeys[3]), collapseAllIX = parseFloat(hotKeys[1]), insertIX = parseFloat(hotKeys[5]), searchClearIX = parseFloat(hotKeys[9]), searchFocusIX = parseFloat(hotKeys[7]);
-    var custom_sort = window.GetProperty(" Playlist: Custom Sort", ""); if (custom_sort.length) var tf_cs = fb.TitleFormat(custom_sort);
-    var dbl_action = window.GetProperty(" Text Double-Click: ExplorerStyle-0 Play-1 Send-2", 1);
-    var lib_playlist = window.GetProperty(" Playlist", "Library View");
-    var af = window.GetProperty(" Text Single-Click: AutoFill Playlist"); af = af === false ? false : true; this.autoFill = window.GetProperty(" Playlist: AutoFill", af);
-    var selection_holder = fb.AcquireUiSelectionHolder(), symb = window.CreateThemeManager("TREEVIEW");
-    var im = gdi.CreateImage(ui.node_sz, ui.node_sz), g = im.GetGraphics(); if (ui.node_win) try {symb.SetPartAndStateId(2, 1); symb.SetPartAndStateId(2, 2); symb.DrawThemeBackground(g, 0, 0, ui.node_sz, ui.node_sz);} catch (e) {ui.node_win = 0;} im.ReleaseGraphics(g);
-    this.line_l = 0; this.sel_items = []; this.subCounts =  {"standard": {}, "filter": {}, "search": {}}; this.tree = [];
-    if (!window.GetProperty("SYSTEM.Playlist Checked", false)) fb.ShowPopupMessage("Default playlist: Library View.\n\nChange in panel properties if required.", "Library Tree"); window.SetProperty("SYSTEM.Playlist Checked", true);
-    var arr_contains = function(arr, item) {for (var i = 0; i < arr.length; i++) if (arr[i] == item) return true; return false;}
-    var arr_index = function(arr, item) {var n = -1; for (var i = 0; i < arr.length; i++) if (arr[i] == item) {n = i; break;} return n;}
-    var check_node = function(gr) {if (sbar.draw_timer || !ui.node_win) return; try {symb.SetPartAndStateId(2, 1); symb.SetPartAndStateId(2, 2); symb.DrawThemeBackground(gr, -ui.node_sz, -ui.node_sz, ui.node_sz, ui.node_sz);} catch (e) {ui.node_win = 0;}}
-    var draw_node = function(gr, j, x, y) {switch (ui.node_win) {case 0: if (!ui.hot && j > 1) j -= 2; x = Math.round(x); y = Math.round(y); gr.DrawImage(nd[j], x, y, nd[j].Width, nd[j].Height, 0, 0, nd[j].Width, nd[j].Height); break; case 1: if ( j > 1) j -= 2; symb.SetPartAndStateId(2, !j ? 1 : 2); symb.DrawThemeBackground(gr, x, y, ui.node_sz, ui.node_sz); break;}}
-    var num_sort = function(a, b) {return a - b;}
-    var sort = function (a, b) {return a.srt.replace(/^\?/,"").replace(/(\d+)/g, function (n) {return ('0000' + n).slice(-5)}).localeCompare(b.srt.replace(/^\?/,"").replace(/(\d+)/g, function (n) {return ('0000' + n).slice(-5)}));}
-    var uniq = function(a) {var j = 0, len = a.length, out = [], seen = {}; for (var i = 0; i < len; i++) {var item = a[i]; if (seen[item] !== 1) {seen[item] = 1; out[j++] = item;}} return out.sort(num_sort);}
-    this.add = function(x, y, pl) {if (y < p.s_h) return; var ix = this.get_ix(x, y, true, false); p.pos = ix; if (ix < this.tree.length && ix >= 0) if (this.check_ix(this.tree[ix], x, y, true)) {this.clear(); this.tree[ix].sel = true; this.get_sel_items(); this.load(this.sel_items, true, true, false, pl, false); lib.treeState(false, lib.rememberTree);}}
-    this.auto = window.GetProperty(" Node: Auto Collapse", false);
-    this.branch_chg = function(br) {var new_br = 0; if (br.tr == 0) {for (var i = 0; i < lib.root.length; i++) {new_br += lib.root[i].child.length; lib.root[i].child = [];}} else {var par = this.tree[br.par]; for (var i = 0; i < par.child.length; i++) {new_br += par.child[i].child.length; par.child[i].child = [];}} return new_br;}
-    this.check_row = function(x, y) {m_br = -1; var im = this.get_ix(x, y, true, false); if (im >= this.tree.length || im < 0) return -1; var item = this.tree[im]; if (x < Math.round(ui.pad * item.tr) + ui.icon_w + ui.margin && (!item.track || p.base && item.tr == 0)) m_br = im; return im;}
-    this.clear = function () {for (var i = 0; i < this.tree.length; i++) this.tree[i].sel = false;}
-    this.clear_child = function(br) {br.child = []; this.buildTree(lib.root, 0, true, true);}
-    this.deactivate_tooltip = function() {tt_c = 0; tt.Text = ""; tt.TrackActivate = false; tt.Deactivate(); p.tree_paint();}
-    this.expandNodes = function(obj, am) {this.branch(obj, !am ? false : true, true, true); if (obj.child) for (var k = 0; k < obj.child.length; k++) if (!obj.child[k].track) this.expandNodes(obj.child[k]);}
-    this.gen_pl = btn_pl[1] == 1 ? true : false;
-    this.get_sel_items = function () {p.tree_paint(); var i = 0; this.sel_items = []; for (i = 0; i < this.tree.length; i++) if (this.tree[i].sel) this.sel_items.push.apply(this.sel_items, this.tree[i].item); this.sel_items = uniq(this.sel_items);}
-    this.getHandles = function(n) {if (n) this.get_sel_items(); var handle_list = fb.CreateHandleList(); try {for (var i = 0; i < this.sel_items.length; i++) handle_list.Add(p.list[this.sel_items[i]]);} catch (e) {} return handle_list;}
-    this.leave = function(){if (men.r_up || tt.Text) return; m_br = -1; row_o = 0; m_i = -1; ix_o = 0; p.tree_paint();}
-    this.mbtn_up = function(x, y) {this.add(x, y, mbtn_pl);}
-    this.on_char = function(code) {if (p.s_search || code != v.copy) return; var handle_list = this.getHandles(true); fb.CopyHandleListToClipboard(handle_list); }
-    this.on_focus = function(p_is_focused) {is_focused = p_is_focused; if (p_is_focused && handles && handles.Count) selection_holder.SetSelection(handles);}
-    this.row = function(y) {return Math.round((y - p.s_h - ui.row_h * 0.5) / ui.row_h);}
-    this.setGetPos = function(pos) {m_i = get_pos = pos;}
-
-    this.create_tooltip = function() {
-        if (!tooltip) return; tt = window.CreateTooltip(ui.font.Name, ui.font.Size, ui.font.Style);
-        tt_y = ui.row_h - window.GetProperty(" Row Vertical Item Padding", 3); tt_y = p.s_h - Math.floor((ui.row_h - tt_y) / 2)
-        tt.SetDelayTime(0, 500); tt.Text = "";
-    }
-
-    this.activate_tooltip = function(ix, y) {
-        if (tt_id == ix || Math.round(ui.pad * this.tree[ix].tr + ui.margin) + ui.icon_w + (!tooltip || !p.full_line ? this.tree[ix].w : this.tree[ix].tt_w) <= sbar.tree_w - ui.sel) return;
-        if (tt_c == 2) {tt_id = ix; return;}
-        tt_c += 1; tt.Activate(); tt.TrackActivate = true;
-        tt.Text = this.tree[ix].name + this.tree[ix].count;
-        tt.TrackPosition(Math.round(ui.pad * this.tree[ix].tr + ui.margin) + ui.icon_w - ui.tt, this.row(y) * ui.row_h + tt_y);
-        p.tree_paint(); timer.tooltip();
-    }
-
-    this.branch = function(br, base, node, block) {
-        if (!br || br.track) return; var br_l = br.item.length, folderView = p.view_by == p.folder_view ? true : false, i = 0, k = 0, isTrack = false, l = base ? 0 : p.base ? br.tr : br.tr + 1, n = "", n_o = "#get_branch#", nU = "", pos = -1; if (folderView) base = false; if (base) node = false; var get = !p.s_txt && !base || p.s_txt;
-        switch (p.multi_process) {
+        let n_o = "#get_node#", nU = "", total = p.list.Count;
+        pop.getNowplaying();
+        if (ppt.rootNode) {
+            this.root[0] = {name:p.rootName, sel:false, child:[], item:[]};
+            this.node.forEach((v, l) => this.root[0].item[l] = l);
+        } else switch (p.multiProcess) {
             case false:
-                for (k = 0; k < br_l; k++) {
-                    pos = br.item[k];
-                    try {
-                        if (base) n = lib.node[pos][l];
-                        if (get) {if (l < lib.node[pos].length - 1) n = lib.node[pos][l]; else n = "#get_track#";}
-                        isTrack = p.show_tracks ? false : l < lib.node[pos].length - 2 ? false : true;
-                        if (n == "#get_track#") {n = lib.node[pos][l]; isTrack = true;} nU = n.toUpperCase();
-                        if (n_o != nU) {n_o = nU; br.child[i] = {name:n, sel:false, child:[], track:isTrack, item:[]}; br.child[i].item.push(pos); i++;} else br.child[i - 1].item.push(pos);
-                    } catch (e) {}
-                }
+                this.node.forEach((v, l) => {
+                    n = v[0]; nU = n.toUpperCase();
+                    if (nU != n_o) {
+                        n_o = nU; this.root[i] = {name:n, sel:false, child:[], item:[]};
+                        this.root[i].item.push(l); i++;
+                    } else this.root[i - 1].item.push(l);
+                });
                 break;
             case true:
                 switch (p.multi_swap) {
                     case false:
-                        var srt = "";
-                        for (k = 0; k < br_l; k++) {
-                            pos = br.item[k];
-                            try {
-                                if (base) n = lib.node[pos][l];
-                                if (get) {if (l < lib.node[pos].length - 1) n = lib.node[pos][l]; else n = "#get_track#";}
-                                isTrack = p.show_tracks ? false : l < lib.node[pos].length - 2 ? false : true;
-                                if (n == "#get_track#") {n = lib.node[pos][l]; isTrack = true;} nU = n.toUpperCase();
-                                if (n_o != nU) {n_o = nU; n = n.replace(/#!##!#/g, "?"); srt = n; n = n.replace(/#@#.*?#@#/g,""); br.child[i] = {name:n, sel:false, child:[], track:isTrack, item:[], srt:srt}; br.child[i].item.push(pos); i++;} else br.child[i - 1].item.push(pos);
-                            } catch (e) {}
-                        }
+                        this.node.forEach((v, l) => {
+                            n = v[0]; nU = n.toUpperCase();
+                            if (nU != n_o) {
+                                n_o = nU; n = n.replace(/#!##!#/g, "?");
+                                this.root[i] = {name:n.replace(/#@#.*?#@#/g,""), sel:false, child:[], item:[], srt:n};
+                                this.root[i].item.push(l); i++;
+                            } else this.root[i - 1].item.push(l);
+                        });
                         break;
                     case true:
-                        var srt = "";
-                        for (k = 0; k < br_l; k++) {
-                            pos = br.item[k];
-                            try {
-                                if (base) n = lib.node[pos][l];
-                                if (get) {if (l < lib.node[pos].length - 1) n = lib.node[pos][l]; else n = "#get_track#";}
-                                isTrack = p.show_tracks ? false : l < lib.node[pos].length - 2 ? false : true;
-                                if (n == "#get_track#") {n = lib.node[pos][l]; isTrack = true;} nU = n.toUpperCase();
-                                if (n_o != nU) {n_o = nU; n = n.replace(/~#!##!#|#!##!#/g, "?"); n = lib.prefixes(n); srt = n; n = n.replace(/#@#.*?#@#/g,""); br.child[i] = {name:n, sel:false, child:[], track:isTrack, item:[], srt:srt}; br.child[i].item.push(pos); i++;} else br.child[i - 1].item.push(pos);
-                            } catch (e) {}
-                        }
+                        this.node.forEach((v, l) => {
+                            n = v[0]; nU = n.toUpperCase();
+                            if (nU != n_o) {
+                                n_o = nU; n = n.replace(/~#!##!#|#!##!#/g, "?");
+                                n = this.prefixes(n);
+                                this.root[i] = {name:n.replace(/#@#.*?#@#/g,""), sel:false, child:[], item:[], srt:n};
+                                this.root[i].item.push(l); i++;
+                            } else this.root[i - 1].item.push(l);
+                        });
+                        break;
+                }
+            break;
+        }
+        if (!lib_update) sbar.reset();
+        /* Draw tree -> */ if (!ppt.rootNode || p.s_txt) pop.buildTree(this.root, 0); if (ppt.rootNode) pop.branch(this.root[0], true); if (p.pn_h_auto && (p.init || lib_update) && ppt.pn_h == ppt.pn_h_min && pop.tree[0]) pop.clear_child(pop.tree[0]); p.init = false; // s.trace("initialised in: " + this.time.Time / 1000 + " seconds");
+		if (lib_update != 2) checkAutoExpand();
+        if (lib_update && process) {
+			exp.forEach(v => {
+				if (v.tr == 0) {
+					pop.tree.some(w => { // some ~5x faster than for...of
+						if (match(w, v.a)) {pop.branch(w); return true;}
+					});
+				} else if (v.tr > 0) {
+					pop.tree.some(w => {
+						if (match(w, v.b) && match(pop.tree[w.par], v.a)) {pop.branch(w); return true;}
+					});
+				}
+			});
+			sel.forEach(v => {
+				if (v.tr == 0) {
+					pop.tree.some(w => {
+						if (match(w, v.a)) return w.sel = true;
+					});
+				} else if (v.tr == 1) {
+					pop.tree.some(w => {
+						if (match(w, v.a) && match(pop.tree[w.par], v.b)) return w.sel = true;
+					});
+				} else if (v.tr > 1) {
+					pop.tree.some(w => {
+						if (match(w, v.a) && match(pop.tree[w.par], v.b) && match(pop.tree[pop.tree[w.par].par], v.c)) return w.sel = true;
+					});
+				}
+			});
+			let scr_pos = false;
+			scr.some((v, h) => {
+				if (scr_pos) return true;
+				if (v.tr == 0) {
+					pop.tree.some((w, j) => {
+						if (match(w, v.a)) {sbar.check_scroll(!h ? j * ui.row_h : (j - 3) * ui.row_h); return scr_pos = true;}
+					});
+				} else if (v.tr == 1) {
+					pop.tree.some((w, j) => {
+						if (match(w, v.a) && match(pop.tree[w.par], v.b)) {sbar.check_scroll(!h ? j * ui.row_h : (j - 3) * ui.row_h); return scr_pos = true;}
+					});
+				} else if (v.tr > 1) {
+					pop.tree.some((w, j) => {
+						if (match(w, v.a) && match(pop.tree[w.par], v.b) && match(pop.tree[pop.tree[w.par].par], v.c)) {sbar.check_scroll(!h ? j * ui.row_h : (j - 3) * ui.row_h); return scr_pos = true;}
+					});
+				}
+			});
+			if (!scr_pos) {sbar.reset(); p.tree_paint();}
+        } else this.treeState(false, ppt.rememberTree);
+        if (lib_update && !process) {sbar.reset(); p.tree_paint();}
+    }
+
+    const binaryInsert = (folder, insert, li, n) => {
+        let i, items;
+        switch (true) {
+            case !folder:
+                const tfo = FbTitleFormat(p.view); items = tfo.EvalWithMetadbs(insert);
+                insert.Convert().forEach((h, j) => {
+                    i = bInsert(n, items[j]); n.splice(i, 0, items[j].split(p.splitter)); li.Insert(i, h);
+                });
+                break;
+            case folder:
+                items = insert.GetLibraryRelativePaths();
+                insert.Convert().forEach((h, j) => {
+                    i = bInsert(n, items[j], true); n.splice(i, 0, items[j].split("\\")); li.Insert(i, h);
+                });
+                break;
+        }
+    }
+
+    const added = handleList => {
+        let addType = p.multiProcess || p.nodisplay || handleList.Count > 100 ? 0 : 1, i, items, tree_type = !p.folderView ? 0 : 1;
+        switch (addType) {
+            case 0:
+                full_list.InsertRange(full_list.Count, handleList); full_list_need_sort = true;
+                if (ppt.filterBy > 0 && ppt.searchShow > 1) {
+                    const newFilterItems = s.query(handleList, filterQuery);
+                    this.list.InsertRange(this.list.Count, newFilterItems); p.sort(this.list);
+                }
+                else {if (full_list_need_sort) p.sort(full_list); this.list = full_list.Clone(); full_list_need_sort = false;} p.sort(handleList);
+                switch (tree_type) {
+                        case 0:
+                            const tfo = FbTitleFormat(p.view); items = tfo.EvalWithMetadbs(handleList);
+                            handleList.Convert().forEach((h, j) => {
+                                i = this.list.Find(h); if (i != -1) node.splice(i, 0, items[j].split(p.splitter));
+                            });
+                            break;
+                        case 1:
+                            items = handleList.GetLibraryRelativePaths();
+                            handleList.Convert().forEach((h, j) => {
+                                i = this.list.Find(h); if (i != -1) node.splice(i, 0, items[j].split("\\"));
+                            });
+                            break;
+                }
+                if (this.list.Count) this.empty = "";
+                if (p.s_txt) {
+                    let newSearchItems = FbMetadbHandleList();
+                    validSearch = true; try {newSearchItems = fb.GetQueryItems(handleList, p.s_txt);} catch(e) {validSearch = false;}
+                    p.list.InsertRange(p.list.Count, newSearchItems); p.sort(p.list); p.sort(newSearchItems);
+                    switch (tree_type) {
+                        case 0:
+                            const tfo = FbTitleFormat(p.view); items = tfo.EvalWithMetadbs(newSearchItems);
+                            newSearchItems.Convert().forEach((h, j) => {
+                                i = p.list.Find(h); if (i != -1) node_s.splice(i, 0, items[j].split(p.splitter));
+                            });
+                            break;
+                        case 1:
+                            items = newSearchItems.GetLibraryRelativePaths();
+                            newSearchItems.Convert().forEach((h, j) => {
+                                i = p.list.Find(h); if (i != -1) node_s.splice(i, 0, items[j].split("\\"));
+                            });
+                            break;
+                    }
+                    this.node = node_s.slice();
+                    if (!p.list.Count) {pop.tree = []; sbar.set_rows(0); this.none = validSearch ? "Nothing found" : "Invalid search expression"; p.tree_paint(); noListUpd = true;}
+                } else p.list = this.list;
+                break;
+            case 1:
+                let lis = ppt.filterBy > 0 && ppt.searchShow > 1 ? s.query(handleList, filterQuery) : handleList; p.sort(lis);
+                binaryInsert(p.folderView, lis, this.list, node);
+                if (this.list.Count) this.empty = "";
+                if (p.s_txt) {
+                    let newSearchItems = FbMetadbHandleList();
+                    validSearch = true; try {newSearchItems = fb.GetQueryItems(handleList, p.s_txt);} catch(e) {validSearch = false;}
+                    binaryInsert(p.folderView, newSearchItems, p.list, node_s);
+                    this.node = node_s.slice();
+                    if (!p.list.Count) {pop.tree = []; sbar.set_rows(0); this.none = validSearch ? "Nothing found" : "Invalid search expression"; p.tree_paint(); noListUpd = true;}
+                } else p.list = this.list;
+                break
+            }
+    }
+
+    const added_f = handleList => {
+        let addType = p.multiProcess || p.nodisplay || handleList.Count > 100 ? 0 : 1, i, items, tree_type = !p.folderView ? 0 : 1;
+        switch (addType) {
+            case 0:
+                this.list.InsertRange(this.list.Count, handleList); p.sort(this.list); p.sort(handleList);
+                switch (tree_type) {
+                    case 0:
+                        const tfo = FbTitleFormat(p.view); items = tfo.EvalWithMetadbs(handleList);
+                        handleList.Convert().forEach((h, j) => {
+                            i = this.list.Find(h); if (i != -1) node.splice(i, 0, items[j].split(p.splitter));
+                        });
+                        if (!this.list.Count) this.none = "Nothing found";
+                        break;
+                    case 1:
+                        items = handleList.GetLibraryRelativePaths();
+                        handleList.Convert().forEach((h, j) => {
+                            i = this.list.Find(h); if (i != -1) node.splice(i, 0, items[j].split("\\"));
+                        });
+                        if (!this.list.Count) this.none = "Nothing found";
+                        break;
+                }
+            case 1: binaryInsert(p.folderView, handleList, this.list, node); break;
+        }
+    }
+
+    const added_s = handleList => {
+        let addType = p.multiProcess || p.nodisplay || handleList.Count > 100 ? 0 : 1, i, items, tree_type = !p.folderView ? 0 : 1;
+        switch (addType) {
+            case 0:
+                p.list.InsertRange(p.list.Count, handleList); p.sort(p.list);
+                switch (tree_type) {
+                case 0:
+                    const tfo = FbTitleFormat(p.view); items = tfo.EvalWithMetadbs(handleList);
+                    handleList.Convert().forEach((h, j) => {
+                        i = p.list.Find(h); if (i != -1) node_s.splice(i, 0, items[j].split(p.splitter));
+                    });
+                    break;
+                case 1:
+                    items = handleList.GetLibraryRelativePaths();
+                    handleList.Convert().forEach((h, j) => {
+                        i = p.list.Find(h); if (i != -1) node_s.splice(i, 0, items[j].split("\\"))
+                    });
+                    break;
+            }
+            case 1:
+                binaryInsert(p.folderView, handleList, p.list, node_s);
+                break;
+        }
+    }
+
+    const removed = handleList => {
+        let i, j = handleList.Count; while (j--) {i = this.list.Find(handleList[j]); if (i != -1) {this.list.RemoveById(i); node.splice(i, 1);}}
+        if (ppt.filterBy > 0 && ppt.searchShow > 1) {j = handleList.Count; if (full_list_need_sort) p.sort(full_list); full_list_need_sort = false; while (j--) {i = full_list.Find(handleList[j]); if (i != -1) full_list.RemoveById(i);}}
+        else full_list = this.list.Clone();
+        if (p.s_txt) {
+            j = handleList.Count; while (j--) {i = p.list.Find(handleList[j]); if (i != -1) {p.list.RemoveById(i); node_s.splice(i, 1);}}
+            this.node = node_s.slice();
+            if (!p.list.Count) {pop.tree = []; sbar.set_rows(0); this.none = validSearch ? "Nothing found" : "Invalid search expression"; p.tree_paint(); noListUpd = true;}
+        }
+        else p.list = this.list;
+        if (!full_list.Count) {this.empty = "Nothing to show\n\nConfigure Media Library first\n\nFile>Preferences>Media library"; this.root = []; pop.tree = []; sbar.set_rows(0); p.tree_paint(); noListUpd = true;}
+    }
+}
+
+function Populate() {
+	this.setActions = (n, i) => {
+		switch (n) {
+			case 'click': ppt.clickAction = i; break;
+			case 'key': ppt.keyAction = i; break;
+			case 'dblClick': ppt.dblClickAction = i; return;
+			case 'send': this.autoPlay.send = !this.autoPlay.send; ppt.autoPlay = this.autoPlay.send; return;
+		}
+		this.autoPlay = {click: ppt.clickAction < 2 ? false : ppt.clickAction, send: ppt.autoPlay}
+		this.autoFill = {mouse: ppt.clickAction == 1 ? true : false, key: ppt.keyAction}
+	}; this.setActions();
+	
+    const nd = [], selection_holder = fb.AcquireUiSelectionHolder(), symb = window.CreateThemeManager("TREEVIEW");
+    let dbl_clicked = false, fullLineSelection = ppt.fullLineSelection, get_pos = -1, iconVerticalPad = ppt.iconVerticalPad, is_focused = false, ix_o = 0, last_pressed_coord = {x: undefined, y: undefined}, last_sel = -1, lbtn_dn = false, m_i = -1, m_br = -1, margin = ppt.margin, nodeCounts = ppt.nodeCounts, nodeHighlight = ppt.nodeHighlight, treeIndent = ppt.treeIndent, row_o = 0, rootNode = ppt.rootNode, rowStripes = ppt.rowStripes, selList = null, showTracks = ppt.showTracks, showNowplaying = ppt.showNowplaying, tooltip = ppt.tooltip, tt = "", tt_c = 0, tt_id = -1;
+    this.hotKeys = ppt.hotKeys.splt(0); this.nowp = -1; this.rows = 0; this.sel_items = []; this.subCounts =  {"standard": {}, "filter": {}, "search": {}}; this.tree = [];
+
+	const addIX = parseFloat(this.hotKeys[3]), collapseAllIX = parseFloat(this.hotKeys[1]), insertIX = parseFloat(this.hotKeys[5]), searchClearIX = parseFloat(this.hotKeys[9]), searchFocusIX = parseFloat(this.hotKeys[7]), tf_cs = FbTitleFormat(ppt.customSort);
+    if (ui.nodeWin) {s.gr(ui.node_sz, ui.node_sz, false, g => {try {symb.SetPartAndStateID(2, 1); symb.SetPartAndStateID(2, 2); symb.DrawThemeBackground(g, 0, 0, ui.node_sz, ui.node_sz);} catch (e) {ui.nodeWin = 0;}});}
+
+    const add = (x, y, pl) => {if (y < p.s_h) return; const ix = this.get_ix(x, y, true, false); p.pos = ix; if (ix < this.tree.length && ix >= 0) if (this.check_ix(this.tree[ix], x, y, true)) {this.clear(); this.tree[ix].sel = true; this.get_sel_items(); this.load(this.sel_items, true, true, false, pl, false); lib.treeState(false, ppt.rememberTree);}}
+    const branch_chg = (br) => {
+        const arr = br.tr == 0 ? lib.root : this.tree[br.par].child; let new_br = 0;
+            arr.forEach(v => {
+                new_br += v.child.length; v.child = [];
+            });
+        return new_br;
+    }
+    const checkNode = gr => {if (sbar.draw_timer || !ui.nodeWin) return; try {symb.SetPartAndStateID(2, 1); symb.SetPartAndStateID(2, 2); symb.DrawThemeBackground(gr, -ui.node_sz, -ui.node_sz, ui.node_sz, ui.node_sz);} catch (e) {ui.nodeWin = 0;}}
+    const checkRow = (x, y) => {m_br = -1; const im = this.get_ix(x, y, true, false); if (im >= this.tree.length || im < 0) return -1; const item = this.tree[im]; if (x < Math.round(treeIndent * item.tr) + ui.icon_w + margin && (!item.track || rootNode && item.tr == 0)) m_br = im; return im;}
+	const clickedOn = (x, y, item) => x < Math.round(treeIndent * item.tr) + ui.icon_w + margin ? 'node' : this.check_ix(item, x, y, false) ? 'text' : 'none';
+    const drawNode = (gr, j, x, y) => {switch (ui.nodeWin) {case 0: if (!nodeHighlight && j > 1) j -= 2; x = Math.round(x); y = Math.round(y); gr.DrawImage(nd[j], x, y, nd[j].Width, nd[j].Height, 0, 0, nd[j].Width, nd[j].Height); break; case 1: if ( j > 1) j -= 2; symb.SetPartAndStateID(2, !j ? 1 : 2); symb.DrawThemeBackground(gr, x, y, ui.node_sz, ui.node_sz); break;}}
+    const getItems = list => {let handleList = FbMetadbHandleList(); list.some(v => {if (v >= p.list.Count) return true; handleList.Add(p.list[v]);}); return handleList;}
+    const numSort = (a, b) => a - b;
+    const sort = (a, b) => a.srt.replace(/^\?/,"").replace(/(\d+)/g, n => ('0000' + n).slice(-5)).localeCompare(b.srt.replace(/^\?/,"").replace(/(\d+)/g, n => ('0000' + n).slice(-5)));
+    const uniq = a => {const out = [], seen = {}; let j = 0; a.forEach(v => {if (seen[v] !== 1) {seen[v] = 1; out[j++] = v;}}); return out.sort(numSort);}
+
+	this.checkAutoHeight = () => {if (p.pn_h_auto && ppt.pn_h == ppt.pn_h_min && this.tree[0]) this.clear_child(this.tree[0]);}
+    this.clear = () => {this.tree.forEach(v => v.sel = false);}
+    this.clear_child = br => {br.child = []; this.buildTree(lib.root, 0, true, true);}
+    this.create_tooltip = () => {if (!tooltip) return; tt = window.CreateTooltip(ui.font.Name, ui.font.Size, ui.font.Style); tt.SetDelayTime(0, 500); tt.Text = "";}
+    this.deactivate_tooltip = () => {tt_c = 0; tt.Text = ""; tt.TrackActivate = false; tt.Deactivate(); p.tree_paint();}
+    this.expandNodes = (obj, am) => {this.branch(obj, !am ? false : true, true, true); if (obj.child) obj.child.forEach(v => {if (!v.track) this.expandNodes(v);});}
+    this.getNowplaying = (handle, stop) => {if (!showNowplaying) return; if (stop) return this.nowp = -1; if (!handle && fb.IsPlaying) handle = fb.GetNowPlaying(); if (!handle) return this.nowp = -1; this.nowp = p.list.Find(handle); p.tree_paint();}
+    this.get_sel_items = () => {p.tree_paint(); this.sel_items = []; this.tree.forEach(v => {if (v.sel) this.sel_items.push.apply(this.sel_items, v.item);}, this); this.sel_items = uniq(this.sel_items);}
+    this.leave = () => {if (men.r_up || tt.Text) return; m_br = -1; row_o = 0; m_i = -1; ix_o = 0; p.tree_paint();}
+    this.mbtn_up = (x, y) => {add(x, y, ppt.middleClickPlaylist);}
+	this.nowPlayingShow = () => {if (this.nowp != -1) {let np_i = -1; this.tree.forEach((v, i) => {if ((!rootNode || rootNode && v.tr) && v.item.includes(this.nowp)) np_i = i;}); if (np_i != -1) {sbar.check_scroll(np_i  * ui.row_h - Math.round(sbar.rows_drawn / 2 - 1) * ui.row_h);}}}
+    this.on_char = code => {if (p.search || code != vk.copy) return; const handleList = this.selected(true); fb.CopyHandleListToClipboard(handleList);}
+    this.on_focus = p_is_focused => {is_focused = p_is_focused; if (p_is_focused && selList && selList.Count) selection_holder.SetSelection(selList);}
+    this.row = y => {return Math.round((y - sbar.item_y - ui.row_h * 0.5) / ui.row_h);}
+    this.selected = n => {if (n) this.get_sel_items(); return getItems(this.sel_items);}
+	this.set = () => {fullLineSelection = ppt.fullLineSelection; iconVerticalPad = ppt.iconVerticalPad; margin = ppt.margin; nodeCounts = ppt.nodeCounts; nodeHighlight = ppt.nodeHighlight; treeIndent = ppt.treeIndent; rootNode = ppt.rootNode; rowStripes = ppt.rowStripes; showTracks = ppt.showTracks; showNowplaying = ppt.showNowplaying; tooltip = ppt.tooltip;}
+    this.setGetPos = pos => {m_i = get_pos = pos;}
+
+    const activate_tooltip = (ix, y) => {
+        if (tt_id == ix || Math.round(treeIndent * this.tree[ix].tr + margin) + ui.icon_w + (!tooltip || !fullLineSelection ? this.tree[ix].w : this.tree[ix].tt_w) <= sbar.tree_w - ui.sel) return;
+        if (tt_c == 2) {tt_id = ix; return;}
+        tt_c += 1; tt.Activate(); tt.TrackActivate = true;
+        tt.Text = this.tree[ix].name + this.tree[ix].count;
+        let tt_y = Math.max(ui.row_h - ppt.verticalPad, 0); tt_y = sbar.item_y - Math.floor((ui.row_h - tt_y) / 2);
+        tt.TrackPosition(Math.round(treeIndent * this.tree[ix].tr + margin) + ui.icon_w - ui.tt, this.row(y) * ui.row_h + tt_y);
+        p.tree_paint(); timer.tooltip();
+    }
+
+    this.branch = (br, base, node, block) => {
+        if (!br || br.track) return;
+        const ix = showTracks ? 2 : 3, l = base ? 0 : rootNode ? br.tr : br.tr + 1; if (base) node = false;
+        let i = 0, n = "", n_o = "#get_branch#", nU = "";
+        switch (p.multiProcess) {
+            case false:
+                br.item.forEach(v => {
+                    n = lib.node[v][l]; nU = n.toUpperCase();
+                    if (n_o != nU) {n_o = nU; br.child[i] = {name:n, sel:false, child:[], track:l > lib.node[v].length - ix, item:[]}; br.child[i].item.push(v); i++;} else br.child[i - 1].item.push(v);
+                });
+                break;
+            case true:
+                let srt = "";
+                switch (p.multi_swap) {
+                    case false:
+                        br.item.forEach(v => {
+                            n = lib.node[v][l]; nU = n.toUpperCase();
+                            if (n_o != nU) {n_o = nU; n = n.replace(/#!##!#/g, "?"); srt = n; n = n.replace(/#@#.*?#@#/g,""); br.child[i] = {name:n, sel:false, child:[], track:l > lib.node[v].length - ix, item:[], srt:srt}; br.child[i].item.push(v); i++;} else br.child[i - 1].item.push(v);
+                        });
+                        break;
+                    case true:
+                        br.item.forEach(v => {
+                            n = lib.node[v][l]; nU = n.toUpperCase();
+                            if (n_o != nU) {n_o = nU; n = n.replace(/~#!##!#|#!##!#/g, "?"); n = lib.prefixes(n); srt = n; n = n.replace(/#@#.*?#@#/g,""); br.child[i] = {name:n, sel:false, child:[], track:l > lib.node[v].length - ix, item:[], srt:srt}; br.child[i].item.push(v); i++;} else br.child[i - 1].item.push(v);
+                        });
                         break;
                 }
                 break;
@@ -802,876 +1263,1085 @@ function populate() {
         this.buildTree(lib.root, 0, node, true, block);
     }
 
-    var getAllCombinations = function(n) {
-        var combinations = [], divisors = [], nn = [], arraysToCombine = []; nn = n.split("#!#");
-        for (var i = 0; i < nn.length; i++) {nn[i] = nn[i].split("@@"); if (nn[i] != "") arraysToCombine.push(nn[i]);}
-        for (var i = arraysToCombine.length - 1; i >= 0; i--) divisors[i] = divisors[i + 1] ? divisors[i + 1] * arraysToCombine[i + 1].length : 1;
-        function getPermutation(n, arraysToCombine) {
-            var result = [], curArray;
-            for (var i = 0; i < arraysToCombine.length; i++) {
-                curArray = arraysToCombine[i];
-                result.push(curArray[Math.floor(n / divisors[i]) % curArray.length]);
-            } return result;
+    const getAllCombinations = n => {
+        const combinations = [], divisors = [], arraysToCombine = [], nn = n.split("#!#"), ln = nn.length; let i = 0;
+        for (i = 0; i < ln; i++) {nn[i] = nn[i].split("@@"); if (nn[i] != "") arraysToCombine.push(nn[i]);} const arraysToCombineLength = arraysToCombine.length;
+        for (i = arraysToCombineLength - 1; i >= 0; i--) divisors[i] = divisors[i + 1] ? divisors[i + 1] * arraysToCombine[i + 1].length : 1;
+        const getPermutation = (n, arraysToCombine) => {
+           const result = []; let curArray;
+           for (let j = 0; j < arraysToCombineLength; j++) {
+              curArray = arraysToCombine[j];
+              result.push(curArray[Math.floor(n / divisors[j]) % curArray.length]);
+           } return result;
         }
-        var numPerms = arraysToCombine[0].length;
-        for (var i = 1; i < arraysToCombine.length; i++) numPerms *= arraysToCombine[i].length;
-        for (var i = 0; i < numPerms; i++) combinations.push(getPermutation(i, arraysToCombine));
+        let numPerms = arraysToCombine[0].length;
+        for (i = 1; i < arraysToCombineLength; i++) numPerms *= arraysToCombine[i].length;
+        for (i = 0; i < numPerms; i++) combinations.push(getPermutation(i, arraysToCombine));
         return combinations;
     }
 
-    this.buildTree = function(br, tr, node, full, block) {
-        var br_l = br.length, i = 0, j = 0, l = !p.base ? tr : tr - 1;
-        if (p.multi_process) {
-            var h = -1, multi = [], multi_cond = [], multi_obj = [], multi_rem = [], n = "", n_o = "#condense#", nm_arr = [], nU = "";
-            for (i = 0; i < br_l; i++) {
-                if (br[i].name.indexOf("@@") != -1) {
-                    multi = getAllCombinations(br[i].srt);
+    this.buildTree = (br, tr, node, full, block) => {
+        const l = !rootNode ? tr : tr - 1; let i = 0, j = 0;
+        if (p.multiProcess) {
+            const multi_cond = [], multi_obj = [], multi_rem = [], nm_arr = [];
+            let h = -1, multi = [], n = "", n_o = "#condense#", nU = "";
+            br.forEach((v, i) => {
+                if (v.name.includes("@@")) {
+                    multi = getAllCombinations(v.srt);
                     multi_rem.push(i);
-                    for (var m = 0; m < multi.length; m++) multi_obj.push({name:multi[m].join("").replace(/#@#.*?#@#/g,""), item:br[i].item.slice(), track:br[i].track, srt:multi[m].join("")});
+                    multi.forEach(w => {
+                        multi_obj.push({name:w.join("").replace(/#@#.*?#@#/g,""), item:v.item.slice(), track:v.track, srt:w.join("")});
+            });}});
+            i = multi_rem.length; while (i--) br.splice(multi_rem[i], 1);
+            multi_obj.sort(sort);
+            multi_obj.forEach(v => {
+                n = v.name; nU = n.toUpperCase();
+                if (n_o != nU) {
+                    n_o = nU; multi_cond[j] = {name:n, item:v.item.slice(), track:v.track, srt:v.srt};
+                    j++;
+                } else multi_cond[j - 1].item.push.apply(multi_cond[j - 1].item, v.item.slice());
+            });
+            br.forEach(v => {v.name = v.name.replace(/#!#/g, ""); nm_arr.push(v.name); if (v.srt) v.srt = v.srt.replace(/#!#/g, "");});
+            multi_cond.forEach((v, i) => {
+                h = nm_arr.indexOf(v.name);
+                if (h != -1) {br[h].item.push.apply(br[h].item, v.item.slice());
+                multi_cond.splice(i ,1);
+            }});
+            multi_cond.forEach((v, i) => br.splice(i + 1, 0, {name:v.name, sel:false, track:v.track, child:[], item:v.item.slice(), srt:v.srt}));
+            if (!node || node && !full) br.sort(sort);
+            i = br.length; while (i--) {
+                if (i != 0 && br[i].name.toUpperCase() == br[i - 1].name.toUpperCase()) {
+                    br[i - 1].item.push.apply(br[i - 1].item, br[i].item.slice()); br.splice(i, 1);
                 }
             }
-            i = multi_rem.length; while (i--) br.splice(multi_rem[i], 1); br_l = br.length; multi_obj.sort(sort);
-            i = 0; while (i < multi_obj.length) {n = multi_obj[i].name; nU = n.toUpperCase(); if (n_o != nU) {n_o = nU; multi_cond[j] = {name:n, item:multi_obj[i].item.slice(), track:multi_obj[i].track, srt:multi_obj[i].srt}; j++} else multi_cond[j - 1].item.push.apply(multi_cond[j - 1].item, multi_obj[i].item.slice()); i++}
-            for (i = 0; i < br_l; i++) {br[i].name = br[i].name.replace(/#!#/g, ""); nm_arr.push(br[i].name); if (br[i].srt) br[i].srt = br[i].srt.replace(/#!#/g, "");}
-            for (i = 0; i < multi_cond.length; i++) {h = arr_index(nm_arr, multi_cond[i].name); if (h != -1) {br[h].item.push.apply(br[h].item, multi_cond[i].item.slice()); multi_cond.splice(i ,1);}}
-            for (i = 0; i < multi_cond.length; i++) br.splice(i + 1, 0, {name:multi_cond[i].name, sel:false, track:multi_cond[i].track, child:[], item:multi_cond[i].item.slice(), srt:multi_cond[i].srt});
-            if (!node || node && !full) br.sort(sort);
-            i = br.length; while (i--) {if (i != 0 && br[i].name.toUpperCase() == br[i - 1].name.toUpperCase()) {br[i - 1].item.push.apply(br[i - 1].item, br[i].item.slice()); br.splice(i, 1);}}
         }
-        var folderView = p.view_by == p.folder_view ? true : false, par = this.tree.length - 1; if (tr == 0) this.tree = []; br_l = br.length; if (p.show_counts == 2) var type = p.s_txt ? "search" : p.filter_by > 0 && p.s_show > 1 ? "filter" : "standard";
-        for (i = 0; i < br_l; i++) {
-            j = this.tree.length; this.tree[j] = br[i];
+        const br_l = br.length, par = this.tree.length - 1; if (tr == 0) this.tree = []; let type; if (nodeCounts == 2) type = p.s_txt ? "search" : ppt.filterBy > 0 && ppt.searchShow > 1 ? "filter" : "standard";
+        br.forEach((v, i) => {
+            j = this.tree.length; this.tree[j] = v;
             this.tree[j].top = !i ? true : false; this.tree[j].bot = i == br_l - 1 ? true : false;
-            if (tr == (p.base ? 1 : 0) && i == br_l - 1) this.line_l = j;
-            this.tree[j].ix = j; this.tree[j].tr = tr; this.tree[j].par = par; if (p.show_counts == 2 && tr > 1) var pr = this.tree[par].par;
+            this.tree[j].ix = j; this.tree[j].tr = tr; this.tree[j].par = par; let pr; if (nodeCounts == 2 && tr > 1) pr = this.tree[par].par;
             switch (true) {
-                case l != -1 && !p.show_tracks: for (var r = 0; r < this.tree[j].item.length; r++) {if (lib.node[this.tree[j].item[r]].length == l + 1 || lib.node[this.tree[j].item[r]].length == l + 2) {this.tree[j].track = true; break;}} break;
+                case l != -1 && !showTracks:
+                    this.tree[j].item.some(v => {
+                        if (lib.node[v].length == l + 1 || lib.node[v].length == l + 2) {
+                            return this.tree[j].track = true;
+                        }
+                    });
+                    break;
                 case l == 0 && lib.node[this.tree[j].item[0]].length == 1: this.tree[j].track = true; break;
             }
-            this.tree[j].count = !this.tree[j].track || !p.show_tracks  ? (p.show_counts == 1 ? " (" + this.tree[j].item.length + ")" : p.show_counts == 2 ?  " (" + this.branchCounts(this.tree[j], !p.base || j ? false : true, true, false, tr + (tr > 2 ? this.tree[this.tree[pr].par].name : "") + (tr > 1 ? this.tree[pr].name : "") + (tr > 0 ? this.tree[par].name : "") + this.tree[j].name, type) + ")" : "") : ""; if (!p.show_tracks && this.tree[j].count == " (0)") this.tree[j].count = "";
-            if (br[i].child.length > 0) this.buildTree(br[i].child, tr + 1, node, p.base && tr == 0 ? true : false);
-        }
-        if (!block) {if (p.base && this.tree.length == 1) this.line_l = 0; sbar.set_rows(this.tree.length); p.tree_paint();}
+            this.tree[j].count = !this.tree[j].track || !showTracks  ? (nodeCounts == 1 ? " (" + this.tree[j].item.length + ")" : nodeCounts == 2 ?  " (" + branchCounts(this.tree[j], !rootNode || j ? false : true, true, false, tr + (tr > 2 ? this.tree[this.tree[pr].par].name : "") + (tr > 1 ? this.tree[pr].name : "") + (tr > 0 ? this.tree[par].name : "") + this.tree[j].name, type) + ")" : "") : ""; if (!showTracks && this.tree[j].count == " (0)") this.tree[j].count = "";
+            if (v.child.length > 0) this.buildTree(v.child, tr + 1, node, rootNode && tr == 0 ? true : false);
+        }, this);
+        if (!block) {sbar.set_rows(this.tree.length); p.tree_paint();}
     }
 
-    this.branchCounts = function(br, base, node, block, key, type) {
+    const branchCounts = (br, base, node, block, key, type) => {
         if (!br) return; if (this.subCounts[type][key]) return this.subCounts[type][key];
-        var b = []; var br_l = br.item.length, folderView = p.view_by == p.folder_view ? true : false, k = 0, l = base ? 0 : p.base ? br.tr : br.tr + 1, n = "", n_o = "#get_branch#", nU = "", pos = -1; if (folderView) base = false; if (base) node = false; var get = !p.s_txt && !base || p.s_txt;
-        switch (p.multi_process) {
+        const l = base ? 0 : rootNode ? br.tr : br.tr + 1, b = []; let n = "", n_o = "#get_branch#", nU = ""; if (base) node = false;
+        switch (p.multiProcess) {
             case false:
-                for (k = 0; k < br_l; k++) {
-                    pos = br.item[k];
-                    try {
-                        if (base) n = lib.node[pos][l];
-                        if (get) {if (l < lib.node[pos].length - 1) n = lib.node[pos][l]; else n = "#get_track#";}
-                        if (n == "#get_track#") n = lib.node[pos][l]; nU = n.toUpperCase();
-                        if (n_o != nU) {n_o = nU; b.push({name:n});}
-                    } catch (e) {}
-                }
+                br.item.forEach(v => {
+                    n = lib.node[v][l]; if (!n) return;
+                    nU = n.toUpperCase(); if (n_o != nU) {n_o = nU; b.push({name:n});}
+                });
                 break;
             case true:
+                let srt = "";
                 switch (p.multi_swap) {
                     case false:
-                        for (k = 0; k < br_l; k++) {
-                            pos = br.item[k];
-                            try {
-                                if (base) n = lib.node[pos][l];
-                                if (get) {if (l < lib.node[pos].length - 1) n = lib.node[pos][l]; else n = "#get_track#";}
-                                if (n == "#get_track#") n = lib.node[pos][l]; nU = n.toUpperCase();
-                                if (n_o != nU) {n_o = nU; n = n.replace(/#!##!#/g, "?"); srt = n; n = n.replace(/#@#.*?#@#/g,""); b.push({name:n, srt:srt});}
-                            } catch (e) {}
-                        }
+                        br.item.forEach(v => {
+                            n = lib.node[v][l]; if (!n) return;
+                            nU = n.toUpperCase(); if (n_o != nU) {n_o = nU; n = n.replace(/#!##!#/g, "?"); srt = n; n = n.replace(/#@#.*?#@#/g,""); b.push({name:n, srt:srt});}
+                        });
                         break;
                     case true:
-                        for (k = 0; k < br_l; k++) {
-                            pos = br.item[k];
-                            try {
-                                if (base) n = lib.node[pos][l];
-                                if (get) {if (l < lib.node[pos].length - 1) n = lib.node[pos][l]; else n = "#get_track#";}
-                                if (n == "#get_track#") n = lib.node[pos][l]; nU = n.toUpperCase();
-                                if (n_o != nU) {n_o = nU; n = n.replace(/~#!##!#|#!##!#/g, "?"); n = lib.prefixes(n); srt = n; n = n.replace(/#@#.*?#@#/g,""); b.push({name:n, srt:srt});}
-                            } catch (e) {}
-                        }
+                        br.item.forEach(v => {
+                            n = lib.node[v][l]; if (!n) return;
+                            nU = n.toUpperCase(); if (n_o != nU) {n_o = nU; n = n.replace(/~#!##!#|#!##!#/g, "?"); n = lib.prefixes(n); srt = n; n = n.replace(/#@#.*?#@#/g,""); b.push({name:n, srt:srt});}
+                        });
                         break;
                 }
-                var h = -1, j = 0, multi = [], multi_cond = [], multi_obj = [], multi_rem = [],nm_arr = []; br_l = b.length; n = ""; n_o = "#condense#"; nU = "";
-                for (i = 0; i < br_l; i++) {
-                    if (b[i].name.indexOf("@@") != -1) {
-                        multi = getAllCombinations(b[i].srt);
+                const multi_cond = [], multi_obj = [], multi_rem = [], nm_arr = [];
+                let h = -1, j = 0, multi = [];  n = ""; n_o = "#condense#"; nU = "";
+                b.forEach((v, i) => {
+                    if (v.name.includes("@@")) {
+                        multi = getAllCombinations(v.srt);
                         multi_rem.push(i);
-                        for (var m = 0; m < multi.length; m++) multi_obj.push({name:multi[m].join("").replace(/#@#.*?#@#/g,""), srt:multi[m].join("")});
-                    }
-                }
-                i = multi_rem.length; while (i--) b.splice(multi_rem[i], 1); br_l = b.length; multi_obj.sort(sort);
-                i = 0; while (i < multi_obj.length) {n = multi_obj[i].name; nU = n.toUpperCase(); if (n_o != nU) {n_o = nU; multi_cond[j] = {name:n, srt:multi_obj[i].srt}; j++} i++}
-                for (i = 0; i < br_l; i++) {b[i].name = b[i].name.replace(/#!#/g, ""); nm_arr.push(b[i].name);}
-                for (i = 0; i < br_l; i++) {b[i].name = b[i].name.replace(/#!#/g, ""); nm_arr.push(b[i].name); if (b[i].srt) b[i].srt = b[i].srt.replace(/#!#/g, "");}
-                for (i = 0; i < multi_cond.length; i++) {h = arr_index(nm_arr, multi_cond[i].name); if (h != -1) multi_cond.splice(i ,1);}
-                for (i = 0; i < multi_cond.length; i++) b.splice(i + 1, 0, {name:multi_cond[i].name, srt:multi_cond[i].srt});
-                var full = p.base && br.tr == 0 ? true : false; if (!node || node && !full) b.sort(sort);
+                        multi.forEach(w => {
+                            multi_obj.push({name:w.join("").replace(/#@#.*?#@#/g,""), srt:w.join("")});
+                });}});
+                let i = multi_rem.length; while (i--) b.splice(multi_rem[i], 1); multi_obj.sort(sort);
+                multi_obj.forEach(v => {
+                    n = v.name; nU = n.toUpperCase(); if (n_o != nU) {n_o = nU; multi_cond[j] = {name:n, srt:v.srt}; j++}
+                });
+                b.forEach(v => {
+                    v.name = v.name.replace(/#!#/g, ""); nm_arr.push(v.name); if (v.srt) v.srt = v.srt.replace(/#!#/g, "");
+                });
+                multi_cond.forEach((v, i) => {
+                    h = nm_arr.indexOf(v.name); if (h != -1) multi_cond.splice(i ,1);
+                });
+                multi_cond.forEach((v, i) => b.splice(i + 1, 0, {name:v.name, srt:v.srt}));
+                const full = rootNode && br.tr == 0 ? true : false; if (!node || node && !full) b.sort(sort);
                 i = b.length; while (i--) {if (i != 0 && b[i].name.toUpperCase() == b[i - 1].name.toUpperCase()) b.splice(i, 1);}
                 break;
         }
         this.subCounts[type][key] = b.length; return b.length;
     }
 
-    this.create_images = function() {
-        var sz = ui.node_sz, plus = true, hot = false, ln_w = Math.max(Math.floor(sz / 9), 1), sy_w = ln_w, x = 0, y = 0; if (((sz - ln_w * 3) / 2) % 1 != 0) sy_w = ln_w > 1 ? ln_w - 1 : ln_w + 1;
-        for (var j = 0; j < 4; j++) {
-            nd[j] = gdi.CreateImage(sz, sz); g = nd[j].GetGraphics(); hot = j > 1 ? true : false; plus = !j || j == 2 ? true : false;
-            g.FillSolidRect(x, y, sz, sz, RGB(145, 145, 145));
-            if (!hot) g.FillGradRect(x + ln_w, y + ln_w, sz - ln_w * 2, sz - ln_w * 2, 91,  plus ? ui.iconcol_e[0] : ui.iconcol_c[0], plus ? ui.iconcol_e[1] : ui.iconcol_c[1], 1.0);
-            else g.FillGradRect(x + ln_w, y + ln_w, sz - ln_w * 2, sz - ln_w * 2, 91,  ui.iconcol_h[0] , ui.iconcol_h[1], 1.0);
-            var x_o = [x, x + sz - ln_w, x, x + sz - ln_w], y_o = [y, y, y + sz - ln_w, y + sz - ln_w]; for (var i = 0; i < 4; i++) g.FillSolidRect(x_o[i], y_o[i], ln_w, ln_w, RGB(186, 187, 188));
-            if (plus) g.FillSolidRect(Math.floor(x + (sz - sy_w) / 2), y + ln_w + Math.min(ln_w, sy_w), sy_w, sz - ln_w * 2 - Math.min(ln_w, sy_w) * 2, !hot ? ui.iconpluscol : ui.iconpluscol_h);
-            g.FillSolidRect(x + ln_w + Math.min(ln_w, sy_w), Math.floor(y + (sz - sy_w) / 2), sz - ln_w * 2 - Math.min(ln_w, sy_w) * 2, sy_w, !hot ? (plus ? ui.iconminuscol_e : ui.iconminuscol_c) : ui.iconminuscol_h);
-            nd[j].ReleaseGraphics(g);
-        }}
+    this.create_images = () => {
+        const sz = ui.node_sz, ln_w = Math.max(Math.floor(sz / 9), 1); let plus = true, hot = false, sy_w = ln_w, x = 0, y = 0; if (((sz - ln_w * 3) / 2) % 1 != 0) sy_w = ln_w > 1 ? ln_w - 1 : ln_w + 1;
+        for (let j = 0; j < 4; j++) {
+            nd[j] = s.gr(sz, sz, true, g => {
+                hot = j > 1 ? true : false; plus = !j || j == 2 ? true : false;
+                g.FillSolidRect(x, y, sz, sz, RGB(145, 145, 145));
+                if (!hot) g.FillGradRect(x + ln_w, y + ln_w, sz - ln_w * 2, sz - ln_w * 2, 91,  plus ? ui.col.icon_e[0] : ui.col.icon_c[0], plus ? ui.col.icon_e[1] : ui.col.icon_c[1], 1.0);
+                else g.FillGradRect(x + ln_w, y + ln_w, sz - ln_w * 2, sz - ln_w * 2, 91,  ui.col.icon_h[0] , ui.col.icon_h[1], 1.0);
+                let x_o = [x, x + sz - ln_w, x, x + sz - ln_w], y_o = [y, y, y + sz - ln_w, y + sz - ln_w]; for (let i = 0; i < 4; i++) g.FillSolidRect(x_o[i], y_o[i], ln_w, ln_w, RGB(186, 187, 188));
+                if (plus) g.FillSolidRect(Math.floor(x + (sz - sy_w) / 2), y + ln_w + Math.min(ln_w, sy_w), sy_w, sz - ln_w * 2 - Math.min(ln_w, sy_w) * 2, !hot ? ui.col.iconPlus : ui.col.iconPlus_h);
+                g.FillSolidRect(x + ln_w + Math.min(ln_w, sy_w), Math.floor(y + (sz - sy_w) / 2), sz - ln_w * 2 - Math.min(ln_w, sy_w) * 2, sy_w, !hot ? (plus ? ui.col.iconMinus_e : ui.col.iconMinus_c) : ui.col.iconMinus_h);
+            });
+    }}
 
-    this.tracking = function(list, type) {
-        if (type) {handles = fb.CreateHandleList(); try {for (var i = 0; i < list.length; i++) handles.Add(p.list[list[i]]);} catch (e) {}}
-        else handles = list.Clone();
-        if (custom_sort.length) handles.OrderByFormat(tf_cs, 1);
-        selection_holder.SetSelection(handles);
+    const tracking = list => {
+        selList = getItems(list);
+        if (ppt.customSort.length) selList.OrderByFormat(tf_cs, 1);
+        selection_holder.SetSelection(selList);
     }
 
-    this.load = function(list, type, add, send, def_pl, insert) {
-        var i = 0, np_item = -1, pid = -1, pln = plman.FindOrCreatePlaylist(lib_playlist, false); if (!def_pl) pln = plman.ActivePlaylist; else plman.ActivePlaylist = pln;
-        if (type) {var items = fb.CreateHandleList(); for (i = 0; i < list.length; i++)
-        {
-            console.log(i, list[i],p.list.Count,p.list[list[i]])
-            items.Add(p.list[list[i]]);
-        }}
-        else var items = list.Clone();
-        if (p.multi_process && !custom_sort.length) items.OrderByFormat(p.mv_sort, 1);
-        if (custom_sort.length) items.OrderByFormat(tf_cs, 1);
-        handles = items.Clone();
-        selection_holder.SetSelection(handles);
+    this.load = (list, isArray, add, autoPlay, def_pl, insert) => {
+        let np_item = -1, pid = -1, pln = plman.FindOrCreatePlaylist(ppt.libPlaylist, false); if (!def_pl) pln = plman.ActivePlaylist; else plman.ActivePlaylist = pln;
+        if (autoPlay == 4 && plman.PlaylistItemCount(pln) || autoPlay == 3 && fb.IsPlaying) {autoPlay = false; add = true;}
+        const items = isArray ? getItems(list) : list.Clone();
+        if (p.multiProcess && !ppt.customSort.length) items.OrderByFormat(p.mv_sort, 1);
+        if (ppt.customSort.length) items.OrderByFormat(tf_cs, 1);
+        selList = items.Clone();
+        selection_holder.SetSelection(selList);
         if (fb.IsPlaying && !add && fb.GetNowPlaying()) {
-            for (i = 0; i < items.Count; i++) if (fb.GetNowPlaying().Compare(items[i])) {np_item = i; break;}
-            var pl_chk = true;
-            if (np_item != -1) {var np = plman.GetPlayingItemLocation(); if (np.IsValid) {if (np.PlaylistIndex != pln) pl_chk = false; else pid = np.PlaylistItemIndex;}}
-            if (np_item != -1 && pl_chk && pid == -1 && items.Count < 5000) {if (ui.dui) plman.SetActivePlaylistContext(); for (i = 0; i < 20; i++) {fb.RunMainMenuCommand("Edit/Undo"); var np = plman.GetPlayingItemLocation(); if (np.IsValid) {pid = np.PlaylistItemIndex; if (pid != -1) break;}}}
+            items.Convert().some((h, i) => {
+                if (fb.GetNowPlaying().Compare(h)) {
+                    np_item = i;
+                    return true;
+                }
+            });
+            let pl_chk = true, np;
+            if (np_item != -1) {np = plman.GetPlayingItemLocation(); if (np.IsValid) {if (np.PlaylistIndex != pln) pl_chk = false; else pid = np.PlaylistItemIndex;}}
+            if (np_item != -1 && pl_chk && pid == -1 && items.Count < 5000) {if (ui.dui) plman.SetActivePlaylistContext(); for (let i = 0; i < 20; i++) {fb.RunMainMenuCommand("Edit/Undo"); np = plman.GetPlayingItemLocation(); if (np.IsValid) {pid = np.PlaylistItemIndex; if (pid != -1) break;}}}
             if (np_item != -1 && pid != -1) {
                 plman.ClearPlaylistSelection(pln); plman.SetPlaylistSelectionSingle(pln, pid, true); plman.RemovePlaylistSelection(pln, true);
-                var it = items.Clone(); items.RemoveRange(np_item, items.Count); it.RemoveRange(0, np_item + 1);
-                if (plman.PlaylistItemCount(pln) < 5000)  plman.UndoBackup(pln); plman.InsertPlaylistItems(pln, 0, items); plman.InsertPlaylistItems(pln, plman.PlaylistItemCount(pln), it);
+                const it = items.Clone(); items.RemoveRange(np_item, items.Count); it.RemoveRange(0, np_item + 1);
+               if (plman.PlaylistItemCount(pln) < 5000)  plman.UndoBackup(pln); plman.InsertPlaylistItems(pln, 0, items); plman.InsertPlaylistItems(pln, plman.PlaylistItemCount(pln), it);
             } else {if (plman.PlaylistItemCount(pln) < 5000) plman.UndoBackup(pln); plman.ClearPlaylist(pln); plman.InsertPlaylistItems(pln, 0, items);}
         } else if (!add) {if (plman.PlaylistItemCount(pln) < 5000) plman.UndoBackup(pln); plman.ClearPlaylist(pln); plman.InsertPlaylistItems(pln, 0, items);}
-        else {if (plman.PlaylistItemCount(pln) < 5000) plman.UndoBackup(pln); plman.InsertPlaylistItems(pln, !insert ? plman.PlaylistItemCount(pln) : plman.GetPlaylistFocusItemIndex(pln), items, true); var f_ix = !insert || plman.GetPlaylistFocusItemIndex(pln) == -1 ? plman.PlaylistItemCount(pln) - items.Count: plman.GetPlaylistFocusItemIndex(pln) - items.Count; plman.SetPlaylistFocusItem(pln, f_ix); plman.EnsurePlaylistItemVisible(pln, f_ix);}
-        if (autoplay && send) {var c = (plman.PlaybackOrder == 3 || plman.PlaybackOrder == 4) ? Math.ceil(plman.PlaylistItemCount(pln) * Math.random() - 1) : 0; plman.ExecutePlaylistDefaultAction(pln, c);}
+        else {if (plman.PlaylistItemCount(pln) < 5000) plman.UndoBackup(pln); plman.InsertPlaylistItems(pln, !insert ? plman.PlaylistItemCount(pln) : plman.GetPlaylistFocusItemIndex(pln), items, true); const f_ix = !insert || plman.GetPlaylistFocusItemIndex(pln) == -1 ? plman.PlaylistItemCount(pln) - items.Count: plman.GetPlaylistFocusItemIndex(pln) - items.Count; plman.SetPlaylistFocusItem(pln, f_ix); plman.EnsurePlaylistItemVisible(pln, f_ix);}
+        if (autoPlay) {
+			const c = (plman.PlaybackOrder == 3 || plman.PlaybackOrder == 4) ? Math.ceil(plman.PlaylistItemCount(pln) * Math.random() - 1) : 0;
+			plman.ExecutePlaylistDefaultAction(pln, c);
+		}
     }
 
-    this.collapseAll = function() {
-        var ic = this.get_ix(0, p.s_h + ui.row_h / 2, true, false), j = this.tree[ic].tr; if (p.base) j -= 1;
-        if (this.tree[ic].tr != 0) {var par = this.tree[ic].par, pr_pr = []; for (var m = 1; m < j + 1; m++) {if (m == 1) pr_pr[m] = par; else pr_pr[m] = this.tree[pr_pr[m - 1]].par; ic = pr_pr[m];}}
-        var nm = this.tree[ic].name.toUpperCase();
-        for (var h = 0; h < this.tree.length; h++)  if (!p.base || this.tree[h].tr) this.tree[h].child = [] ; this.buildTree(lib.root, 0); scr_pos = false;
-        for (j = 0; j < this.tree.length; j++) if (this.tree[j].name.toUpperCase() == nm) {sbar.check_scroll(j * ui.row_h); scr_pos = true; break}
-        if (!scr_pos) {sbar.reset(); p.tree_paint();} lib.treeState(false, lib.rememberTree);
+    this.collapseAll = () => {
+        let ic = this.get_ix(0, sbar.item_y + ui.row_h / 2, true, false), j = this.tree[ic].tr; if (rootNode) j -= 1;
+        if (this.tree[ic].tr != 0) {
+            const par = this.tree[ic].par, pr_pr = [];
+            for (let m = 1; m < j + 1; m++) {
+                if (m == 1) pr_pr[m] = par;
+                else pr_pr[m] = this.tree[pr_pr[m - 1]].par;
+                ic = pr_pr[m];
+        }}
+        const nm = this.tree[ic].name.toUpperCase();
+        this.tree.forEach(v => {if (!rootNode || v.tr) v.child = [];});
+        this.buildTree(lib.root, 0); let scr_pos = false;
+        this.tree.some((v, i) => {
+             if (v.name.toUpperCase() == nm) {
+                 sbar.check_scroll(i * ui.row_h);
+                 return scr_pos = true;
+            }
+        });
+        if (!scr_pos) {sbar.reset(); p.tree_paint();} lib.treeState(false, ppt.rememberTree);
     }
 
-    this.expand = function(ie, nm) {
-        var h = 0, m = 0; this.tree[ie].sel = true;
-        if (this.auto) {
-            var j = 0, par = 0, parent = [];
-            for (h = 0; h < this.tree.length; h++) if (this.tree[h].sel) {j = this.tree[h].tr; if (p.base) j -= 1; if (this.tree[h].tr != 0) {par = this.tree[h].par, pr_pr = []; for (m = 1; m < j + 1; m++) {if (m == 1) pr_pr[m] = par; else pr_pr[m] = this.tree[pr_pr[m - 1]].par; parent.push(pr_pr[m]);}}}
-            for (h = 0; h < this.tree.length; h++) if (!arr_contains(parent, h) && !this.tree[h].sel && (!p.base || this.tree[h].tr)) this.tree[h].child = [] ; this.buildTree(lib.root, 0);
+    this.expand = (ie, nm) => {
+        let h = 0, m = 0; this.tree[ie].sel = true;
+        if (ppt.autoCollapse) {
+            const parent = [], pr_pr = []; let j = 0, par = 0;
+            this.tree.forEach((v, j, arr) => {
+                if (v.sel) {
+                    j = v.tr; if (rootNode) j -= 1; if (v.tr != 0) {
+                        par = v.par; for (m = 1; m < j + 1; m++) {if (m == 1) pr_pr[m] = par; else pr_pr[m] = arr[pr_pr[m - 1]].par; parent.push(pr_pr[m]);}
+            }}});
+            this.tree.forEach((v, i) => {
+                if (!parent.includes(i) && !v.sel && (!rootNode || v.tr)) v.child = [];
+            });
+            this.buildTree(lib.root, 0);
         }
-        var start_l = this.tree.length, nodes = -1; m = this.tree.length; while (m--) if (this.tree[m].sel) {this.expandNodes(this.tree[m], !p.base || m ? false : true); nodes++} this.clear();
-        if (p.base && this.tree.length == 1) this.line_l = 0; sbar.set_rows(this.tree.length); p.tree_paint(); var nm_n = "";
-        for (h = 0; h < this.tree.length; h++) {nm_n = (this.tree[h].tr ? this.tree[this.tree[h].par].name : "") + this.tree[h].name; nm_n = nm_n.toUpperCase(); if (nm_n == nm) break;}
-        var new_items = this.tree.length - start_l + nodes, s = Math.round(sbar.scroll / ui.row_h + 0.4), n = Math.max(h - s, p.base ? 1 : 0);
-        if (n + 1 + new_items > sbar.rows_drawn) {if (new_items > (sbar.rows_drawn - 2)) sbar.check_scroll(h * ui.row_h); else sbar.check_scroll(Math.min(h * ui.row_h,(h + 1 - sbar.rows_drawn + new_items) * ui.row_h));}
-        if (sbar.scroll > h * ui.row_h) sbar.check_scroll(h * ui.row_h); lib.treeState(false, lib.rememberTree);
+        const start_l = this.tree.length; let nm_n = "", nodes = -1; m = this.tree.length; while (m--) if (this.tree[m].sel) {this.expandNodes(this.tree[m], !rootNode || m ? false : true); nodes++;} this.clear();
+        sbar.set_rows(this.tree.length); p.tree_paint();
+        this.tree.some((v, i, arr) => {
+            nm_n = (v.tr ? arr[v.par].name : "") + v.name; nm_n = nm_n.toUpperCase();
+            if (nm_n == nm) {h = i; return true;}
+        });
+        const new_items = this.tree.length - start_l + nodes, b = Math.round(sbar.scroll / ui.row_h + 0.4), n = Math.max(h - b, rootNode ? 1 : 0); let scrollChk = false;
+        if (n + 1 + new_items > this.rows) {scrollChk = true; if (new_items > this.rows - 2) sbar.check_scroll(h * ui.row_h); else sbar.check_scroll(Math.min(h * ui.row_h,(h + 1 - sbar.rows_drawn + new_items) * ui.row_h));}
+        if (sbar.scroll > h * ui.row_h) {scrollChk = true; sbar.check_scroll(h * ui.row_h);} if (!scrollChk) sbar.scroll_round(); lib.treeState(false, ppt.rememberTree);
     }
 
-    this.draw = function(gr) {
-        try {if (lib.empty) return gr.GdiDrawText(lib.empty, ui.font, ui.textcol, ui.margin, p.s_h, sbar.tree_w, ui.row_h * 5, 0x00000004 | 0x00000400);
-            if (!this.tree.length) return gr.GdiDrawText(lib.none, ui.font, ui.textcol, ui.margin, p.s_h, sbar.tree_w, ui.row_h, 0x00000004 | 0x00000400);
-            var item_x = 0, item_y = 0, item_w = 0, ln_x = ui.margin + Math.floor(ui.node_sz / 2) + (p.base ? ui.pad : 0), nm = "", s = Math.round(sbar.delta / ui.row_h + 0.4), f = s + p.rows; f = this.tree.length < f ? this.tree.length : f, sel_x = 0, sel_w = 0, y1 = Math.round(p.s_h - sbar.delta + p.node_y);
-            check_node(gr);
-            for (var i = s; i < f; i++) {
-                item_y = Math.round(ui.row_h * i + p.s_h - sbar.delta);
-                if (ui.alternate) {if (i % 2 == 0) gr.FillSolidRect(0, item_y + 1, sbar.stripe_w, ui.row_h - 2, ui.b1); else gr.FillSolidRect(0, item_y, sbar.stripe_w, ui.row_h, ui.b2);}
-                if (this.tree[i].sel && ui.backcolsel != 0) {
+    this.draw = gr => {
+        if (lib.empty) return gr.GdiDrawText(lib.empty, ui.font, ui.col.text, margin, p.s_h, sbar.tree_w, ui.row_h * 5, 0x00000004 | 0x00000400);
+        if (!this.tree.length) return gr.GdiDrawText(lib.none, ui.font, ui.col.text, margin, p.s_h, sbar.tree_w, ui.row_h, 0x00000004 | 0x00000400);
+        const b = s.clamp(Math.round(sbar.delta / ui.row_h + 0.4), 0, this.tree.length - 1), f = Math.min(b + p.rows, this.tree.length), ln_x = margin + Math.floor(ui.node_sz / 2) + (rootNode ? treeIndent : 0), nowp_c = [], row = [], y1 = Math.round(p.s_h - sbar.delta + p.node_y) + Math.floor(ui.node_sz / 2);
+        let i = 0, item_x = 0, item_y = 0, item_w = 0, nm = "", sel_x = 0, sel_w = 0;
+        checkNode(gr); if (!ui.nodeStyle) gr.SetTextRenderingHint(5); this.rows = 0;
+        if (ui.nodeStyle && ui.col.line) {
+			for (let j = 0; j <= this.tree[b].tr; j++) row[j] = b;
+			if (this.tree[b].tr > 0) {let top = this.tree[b].par; for (i = 1; i < this.tree[b].tr; i++) top = this.tree[top].par; if (this.tree[top].bot) row[0] = undefined;}
+        }
+        for (i = b; i < f; i++) {
+            if (showNowplaying && (!rootNode || rootNode && this.tree[i].tr) && this.tree[i].item.includes(this.nowp)) nowp_c.push(i);
+            item_y = Math.round(ui.row_h * i + p.s_h - sbar.delta);
+            if (item_y < p.f_y) {
+                this.rows++;
+                if (rowStripes) {if (i % 2 == 0) gr.FillSolidRect(0, item_y + 1, sbar.stripe_w, ui.row_h - 2, ui.col.b1); else gr.FillSolidRect(0, item_y, sbar.stripe_w, ui.row_h, ui.col.b2);}
+                if (this.tree[i].sel && ui.col.bgSel != 0) {
                     nm = this.tree[i].name + this.tree[i].count;
-                    item_x = Math.round(ui.pad * this.tree[i].tr + ui.margin) + ui.icon_w;
+                    item_x = Math.round(treeIndent * this.tree[i].tr + margin) + ui.icon_w;
                     item_w = gr.CalcTextWidth(nm, ui.font);
                     sel_x = item_x - ui.sel;
                     sel_w = Math.min(item_w + ui.sel * 2, sbar.tree_w - sel_x - 1);
-                    if (p.full_line) sel_w = sbar.tree_w - sel_x;
-                    if (!tt.Text || m_i != i && tt.Text) {gr.FillSolidRect(sel_x, item_y, sel_w, ui.row_h, ui.backcolsel);}
+                    if (fullLineSelection) sel_w = sbar.tree_w - sel_x;
+                    if ((!tt.Text || m_i != i && tt.Text) && !nowp_c.includes(i)) {gr.FillSolidRect(sel_x, item_y, sel_w, ui.row_h, ui.col.bgSel);}
                 }
-                if (ui.node_style && ui.linecol) {
-                    var end_br = [], j = this.tree[i].tr, l_x = 0, l_y = item_y + ui.row_h / 2; if (p.base) j -= 1;
-                    var h1 = this.tree[i].top ? ui.row_h / 4 : ui.row_h;
-                    if (this.tree[i].tr != 0) {
-                        var par = this.tree[i].par, pr_pr = [];
-                        for (var m = 1; m < j + 1; m++) {
-                            if (m == 1) pr_pr[m] = par; else pr_pr[m] = this.tree[pr_pr[m - 1]].par
-                            if (this.tree[pr_pr[m]].bot) end_br[m] = true; else end_br[m] = false;
+            }
+            if (ui.nodeStyle && ui.col.line) {
+                const l = this.tree[i].tr;
+                if (this.tree[i].top) row[l] = i;
+                if (this.tree[i].bot || i === f - 1) {
+                    for (let level = (i === f - 1 ? 0 : l); level <= l; level++) {
+                        if (row[level] !== undefined && (!rootNode || rootNode && this.tree[i].tr)) {
+                            let start = row[level];
+                            let end = i + (this.tree[i].bot && level === l ? .5 : 1);
+                            if (item_y >= p.f_y) end -= 1;
+                            const l_x = (Math.round(treeIndent * level + margin) + Math.floor(ui.node_sz / 2)), l_y = Math.round(ui.row_h * start + p.s_h - sbar.delta), l_h = Math.ceil(ui.row_h * (end - start)) + 1;
+                            gr.FillSolidRect(l_x, l_y, ui.l_w, l_h, ui.col.line);
                         }
                     }
-                    for (var k = 0; k < j + 1; k++) {
-                        if (this.tree[i].top && !k && !this.tree[i].track) h1 = ui.row_h / 2; else h1 = ui.row_h;
-                        if (!k && !j && this.tree[i].top && !this.tree[i].track) h1 = -ui.row_h / 4;
-                        if (this.tree[i].track && !k && this.tree[i].top) h1 = ui.row_h / 2
-                        if (!end_br[k] && k == 1) h1 = ui.row_h; if (end_br[k]) h1 = 0;
-                        var h3 = l_y - h1; if (h3 < p.s_h) h1 = p.s_h - h3;
-                        l_x = (Math.round(ui.pad * this.tree[i].tr + ui.margin) + Math.floor(ui.node_sz / 2)) - ui.pad * k;
-                        var h2 = ((!this.tree[i].bot && !k && this.tree[i].track && i == Math.ceil(f - 1)) ||
-                            (!this.tree[i].bot && !end_br[k] && !this.tree[i].track && i == Math.ceil(f - 1)) ||
-                            (k && !end_br[k] && i == f - 1)) ? ui.row_h / 2 : 0;
-                        if (k != j) gr.FillSolidRect(l_x, l_y - h1, 1, h1 + h2, ui.linecol);
-                    }
+                    if (this.tree[i].bot) row[l] = undefined;
                 }
             }
-            if (ui.node_style && ui.linecol) {
-                var top = p.base ? p.s_h + ui.row_h * 3 / 4 : p.s_h;
-                var ln_y = sbar.scroll == 0 ? top + p.node_y : p.s_h;
-                var ln_h = Math.min(this.line_l * ui.row_h - sbar.delta + (sbar.scroll == 0 ? (p.base ? -ui.row_h * 3 / 4 : 0) : p.node_y), ui.row_h * Math.ceil(p.rows) - (sbar.scroll == 0 ? (p.node_y + (p.base ? ui.row_h * 3 / 4 : 0)) : 0)); if (f == this.tree.length) ln_h += ui.row_h / 4; ln_h = Math.round(ln_h);
-                if (this.line_l) gr.FillSolidRect(ln_x, ln_y, 1, ln_h, ui.linecol);
-            }
-            for (i = s; i < f; i++) {
-                item_y = Math.round(ui.row_h * i + p.s_h - sbar.delta);
+        }
+        for (i = b; i < f; i++) {
+            item_y = Math.round(ui.row_h * i + p.s_h - sbar.delta);
+            if (item_y < p.f_y) {
                 nm = this.tree[i].name + this.tree[i].count;
-                item_x = Math.round(ui.pad * this.tree[i].tr + ui.margin);
+                item_x = Math.round(treeIndent * this.tree[i].tr + margin);
                 item_w = gr.CalcTextWidth(nm, ui.font);
-                if (tooltip && p.full_line) this.tree[i].tt_w = item_w;
-                if (ui.node_style) {
-                    var y2 = ui.row_h * i + y1 + Math.floor(ui.node_sz / 2);
+                if (tooltip && fullLineSelection) this.tree[i].tt_w = item_w;
+                if (ui.nodeStyle) {
                     if (!this.tree[i].track) {
-                        if (ui.linecol) gr.FillSolidRect(item_x + ui.node_sz, y2, ui.l_s1, 1, ui.linecol);
-                        draw_node(gr, this.tree[i].child.length < 1 ? m_br != i ? 0 : 2 : m_br != i ? 1 : 3, item_x, item_y + p.node_y);
-                    } else if (ui.linecol) gr.FillSolidRect(item_x + ui.l_s2, y2, ui.l_s3, 1, ui.linecol);
-                } else if (!this.tree[i].track) {gr.SetTextRenderingHint(5); gr.DrawString(this.tree[i].child.length < 1 ? ui.expand : ui.collapse, ui.icon_font, m_br == i && ui.hot ? ui.iconcol_h : this.tree[i].child.length < 1 ? ui.iconcol_e : ui.iconcol_c, item_x, item_y + ui.icon_pad, sbar.tree_w - item_x, ui.row_h, p.s_lc);}
+                        const y2 = ui.row_h * i + y1 - ui.l_wc;
+                        if (ui.col.line) gr.FillSolidRect(item_x + ui.node_sz, y2, ui.l_s1, ui.l_w, ui.col.line);
+                        drawNode(gr, this.tree[i].child.length < 1 ? m_br != i ? 0 : 2 : m_br != i ? 1 : 3, item_x, item_y + p.node_y);
+                    } else if (ui.col.line) {
+                        const y2 = Math.round(p.s_h - sbar.delta) + Math.ceil(ui.row_h * (i + 0.5)) - ui.l_wc;
+                        gr.FillSolidRect(item_x + ui.l_s2, y2, ui.l_s3, ui.l_w, ui.col.line);
+                    }
+                } else if (!this.tree[i].track) {gr.DrawString(this.tree[i].child.length < 1 ? ui.expand : ui.collapse, ui.iconFont, m_br == i && nodeHighlight ? ui.col.icon_h : this.tree[i].child.length < 1 ? ui.col.icon_e : ui.col.icon_c, item_x, item_y + iconVerticalPad, sbar.tree_w - item_x, ui.row_h, p.s_lc);}
                 item_x += ui.icon_w;
-                if (!tt.Text) {if (m_i == i) {sel_x = item_x - ui.sel; sel_w = Math.min(item_w + ui.sel * 2, sbar.tree_w - sel_x - 1); if (p.full_line) sel_w = sbar.tree_w - sel_x - 1; gr.FillSolidRect(sel_x, item_y, sel_w, ui.row_h, ui.backcol_h); gr.DrawRect(sel_x, item_y, sel_w, ui.row_h, 1, ui.framecol);}}
-                if (p.full_line) item_w = sbar.tree_w - item_x;
+                let txt_c = nowp_c.includes(i);
+                if (!tt.Text) {if (m_i == i || txt_c && this.tree[i].sel) {sel_x = item_x - ui.sel; sel_w = Math.min(item_w + ui.sel * 2, sbar.tree_w - sel_x - 1); if (fullLineSelection) sel_w = sbar.tree_w - sel_x - 1; gr.FillSolidRect(sel_x, item_y, sel_w, ui.row_h, ui.col.bg_h); gr.DrawRect(sel_x, item_y, sel_w, ui.row_h, 1, ui.col.frame);}}
+                if (fullLineSelection) item_w = sbar.tree_w - item_x;
                 this.tree[i].w = item_w;
-                var txt_c = this.tree[i].sel ? ui.textselcol : m_i == i ? ui.textcol_h : ui.textcol;
-                if (!ui.countscol) gr.GdiDrawText(nm, ui.font, txt_c, item_x, item_y, sbar.tree_w - item_x - ui.sel, ui.row_h, p.lc);
+                txt_c = txt_c ? ui.col.nowp : this.tree[i].sel ? ui.col.textSel : m_i == i ? ui.col.text_h : ui.col.text;
+                if (!ui.col.counts) gr.GdiDrawText(nm, ui.font, txt_c, item_x, item_y, sbar.tree_w - item_x - ui.sel, ui.row_h, p.lc);
                 else {
-                    var name_w = gr.CalcTextWidth(this.tree[i].name, ui.font);
+                    const name_w = gr.CalcTextWidth(this.tree[i].name, ui.font);
                     gr.GdiDrawText(this.tree[i].name, ui.font, txt_c, item_x, item_y, sbar.tree_w - item_x - ui.sel, ui.row_h, p.lc);
-                    gr.GdiDrawText(this.tree[i].count, ui.font, ui.countscol, item_x + name_w, item_y, sbar.tree_w - item_x - ui.sel - name_w, ui.row_h, p.lc);
+                    gr.GdiDrawText(this.tree[i].count, ui.font, ui.col.counts, item_x + name_w, item_y, sbar.tree_w - item_x - ui.sel - name_w, ui.row_h, p.lc);
                 }
-            }} catch (e) {}
+            }
+        }
     }
 
-    this.send = function(item, x, y) {
+	const nodeExpColl = (x, y, item, ix) => {
+		const expanded = item.child.length > 0 ? 1 : 0;
+		switch (expanded) {
+			case 0:
+				if (ppt.autoCollapse) branch_chg(item, false, true);
+				const row = this.row(y);
+				this.branch(item, !rootNode || ix ? false : true, true); if (!ix) p.setHeight(true);
+				if (ppt.autoCollapse) ix = item.ix;
+				if (row + 1 + item.child.length > this.rows) {
+					if (item.child.length > (this.rows - 2)) sbar.check_scroll(ix * ui.row_h);
+					else sbar.check_scroll(Math.min(ix * ui.row_h,(ix + 1 - sbar.rows_drawn + item.child.length) * ui.row_h));
+				} break;
+			case 1: this.clear_child(item); if (!ix && this.tree.length == 1) p.setHeight(false); break;
+		}
+		if (sbar.scroll > ix * ui.row_h) sbar.check_scroll(ix * ui.row_h); checkRow(x, y);
+	}
+
+    const send = (item, x, y) => {
         if (!this.check_ix(item, x, y, false)) return;
-        if (v.k(1)) this.load(this.sel_items, true, false, false, this.gen_pl, false);
-        else if (v.k(0)) this.load(this.sel_items, true, false, false, this.gen_pl, false);
-        else this.load(item.item, true, false, false, this.gen_pl, false);
+        if (vk.k('ctrl')) this.load(this.sel_items, true, false, false, ppt.sendPlaylist, false);
+        else if (vk.k('shift')) this.load(this.sel_items, true, false, false, ppt.sendPlaylist, false);
+        else this.load(item.item, true, false, this.autoPlay.click, ppt.sendPlaylist, false);
     }
 
-    this.track = function(item, x, y) {
+    const track = (item, x, y) => {
         if (!this.check_ix(item, x, y, false)) return;
-        if (v.k(1)) this.tracking(this.sel_items, true);
-        else if (v.k(0)) this.tracking(this.sel_items, true);
-        else this.tracking(item.item, true);
+        if (vk.k('ctrl')) tracking(this.sel_items);
+        else if (vk.k('shift')) tracking(this.sel_items);
+        else tracking(item.item);
     }
 
-    this.lbtn_dn = function(x, y) {
-        lbtn_dn = false; sent = false; if (y < p.s_h) return; var ix = this.get_ix(x, y, true, false); p.pos = ix; if (ix >= this.tree.length || ix < 0)  return this.get_selection(-1);
-        var item = this.tree[ix], mode = x < Math.round(ui.pad * item.tr) + ui.icon_w + ui.margin ? 0 : this.check_ix(item, x, y, false) ? 1 : 2, xp = item.child.length > 0 ? 0 : 1;
-        switch (mode) {
-            case 0:
-                switch (xp) {
-                    case 0: this.clear_child(item); if (!ix && this.tree.length == 1) p.setHeight(false); break;
-                    case 1:
-                        if (this.auto) this.branch_chg(item, false, true);
-                        var row = this.row(y);
-                        this.branch(item, !p.base || ix ? false : true, true); if (!ix) p.setHeight(true);
-                        if (this.auto) ix = item.ix
-                        if (row + 1 + item.child.length > sbar.rows_drawn) {
-                            if (item.child.length > (sbar.rows_drawn - 2)) sbar.check_scroll(ix * ui.row_h);
-                            else sbar.check_scroll(Math.min(ix * ui.row_h,(ix + 1 - sbar.rows_drawn + item.child.length) * ui.row_h));
-                        } break;
-                }
-                if (sbar.scroll > ix * ui.row_h) sbar.check_scroll(ix * ui.row_h); this.check_row(x, y);
-                break;
-            case 1:
+    this.lbtn_dn = (x, y) => {
+        lbtn_dn = false; dbl_clicked = false; if (y < p.s_h) return; let ix = this.get_ix(x, y, true, false); p.pos = ix; if (ix >= this.tree.length || ix < 0) return;
+        if (ppt.touchControl) {ui.drag_drop_id = ui.touch_dn_id = ix;}
+        const item = this.tree[ix];
+        switch (clickedOn(x, y, item)) {
+            case 'node': nodeExpColl(x, y, item, ix); break;
+            case 'text':
                 last_pressed_coord.x = x; last_pressed_coord.y = y; lbtn_dn = true;
-                if (v.k(2) && this.autoFill) return;
-                if (!item.sel && !v.k(1)) this.get_selection(ix, item.sel);
+                if (ppt.touchControl) break;
+                if (vk.k('alt') && this.autoFill.mouse) return;
+                if (!item.sel && !vk.k('ctrl')) get_selection(ix, item.sel);
                 break;
         }
-        lib.treeState(false, lib.rememberTree);
+        lib.treeState(false, ppt.rememberTree);
     }
 
-    this.lbtn_up = function(x, y) {
+    this.lbtn_up = (x, y) => {
         last_pressed_coord = {x: undefined, y: undefined}; lbtn_dn = false;
-        if (y < p.s_h || sent || but.Dn) return; var ix = this.get_ix(x, y, true, false); p.pos = ix; if (ix >= this.tree.length || ix < 0)  return this.get_selection(-1);
-        var item = this.tree[ix], mode = x < Math.round(ui.pad * item.tr) + ui.icon_w + ui.margin ? 0 : this.check_ix(item, x, y, false) ? 1 : 2, xp = item.child.length > 0 ? 0 : 1;
-        if (mode != 1) return;
-        if (v.k(2) && this.autoFill) return this.add(x, y, alt_lbtn_pl);
-        if (!v.k(1)) {this.clear(); if (!item.sel) this.get_selection(ix, item.sel);}
-        else this.get_selection(ix, item.sel); p.tree_paint();
-        lib.treeState(false, lib.rememberTree);
-        if (this.autoFill) this.send(item, x, y); else this.track(item, x, y);
+        if (y < p.s_h || dbl_clicked || but.Dn) return; const ix = this.get_ix(x, y, true, false); p.pos = ix; if (ix >= this.tree.length || ix < 0) return; if (ppt.touchControl && (this.autoFill.mouse || this.autoPlay.click) && ui.touch_dn_id != ix) return;
+        const item = this.tree[ix];
+        if (clickedOn(x, y, item) != 'text') return;
+        if (vk.k('alt')) return add(x, y, ppt.altClickPlaylist);
+        if (!vk.k('ctrl')) {this.clear(); if (!item.sel) get_selection(ix, item.sel);}
+        else get_selection(ix, item.sel);
+        if (this.autoFill.mouse || this.autoPlay.click) {window.Repaint(true); send(item, x, y);} else {p.tree_paint(); track(item, x, y);}
+        lib.treeState(false, ppt.rememberTree);
     }
 
-    this.dragDrop = function(x, y) {
+    this.dragDrop = (x, y) => {
         if (!lbtn_dn) return;
-        if (Math.sqrt((Math.pow(last_pressed_coord.x - x, 2) + Math.pow(last_pressed_coord.y - y, 2))) > 7) {
+        const mv = !ppt.touchControl ? Math.sqrt((Math.pow(last_pressed_coord.x - x, 2) + Math.pow(last_pressed_coord.y - y, 2))) : Math.abs(x - last_pressed_coord.x);
+        if (mv > 7) {
+            if (ppt.touchControl) {
+                const ix = this.get_ix(x, y, true, false), item = this.tree[ix];
+                if (ui.drag_drop_id != ix || ix >= this.tree.length || ix < 0) return;
+                if (!item.sel && !vk.k('ctrl')) get_selection(ix, item.sel);
+            }
             last_pressed_coord = {x: undefined, y: undefined}
-            var handle_list = this.getHandles();
-            var effect = fb.DoDragDrop(handle_list, handle_list.Count ? 0|1 : 0);
+			const handleList = this.selected(), effect = fb.DoDragDrop(window.ID, handleList, handleList.Count ? 1|4 : 0);
             lbtn_dn = false;
         }
     }
 
-    this.lbtn_dblclk = function(x, y) {
-        sent = true;
-        if (y < p.s_h) return; var ix = this.get_ix(x, y, true, false); if (ix >= this.tree.length || ix < 0) return;
-        var item = this.tree[ix];
-        if (!this.autoFill) this.send(item, x, y);
-        if (!this.check_ix(item, x, y, false) || dbl_action == 2) return; var mp = 1;
-        if (!dbl_action) {
-            if (item.child.length) mp = 0;
-            switch (mp) {
-                case 0: this.clear_child(item); if (!ix && this.tree.length == 1) p.setHeight(false); break;
-                case 1:
-                    if (this.auto) this.branch_chg(item, false, true); if (!ix) p.setHeight(true);
-                    var row = this.row(y);
-                    this.branch(item, !p.base || ix ? false : true, true);
-                    if (this.auto) ix = item.ix
-                    if (row + 1 + item.child.length > sbar.rows_drawn) {
-                        if (item.child.length > (sbar.rows_drawn - 2)) sbar.check_scroll(ix * ui.row_h);
-                        else sbar.check_scroll(Math.min(ix * ui.row_h,(ix + 1 - sbar.rows_drawn + item.child.length) * ui.row_h));
-                    } break;
-            }
-            if (sbar.scroll > ix * ui.row_h) sbar.check_scroll(ix * ui.row_h); lib.treeState(false, lib.rememberTree);
-        }
-        if (dbl_action || !dbl_action && mp == 1 && !item.child.length) {var pln = plman.FindOrCreatePlaylist(lib_playlist, false); if (!this.gen_pl) pln = plman.ActivePlaylist; else plman.ActivePlaylist = pln; plman.ActivePlaylist = pln; var c = (plman.PlaybackOrder == 3 || plman.PlaybackOrder == 4) ? Math.ceil(plman.PlaylistItemCount(pln) * Math.random() - 1) : 0; plman.ExecutePlaylistDefaultAction(pln, c);}
+    this.lbtn_dblclk = (x, y) => {
+		if (this.autoPlay.click > 2) return;
+        dbl_clicked = true;
+        if (y < p.s_h) return; let ix = this.get_ix(x, y, true, false); if (ix >= this.tree.length || ix < 0) return;
+        const item = this.tree[ix];
+		switch (clickedOn(x, y, item)) {
+            case 'node': nodeExpColl(x, y, item, ix); break;
+			case 'text':
+				if (!this.check_ix(item, x, y, false)) return;
+				if (ppt.dblClickAction == 2 && !this.autoFill.mouse && !this.autoPlay.click) return send(item, x, y); let expanded = 0;
+				if (!ppt.dblClickAction && !item.track) {
+					if (item.child.length) expanded = 1;
+					switch (expanded) {
+						case 0:
+							if (ppt.autoCollapse) branch_chg(item, false, true); if (!ix) p.setHeight(true);
+							const row = this.row(y);
+							this.branch(item, !rootNode || ix ? false : true, true);
+							if (ppt.autoCollapse) ix = item.ix;
+							if (row + 1 + item.child.length > this.rows) {
+								if (item.child.length > (this.rows - 2)) sbar.check_scroll(ix * ui.row_h);
+								else sbar.check_scroll(Math.min(ix * ui.row_h, (ix + 1 - sbar.rows_drawn + item.child.length) * ui.row_h));
+							} break;
+						case 1: this.clear_child(item); if (!ix && this.tree.length == 1) p.setHeight(false); break;
+					}
+					if (sbar.scroll > ix * ui.row_h) sbar.check_scroll(ix * ui.row_h); lib.treeState(false, ppt.rememberTree);
+				}
+				if (ppt.dblClickAction == 2 || this.autoPlay.click == 2) return;
+				if (ppt.dblClickAction || !ppt.dblClickAction && item.track) {
+					if (!this.autoFill.mouse) send(item, x, y);
+					let pln = plman.FindOrCreatePlaylist(ppt.libPlaylist, false); if (!ppt.sendPlaylist) pln = plman.ActivePlaylist; else plman.ActivePlaylist = pln; plman.ActivePlaylist = pln;
+					const c = (plman.PlaybackOrder == 3 || plman.PlaybackOrder == 4) ? Math.ceil(plman.PlaylistItemCount(pln) * Math.random() - 1) : 0; plman.ExecutePlaylistDefaultAction(pln, c);
+				}
+				break;
+		}
     }
 
-    this.get_selection = function(idx, state, add, bypass) {
-        var sel_type = idx == -1 && !add ? 0 : v.k(0) && last_sel > -1 && !bypass ? 1 : v.k(1) && !bypass ? 2 : !state ? 3 : 0;
+    const get_selection = (idx, state, add, bypass) => {
+        const sel_type = idx == -1 && !add ? 0 : vk.k('shift') && last_sel > -1 && !bypass ? 1 : vk.k('ctrl') && !bypass ? 2 : !state ? 3 : 0;
         switch (sel_type) {
             case 0: this.clear(); this.sel_items = []; break;
-            case 1: var direction = (idx > last_sel) ? 1 : -1; if (!v.k(1)) this.clear(); for (var i = last_sel; ; i += direction) {this.tree[i].sel = true; if (i == idx) break;} this.get_sel_items(); p.tree_paint(); break;
+            case 1: const direction = (idx > last_sel) ? 1 : -1; if (!vk.k('ctrl')) this.clear(); for (let i = last_sel; ; i += direction) {this.tree[i].sel = true; if (i == idx) break;} this.get_sel_items(); p.tree_paint(); break;
             case 2: this.tree[idx].sel = !this.tree[idx].sel; this.get_sel_items(); last_sel = idx; break;
             case 3: this.sel_items = []; if (!add) this.clear(); if (!add) this.tree[idx].sel = true; this.sel_items.push.apply(this.sel_items, this.tree[idx].item); this.sel_items = uniq(this.sel_items); last_sel = idx; break;
         }
     }
 
-    this.move = function(x, y) {
+    this.move = (x, y) => {
         if (but.Dn) return;
-        var ix = this.get_ix(x, y, false, false); get_pos = this.check_row(x, y); m_i = -1;
-        if (ix != -1) {m_i = ix; if (tooltip) this.activate_tooltip(ix, y);}
-        if (m_i == ix_o && m_br == row_o) return;
+        const ix = this.get_ix(x, y, false, false); get_pos = checkRow(x, y); m_i = -1;
+        if (ix != -1) {m_i = ix; if (tooltip) activate_tooltip(ix, y);}
+        if (m_i == ix_o && m_br == row_o && !sbar.touch.dn) return;
         tt_id = -1; if (tooltip && tt.Text) this.deactivate_tooltip();
-        if (!sbar.draw_timer) p.tree_paint();
+        if (!sbar.draw_timer && (m_i != ix_o || m_br != row_o)) p.tree_paint();
         ix_o = m_i; row_o = m_br;
     }
 
-    this.get_ix = function(x, y, simple, type) {
-        var ix;
-        if (y > p.s_h && y < p.s_h + p.sp) ix = this.row(y + sbar.delta); else ix = -1;
+    this.get_ix = (x, y, simple, type) => {
+        let ix;
+        if (y > sbar.item_y && y < sbar.item_y + this.rows * ui.row_h) ix = Math.round((y + sbar.delta - p.s_h - ui.row_h * 0.5) / ui.row_h); else ix = -1;
         if (simple) return ix;
-        if (this.tree.length > ix && ix >= 0 && x < sbar.tree_w && y > p.s_h && y < p.s_h + p.sp && this.check_ix(this.tree[ix], x, y, type)) return ix;
+        if (this.tree.length > ix && ix >= 0 && x < sbar.tree_w && y > sbar.item_y && y < sbar.item_y + this.rows * ui.row_h && this.check_ix(this.tree[ix], x, y, type)) return ix;
         else return -1;
     }
 
-    this.check_ix = function(br, x, y, type) {
+    this.check_ix = (br, x, y, type) => {
         if (!br) return false;
-        return type ? (x >= Math.round(ui.pad * br.tr + ui.margin) && x < Math.round(ui.pad * br.tr + ui.margin) + br.w + ui.icon_w)
-            : (x >= Math.round(ui.pad * br.tr + ui.margin) + ui.icon_w) && x < Math.min(Math.round(ui.pad * br.tr + ui.margin) + ui.icon_w + br.w, sbar.tree_w);
+        return type ? (x >= Math.round(treeIndent * br.tr + margin) && x < Math.round(treeIndent * br.tr + margin) + br.w + ui.icon_w)
+        : (x >= Math.round(treeIndent * br.tr + margin) + ui.icon_w) && x < Math.min(Math.round(treeIndent * br.tr + margin) + ui.icon_w + br.w, sbar.tree_w);
     }
 
-    this.on_key_down = function(vkey) {
-        if (p.s_search) return;
+    this.on_key_down = vkey => {
+        if (p.search) return;
+        if (vk.k('enter')) {
+            if (!this.sel_items.length) return;
+            switch (true) {
+               case vk.k('shift'): return this.load(this.sel_items, true, true, false, false, false);
+               case vk.k('ctrl'): return this.load(this.sel_items, true, true, false, false, true);
+               default: return this.load(this.sel_items, true, false, this.autoPlay.send, false, false);
+            }
+        }
+        let item = -1, row = -1;
         switch(vkey) {
-            case v.left:
-                if (!(p.pos >= 0) && get_pos != -1) p.pos = get_pos
+            case vk.left:
+                if (!(p.pos >= 0) && get_pos != -1) p.pos = get_pos;
                 else p.pos = p.pos + this.tree.length % this.tree.length;
-                p.pos = Math.max(Math.min(p.pos, this.tree.length - 1), 0); get_pos = -1; m_i = -1;
-                if ((this.tree[p.pos].tr == (p.base ? 1 : 0)) && this.tree[p.pos].child.length < 1) break;
-                if (this.tree[p.pos].child.length > 0) {var item = this.tree[p.pos]; this.clear_child(item); this.get_selection(item.ix); m_i = p.pos = item.ix;}
-                else {try {var item = this.tree[this.tree[p.pos].par]; this.clear_child(item); this.get_selection(item.ix); m_i = p.pos = item.ix;} catch (e) {return;};}
-                p.tree_paint(); if (this.autoFill) this.load(this.sel_items, true, false, false, this.gen_pl, false);
-                sbar.set_rows(this.tree.length); if (sbar.scroll > p.pos * ui.row_h) sbar.check_scroll(p.pos * ui.row_h); lib.treeState(false, lib.rememberTree);
-                break;
-            case v.right:
-                if (!(p.pos >= 0) && get_pos != -1) p.pos = get_pos
-                else p.pos = p.pos + this.tree.length % this.tree.length;
-                p.pos = Math.max(Math.min(p.pos, this.tree.length - 1), 0); get_pos = -1; m_i = -1;
-                var item = this.tree[p.pos]; if (this.auto) this.branch_chg(item, false, true);
-                this.branch(item, p.base && p.pos == 0 ? true : false, true);
-                this.get_selection(item.ix); p.tree_paint(); m_i = p.pos = item.ix;
-                if (this.autoFill) this.load(this.sel_items, true, false, false, this.gen_pl, false);
+                p.pos = s.clamp(p.pos, 0, this.tree.length - 1); get_pos = -1; m_i = -1;
+                if ((this.tree[p.pos].tr == (rootNode ? 1 : 0)) && this.tree[p.pos].child.length < 1) break;
+                if (this.tree[p.pos].child.length > 0) {item = this.tree[p.pos]; this.clear_child(item); get_selection(item.ix); m_i = p.pos = item.ix;}
+                else {item = this.tree[this.tree[p.pos].par]; this.clear_child(item); get_selection(item.ix); m_i = p.pos = item.ix;}
+                p.tree_paint(); if (this.autoFill.key) this.load(this.sel_items, true, false, false, ppt.sendPlaylist, false);
                 sbar.set_rows(this.tree.length);
-                var row = (p.pos * ui.row_h - sbar.scroll) / ui.row_h;
-                if (row + item.child.length > sbar.rows_drawn) {
-                    if (item.child.length > (sbar.rows_drawn - 2)) sbar.check_scroll(p.pos * ui.row_h);
-                    else sbar.check_scroll(Math.min(p.pos * ui.row_h,(p.pos + 1 - sbar.rows_drawn + item.child.length) * ui.row_h));
-                } lib.treeState(false, lib.rememberTree);
+                if (sbar.scroll > p.pos * ui.row_h) sbar.check_scroll(p.pos * ui.row_h);
+                else sbar.scroll_round(); lib.treeState(false, ppt.rememberTree);
                 break;
-            case v.pgUp: if (this.tree.length == 0) break; p.pos = Math.round(sbar.scroll / ui.row_h + 0.4) - Math.floor(p.rows); p.pos = Math.max(!p.base ? 0 : 1, p.pos); sbar.wheel(1, true); this.get_selection(this.tree[p.pos].ix); p.tree_paint(); if (this.autoFill) this.load(this.sel_items, true, false, false, this.gen_pl, false); lib.treeState(false, lib.rememberTree); break;
-            case v.pgDn: if (this.tree.length == 0) break; p.pos = Math.round(sbar.scroll / ui.row_h + 0.4); p.pos = p.pos + Math.floor(p.rows) * 2 - 1; p.pos = this.tree.length < p.pos ? this.tree.length - 1 : p.pos; sbar.wheel(-1, true); this.get_selection(this.tree[p.pos].ix); p.tree_paint(); if (this.autoFill) this.load(this.sel_items, true, false, false, this.gen_pl, false); lib.treeState(false, lib.rememberTree); break;
-            case v.home: if (this.tree.length == 0) break; p.pos = !p.base ? 0 : 1; sbar.check_scroll(0); this.get_selection(this.tree[p.pos].ix); p.tree_paint(); if (this.autoFill) this.load(this.sel_items, true, false, false, this.gen_pl, false); lib.treeState(false, lib.rememberTree); break;
-            case v.end: if (this.tree.length == 0) break; p.pos = this.tree.length - 1; sbar.check_scroll((this.tree.length) * ui.row_h); this.get_selection(this.tree[p.pos].ix); p.tree_paint(); if (this.autoFill) this.load(this.sel_items, true, false, false, this.gen_pl, false); lib.treeState(false, lib.rememberTree); break;
-            case v.enter: if (!this.sel_items.length) return; this.load(this.sel_items, true, false, true, this.gen_pl, false); break;
-            case v.dn: case v.up:
-            if (this.tree.length == 0) break;
-            if ((p.pos == 0 && get_pos == -1 && vkey == v.up) || (p.pos == this.tree.length - 1 && vkey == v.dn)) {this.get_selection(-1); break;}
-            if (get_pos != -1) p.pos = get_pos;
-            else p.pos = p.pos + this.tree.length % this.tree.length;
-            get_pos = -1; m_i = -1; if (vkey == v.dn) p.pos++; if (vkey == v.up) p.pos--;
-            p.pos = Math.max(Math.min(p.pos, this.tree.length - 1), !p.base ? 0 : 1);
-            var row = (p.pos * ui.row_h - sbar.scroll) / ui.row_h;
-            if (sbar.rows_drawn - row < 3) sbar.check_scroll((p.pos + 3) * ui.row_h - sbar.rows_drawn * ui.row_h);
-            else if (row < 2 && vkey == v.up) sbar.check_scroll((p.pos - 1) * ui.row_h);
-            m_i = p.pos; this.get_selection(p.pos); p.tree_paint();
-            if (this.autoFill) this.load(this.sel_items, true, false, false, this.gen_pl, false); lib.treeState(false, lib.rememberTree);
-            break;
+            case vk.right:
+                if (!(p.pos >= 0) && get_pos != -1) p.pos = get_pos;
+                else p.pos = p.pos + this.tree.length % this.tree.length;
+                p.pos = s.clamp(p.pos, 0, this.tree.length - 1); get_pos = -1; m_i = -1;
+                item = this.tree[p.pos]; if (ppt.autoCollapse) branch_chg(item, false, true);
+                this.branch(item, rootNode && p.pos == 0 ? true : false, true);
+                get_selection(item.ix); p.tree_paint(); m_i = p.pos = item.ix;
+                if (this.autoFill.key) this.load(this.sel_items, true, false, false, ppt.sendPlaylist, false);
+                sbar.set_rows(this.tree.length);
+                row = (p.pos * ui.row_h - sbar.scroll) / ui.row_h;
+                if (row + 1 + item.child.length > sbar.rows_drawn) {
+                    if (item.child.length > (sbar.rows_drawn - 2)) sbar.check_scroll(p.pos * ui.row_h);
+                    else sbar.check_scroll(Math.min(p.pos * ui.row_h, (p.pos + 1 - sbar.rows_drawn + item.child.length) * ui.row_h));
+                } else sbar.scroll_round(); lib.treeState(false, ppt.rememberTree);
+                break;
+            case vk.pgUp: if (this.tree.length == 0) break; p.pos = Math.max(Math.round(sbar.scroll / ui.row_h + 0.4) - Math.floor(p.rows) + 1, !rootNode ? 0 : 1); sbar.page_throttle(1); get_selection(this.tree[p.pos].ix); p.tree_paint(); if (this.autoFill.key) this.load(this.sel_items, true, false, false, ppt.sendPlaylist, false); lib.treeState(false, ppt.rememberTree); break;
+            case vk.pgDn: if (this.tree.length == 0) break; p.pos = Math.min(Math.round(sbar.scroll / ui.row_h + 0.4) + Math.floor(p.rows) * 2 - 2, this.tree.length - 1); sbar.page_throttle(-1); get_selection(this.tree[p.pos].ix); p.tree_paint(); if (this.autoFill.key) this.load(this.sel_items, true, false, false, ppt.sendPlaylist, false); lib.treeState(false, ppt.rememberTree); break;
+            case vk.home: if (this.tree.length == 0) break; p.pos = !rootNode ? 0 : 1; sbar.check_scroll(0); get_selection(this.tree[p.pos].ix); p.tree_paint(); if (this.autoFill.key) this.load(this.sel_items, true, false, false, ppt.sendPlaylist, false); lib.treeState(false, ppt.rememberTree); break;
+            case vk.end: if (this.tree.length == 0) break; p.pos = this.tree.length - 1; sbar.scroll_to_end(); get_selection(this.tree[p.pos].ix); p.tree_paint(); if (this.autoFill.key) this.load(this.sel_items, true, false, false, ppt.sendPlaylist, false); lib.treeState(false, ppt.rememberTree); break;
+            case vk.dn: case vk.up:
+                if (this.tree.length == 0) break;
+                if ((p.pos == 0 && get_pos == -1 && vkey == vk.up) || (p.pos == this.tree.length - 1 && vkey == vk.dn)) {get_selection(-1); break;}
+                if (get_pos != -1) p.pos = get_pos;
+                else p.pos = p.pos + this.tree.length % this.tree.length;
+                get_pos = -1; m_i = -1; if (vkey == vk.dn) p.pos++; if (vkey == vk.up) p.pos--;
+                p.pos = s.clamp(p.pos, !rootNode ? 0 : 1, this.tree.length - 1);
+                row = (p.pos * ui.row_h - sbar.scroll) / ui.row_h;
+                if (sbar.rows_drawn - row < 3) sbar.check_scroll((p.pos + 3) * ui.row_h - sbar.rows_drawn * ui.row_h);
+                else if (row < 2 && vkey == vk.up) sbar.check_scroll((p.pos - 1) * ui.row_h);
+                m_i = p.pos; get_selection(p.pos); p.tree_paint();
+                if (this.autoFill.key) this.load(this.sel_items, true, false, false, ppt.sendPlaylist, false); lib.treeState(false, ppt.rememberTree);
+                break;
         }
     }
 
-    this.on_main_menu = function(index) {
-        if (index == addIX) {this.get_sel_items(); if (!this.sel_items.length) return; this.load(this.sel_items, true, true, false, this.gen_pl, false);}
-        if (index == collapseAllIX) {this.collapseAll();}
-        if (index == insertIX) {this.get_sel_items(); if (!this.sel_items.length) return; this.load(this.sel_items, true, true, false, this.gen_pl, true);}
-        if (index == searchClearIX && p.s_show) {sL.clear();}
-        if (index == searchFocusIX && is_focused && p.s_show) {sL.searchFocus();}
+    this.on_main_menu = index => {
+		if (index == addIX) {this.get_sel_items(); if (!this.sel_items.length) return; this.load(this.sel_items, true, true, false, false, false);}
+        if (index == collapseAllIX) this.collapseAll();
+		if (index == insertIX) {this.get_sel_items(); if (!this.sel_items.length) return; this.load(this.sel_items, true, true, false, false, true);}
+        if (index == searchClearIX && ppt.searchShow) sL.clear();
+        if (index == searchFocusIX && is_focused && ppt.searchShow) sL.searchFocus();
     }
 }
-var pop = new populate();
 
-function on_size() {
-    ui.w = window.Width; ui.h = window.Height;
-    if (!ui.w || !ui.h) return;
-    ui.blurReset();
-    ui.get_font();
-    p.on_size();
-    pop.create_tooltip();
-    if (p.s_show || ui.scrollbar_show) but.refresh(true);
-    jS.on_size();
-}
+function SearchLibrary(searchShow) {
+    if (!searchShow) return;
+    const doc = new ActiveXObject('htmlfile'), lg = [];
+    let cx = 0, f = 0, i = 0, lbtn_dn = false, log = [], offset = 0, b = 0, shift = false, shift_x = 0, txt_w = 0;
 
-function searchLibrary() {
-    var cx = 0, doc = new ActiveXObject('htmlfile'), f = 0, expand_limit = Math.min(Math.max(window.GetProperty("ADV.Limit Search Results Auto Expand: 10-1000", 350), 10), 1000), i = 0, lbtn_dn = false, lg = [], log = [], offset = 0, s = 0, shift = false, shift_x = 0, txt_w = 0;
-    var calc_text = function () {var im = gdi.CreateImage(1, 1), g = im.GetGraphics(); txt_w = g.CalcTextWidth(p.s_txt.substr(offset), ui.font); im.ReleaseGraphics(g);}
-    var drawcursor = function (gr) {if( p.s_search && p.s_cursor && s == f && cx >= offset) {var x1 = p.s_x + get_cursor_x(cx), x2 = x1; gr.DrawLine(x1, p.s_sp * 0.1, x2, p.s_sp * 0.85, 1, ui.textcol);}}
-    var drawsel = function(gr) {if (s == f) return; var clamp = p.s_x + p.s_w2; gr.DrawLine(Math.min(p.s_x + get_cursor_x(s), clamp), p.s_sp / 2, Math.min(p.s_x + get_cursor_x(f), clamp), p.s_sp / 2, ui.row_h - 3, ui.ibeamcol2);}
-    var get_cursor_pos = function (x) {var im = gdi.CreateImage(1, 1), g = im.GetGraphics(), nx = x - p.s_x, pos = 0; for (i = offset; i < p.s_txt.length; i++) {pos += g.CalcTextWidth(p.s_txt.substr(i,1), ui.font); if (pos >= nx + 3) break;} im.ReleaseGraphics(g); return i;}
-    var get_cursor_x = function (pos) {var im = gdi.CreateImage(1, 1), g = im.GetGraphics(), x = 0; if (pos >= offset) x = g.CalcTextWidth(p.s_txt.substr(offset, pos - offset), ui.font); im.ReleaseGraphics(g);  return x;}
-    var get_offset = function (gr) {var t = gr.CalcTextWidth(p.s_txt.substr(offset, cx - offset), ui.font); var j = 0; while (t >= p.s_w2 && j < 500) {j++; offset++; t = gr.CalcTextWidth(p.s_txt.substr(offset, cx - offset), ui.font);}}
-    var record = function() {lg.push(p.s_txt); log = []; if (lg.length > 30) lg.shift();}
-    this.clear = function() {lib.time.Reset(); pop.subCounts.search = {}; offset = s = f = cx = 0; p.s_cursor = false; p.s_search = false; p.s_txt = ""; p.search_paint(); timer.reset(timer.search_cursor, timer.search_cursori); lib.rootNodes(); if (p.pn_h_auto && p.pn_h == p.pn_h_min && pop.tree[0]) pop.clear_child(pop.tree[0]);}
-    this.on_key_up = function(vkey) {if (!p.s_search) return; if (vkey == v.shift) {shift = false; shift_x = cx;}}
-    this.lbtn_up = function(x, y) {if (s != f) timer.reset(timer.search_cursor, timer.search_cursori); lbtn_dn = false;}
-    this.move = function(x, y) {if (y > p.s_h || !lbtn_dn) return; var t = get_cursor_pos(x), t_x = get_cursor_x(t); calc_text(); if(t < s) {if (t < f) {if (t_x < p.s_x) if(offset > 0) offset--;} else if (t > f) {if (t_x + p.s_x > p.s_x + p.s_w2) {var l = (txt_w > p.s_w2) ? txt_w - p.s_w2 : 0; if(l > 0) offset++;}} f = t;} else if (t > s) {if(t_x + p.s_x > p.s_x + p.s_w2) {var l = (txt_w > p.s_w2) ? txt_w - p.s_w2 : 0; if(l > 0) offset++;} f = t;} cx = t; p.search_paint();}
-    this.rbtn_up = function(x, y) {men.search_menu(x, y, s, f, doc.parentWindow.clipboardData.getData('text') ? true : false)}
-    this.search_auto_expand = window.GetProperty(" Search Results Auto Expand", false);
+    const calc_text = () => {s.gr(1, 1, false, g => txt_w = g.CalcTextWidth(p.s_txt.substr(offset), ui.font));}
+    const drawcursor = gr => {if (p.search && p.s_cursor && b == f && cx >= offset) {const lx = p.s_x + get_cursor_x(cx); gr.DrawLine(lx, p.s_sp * 0.1, lx, p.s_sp * 0.85, ui.l_w, ui.col.text);}}
+    const drawsel = gr => {if (b == f) return; const clamp = p.s_x + p.s_w2; gr.DrawLine(Math.min(p.s_x + get_cursor_x(b), clamp), p.s_sp / 2, Math.min(p.s_x + get_cursor_x(f), clamp), p.s_sp / 2, ui.row_h - 3, ui.col.searchSel);}
+    const get_cursor_pos = x => {s.gr(1, 1, false, g => {const nx = x - p.s_x; let pos = 0; for (i = offset; i < p.s_txt.length; i++) {pos += g.CalcTextWidth(p.s_txt.substr(i, 1), ui.font); if (pos >= nx + 3) break;}}); return i;}
+    const get_cursor_x = pos => {let x = 0; s.gr(1, 1, false, g => {if (pos >= offset) x = g.CalcTextWidth(p.s_txt.substr(offset, pos - offset), ui.font);}); return x;}
+    const get_offset = gr => {let j = 0, t = gr.CalcTextWidth(p.s_txt.substr(offset, cx - offset), ui.font); while (t >= p.s_w2 && j < 500) {j++; offset++; t = gr.CalcTextWidth(p.s_txt.substr(offset, cx - offset), ui.font);}}
+    const record = () => {lg.push(p.s_txt); log = []; if (lg.length > 30) lg.shift();}
 
-    this.lbtn_dn = function(x, y) {
-        p.search_paint(); lbtn_dn = p.s_search = (y < p.s_h && x > ui.margin + ui.row_h * 0.6 && x < p.s_x + p.s_w2);
-        if (!lbtn_dn) {offset = s = f = cx = 0; timer.reset(timer.search_cursor, timer.search_cursori); return;}
-        else {if (shift) {s = cx; f = cx = get_cursor_pos(x);} else {cx = get_cursor_pos(x); s = f = cx;} timer.reset(timer.search_cursor, timer.search_cursori); p.s_cursor = true; timer.search_cursor = window.SetInterval(function() {p.s_cursor = !p.s_cursor; p.search_paint();}, 530);}
+    this.clear = () => {lib.time.Reset(); pop.subCounts.search = {}; offset = b = f = cx = 0; p.s_cursor = false; p.search = false; p.s_txt = ""; but.set_search_btns_hide(); p.search_paint(); timer.clear(timer.cursor); lib.rootNodes(); pop.checkAutoHeight();}
+    this.on_key_up = vkey => {if (!p.search) return; if (vkey == vk.shift) {shift = false; shift_x = cx;}}
+    this.lbtn_up = (x, y) => {if (b != f) timer.clear(timer.cursor); lbtn_dn = false;}
+    this.move = (x, y) => {if (y > p.s_h || !lbtn_dn) return; const t = get_cursor_pos(x), t_x = get_cursor_x(t); let l; calc_text(); if (t < b) {if (t < f) {if (t_x < p.s_x) if (offset > 0) offset--;} else if (t > f) {if (t_x + p.s_x > p.s_x + p.s_w2) {l = (txt_w > p.s_w2) ? txt_w - p.s_w2 : 0; if (l > 0) offset++;}} f = t;} else if (t > b) {if (t_x + p.s_x > p.s_x + p.s_w2) {l = (txt_w > p.s_w2) ? txt_w - p.s_w2 : 0; if (l > 0) offset++;} f = t;} cx = t; p.search_paint();}
+    this.rbtn_up = (x, y) => {men.search_menu(x, y, b, f, doc.parentWindow.clipboardData.getData('text') ? true : false);}
+
+    this.lbtn_dn = (x, y) => {
+        p.search_paint(); lbtn_dn = p.search = (y < p.s_h && x > ppt.margin + ui.row_h * 0.6 && x < p.s_x + p.s_w2);
+        if (!lbtn_dn) {offset = b = f = cx = 0; timer.clear(timer.cursor); return;}
+        else {if (shift) {b = cx; f = cx = get_cursor_pos(x);} else {cx = get_cursor_pos(x); b = f = cx;} timer.clear(timer.cursor); p.s_cursor = true; timer.cursor.id = setInterval(() => {p.s_cursor = !p.s_cursor; p.search_paint();}, 530);}
         p.search_paint();
     }
 
-    this.searchFocus = function() {
-        p.search_paint(); p.s_search = true; shift = false; s = f = cx = p.s_x;
-        timer.reset(timer.search_cursor, timer.search_cursori); p.s_cursor = true; timer.search_cursor = window.SetInterval(function() {p.s_cursor = !p.s_cursor; p.search_paint();}, 530);
+    this.searchFocus = () => {
+        p.search_paint(); p.search = true; shift = false; b = f = cx = p.s_x;
+        timer.clear(timer.cursor); p.s_cursor = true; timer.cursor.id = setInterval(() => {p.s_cursor = !p.s_cursor; p.search_paint();}, 530);
         p.search_paint();
     }
 
-    this.on_char = function(code, force) {
-        var text = String.fromCharCode(code); if (force) p.s_search = true;
-        if (!p.s_search) return; p.s_cursor = false; p.pos = -1;
+    this.on_char = (code, force) => {
+        let text = String.fromCharCode(code), st; if (force) p.search = true;
+        if (!p.search) return; p.s_cursor = false; p.pos = -1;
         switch (code) {
-            case v.enter: if (p.s_txt.length < 3) break; var items = fb.CreateHandleList(); try {items = fb.GetQueryItems(lib.list, p.s_txt)} catch (e) {} pop.load(items, false, false, false, pop.gen_pl, false);  break;
-            case v.redo: lg.push(p.s_txt); if (lg.length > 30) lg.shift(); if (log.length > 0) {p.s_txt = log.pop() + ""; cx++} break;
-            case v.undo: log.push(p.s_txt); if (log.length > 30) lg.shift(); if (lg.length > 0) p.s_txt = lg.pop() + ""; break;
-            case v.selAll: s = 0; f = p.s_txt.length; break;
-            case v.copy: if (s != f) doc.parentWindow.clipboardData.setData('text', p.s_txt.substring(s, f)); break; case v.cut: if (s != f) doc.parentWindow.clipboardData.setData('text', p.s_txt.substring(s, f));
-            case v.back: record();
-                if (s == f) {if (cx > 0) {p.s_txt = p.s_txt.substr(0, cx - 1) + p.s_txt.substr(cx, p.s_txt.length - cx); if (offset > 0) offset--; cx--;}}
-                else {if (f - s == p.s_txt.length) {p.s_txt = ""; cx = 0;} else {if (s > 0) {var st = s, en = f; s = Math.min(st, en); f = Math.max(st, en); p.s_txt = p.s_txt.substring(0, s) + p.s_txt.substring(f, p.s_txt.length); cx = s;} else {p.s_txt = p.s_txt.substring(f, p.s_txt.length); cx = s;}}}
-                calc_text(); offset = offset >= f - s ? offset - f + s : 0; s = cx; f = s; break;
+            case vk.enter: if (p.s_txt.length < 3) break; const items = s.query(lib.list, p.s_txt); pop.load(items, false, false, false, ppt.sendPlaylist, false); break;
+            case vk.redo: lg.push(p.s_txt); if (lg.length > 30) lg.shift(); if (log.length > 0) {p.s_txt = log.pop() + ""; cx++} break;
+            case vk.undo: log.push(p.s_txt); if (log.length > 30) lg.shift(); if (lg.length > 0) p.s_txt = lg.pop() + ""; break;
+            case vk.selAll: b = 0; f = p.s_txt.length; break;
+            case vk.copy: if (b != f) doc.parentWindow.clipboardData.setData('text', p.s_txt.substring(b, f)); break; case vk.cut: if (b != f) doc.parentWindow.clipboardData.setData('text', p.s_txt.substring(b, f));
+            case vk.back: record();
+                if (b == f) {if (cx > 0) {p.s_txt = p.s_txt.substr(0, cx - 1) + p.s_txt.substr(cx, p.s_txt.length - cx); if (offset > 0) offset--; cx--;}}
+                else {if (f - b == p.s_txt.length) {p.s_txt = ""; cx = 0;} else {if (b > 0) {st = b, en = f; b = Math.min(st, en); f = Math.max(st, en); p.s_txt = p.s_txt.substring(0, b) + p.s_txt.substring(f, p.s_txt.length); cx = b;} else {p.s_txt = p.s_txt.substring(f, p.s_txt.length); cx = b;}}}
+                calc_text(); offset = offset >= f - b ? offset - f + b : 0; b = cx; f = b; break;
             case "delete": record();
-                if (s == f) {if (cx < p.s_txt.length) {p.s_txt = p.s_txt.substr(0, cx) + p.s_txt.substr(cx + 1, p.s_txt.length - cx - 1);}}
-                else {if (f - s == p.s_txt.length) {p.s_txt = ""; cx = 0;} else {if (s > 0) {var st = s, en = f; s = Math.min(st, en); f = Math.max(st, en); p.s_txt = p.s_txt.substring(0, s) + p.s_txt.substring(f, p.s_txt.length); cx = s;} else {p.s_txt = p.s_txt.substring(f, p.s_txt.length); cx = s;}}}
-                calc_text(); offset = offset >= f - s ? offset - f + s : 0; s = cx; f = s; break;
-            case v.paste: text = doc.parentWindow.clipboardData.getData('text');
+                if (b == f) {if (cx < p.s_txt.length) {p.s_txt = p.s_txt.substr(0, cx) + p.s_txt.substr(cx + 1, p.s_txt.length - cx - 1);}}
+                else {if (f - b == p.s_txt.length) {p.s_txt = ""; cx = 0;} else {if (b > 0) {st = b, en = f; b = Math.min(st, en); f = Math.max(st, en); p.s_txt = p.s_txt.substring(0, b) + p.s_txt.substring(f, p.s_txt.length); cx = b;} else {p.s_txt = p.s_txt.substring(f, p.s_txt.length); cx = b;}}}
+                calc_text(); offset = offset >= f - b ? offset - f + b : 0; b = cx; f = b; break;
+            case vk.paste: text = doc.parentWindow.clipboardData.getData('text');
             default: record();
-                if (s == f) {p.s_txt = p.s_txt.substring(0, cx) + text + p.s_txt.substring(cx); cx += text.length; f = s = cx;}
-                else if (f > s) {p.s_txt = p.s_txt.substring(0, s) + text + p.s_txt.substring(f); calc_text(); offset = offset >= f - s ? offset - f + s : 0; cx = s + text.length; s = cx; f = s;}
-                else {p.s_txt = p.s_txt.substring(s) + text + p.s_txt.substring(0, f); calc_text(); offset = offset < f - s ? offset - f + s : 0; cx = f + text.length; s = cx; f = s;} break;
+                if (b == f) {p.s_txt = p.s_txt.substring(0, cx) + text + p.s_txt.substring(cx); cx += text.length; f = b = cx;}
+                else if (f > b) {p.s_txt = p.s_txt.substring(0, b) + text + p.s_txt.substring(f); calc_text(); offset = offset >= f - b ? offset - f + b : 0; cx = b + text.length; b = cx; f = b;}
+                else {p.s_txt = p.s_txt.substring(b) + text + p.s_txt.substring(0, f); calc_text(); offset = offset < f - b ? offset - f + b : 0; cx = f + text.length; b = cx; f = b;} break;
         }
-        if (code == v.copy || code == v.selAll) return;
-        if (!timer.search_cursor) timer.search_cursor = window.SetInterval(function() {p.s_cursor = !p.s_cursor; p.search_paint();}, 530);
-        p.search_paint(); lib.upd_search = true; timer.reset(timer.search, timer.searchi);
-        timer.search = window.SetTimeout(function() {lib.time.Reset(); pop.subCounts.search = {}; lib.treeState(false, lib.rememberTree); lib.rootNodes(); p.setHeight(true); if (sL.search_auto_expand) {if (!pop.tree.length) return timer.search = false; var count = 0, m = p.base ? 1 : 0; for (m; m < pop.tree.length; m++) count += pop.tree[m].item.length; if (count > expand_limit) return timer.search = false; var n = false; if (p.base && pop.tree.length > 1) n = true; m = pop.tree.length; while (m--) {pop.expandNodes(pop.tree[m], !p.base || m ? false : true); if (n && m == 1) break;} if (p.base && pop.tree.length == 1) pop.line_l = 0; sbar.set_rows(pop.tree.length); p.tree_paint(); lib.treeState(false, lib.rememberTree);} timer.search = false;}, 160);
+        if (code == vk.copy || code == vk.selAll) return;
+        if (!timer.cursor) timer.cursor.id = setInterval(() => {p.s_cursor = !p.s_cursor; p.search_paint();}, 530);
+        but.set_search_btns_hide(); p.search_paint(); lib.upd_search = true; timer.clear(timer.search);
+        timer.search.id = setTimeout(() => {lib.time.Reset(); pop.subCounts.search = {}; lib.treeState(false, ppt.rememberTree); lib.rootNodes(); p.setHeight(true);}, 160);
     }
 
-    this.on_key_down = function(vkey) {
-        if (!p.s_search) return;
+    this.on_key_down = vkey => {
+        if (!p.search) return;
         switch(vkey) {
-            case v.left: case v.right: if (vkey == v.left) {if (offset > 0) {if (cx <= offset) {offset--; cx--;} else cx--;} else if (cx > 0) cx--; s = f = cx} if (vkey == v.right && cx < p.s_txt.length) cx++; s = f = cx;
-            if (shift) {s = Math.min(cx, shift_x); f = Math.max(cx, shift_x);} p.s_cursor = true;timer.reset(timer.search_cursor, timer.search_cursori); timer.search_cursor = window.SetInterval(function() {p.s_cursor = !p.s_cursor; p.search_paint();}, 530); break;
-            case v.home: case v.end: if (vkey == v.home) offset = s = f = cx = 0; else s = f = cx = p.s_txt.length; p.s_cursor = true; timer.reset(timer.search_cursor, timer.search_cursori); timer.search_cursor = window.SetInterval(function() {p.s_cursor = !p.s_cursor; p.search_paint();}, 530); break;
-            case v.shift: shift = true; shift_x = cx; break;
-            case v.del: this.on_char("delete"); break;
+            case vk.left: case vk.right: if (vkey == vk.left) {if (offset > 0) {if (cx <= offset) {offset--; cx--;} else cx--;} else if (cx > 0) cx--; b = f = cx;} if (vkey == vk.right && cx < p.s_txt.length) cx++; b = f = cx;
+            if (shift) {b = Math.min(cx, shift_x); f = Math.max(cx, shift_x);} p.s_cursor = true;timer.clear(timer.cursor); timer.cursor.id = setInterval(() => {p.s_cursor = !p.s_cursor; p.search_paint();}, 530); break;
+            case vk.home: case vk.end: if (vkey == vk.home) offset = b = f = cx = 0; else b = f = cx = p.s_txt.length; p.s_cursor = true; timer.clear(timer.cursor); timer.cursor.id = setInterval(() => {p.s_cursor = !p.s_cursor; p.search_paint();}, 530); break;
+            case vk.shift: shift = true; shift_x = cx; break;
+            case vk.del: this.on_char("delete"); break;
         }
         p.search_paint();
     }
 
-    this.draw = function(gr) {
-        try {s = Math.min(Math.max(s, 0), p.s_txt.length); f = Math.min(Math.max(f, 0), p.s_txt.length); cx = Math.min(Math.max(cx, 0), p.s_txt.length);
-            if (ui.fill) gr.FillSolidRect(0, 1, ui.w, ui.row_h - 4, 0x60000000);
-            if (ui.pen == 1) gr.DrawLine(ui.margin, p.s_sp, p.s_w1, p.s_sp, 1, ui.s_linecol);
-            if (ui.pen == 2) gr.DrawRoundRect(0, 2, ui.w - 1, ui.row_h - 4, 4, 4, 1, ui.pen_c);
-            if (p.s_txt) {
-                f = (f < p.s_txt.length) ? f : p.s_txt.length; drawsel(gr); get_offset(gr);
-                gr.GdiDrawText(p.s_txt.substr(offset), ui.font, ui.searchcol, p.s_x, 0, p.s_w2, p.s_sp, p.l);
-            } else gr.GdiDrawText("Search", ui.s_font, ui.txt_box, p.s_x, 0, p.s_w2, p.s_sp, p.l);
-            drawcursor(gr);
-            if (p.s_show > 1) {
-                var l_x = p.f_x1 - 9, l_h = Math.round(p.s_sp / 2);
-                gr.gdiDrawText(p.filt[p.filter_by].name, p.f_font, ui.txt_box, p.f_x1, 0, p.f_w[p.filter_by], p.s_sp, p.cc);
-                gr.FillGradRect(l_x, 0, 1, l_h, 90, RGBA(0, 0, 0, 0), ui.s_linecol);
-                gr.FillGradRect(l_x, l_h, 1, l_h, 90, ui.s_linecol, RGBA(0, 0, 0, 0));
-            }} catch (e) {}
+    this.draw = gr => {
+        b = s.clamp(b, 0, p.s_txt.length); f = s.clamp(f, 0, p.s_txt.length); cx = s.clamp(cx, 0, p.s_txt.length);
+        if (ui.fill) gr.FillSolidRect(0, 1, ui.w, ui.row_h - 4, 0x60000000);
+        if (ui.pen == 1) gr.DrawLine(ppt.margin, p.s_sp, p.s_w1, p.s_sp, ui.l_w, ui.col.s_line);
+        if (ui.pen == 2) gr.DrawRoundRect(0, 2, ui.w - 1, ui.row_h - 4, 4, 4, 1, ui.pen_c);
+        if (p.s_txt) {
+            drawsel(gr); get_offset(gr);
+            gr.GdiDrawText(p.s_txt.substr(offset), ui.font, ui.col.search, p.s_x, 0, p.s_w2, p.s_sp, p.l);
+        } else gr.GdiDrawText("Search", ui.searchFont, ui.col.txt_box, p.s_x, 0, p.s_w2, p.s_sp, p.l);
+        drawcursor(gr);
+        if (ppt.searchShow > 1) {
+            const l_x = p.f_x1 - 9, l_h = Math.round(p.s_sp / 2);
+            gr.GdiDrawText(p.filt[ppt.filterBy].name, p.filterFont, ui.col.txt_box, p.f_x1, 0, p.f_w[ppt.filterBy], p.s_sp, p.cc);
+            gr.FillGradRect(l_x, 0, ui.l_w, l_h, 90, RGBA(0, 0, 0, 0), ui.col.s_line);
+            gr.FillGradRect(l_x, l_h, ui.l_w, l_h, 90, ui.col.s_line, RGBA(0, 0, 0, 0));
+        }
     }
 }
-if (p.s_show) var sL = new searchLibrary();
 
-var j_Search = function() {
-    var j_x = 5, j_h = 30, j_y = 5, jSearch = "", jump_search = true, rs1 = 5, rs2 = 4;
-    this.on_size = function() {j_x = Math.round(ui.w / 2); j_h = Math.round(ui.row_h * 1.5); j_y = Math.round((ui.h - j_h) / 2); rs1 = Math.min(5, j_h / 2); rs2 = Math.min(4, (j_h - 2) / 2);}
+function JumpSearch() {
+    let j_x = 5, j_h = 30, j_y = 5, jSearch = "", jump_search = true, rs1 = 5, rs2 = 4;
+    this.on_size = () => {j_x = Math.round(ui.w / 2); j_h = Math.round(ui.row_h * 1.5); j_y = Math.round((ui.h - j_h) / 2); rs1 = Math.min(5, j_h / 2); rs2 = Math.min(4, (j_h - 2) / 2);}
 
-    this.on_char = function(code) {
-        if (utils.IsKeyPressed(0x09) || utils.IsKeyPressed(0x11) || utils.IsKeyPressed(0x1B)) return; var text = String.fromCharCode(code);
-        if (!p.s_search) {
-            var found = false, i = 0, pos = -1;
-            switch(code) {case v.back: jSearch = jSearch.substr(0, jSearch.length - 1); break; case v.enter: jSearch = ""; return; default: jSearch += text; break;}
+    this.on_char = code => {
+        if (utils.IsKeyPressed(0x09) || utils.IsKeyPressed(0x11) || utils.IsKeyPressed(0x1B)) return; const text = String.fromCharCode(code);
+        if (!p.search) {
+            let found = false, i = 0, pos = -1;
+            switch(code) {case vk.back: jSearch = jSearch.substr(0, jSearch.length - 1); break; case vk.enter: jSearch = ""; return; default: jSearch += text; break;}
             pop.clear();
             if (!jSearch) return; pop.sel_items = []; jump_search = true;
             window.RepaintRect(0, j_y, ui.w, j_h + 1);
-            timer.reset(timer.jsearch, timer.jsearchi);
-            timer.jsearch = window.SetTimeout(function () {
-                for (i = 0; i < pop.tree.length; i++) {
-                    if (pop.tree[i].name != p.baseName && pop.tree[i].name.substring(0, jSearch.length).toLowerCase() == jSearch.toLowerCase()) {
-                        found = true; pos = i; pop.tree[i].sel = true; p.pos = pos; pop.setGetPos(pos);
-                        if (pop.autoFill) pop.get_sel_items(); lib.treeState(false, lib.rememberTree);
-                        break;
+            timer.clear(timer.jsearch1);
+            timer.jsearch1.id = setTimeout(() => {
+                pop.tree.some((v, i) => {
+                    if (v.name != p.rootName && v.name.substring(0, jSearch.length).toLowerCase() == jSearch.toLowerCase()) {
+                        found = true; pos = i; v.sel = true; p.pos = pos; pop.setGetPos(pos);
+                        if (pop.autoFill.key) pop.get_sel_items(); lib.treeState(false, ppt.rememberTree);
+                        return true;
                     }
-                }
+                });
                 if (!found) jump_search = false;
                 p.tree_paint();
                 sbar.check_scroll((pos - 5) * ui.row_h);
-                timer.jsearch = false;
+                timer.jsearch1.id = null;
             }, 500);
 
-            timer.reset(timer.clear_jsearch, timer.clear_jsearchi);
-            timer.clear_jsearch = window.SetTimeout(function () {
-                if (found && pop.autoFill) pop.load(pop.sel_items, true, false, false, pop.gen_pl, false); jSearch = "";
+            timer.clear(timer.jsearch2);
+            timer.jsearch2.id = setTimeout(() => {
+                if (found && pop.autoFill.key) pop.load(pop.sel_items, true, false, false, ppt.sendPlaylist, false); jSearch = "";
                 window.RepaintRect(0, j_y, ui.w, j_h + 1);
-                timer.clear_jsearch = false;
+                timer.jsearch2.id = null;
             }, 1200);
         }
     }
 
-    this.draw = function(gr) {
-        if (jSearch) {try {
+    this.draw = gr => {
+        if (jSearch) {
             gr.SetSmoothingMode(4);
-            var j_w = gr.CalcTextWidth(jSearch,ui.j_font) + 25;
+            const j_w = gr.CalcTextWidth(jSearch,ui.jumpFont) + 25;
             gr.FillRoundRect(j_x - j_w / 2, j_y, j_w, j_h, rs1, rs1, 0x96000000);
             gr.DrawRoundRect(j_x - j_w / 2, j_y, j_w, j_h, rs1, rs1, 1, 0x64000000);
             gr.DrawRoundRect(j_x - j_w / 2 + 1, j_y + 1, j_w - 2, j_h - 2, rs2, rs2, 1, 0x28ffffff);
-            gr.GdiDrawText(jSearch, ui.j_font, RGB(0, 0, 0), j_x - j_w / 2 + 1, j_y + 1 , j_w, j_h, p.cc);
-            gr.GdiDrawText(jSearch, ui.j_font, jump_search ? 0xfffafafa : 0xffff4646, j_x - j_w / 2, j_y, j_w, j_h, p.cc);} catch (e) {}
+            gr.GdiDrawText(jSearch, ui.jumpFont, RGB(0, 0, 0), j_x - j_w / 2 + 1, j_y + 1 , j_w, j_h, p.cc);
+            gr.GdiDrawText(jSearch, ui.jumpFont, jump_search ? 0xfffafafa : 0xffff4646, j_x - j_w / 2, j_y, j_w, j_h, p.cc);
         }
     }
 }
-var jS = new j_Search();
 
-function on_paint(gr) {
-    ui.draw(gr);
-    lib.checkTree();
-    if (p.s_show) sL.draw(gr);
-    pop.draw(gr);
-    if (ui.scrollbar_show) sbar.draw(gr);
-    if (p.s_show || ui.scrollbar_show) but.draw(gr);
-    jS.draw(gr);
-}
+function Buttons() {
+    const sbarButPad = s.clamp(ppt.sbarButPad / 100, -0.5, 0.3), sAlpha = ppt.sbarCol ? [68, 153, 255] : [75, 192, 228], scrBtns = ["scrollUp", "scrollDn"];
+    let arrow_symb = 0, b_x, bx, by, bh, byDn, byUp, cur_btn = null, fw, hot_o, i, iconFontName = "Segoe UI", iconFontStyle = 0, qx, qy, qh, s_img = false, scrollBtn = false, scrollBtn_x, scrollDn_y, scrollUp_y, tooltip, transition, tt_start = Date.now() - 2000;
+    this.btns = {}; this.Dn = false; this.show_tt = true;
 
-function button_manager() {
-    var arrow_sy = window.GetProperty(" Scrollbar Arrow Custom: Icon // Examples", " // ▲  ⮝    ⯅ ⏫ ⏶ ⤊   "), arrow_symb = 0; if (window.GetProperty(" Scrollbar Arrow Custom", false)) try {arrow_symb = arrow_sy.replace(/\s+/g, "").charAt(0);} catch (e) {arrow_symb = 0} if (!arrow_symb.length) arrow_symb = 0;
-    var custom_col = window.GetProperty("_CUSTOM COLOURS/FONTS: USE", false), cust_icon_font = window.GetProperty("_Custom.Font Icon [Scroll] (Name,Style[0or1])", "Segoe UI Symbol,0"), icon_f_name= "Segoe UI", icon_f_style = 0, pad = Math.min(Math.max(window.GetProperty(" Scrollbar Arrow Custom: Icon: Vertical Offset %", -24) / 100, -0.5), 0.3);
-    if (custom_col) {if (cust_icon_font.length) {cust_icon_font = cust_icon_font.split(","); try {var st = Math.round(parseFloat(cust_icon_font[1])); if (!st) st = 0; var font_test = gdi.Font(cust_icon_font[0], 16, st); icon_f_name = cust_icon_font[0]; icon_f_style = st;} catch (e) {ui.trace("JScript Panel is unable to use your scroll icon font. Using Segoe UI instead");}}}
-    var b_x, b3 = ["scrollUp", "scrollDn"], but_tt = window.CreateTooltip("Segoe UI", 15 * ui.scale * window.GetProperty(" Zoom Tooltip [Button] (%)", 100) / 100, 0), bx, by, bh, byDn, byUp, fw, hot_o, i, qx, qy, qh, s_img = [], scr = [], scrollBut_x, scrollDn_y, scrollUp_y;
-    this.btns = []; this.b = null; this.Dn = false;
-    var browser = function(c) {if (!but.run(c)) fb.ShowPopupMessage("Unable to launch your default browser.", "Library Tree");}
-    var tooltip = function(n) {if (but_tt.text == n) return; but_tt.text = n; but_tt.Activate();}
-    this.lbtn_dn = function(x, y) {this.move(x, y); if (!this.b) return false; this.Dn = this.b; if (ui.scrollbar_show) for (j = 0; j < b3.length; j++) if (this.b == b3[j]) {if (this.btns[this.b].trace(x, y)) this.btns[this.b].down = true; this.btns[this.b].changestate("down");} this.btns[this.b].lbtn_dn(x, y); return true;}
-    this.lbtn_up = function(x, y) {this.Dn = false; if (ui.scrollbar_show) for (j = 0; j < b3.length; j++) this.btns[b3[j]].down = false; if (!this.b) return false; if (ui.scrollbar_show) for (j = 0; j < b3.length; j++) if (this.b == b3[j]) this.btns[this.b].changestate(this.btns[this.b].trace(x, y) ? "hover" : "normal"); this.move(x, y); if (!this.b) return false; this.btns[this.b].lbtn_up(x, y); return true;}
-    this.leave = function() {if (this.b) this.btns[this.b].changestate("normal"); this.b = null; tooltip("");}
-    this.on_script_unload = function() {tooltip("");}
-    this.run = function(c) {try {var WshShell = new ActiveXObject("WScript.Shell"); WshShell.Run(c); return true;} catch (e) {return false;}}
-
-    this.create_images = function() {
-        var alpha = [75, 192, 228], c, col = [ui.textcol & 0x44ffffff, ui.textcol & 0x99ffffff, ui.textcol], g, sz = arrow_symb == 0 ? Math.max(Math.round(ui.but_h * 1.666667), 1) : 100, sc = sz / 100;
-        for (var j = 0; j < 2; j++) {
-            c = j ? 0xe4ffffff : 0x99ffffff; s_img[j] = gdi.CreateImage(100, 100); g = s_img[j].GetGraphics(); g.SetSmoothingMode(2);
-            if (!ui.local) {g.DrawLine(69, 71, 88, 90, 12, ui.txt_box & c); g.DrawEllipse(8, 11, 67, 67, 10, ui.txt_box & c);}
-            else {g.DrawLine(69, 71, 88, 90, 12, ui.txt_box); g.DrawEllipse(8, 11, 67, 67, 10, ui.txt_box);} g.FillEllipse(15, 17, 55, 55, 0x0AFAFAFA); g.SetSmoothingMode(0); s_img[j].ReleaseGraphics(g);
-        }
-        for (j = 0; j < 3; j++) {
-            scr[j] = gdi.CreateImage(sz, sz); g = scr[j].GetGraphics(); g.SetTextRenderingHint(3); g.SetSmoothingMode(2);
-            if (ui.scr_col) {arrow_symb == 0 ? g.FillPolygon(col[j], 1, [50 * sc, 0, 100 * sc, 76 * sc, 0, 76 * sc]) : g.DrawString(arrow_symb, gdi.Font(icon_f_name, sz, icon_f_style), col[j], 0, sz * pad, sz, sz, StringFormat(1, 1));}
-            else {arrow_symb == 0 ? g.FillPolygon(RGBA(ui.ct, ui.ct, ui.ct, alpha[j]), 1, [50 * sc, 0, 100 * sc, 76 * sc, 0, 76 * sc]) : g.DrawString(arrow_symb, gdi.Font(icon_f_name, sz, icon_f_style), RGBA(ui.ct, ui.ct, ui.ct, alpha[j]), 0, sz * pad, sz, sz, StringFormat(1, 1));}
-            g.SetSmoothingMode(0); scr[j].ReleaseGraphics(g);
-        }}; this.create_images();
-
-    this.draw = function(gr) {
-        try {for (i in this.btns) {
-            if ((p.s_show == 1 || p.s_show > 1 && !p.s_txt) && i == "s_img") this.btns[i].draw(gr);
-            if (p.s_show == 1 && i == "cross1") this.btns[i].draw(gr);
-            if (p.s_show > 1 && p.s_txt && i == "cross2") this.btns[i].draw(gr);
-            if (p.s_show > 1 && i == "filter") this.btns[i].draw(gr);
-            if (ui.scrollbar_show && sbar.scrollable_lines > 0 && (i == "scrollUp" || i == "scrollDn"))  this.btns[i].draw(gr);
-        }} catch (e) {}
-    }
-    this.move = function(x, y) {
-        if (sbar.timer_but) {if ((this.btns["scrollUp"].down || this.btns["scrollDn"].down) && !this.btns["scrollUp"].trace(x, y) && !this.btns["scrollDn"].trace(x, y)) {this.btns["scrollUp"].changestate("normal"); this.btns["scrollDn"].changestate("normal"); window.ClearTimeout(sbar.timer_but); sbar.timer_but = false; sbar.count = -1;}}
-        else for (j = 0; j < b3.length; j++) if (this.b == b3[j] && this.btns[this.b].down) {this.btns[this.b].changestate("down"); this.btns[this.b].l_dn();}
-        var b = null, hand = false;
-        for (i in this.btns) {
-            if ((p.s_show == 1 || p.s_show > 1 && !p.s_txt) && i == "s_img" && (!this.Dn || this.Dn == "s_img") && this.btns[i].trace(x, y)) {b = i; hand = true;}
-            if (p.s_show == 1 && i == "cross1" && (!this.Dn || this.Dn == "cross1") && this.btns[i].trace(x, y)) {b = i; hand = true;}
-            if (p.s_show > 1 && p.s_txt && i == "cross2" && (!this.Dn || this.Dn == "cross2") && this.btns[i].trace(x, y)) {b = i; hand = true;}
-            if (p.s_show > 1 && i == "filter" && (!this.Dn || this.Dn == "filter") && this.btns[i].trace(x, y)) {b = i; hand = true;}
-            if (ui.scrollbar_show && sbar.scrollable_lines > 0) for (j = 0; j < b3.length; j++) if (i == b3[j] && (!this.Dn || this.Dn == b3[j]) && this.btns[i].trace(x, y)) b = i;
-        }
-        window.SetCursor(this.Dn && this.Dn != this.b ? 32512 : hand ? 32649 : y < p.s_h && p.s_show && x > qx + qh ? 32513 : 32512);
-        if (this.b == b) return this.b;
-        if (b && (!this.Dn || this.Dn == b)) this.btns[b].changestate("hover");
-        if (this.b) this.btns[this.b].changestate("normal");
-        this.b = b;
-        if (!this.b) tooltip("");
-        return this.b;
+    if (ppt.get(" Scrollbar Arrow Custom", false)) arrow_symb = ppt.arrowSymbol.replace(/\s+/g, "").charAt(); if (!arrow_symb.length) arrow_symb = 0;
+    if (ppt.customCol && ppt.butCustIconFont.length) {
+        const butCustIconFont = ppt.butCustIconFont.splt(1);
+        iconFontName = butCustIconFont[0];
+        iconFontStyle = Math.round(s.value(butCustIconFont[1], 0, 0));
     }
 
-    var btn = function(x, y, w, h, type, ft, txt, stat, img_src, down, l_dn, l_up, tooltext) {
-        this.draw = function (gr) {
-            switch (type) {
-                case 3: gr.SetInterpolationMode(2); if (this.img) gr.DrawImage(this.img, this.x, this.y, this.w, this.h, 0, 0, this.img.Width, this.img.Height); gr.SetInterpolationMode(0); break;
-                case 4: gr.DrawLine(Math.round(this.x + bh * 0.67), Math.round(this.y + bh * 0.67), Math.round(this.x + bh * 0.27), Math.round(this.y + bh * 0.27), Math.round(bh / 10), RGBA(136, 136, 136, this.img)); gr.DrawLine(Math.round(this.x + bh * 0.67), Math.round(this.y + bh * 0.27), Math.round(this.x + bh * 0.27), Math.round(this.y + bh * 0.67), Math.round(bh / 10), RGBA(136, 136, 136, this.img)); break;
-                case 5: gr.SetTextRenderingHint(5); gr.DrawString(txt, ft, this.img, this.x, this.y - 1, this.w, this.h, StringFormat(2, 1)); break;
-                case 6: ui.theme.SetPartAndStateId(1, this.img); ui.theme.DrawThemeBackground(gr, this.x, this.y, this.w, this.h); break;
-                default: if (this.img) gr.DrawImage(this.img, this.x + ft, txt, stat, stat, 0, 0, this.img.Width, this.img.Height, type == 1 ? 0 : 180); break;
+    const clear = () => {this.Dn = false; Object.values(this.btns).forEach(v => v.down = false);}
+    const tt = (n, force) => {if (tooltip.Text !== n || force) {tooltip.Text = n; tooltip.Activate();}}
+
+    this.create_images = () => {
+        const sz = arrow_symb == 0 ? Math.max(Math.round(ui.but_h * 1.666667), 1) : 100, sc = sz / 100, iconFont = gdi.Font(iconFontName, sz, iconFontStyle);
+            s_img = s.gr(100, 100, true, g => {
+                g.SetSmoothingMode(2);
+                if (!ui.local) {g.DrawLine(69, 71, 88, 90, 12, ui.col.txt_box); g.DrawEllipse(8, 11, 67, 67, 10, ui.col.txt_box);}
+                else {g.DrawLine(69, 71, 88, 90, 12, ui.col.txt_box); g.DrawEllipse(8, 11, 67, 67, 10, ui.col.txt_box);}
+                g.FillEllipse(15, 17, 55, 55, 0x0AFAFAFA); g.SetSmoothingMode(0);
+            });
+                scrollBtn = s.gr(sz, sz, true, g => {
+                    g.SetTextRenderingHint(3); g.SetSmoothingMode(2);
+                    if (ppt.sbarCol) {arrow_symb == 0 ? g.FillPolygon(ui.col.text, 1, [50 * sc, 0, 100 * sc, 76 * sc, 0, 76 * sc]) : g.DrawString(arrow_symb, iconFont, ui.col.text, 0, sz * sbarButPad, sz, sz, StringFormat(1, 1));}
+                    else {arrow_symb == 0 ? g.FillPolygon(RGBA(ui.col.t, ui.col.t, ui.col.t, 255), 1, [50 * sc, 0, 100 * sc, 76 * sc, 0, 76 * sc]) :
+                    g.DrawString(arrow_symb, iconFont, RGBA(ui.col.t, ui.col.t, ui.col.t, 255), 0, sz * sbarButPad, sz, sz, StringFormat(1, 1));} g.SetSmoothingMode(0);
+                });
+     }; this.create_images();
+
+	this.create_tooltip = () => tooltip = window.CreateTooltip("Segoe UI", 15 * s.scale * ppt.get(" Zoom Tooltip [Button] (%)", 100) / 100, 0); this.create_tooltip();
+    this.lbtn_dn = (x, y) => {this.move(x, y); if (!cur_btn || cur_btn.hide) {this.Dn = false; return false} else this.Dn = cur_btn.name; cur_btn.down = true; cur_btn.cs("down"); cur_btn.lbtn_dn(x, y); return true;}
+    this.leave = () => {if (cur_btn) {cur_btn.cs("normal"); if (!cur_btn.hide) transition.start();} cur_btn = null;}
+    this.on_script_unload = () => tt("");
+    this.draw = gr => Object.values(this.btns).forEach(v => {if (!v.hide) v.draw(gr);});
+    this.reset = () => transition.stop();
+    this.set_scroll_btns_hide = (force) => {if (!this.btns || (!ppt.sbarShow && !force)) return; scrBtns.forEach((v, i) => {if (this.btns[v]) this.btns[v].hide = sbar.scrollable_lines < 1 || !ppt.sbarShow;});}
+    this.set_search_btns_hide = () => {
+        if (this.btns.s_img) this.btns.s_img.hide =  ppt.searchShow > 1 && p.s_txt;
+        if (this.btns.cross2) this.btns.cross2.hide = !this.btns.s_img.hide
+    }
+
+    const Btn = function(x, y, w, h, type, ft, txt, stat, im, hide, l_dn, l_up, tiptext, hand, name) {
+        this.draw = gr => {
+            switch (this.type) {
+                case 1: case 2: drawScrollBtn(gr); break;
+                case 3: ui.theme.SetPartAndStateID(1, im[this.state]); ui.theme.DrawThemeBackground(gr, this.x, this.y, this.w, this.h); break;
+                case 4: drawSearch(gr); break;
+                case 5: drawCross(gr); break;
+                case 6: drawFilter(gr); break;
             }
         }
-        this.trace = function(x, y) {return x > this.x && x < this.x + this.w && y > this.y && y < this.y + this.h;}
-        this.lbtn_dn = function () {this.l_dn && this.l_dn(x, y);}
-        this.lbtn_up = function () {this.l_up && this.l_up(x, y);}
 
-        this.changestate = function(state) {
-            switch (state) {case "hover": this.img = this.img_hover; tooltip(this.tooltext); break; case "down": this.img = this.img_down; break; default: this.img = this.img_normal; break;}
-            window.RepaintRect(this.x, this.y, this.w + 1, this.h + 1);
+        this.cs = state => {this.state = state; if (state === "down" || state === "normal") this.tt.clear(); this.repaint();}
+        this.lbtn_dn = () => {if (!but.Dn) return; this.l_dn && this.l_dn(x, y);}
+        this.lbtn_up = (x, y) => {if (ppt.touchControl && Math.sqrt((Math.pow(p.last_pressed_coord.x - x, 2) + Math.pow(p.last_pressed_coord.y - y, 2))) > 3 * s.scale) return; if (this.l_up) this.l_up();}
+        this.repaint = () => {const expXY = 2, expWH = 4; window.RepaintRect(this.x - expXY, this.y - expXY, this.w + expWH, this.h + expWH);}
+        this.trace = (x, y) => {return x > this.x && x < this.x + this.w && y > this.y && y < this.y + this.h;}
+
+        this.x = x; this.y = y; this.w = w; this.h = h; this.type = type; this.hide = hide; this.l_dn = l_dn; this.l_up = l_up; this.tt = new Tooltip; this.tiptext = tiptext; this.transition_factor = 0; this.state = "normal"; this.hand = hand; this.name = name;
+
+        const drawCross = gr => {
+            let a; if (this.state !== "down") {const b = im.normal, c = im.hover - b; a = Math.min(b + c * this.transition_factor, im.hover);} else a = im.hover;
+            gr.DrawLine(Math.round(this.x + bh * 0.67), Math.round(this.y + bh * 0.67), Math.round(this.x + bh * 0.27), Math.round(this.y + bh * 0.27), Math.round(bh / 10), RGBA(136, 136, 136, a)); gr.DrawLine(Math.round(this.x + bh * 0.67), Math.round(this.y + bh * 0.27), Math.round(this.x + bh * 0.27), Math.round(this.y + bh * 0.67), Math.round(bh / 10), RGBA(136, 136, 136, a));
         }
-        this.x = x; this.y = y; this.w = w; this.h = h; this.l_dn = l_dn; this.l_up = l_up; this.tooltext = tooltext;
-        this.img_normal = img_src.normal; this.img_hover = img_src.hover || this.img_normal; this.img_down = img_src.down || this.img_normal; this.img = this.img_normal;
+
+         const drawFilter = gr => {
+            const col = !ui.local ? (this.state !== "down" ? ui.get_blend(im.hover, im.normal, this.transition_factor, true) : im.hover) : im.normal;
+            gr.SetTextRenderingHint(5); gr.DrawString(txt, ft, col, this.x, this.y - 1, this.w, this.h, StringFormat(2, 1));
+        }
+
+         const drawScrollBtn = gr => {
+            const a = this.state !== "down" ? Math.min(sAlpha[0] + (sAlpha[1] - sAlpha[0]) * this.transition_factor, sAlpha[1]) : sAlpha[2];
+            if (scrollBtn) gr.DrawImage(scrollBtn, this.x + ft, txt, stat, stat, 0, 0, scrollBtn.Width, scrollBtn.Height, this.type == 1 ? 0 : 180, a);
+        }
+
+        const drawSearch = gr => {
+                const a = !ui.local? (this.state !== "down" ? Math.min(153 + (228 - 153) * this.transition_factor, 228)  : 228) : 255;
+                gr.SetInterpolationMode(2); if (im.normal) gr.DrawImage(im.normal, this.x, this.y, this.w, this.h, 0, 0, im.normal.Width, im.normal.Height, 0, a); gr.SetInterpolationMode(0);
+        }
     }
 
-    this.refresh = function(upd) {
+    this.move = (x, y) => {
+        const hover_btn = Object.values(this.btns).find(v => {
+             if (!v.hide && (!this.Dn || this.Dn == v.name)) return v.trace(x, y);
+        });
+        let hand = false;
+        check_scrollBtns(x, y, hover_btn); if (hover_btn) hand = hover_btn.hand; window.SetCursor(hand ? 32649 : !this.Dn && y < p.s_h && ppt.searchShow && x > qx + qh ? 32513 : 32512);
+        if (hover_btn && hover_btn.hide) {if (cur_btn) {cur_btn.cs("normal"); transition.start();} cur_btn = null; return null;} // btn hidden, ignore
+        if (cur_btn === hover_btn) return cur_btn;
+        if (cur_btn) {cur_btn.cs("normal"); transition.start();} // return prev btn to normal state
+        if (hover_btn && !(hover_btn.down && hover_btn.type < 4)) {hover_btn.cs("hover"); if (this.show_tt) hover_btn.tt.show(hover_btn.tiptext); transition.start();}
+        cur_btn = hover_btn;
+        return cur_btn;
+    }
+
+    this.lbtn_up = (x, y) => {
+        if (!cur_btn || cur_btn.hide || this.Dn != cur_btn.name) {clear(); return false;}
+        clear();
+        if (cur_btn.trace(x, y)) cur_btn.cs("hover");
+        cur_btn.lbtn_up(x, y);
+        return true;
+    }
+
+    this.refresh = upd => {
         if (upd) {
             bx = p.s_w1 - Math.round(ui.row_h * 0.75); bh = ui.row_h; by = Math.round((p.s_sp - bh * 0.4) / 2 - bh * 0.27);
-            b_x = p.sbar_x; byUp = sbar.y; byDn = sbar.y + sbar.h - ui.but_h; fw = p.f_w[p.filter_by] + p.f_sw + 12; qx = ui.margin; qy = (p.s_sp - ui.row_h * 0.6) / 2; qh = ui.row_h * 0.6;
-            if (ui.scr_type != 2) {b_x -= 1; hot_o = byUp - p.s_h; scrollBut_x = (ui.but_h - ui.scr_but_w) / 2; scrollUp_y = -ui.arrow_pad + byUp + (ui.but_h - 1 - ui.scr_but_w) / 2; scrollDn_y = ui.arrow_pad + byDn + (ui.but_h - 1 - ui.scr_but_w) / 2 ;}
+            b_x = p.sbar_x; byUp = sbar.y; byDn = sbar.y + sbar.h - ui.but_h; fw = p.f_w[ppt.filterBy] + p.f_sw + 12; qx = ppt.margin; qy = (p.s_sp - ui.row_h * 0.6) / 2; qh = ui.row_h * 0.6;
+            if (ui.sbarType != 2) {b_x -= 1; hot_o = byUp - p.s_h; scrollBtn_x = (ui.but_h - ui.scr_but_w) / 2; scrollUp_y = -ui.arrow_pad + byUp + (ui.but_h - 1 - ui.scr_but_w) / 2; scrollDn_y = ui.arrow_pad + byDn + (ui.but_h - 1 - ui.scr_but_w) / 2 ;}
         }
-        if (ui.scrollbar_show) {
-            switch (ui.scr_type) {
+        if (ppt.sbarShow) {
+            switch (ui.sbarType) {
                 case 2:
-                    this.btns.scrollUp = new btn(b_x, byUp, ui.but_h, ui.but_h, 6, "", "", "", {normal: 1, hover: 2, down: 3}, false, function() {sbar.but(1);}, "", "");
-                    this.btns.scrollDn = new btn(b_x, byDn, ui.but_h, ui.but_h, 6, "", "", "", {normal: 5, hover: 6, down: 7}, false, function() {sbar.but(-1);}, "", "");
+                    this.btns.scrollUp = new Btn(b_x, byUp, ui.but_h, ui.but_h, 3, "", "", "", {normal: 1, hover: 2, down: 3}, sbar.scrollable_lines < 1, () => sbar.but(1), "", "", false, "scrollUp");
+                    this.btns.scrollDn = new Btn(b_x, byDn, ui.but_h, ui.but_h, 3, "", "", "", {normal: 5, hover: 6, down: 7}, sbar.scrollable_lines < 1, () => sbar.but(-1), "", "", false, "scrollDn");
                     break;
                 default:
-                    this.btns.scrollUp = new btn(b_x, byUp - hot_o, ui.but_h, ui.but_h + hot_o, 1, scrollBut_x, scrollUp_y, ui.scr_but_w, {normal: scr[0], hover: scr[1], down: scr[2]}, false, function() {sbar.but(1);}, "", "");
-                    this.btns.scrollDn = new btn(b_x, byDn, ui.but_h, ui.but_h + hot_o, 2, scrollBut_x, scrollDn_y, ui.scr_but_w, {normal: scr[0], hover: scr[1], down: scr[2]}, false, function() {sbar.but(-1);}, "", "");
+                    this.btns.scrollUp = new Btn(b_x, byUp - hot_o, ui.but_h, ui.but_h + hot_o, 1, scrollBtn_x, scrollUp_y, ui.scr_but_w, "", sbar.scrollable_lines < 1, () => sbar.but(1), "", "", false, "scrollUp");
+                    this.btns.scrollDn = new Btn(b_x, byDn, ui.but_h, ui.but_h + hot_o, 2, scrollBtn_x, scrollDn_y, ui.scr_but_w, "", sbar.scrollable_lines < 1, () => sbar.but(-1), "", "", false, "scrollDn");
                     break;
             }
         }
-        if (p.s_show)  {
-            this.btns.s_img = new btn(qx, qy, qh, qh, 3, "", "", "", {normal: s_img[0], hover: s_img[1]}, false, "", function() {browser("\"" + fb.FoobarPath + "doc\\Query Syntax Help.html");}, "", "Open Query Syntax Help");
-            this.btns.cross1 = new btn(bx, by, bh, bh, 4, "", "", "", {normal: "85", hover: "192"}, false, "", function() {sL.clear();}, "Clear Search Text");
-            this.btns.cross2 = new btn(qx - bh * 0.2, by, bh, bh, 4, "", "", "", {normal: "85", hover: "192"}, false, "", function() {sL.clear();}, "Clear Search Text");
-            this.btns.filter = new btn(p.f_x1 - 12, 0, fw, p.s_sp, 5, p.f_but_ft, "▼", "", {normal: !ui.local ? ui.txt_box & 0x99ffffff : ui.txt_box, hover: ui.txt_box & 0xe4ffffff}, false, "", function() {men.button(p.f_x1, p.s_h); but.refresh(true)}, "Filter");
-        }
-    }
-}
-var but = new button_manager();
-
-function menu_object() {
-    var use_local = window.GetProperty("SYSTEM.Use Local", false), expand_limit = use_local ? 6000 : Math.min(Math.max(window.GetProperty("ADV.Limit Menu Expand: 10-6000", 500), 10), 6000), i = 0, MenuMap = [], MF_GRAYED = 0x00000001, MF_SEPARATOR = 0x00000800, MF_STRING = 0x00000000, mtags_installed = utils.CheckComponent("foo_tags", true), xp = false;
-    this.NewMenuItem = function(index, type, value) {MenuMap[index] = [{type: ""},{value: 0}]; MenuMap[index].type = type; MenuMap[index].value = value;}; this.r_up = false;
-    var box = function(n) {return n != null ? 'Unescape("' + encodeURIComponent(n + "") + '")' : "Empty";}
-    var InputBox = function(prompt, title, msg) {var vb = new ActiveXObject("ScriptControl"); vb.Language = "VBScript"; var tmp = vb.eval('InputBox(' + [box(prompt), box(title), box(msg)].join(",") + ')'); if (typeof tmp == "undefined") return; if (tmp.length == 254) fb.ShowPopupMessage("Your entry is too long and will be truncated.\n\nEntries are limited to 254 characters.", "Library Tree"); return tmp.trim();}
-    var proceed = function(length) {var ns = InputBox("Create m-TAGS in selected music folders\n\nProceed?\n\nm-TAGS creator settings apply", "Create m-TAGS in Selected Folders", "Create " + length + " m-TAGS" + (length ? "" : ": NO FOLDERS SELECTED")); if (!ns) return false; return true;}
-    this.ConfigTypeMenu = function(Menu, StartIndex) {var Index = StartIndex, n = ["Panel Properties"]; if (p.syncType) n.push("Refresh"); if (v.k(0)) n.push("Configure..."); for (var i = 0; i < n.length; i++) {this.NewMenuItem(Index, "Config", i + 1); Menu.AppendMenuItem(MF_STRING, Index, n[i]); Index++;} return Index;}
-    this.OptionsTypeMenu = function(Menu, StartIndex) {var Index = StartIndex; for (i = 0; i < p.menu.length; i++) {this.NewMenuItem(Index, "Options", i + 1); Menu.AppendMenuItem(MF_STRING, Index, p.menu[i]); Index++; if (i == p.menu.length - 1 || i == p.menu.length - 2) Menu.AppendMenuItem(MF_SEPARATOR, 0, 0);} Menu.CheckMenuRadioItem(StartIndex, StartIndex + p.grp.length - 1, StartIndex + p.view_by); return Index;}
-    this.PlaylistTypeMenu = function(Menu, StartIndex) {var Index = StartIndex, n = ["Send to Current Playlist", "Insert in Current Playlist", "Add to Current Playlist", "Copy", "Collapse All", "Expand"];
-        for (i = 0; i < 6; i++) {this.NewMenuItem(Index, "Playlist", i + 1); Menu.AppendMenuItem(i < 3 && !plman.IsPlaylistLocked(plman.ActivePlaylist) || i == 3 || i == 4 || i == 5 && xp ? MF_STRING : MF_GRAYED, Index, n[i]); if (i == 3) Menu.AppendMenuItem(MF_SEPARATOR, 0, 0); Index++;} return Index;}
-    this.TagTypeMenu = function(Menu, StartIndex) {var Index = StartIndex; this.NewMenuItem(Index, "Tag", 1); Menu.AppendMenuItem(mtags_installed && p.view.replace(/^\s+/, "") == "$directory_path(%path%)|%filename_ext%" ? MF_STRING : MF_GRAYED, Index, "Create m-TAGS..." + (mtags_installed ? (p.view.replace(/^\s+/, "").toLowerCase() == "$directory_path(%path%)|%filename_ext%" ? "" : " N/A Requires View by Path // $directory_path(%path%)|%filename_ext%$nodisplay{%subsong%}") : " N/A m-TAGS Not Installed")); Index++; return Index;}
-    this.ThemeTypeMenu = function(Menu, StartIndex) {var Index = StartIndex, c = [!ui.blur_dark && !ui.blur_blend && !ui.blur_light && !ui.imgBg, ui.blur_dark, ui.blur_blend, ui.blur_light, ui.imgBg, false], n = ["None", "Dark", "Blend", "Light", "Cover", "Reload"]; for (var i = 0; i < n.length; i++) {this.NewMenuItem(Index, "Theme", i + 1); Menu.AppendMenuItem(MF_STRING, Index, n[i]); Index++; if (1 == c[i]) Menu.CheckMenuRadioItem(StartIndex + i, StartIndex + i, StartIndex + i); if (!i || i == 4) Menu.AppendMenuItem(MF_SEPARATOR, 0, 0);} return Index;}
-
-    this.FilterMenu = function(Menu, StartIndex) {
-        var Index = StartIndex;
-        for (i = 0; i < p.f_menu.length + 1; i++) {this.NewMenuItem(Index, "Filter", i + 1);
-            Menu.AppendMenuItem(MF_STRING, Index, i != p.f_menu.length ? (!i ? "No " : "") + p.f_menu[i] : "Always Reset Scroll");
-            if (i == p.f_menu.length) Menu.CheckMenuItem(Index++, p.reset); else Index++;
-            if (i == p.f_menu.length - 1) Menu.AppendMenuItem(MF_SEPARATOR, 0, 0);
-        }
-        Menu.CheckMenuRadioItem(StartIndex, StartIndex + p.f_menu.length - 1, StartIndex + p.filter_by);
-        return Index;
-    }
-
-    this.button = function(x, y) {
-        var menu = window.CreatePopupMenu(), idx, Index = 1; Index = this.FilterMenu(menu, Index); idx = menu.TrackPopupMenu(x, y);
-        if (idx >= 1 && idx <= Index) {i = MenuMap[idx].value; pop.subCounts.filter = {}; pop.subCounts.search = {};
-            switch (i) {
-                case p.f_menu.length + 1: p.reset = !p.reset; if (p.reset) {p.search_paint(); lib.treeState(true, 2);} window.SetProperty("SYSTEM.Reset Tree", p.reset); break;
-                default: p.filter_by = i - 1; p.calc_text(); p.search_paint(); lib.treeState(true, 2); window.SetProperty("SYSTEM.Filter By", p.filter_by); break;
+            if (ppt.searchShow) this.btns.s_img = new Btn(qx, qy, qh, qh, 4, "", "", "", {normal: s_img}, ppt.searchShow > 1 && p.s_txt, "", () => {let fn = fb.FoobarPath + "doc\\Query Syntax Help.html"; if (!s.file(fn)) fn = fb.FoobarPath + "Query Syntax Help.html"; s.browser("\"" + fn);}, "Open Query Syntax Help", true, "s_img");
+            if (ppt.searchShow == 2) {
+                this.btns.cross2 = new Btn(qx - bh * 0.2, by, bh, bh, 5, "", "", "", {normal: 85, hover: 192}, !p.s_txt, "", () => {sL.clear();}, "Clear Search Text", true, "cross2");
+                this.btns.filter = new Btn(p.f_x1 - 12, 0, fw, p.s_sp, 6, p.filterBtnFont, "▼", "", {normal: !ui.local ? RGBA(ui.col.txt_filter[0], ui.col.txt_filter[1], ui.col.txt_filter[2], 153) : ui.col.txt_box, hover: RGBA(ui.col.txt_filter[0], ui.col.txt_filter[1], ui.col.txt_filter[2], 228)}, ppt.searchShow != 2, "", () => {men.button(p.f_x1, p.s_h); but.btns.filter.x = p.f_x1 - 12; but.btns.filter.w = p.f_w[ppt.filterBy] + p.f_sw + 12;}, "Filter", true, "filter");
             }
-            if (p.pn_h_auto && p.pn_h == p.pn_h_min && pop.tree[0]) pop.clear_child(pop.tree[0]);}
+        if (ppt.searchShow == 1) this.btns.cross1 = new Btn(bx, by, bh, bh, 5, "", "", "", {normal: 85, hover: 192}, ppt.searchShow != 1, "", () => {sL.clear();}, "Clear Search Text");
+        transition = new Transition(this.btns, v => v.state !== 'normal');
     }
 
-    this.search = function(Menu, StartIndex, s, f, paste) {
-        var Index = StartIndex, n = ["Copy", "Cut", "Paste"];
-        for (i = 0; i < 3; i++) {
-            this.NewMenuItem(Index, "Search", i + 1);
-            Menu.AppendMenuItem(s == f && i < 2 || i == 2 && !paste ? MF_GRAYED : MF_STRING, Index, n[i]); Index++;
-            if (i == 1) Menu.AppendMenuItem(MF_SEPARATOR, 0, 0);
+    const Transition = function(items_arg, hover_predicate) {
+        this.start = () => {
+            const hover_in_step = 0.2, hover_out_step = 0.06;
+            if (!transition_timer) {
+                transition_timer = setInterval(() => {
+                    Object.values(items).forEach(v => {
+                        const saved = v.transition_factor;
+                        if (hover(v)) v.transition_factor = Math.min(1, v.transition_factor += hover_in_step);
+                        else v.transition_factor = Math.max(0, v.transition_factor -= hover_out_step);
+                        if (saved !== v.transition_factor) v.repaint();
+                    });
+                    const running = Object.values(items).some(v => v.transition_factor > 0 && v.transition_factor < 1);
+                    if (!running) this.stop();
+                }, 25);
+            }
         }
+        this.stop = () => {
+            if (transition_timer) {
+                clearInterval(transition_timer);
+                transition_timer = null;
+            }
+        }
+    const items = items_arg, hover = hover_predicate; let transition_timer = null;
+    }
+
+    const Tooltip = function() {
+        this.show = text => {if (Date.now() - tt_start > 2000) this.showDelayed(text); else this.showImmediate(text); tt_start = Date.now();}
+        this.showDelayed = text => tt_timer.start(this.id, text);
+        this.showImmediate = text => {tt_timer.set_id(this.id); tt_timer.stop(this.id); tt(text);}
+        this.clear = () => tt_timer.stop(this.id);
+        this.stop = () => tt_timer.force_stop();
+        this.id = Math.ceil(Math.random().toFixed(8) * 1000);
+        const tt_timer = TooltipTimer;
+    }
+
+    const TooltipTimer = new function() {
+        let delay_timer, tt_caller = undefined;
+        this.start = (id, text) => {
+            const old_caller = tt_caller; tt_caller = id;
+            if (!delay_timer && tooltip.Text) tt(text, old_caller !== tt_caller );
+            else {
+                this.force_stop();
+                if (!delay_timer) {
+                    delay_timer = setTimeout(() => {
+                        tt(text);
+                        delay_timer = null;
+                    }, 500);
+                }
+            }
+        }
+        this.set_id = id => tt_caller = id;
+        this.stop = id => {if (tt_caller === id) this.force_stop();}
+        this.force_stop = () => {
+            tt("");
+            if (delay_timer) {
+                clearTimeout(delay_timer);
+                delay_timer = null;
+            }
+        }
+    }
+
+    const check_scrollBtns = (x, y, hover_btn) => {
+            if (sbar.timer_but) {
+               if ((this.btns["scrollUp"].down || this.btns["scrollDn"].down) && !this.btns["scrollUp"].trace(x, y) && !this.btns["scrollDn"].trace(x, y)) {
+                    this.btns["scrollUp"].cs("normal"); this.btns["scrollDn"].cs("normal"); clearTimeout(sbar.timer_but); sbar.timer_but = false; sbar.count = -1;}
+            } else if (hover_btn) scrBtns.forEach(v => {
+                if (hover_btn.name == v && hover_btn.down) {this.btns[v].cs("down"); hover_btn.l_dn();}
+            });
+        }
+}
+
+function MenuItems() {
+    const MenuMap = [], MF_GRAYED = 0x00000001, MF_SEPARATOR = 0x00000800, MF_STRING = 0x00000000;
+    let expandable = false, i = 0, local = s.file("C:\\check_local\\1450343922.txt");
+    this.treeExpandLimit = local ? 6000 : s.clamp(ppt.treeExpandLimit, 10, 6000); this.r_up = false;
+    const newMenuItem = (index, type, value) => {MenuMap[index] = {}; MenuMap[index].type = type; MenuMap[index].value = value;};
+
+	const baseTypeMenu = (Menu, StartIndex) => {let Index = StartIndex; return Index;}
+	const clickTypeMenu = (Menu, StartIndex) => {let Index = StartIndex; const n = ["Select", "Send to Playlist", "Send to Playlist && Play", "Send to Playlist && Play [Add if Playing]", "Send to Playlist && Play [Add if Content]"]; n.forEach((v, i) => {newMenuItem(Index, "Click", i); Menu.AppendMenuItem(MF_STRING, Index, v); if (i == 2) Menu.AppendMenuItem(MF_SEPARATOR, 0, 0); Index++;}); Menu.CheckMenuRadioItem(StartIndex, Index, StartIndex + ppt.clickAction); return Index;}
+    const configTypeMenu = (Menu, StartIndex) => {let Index = StartIndex; const n = ["Panel Properties"]; if (ppt.syncType) n.push("Refresh"); if (vk.k('shift')) n.push("Configure..."); n.forEach((v, i) => {newMenuItem(Index, "Config", i); Menu.AppendMenuItem(MF_STRING, Index, v); Index++;}); return Index;}
+	const doubleClickTypeMenu = (Menu, StartIndex) => {let Index = StartIndex; const n = ["Expand / Collapse", "Send to Playlist && Play", "Send to Playlist"]; if (pop.autoPlay.click > 2) n.unshift("N/A With Dual Mode Single-Click Actions"); n.forEach((v, i) => {newMenuItem(Index, "DoubleClick", i); Menu.AppendMenuItem(pop.autoPlay.click < 3 ? MF_STRING : MF_GRAYED, Index, v); if (pop.autoPlay.click > 2 && i == 0) Menu.AppendMenuItem(MF_SEPARATOR, 0, 0); Index++;}); Menu.CheckMenuRadioItem(StartIndex, Index, StartIndex + ppt.dblClickAction + (pop.autoPlay.click < 3 ? 0 : 1)); return Index;}
+	const itemCountsTypeMenu = (Menu, StartIndex) => {let Index = StartIndex; const n = ["Hide", "# Tracks", "# Sub-Items"]; n.forEach((v, i) => {newMenuItem(Index, "ItemCounts", i); Menu.AppendMenuItem(MF_STRING, Index, v); Index++;}); Menu.CheckMenuRadioItem(StartIndex, Index, StartIndex + ppt.nodeCounts); return Index;}
+	const keyTypeMenu = (Menu, StartIndex) => {let Index = StartIndex; const n = ["Select", "Send to Playlist"]; n.forEach((v, i) => {newMenuItem(Index, "Key", i); Menu.AppendMenuItem(MF_STRING, Index, v); Index++;}); Menu.CheckMenuRadioItem(StartIndex, Index, StartIndex + ppt.keyAction); return Index;}
+    const modeTypeMenu = (Menu, StartIndex) => {let Index = StartIndex; const c = [ppt.autoCollapse, ppt.treeAutoExpand, false, ppt.fullLineSelection, ppt.nodeHighlight, pop.autoPlay.send, ppt.rememberTree, ppt.smooth, ppt.touchControl], n = ["Auto Collapse Nodes", "Auto Expand Tree if < " + ppt.autoExpandLimit + " Tracks", "Auto Expand Limit...", "Full Line Selection", "Highlight Nodes on Hover" + (ui.nodeWin ? ": N/A for Themed Nodes" : ""), "Play on Enter or Send from Menu", "Remember Tree State", "Smooth Scroll", "Touch Control", "Reset Zoom", "Reload"]; n.forEach((v, i) => {newMenuItem(Index, "Mode", i); Menu.AppendMenuItem(i != 4 || !ui.nodeWin ? MF_STRING : MF_GRAYED, Index, v); if (!i || i == 2 || i == 3 || i == 5 || i == 6 || i == 8) Menu.AppendMenuItem(MF_SEPARATOR, 0, 0); Menu.CheckMenuItem(Index++, c[i]);}); return Index;}
+    const nowPlayingTypeMenu = (Menu, StartIndex) => {let Index = StartIndex; newMenuItem(Index, "Nowplaying", 0); Menu.AppendMenuItem(pop.nowp != -1 ? MF_STRING : MF_GRAYED, Index, "Show Nowplaying"); Index++; return Index;}
+    const playlistTypeMenu = (Menu, StartIndex) => {let Index = StartIndex; const n = ["Send to Current Playlist" + "\tEnter", "Insert in Current Playlist" + "\tCtrl+Enter", "Add to Current Playlist" + "\tShift+Enter", "Copy" + "\tCtrl+C", "Collapse All", "Expand"]; for (i = 0; i < 6; i++) {newMenuItem(Index, "Playlist", i); Menu.AppendMenuItem(i < 3 && !plman.IsPlaylistLocked(plman.ActivePlaylist) || i == 3 || i == 4 || i == 5 && expandable ? MF_STRING : MF_GRAYED, Index, n[i]); if (i == 3) Menu.AppendMenuItem(MF_SEPARATOR, 0, 0); Index++;} return Index;}
+	const rootNodeTypeMenu = (Menu, StartIndex) => {let Index = StartIndex; const n = ["Hide", "All Music", "View Name"]; n.forEach((v, i) => {newMenuItem(Index, "RootNode", i); Menu.AppendMenuItem(MF_STRING, Index, v); Index++;}); Menu.CheckMenuRadioItem(StartIndex, Index, StartIndex + ppt.rootNode); return Index;}
+	const showTypeMenu = (Menu, StartIndex) => {let Index = StartIndex; const c = [ppt.sbarShow, pop.tooltip, ppt.showTracks, ppt.searchShow == 1, ppt.searchShow == 2, ppt.showNowplaying, ppt.rowStripes], n = ["Scrollbar", "Tooltips", "Tracks", "Search", "Search + Filter", "Nowplaying in Highlight", "Row Stripes"]; n.forEach((v, i) => {newMenuItem(Index, "Show", i); Menu.AppendMenuItem(MF_STRING, Index, v); if (i == 1 || i == 2 || i == 4 || i == 5) Menu.AppendMenuItem(MF_SEPARATOR, 0, 0); Menu.CheckMenuItem(Index++, c[i]);}); return Index;}
+	const targetPlaylistTypeMenu = (Menu, StartIndex) => {let Index = StartIndex; const c = [false, !ppt.sendPlaylist, !ppt.altClickPlaylist, !ppt.middleClickPlaylist], n = ["Set Default Playlist...", "Send to Current Playlist", "Add to Current Playlist [Alt + Click]", "Add to Current Playlist [Middle Click]"]; n.forEach((v, i) => {newMenuItem(Index, "TargetPlaylist", i); Menu.AppendMenuItem(MF_STRING, Index, v); if (i < 2) Menu.AppendMenuItem(MF_SEPARATOR, 0, 0); Menu.CheckMenuItem(Index++, c[i]);}); return Index;}
+	const themeTypeMenu = (Menu, StartIndex) => {let Index = StartIndex; const c = [!ppt.blurDark && !ppt.blurBlend && !ppt.blurLight && !ppt.imgBg, ppt.blurDark, ppt.blurBlend, ppt.blurLight, ppt.imgBg, ppt.swapCol, false], n = ["None", "Dark", "Blend", "Light", "Cover", "Swap Colours"]; n.forEach((v, i) => {newMenuItem(Index, "Theme", i); Menu.AppendMenuItem(MF_STRING, Index, v); if (i < 5) {Index++; if (c[i]) Menu.CheckMenuRadioItem(StartIndex + i, StartIndex + i, StartIndex + i);} else Menu.CheckMenuItem(Index++, c[i]); if (!i || i == 4) Menu.AppendMenuItem(MF_SEPARATOR, 0, 0);}); return Index;}
+	const viewTypeMenu = (Menu, StartIndex) => {let Index = StartIndex; p.menu.forEach((v, i) => {newMenuItem(Index, "View", i); Menu.AppendMenuItem(MF_STRING, Index, v); Index++; if (i == p.menu.length - 2) Menu.AppendMenuItem(MF_SEPARATOR, 0, 0);}); Menu.CheckMenuRadioItem(StartIndex, StartIndex + p.grp.length - 1, StartIndex + ppt.viewBy); return Index;}
+
+    const filterMenu = (Menu, StartIndex) => {
+        let Index = StartIndex;
+        for (i = 0; i < p.f_menu.length + 1; i++) {newMenuItem(Index, "Filter", i); Menu.AppendMenuItem(MF_STRING, Index, i != p.f_menu.length ? (!i ? "No " : "") + p.f_menu[i] : "Always Reset Scroll"); if (i == p.f_menu.length) Menu.CheckMenuItem(Index++, ppt.reset); else Index++; if (i == p.f_menu.length - 1) Menu.AppendMenuItem(MF_SEPARATOR, 0, 0);}
+        Menu.CheckMenuRadioItem(StartIndex, StartIndex + p.f_menu.length - 1, StartIndex + ppt.filterBy);
         return Index;
     }
 
-    this.search_menu = function(x, y, s, f, paste) {
-        var menu = window.CreatePopupMenu(), idx, Index = 1;
-        Index = this.search(menu, Index, s, f, paste); idx = menu.TrackPopupMenu(x, y);
+    this.button = (x, y) => {
+        const menu = window.CreatePopupMenu(); let idx, Index = 1; Index = filterMenu(menu, Index); idx = menu.TrackPopupMenu(x, y);
+        if (idx >= 1 && idx <= Index) {
+			i = MenuMap[idx].value; pop.subCounts.filter = {}; pop.subCounts.search = {};
+			switch (i) {
+				case p.f_menu.length: ppt.reset = !ppt.reset; if (ppt.reset) {p.search_paint(); lib.treeState(true, 2);} break;
+				default: ppt.filterBy = i; p.calc_text(); p.search_paint(); if (!ppt.rememberTree && !ppt.reset) lib.logTree(); lib.getLibrary(); lib.rootNodes(!ppt.reset ? 1 : 0, true); ppt.set("SYSTEM.Filter By", ppt.filterBy); break;
+			}
+			pop.checkAutoHeight();
+		}
+    }
+
+    const search = (Menu, StartIndex, b, f, paste) => {
+        let Index = StartIndex; const n = ["Copy", "Cut", "Paste"];
+        n.forEach((v, i) => {
+            newMenuItem(Index, "Search", i);
+            Menu.AppendMenuItem(b == f && i < 2 || i == 2 && !paste ? MF_GRAYED : MF_STRING, Index, v); Index++;
+            if (i == 1) Menu.AppendMenuItem(MF_SEPARATOR, 0, 0);
+        });
+        return Index;
+    }
+
+    this.search_menu = (x, y, b, f, paste) => {
+        const menu = window.CreatePopupMenu(); let idx, Index = 1; Index = search(menu, Index, b, f, paste); idx = menu.TrackPopupMenu(x, y);
         if (idx >= 1 && idx <= Index) {
             i = MenuMap[idx].value;
             switch (i) {
-                case 1: sL.on_char(v.copy); break;
-                case 2: sL.on_char(v.cut); break;
-                case 3: sL.on_char(v.paste, true); break;
+                case 0: sL.on_char(vk.copy); break;
+                case 1: sL.on_char(vk.cut); break;
+                case 2: sL.on_char(vk.paste, true); break;
             }
         }
     }
 
-    this.rbtn_up = function(x, y) {
-        this.r_up = true; var Context = fb.CreateContextMenuManager(), FilterMenu = window.CreatePopupMenu(), idx, Index = 1, menu = window.CreatePopupMenu(), new_sel = false, OptionsMenu = window.CreatePopupMenu(), PlaylistMenu = window.CreatePopupMenu(), ThemeMenu = window.CreatePopupMenu(), show_context = false;
-        var ix = pop.get_ix(x, y, true, false), item = pop.tree[ix], nm = "", row = -1; xp = false;
-        if (y < p.s_h + p.sp && pop.tree.length > ix && ix != -1 && (x < Math.round(ui.pad * item.tr) + ui.icon_w + ui.margin && (!item.track || p.base && item.tr == 0) || pop.check_ix(item, x, y, true))) {
+    this.rbtn_up = (x, y) => {
+        this.r_up = true; const Context = fb.CreateContextMenuManager(), popupMenu = ["baseMenu", "clickMenu", "doubleClickMenu", "itemCountsMenu", "keyMenu", "menu", "modeMenu", "rootNodeMenu", "showMenu", "targetPlaylistMenu", "themeMenu", "viewMenu"]; let idx, Index = 1, items, show_context = false;
+        popupMenu.forEach(v => this[v] = window.CreatePopupMenu());
+        const ix = pop.get_ix(x, y, true, false), item = pop.tree[ix]; let nm = "", row = -1; expandable = false;
+        if (y < sbar.item_y + pop.rows * ui.row_h && pop.tree.length > ix && ix != -1 && (x < Math.round(ppt.treeIndent * item.tr) + ui.icon_w + ppt.margin && (!item.track || ppt.rootNode && item.tr == 0) || pop.check_ix(item, x, y, true))) {
             if (!item.sel) {pop.clear(); item.sel = true;}
-            pop.get_sel_items(); xp = pop.tree[ix].item.length > expand_limit || pop.tree[ix].track ? false : true;
-            if (xp && pop.tree.length) {var count = 0, m = 0; for (m = 0; m < pop.tree.length; m++) if (m == ix || pop.tree[m].sel) {if (row == -1 || m < row) {row = m; nm = (pop.tree[m].tr ? pop.tree[pop.tree[m].par].name : "") + pop.tree[m].name; nm = nm.toUpperCase();} count += pop.tree[m].item.length; xp = count <= expand_limit;}}
-            Index = this.PlaylistTypeMenu(menu, Index); menu.AppendMenuSeparator();
-            if (utils.IsKeyPressed(0x10)) {Index = this.TagTypeMenu(menu, Index); menu.AppendMenuSeparator();}
+            pop.get_sel_items(); expandable = pop.tree[ix].item.length > this.treeExpandLimit || pop.tree[ix].track ? false : true;
+            if (expandable && pop.tree.length) {
+                let count = 0;
+                pop.tree.forEach((v, m, arr) => {
+                    if (m == ix || v.sel) {if (row == -1 || m < row) {row = m; nm = (v.tr ? arr[v.par].name : "") + v.name; nm = nm.toUpperCase();} count += v.item.length; expandable = count <= this.treeExpandLimit;}
+                });
+            }
+            Index = playlistTypeMenu(this.menu, Index); this.menu.AppendMenuSeparator();
             show_context = true;
         }
-        if (show_context) {
-            Index = this.OptionsTypeMenu(OptionsMenu, Index); OptionsMenu.AppendTo(menu, MF_STRING, "Options");
-            Index = this.ThemeTypeMenu(ThemeMenu, Index); ThemeMenu.AppendTo(OptionsMenu, MF_STRING, "Theme"); OptionsMenu.AppendMenuSeparator();
-            Index = this.ConfigTypeMenu(OptionsMenu, Index);
-            menu.AppendMenuSeparator(); var items = pop.getHandles();
-            Context.InitContext(items); Context.BuildMenu(menu, 5000, -1);
-        } else {
-            Index = this.OptionsTypeMenu(menu, Index);
-            Index = this.ThemeTypeMenu(ThemeMenu, Index); ThemeMenu.AppendTo(menu, MF_STRING, "Theme"); menu.AppendMenuSeparator();
-            Index = this.ConfigTypeMenu(menu, Index);
 
-        }
-        idx = menu.TrackPopupMenu(x, y);
+        if (show_context) {
+            if (ppt.showNowplaying) {Index = nowPlayingTypeMenu(this.viewMenu, Index); this.viewMenu.AppendMenuSeparator();}
+            Index = viewTypeMenu(this.viewMenu, Index); this.viewMenu.AppendTo(this.menu, MF_STRING, "View");
+            Index = baseTypeMenu(this.baseMenu, Index); this.baseMenu.AppendTo(this.menu, MF_STRING, "Options");
+			this.menu.AppendMenuSeparator();
+		} else {
+			if (ppt.showNowplaying) {Index = nowPlayingTypeMenu(this.menu, Index); this.menu.AppendMenuSeparator();}
+            Index = viewTypeMenu(this.menu, Index);
+            this.menu.AppendMenuSeparator();
+            Index = baseTypeMenu(this.baseMenu, Index); this.baseMenu.AppendTo(this.menu, MF_STRING, "Options");
+		}
+		Index = clickTypeMenu(this.clickMenu, Index); this.clickMenu.AppendTo(this.baseMenu, MF_STRING, "Single-Click Action");
+		Index = doubleClickTypeMenu(this.doubleClickMenu, Index); this.doubleClickMenu.AppendTo(this.baseMenu, MF_STRING, "Double-Click Action");
+		this.baseMenu.AppendMenuSeparator();
+		Index = keyTypeMenu(this.keyMenu, Index); this.keyMenu.AppendTo(this.baseMenu, MF_STRING, "Keystroke Action");
+		this.baseMenu.AppendMenuSeparator();
+		Index = targetPlaylistTypeMenu(this.targetPlaylistMenu, Index); this.targetPlaylistMenu.AppendTo(this.baseMenu, MF_STRING, "Target Playlist");
+		this.baseMenu.AppendMenuSeparator();
+		Index = themeTypeMenu(this.themeMenu, Index); this.themeMenu.AppendTo(this.baseMenu, MF_STRING, "Theme");
+		this.baseMenu.AppendMenuSeparator();
+		Index = itemCountsTypeMenu(this.itemCountsMenu, Index); this.itemCountsMenu.AppendTo(this.baseMenu, MF_STRING, "Item Counts");
+		Index = rootNodeTypeMenu(this.rootNodeMenu, Index); this.rootNodeMenu.AppendTo(this.baseMenu, MF_STRING, "Root Node");
+		this.baseMenu.AppendMenuSeparator();
+		Index = showTypeMenu(this.showMenu, Index); this.showMenu.AppendTo(this.baseMenu, MF_STRING, "Show");
+		this.baseMenu.AppendMenuSeparator();
+		Index = modeTypeMenu(this.modeMenu, Index); this.modeMenu.AppendTo(this.baseMenu, MF_STRING, "Mode");
+		this.baseMenu.AppendMenuSeparator();
+		Index = configTypeMenu(this.baseMenu, Index);
+		if (show_context) {	
+            items = pop.selected();
+            Context.InitContext(items); Context.BuildMenu(this.menu, 5000);
+		}
+
+        idx = this.menu.TrackPopupMenu(x, y);
         if (idx >= 1 && idx <= Index) {
             i = MenuMap[idx].value;
             switch (MenuMap[idx].type) {
                 case "Playlist":
                     switch (i) {
-                        case 1: pop.load(pop.sel_items, true, false, true, false, false); p.tree_paint(); lib.treeState(false, lib.rememberTree); break;
-                        case 4: fb.CopyHandleListToClipboard(items); lib.treeState(false, lib.rememberTree); break;
-                        case 5: pop.collapseAll(); break;
-                        case 6: pop.expand(ix, nm); break;
-                        default: pop.load(pop.sel_items, true, true, false, false, i == 2 ? true : false); lib.treeState(false, lib.rememberTree); break;
+                        case 0: pop.load(pop.sel_items, true, false, pop.autoPlay.send, false, false); p.tree_paint(); lib.treeState(false, ppt.rememberTree); break;
+                        case 3: fb.CopyHandleListToClipboard(items); lib.treeState(false, ppt.rememberTree); break;
+                        case 4: pop.collapseAll(); break;
+                        case 5: pop.expand(ix, nm); break;
+                        default: pop.load(pop.sel_items, true, true, false, false, i == 1 ? true : false); lib.treeState(false, ppt.rememberTree); break;
                     }
                     break;
-                case "Tag":
-                    var r = !p.base ? pop.tree[ix].tr : pop.tree[ix].tr - 1, list = [];
-                    if (p.base && !ix || !r) pop.tree[ix].sel = true;
-                    if (p.base && pop.tree[0].sel) for (var j = 0; j < pop.tree.length; j++) if (pop.tree[j].tr == 1) pop.tree[j].sel = true; p.tree_paint();
-                    for ( j = 0; j < pop.tree.length; j++) if ((pop.tree[j].tr == (p.base ? 1 : 0)) && pop.tree[j].sel) list.push(pop.tree[j].name);
-                    if (!proceed(list.length)) break;
-                    p.syncType = 1; for (j = 0; j < list.length; j++) but.run("\"" + fb.FoobarPath + "\\foobar2000.exe\"" + " /m-TAGS \"" + list[j] + "\"");
-                    p.syncType = window.GetProperty(" Library Sync: Auto-0, Initialisation Only-1", 0); lib.treeState(false, 2);
+                case "Nowplaying": pop.nowPlayingShow(); break;
+                case "View": p.set('view', i); break;
+				case "Click": pop.setActions('click', i); break;
+				case "DoubleClick": pop.setActions('dblClick', i); break;
+				case "Key": pop.setActions('key', i); break;
+				case "TargetPlaylist":
+					switch (i) {
+						case 0: let ns = utils.InputBox(window.ID, "Enter Playlist Name", "Default Playlist", ppt.libPlaylist); if (ns && ns != ppt.libPlaylist) ppt.libPlaylist = ns; break;
+						case 1: ppt.sendPlaylist = !ppt.sendPlaylist; break;
+                        case 2: ppt.altClickPlaylist = !ppt.altClickPlaylist; break;
+						case 3: ppt.middleClickPlaylist = !ppt.middleClickPlaylist; break;
+					}
+					break;
+				case "ItemCounts": p.set('itemCounts', i); break;
+				case "RootNode": p.set('rootNode', i); break;
+                case "Theme": if (i < 5) ui.chgBlur(i); else {ppt.swapCol = !ppt.swapCol; on_colours_changed(true);} break;
+				case "Show":
+                    switch (i) {
+						case 0: p.toggle('scrollbar'); break;
+                        case 1: p.toggle('tooltip'); break;
+						case 2: p.toggle('showTracks'); break;
+						case 3: p.toggle('search'); break;
+						case 4: p.toggle('search+filter'); break;
+						case 5: p.toggle('nowPlaying'); break;
+						case 6: p.toggle('rowStripes'); break;
+                    }
                     break;
-                case "Options": lib.time.Reset(); if (p.s_txt) lib.upd_search = true; p.fields(i < p.grp.length + 1 ? i - 1 : p.view_by, i - 1 < p.grp.length ? p.filter_by : i - 1 - p.grp.length); pop.subCounts =  {"standard": {}, "search": {}, "filter": {}}; lib.get_library(); lib.rootNodes(); if (p.pn_h_auto && p.pn_h == p.pn_h_min && pop.tree[0]) pop.clear_child(pop.tree[0]); break;
-                case "Theme": if (i < 6) ui.blurChange(i); else window.Reload(); break;
+				case "Mode":
+                    switch (i) {
+						case 0: ppt.autoCollapse = !ppt.autoCollapse; break;
+						case 1: ppt.treeAutoExpand = !ppt.treeAutoExpand; lib.rootNodes(ppt.rememberTree, ppt.process); break;
+						case 2: lib.setAutoExpandLimit(); break;
+						case 3: p.toggle('fullLineSelection'); break;
+						case 4: p.toggle('nodeHighlight'); on_colours_changed(); break;
+						case 5: pop.setActions('send'); break;
+						case 6: ppt.rememberTree = ppt.rememberTree ? 0 : 1; break;
+						case 7: ppt.smooth = !ppt.smooth; break;
+						case 8: ppt.touchControl = !ppt.touchControl; break;
+						case 9: p.resetZoom(); break;
+						case 10: window.Reload(); break;
+                    }
+                    break;
                 case "Config":
                     switch (i) {
-                        case 1: window.ShowProperties(); break;
-                        case 2: p.syncType ? lib.treeState(false, 2) : window.ShowConfigure(); break;
-                        case 3: if (p.syncType) window.ShowConfigure(); break;
+                        case 0: window.ShowProperties(); break;
+                        case 1: ppt.syncType ? lib.treeState(false, 2) : window.ShowConfigure(); break;
+                        case 2: if (ppt.syncType) window.ShowConfigure(); break;
                     }
                     break;
+                }
             }
-        }
-        if (idx >= 5000 && idx <= 5800) {show_context && Context.ExecuteByID(idx - 5000);}
-       this.r_up = false;
+            if (idx >= 5000 && idx <= 5800) {show_context && Context.ExecuteByID(idx - 5000);}
+            this.r_up = false;
     }
 }
-var men = new menu_object();
 
-function timers() {
-    var timer_arr = ["clear_jsearch", "focus", "jsearch", "search", "search_cursor", "tt", "update"];
-    for (var i = 0; i < timer_arr.length; i++) {this[timer_arr[i]] = false; this[timer_arr[i] + "i"] = i;}
-    this.reset = function(timer, n) {if (timer) window.ClearTimeout(timer); this[timer_arr[n]] = false;}
-    this.lib = function() {window.SetTimeout(function() {if ((ui.w < 1 || !window.IsVisible) && lib.rememberTree) lib.init = true; lib.get_library(); lib.rootNodes(lib.rememberTree ? 1 : 0, lib.process);}, 5);}
-    this.tooltip = function() {this.reset(this.tt, this.tti); this.tt = window.SetTimeout(function() {pop.deactivate_tooltip(); timer.tt = false;}, 5000);}
-    this.lib_update = function() {this.reset(this.update, this.updatei); this.update = window.SetTimeout(function() {lib.time.Reset(); pop.subCounts =  {"standard": {}, "search": {}, "filter": {}}; lib.rootNodes(2, lib.process); timer.update = false;}, 500);}
+function Timers() {
+    const timerArr = ["cursor", "jsearch1", "jsearch2", "search", "tt"];
+    timerArr.forEach(v => this[v] = {id: null});
+    this.clear = timer => {if (timer) clearTimeout(timer.id); timer.id = null;}
+    this.lib = () => {setTimeout(() => {if ((ui.w < 1 || !window.IsVisible) && ppt.rememberTree) lib.init = true; lib.getLibrary(); lib.rootNodes(ppt.rememberTree, ppt.process);}, 5);}
+    this.tooltip = () => {this.clear(this.tt); this.tt.id = setTimeout(() => {pop.deactivate_tooltip(); this.tt.id = null;}, 5000);}
 }
-var timer = new timers();
 timer.lib();
 
-function on_char(code) {pop.on_char(code); jS.on_char(code); if (!p.s_show) return; sL.on_char(code);}
-function on_focus(is_focused) {if (!is_focused) {timer.reset(timer.search_cursor, timer.search_cursori); p.s_cursor = false; p.search_paint();} pop.on_focus(is_focused);}
-function on_get_album_art_done(handle, art_id, image, image_path) {ui.get_album_art_done(image, image_path);}
-function on_metadb_changed() {if (!ui.blur && !ui.imgBg || ui.block()) return; ui.on_playback_new_track();}
-function on_item_focus_change() {if (fb.IsPlaying || !ui.blur && !ui.imgBg) return; if (ui.block()) ui.get = true; else {ui.get = false; ui.focus_changed(250);}}
-function on_key_down(vkey) {pop.on_key_down(vkey);if (!p.s_show) return; sL.on_key_down(vkey);}
-function on_key_up(vkey) {if (!p.s_show) return; sL.on_key_up(vkey)}
-function on_library_items_added(handle_list) {if (p.syncType) return; lib.treeState(false, 2, handle_list, 0);}
-function on_library_items_removed(handle_list) {if (p.syncType) return; lib.treeState(false, 2, handle_list, 2);}
-function on_library_items_changed(handle_list) {if (p.syncType) return; lib.treeState(false, 2, handle_list, 1);}
+function on_char(code) {pop.on_char(code); jS.on_char(code); if (!ppt.searchShow) return; sL.on_char(code);}
+function on_focus(is_focused) {if (!is_focused) {timer.clear(timer.cursor); p.s_cursor = false; p.search_paint();} pop.on_focus(is_focused);}
+function on_get_album_art_done(handle, art_id, image, image_path) {ui.get_album_art_done(handle, image, image_path);}
+function on_metadb_changed() {if (!ui.blur && !ppt.imgBg || ui.block()) return; ui.on_playback_new_track();}
+function on_item_focus_change() {if (fb.IsPlaying || !ui.blur && !ppt.imgBg) return; if (ui.block()) ui.get = true; else {ui.get = false; ui.focus_changed();}}
+function on_key_down(vkey) {pop.on_key_down(vkey);if (!ppt.searchShow) return; sL.on_key_down(vkey);}
+function on_key_up(vkey) {if (!ppt.searchShow) return; sL.on_key_up(vkey)}
+function on_library_items_added(handleList) {if (ppt.syncType) return; lib.treeState(false, 2, handleList, 0);}
+function on_library_items_removed(handleList) {if (ppt.syncType) return; lib.treeState(false, 2, handleList, 2);}
+function on_library_items_changed(handleList) {if (ppt.syncType) return; lib.treeState(false, 2, handleList, 1);}
 function on_main_menu(index) {pop.on_main_menu(index);}
-function on_mouse_lbtn_dblclk(x, y) {but.lbtn_dn(x, y); pop.lbtn_dblclk(x, y); }
-function on_mouse_lbtn_down(x, y) {if (p.s_show || ui.scrollbar_show) but.lbtn_dn(x, y); if (p.s_show) sL.lbtn_dn(x, y); pop.lbtn_dn(x, y); sbar.lbtn_dn(x, y);}
-function on_mouse_lbtn_up(x, y) {pop.lbtn_up(x, y); if (p.s_show) {sL.lbtn_up(); but.lbtn_up(x, y);} sbar.lbtn_up(x, y);}
-function on_mouse_leave() {if (p.s_show || ui.scrollbar_show) but.leave(); sbar.leave(); pop.leave();}
+function on_mouse_lbtn_dblclk(x, y) {but.lbtn_dn(x, y); pop.lbtn_dblclk(x, y); sbar.lbtn_dblclk(x, y);}
+function on_mouse_lbtn_down(x, y) {if (ppt.touchControl) p.last_pressed_coord = {x: x, y: y}; if (ppt.searchShow || ppt.sbarShow) but.lbtn_dn(x, y); if (ppt.searchShow) sL.lbtn_dn(x, y); pop.lbtn_dn(x, y); sbar.lbtn_dn(x, y); ui.y_start = y;}
+function on_mouse_lbtn_up(x, y) {pop.lbtn_up(x, y); if (ppt.searchShow) sL.lbtn_up(); but.lbtn_up(x, y); sbar.lbtn_up(x, y);}
+function on_mouse_leave() {if (ppt.searchShow || ppt.sbarShow) but.leave(); sbar.leave(); pop.leave();}
 function on_mouse_mbtn_up(x, y) {pop.mbtn_up(x, y);}
-function on_mouse_move(x, y) {if (p.m_x == x && p.m_y == y) return; if (p.s_show || ui.scrollbar_show) but.move(x, y); if (p.s_show) sL.move(x, y); pop.move(x, y); pop.dragDrop(x, y); sbar.move(x, y); p.m_x = x; p.m_y = y;}
-function on_mouse_rbtn_up(x, y) {if (y < p.s_h && x > p.s_x && x < p.s_x + p.s_w2) {if (p.s_show) sL.rbtn_up(x, y); return true;} else {men.rbtn_up(x, y); return true;}}
-function on_mouse_wheel(step) {if (!v.k(3)) sbar.wheel(step, false); else ui.wheel(step);}
+function on_mouse_move(x, y) {if (p.m_x == x && p.m_y == y) return; if (ppt.searchShow || ppt.sbarShow) but.move(x, y); if (ppt.searchShow) sL.move(x, y); pop.move(x, y); pop.dragDrop(x, y); sbar.move(x, y); ui.dragZoom(x, y); p.m_x = x; p.m_y = y;}
+function on_mouse_rbtn_up(x, y) {if (y < p.s_h && x > p.s_x && x < p.s_x + p.s_w2) {if (ppt.searchShow) sL.rbtn_up(x, y);} else men.rbtn_up(x, y); return true;}
+function on_mouse_wheel(step) {if (!vk.k('zoom')) sbar.wheel(step); else ui.wheel(step);}
 function on_notify_data(name, info) {switch (name) {case "!!.tags update": lib.treeState(false, 2); break;} if (ui.local) on_notify(name, info);}
-function on_playback_new_track(handle) {ui.on_playback_new_track(handle);}
-function on_playback_stop(reason) {if (reason == 2) return; on_item_focus_change();}
+function on_paint(gr) {ui.draw(gr); lib.checkTree(); if (ppt.searchShow) sL.draw(gr); pop.draw(gr); if (ppt.sbarShow) sbar.draw(gr); if (ppt.searchShow || ppt.sbarShow) but.draw(gr); jS.draw(gr);}
+function on_playback_new_track(handle) {lib.checkFilter(); pop.getNowplaying(handle); ui.on_playback_new_track(handle);}
+function on_playback_stop(reason) {if (reason == 2) return; pop.getNowplaying("", true); on_item_focus_change();}
 function on_playlist_items_added() {on_item_focus_change();}
 function on_playlist_items_removed() {on_item_focus_change();}
 function on_playlist_switch() {on_item_focus_change();}
 function on_script_unload() {but.on_script_unload();}
+function on_size(w, h) {ui.w = w; ui.h = h; if (!ui.w || !ui.h) return; ui.blurReset(); ui.get_font(); p.on_size(); pop.create_tooltip(); if (ppt.searchShow || ppt.sbarShow) but.refresh(true); jS.on_size();}
 function RGB(r, g, b) {return 0xff000000 | r << 16 | g << 8 | b;}
 function RGBA(r, g, b, a) {return a << 24 | r << 16 | g << 8 | b;}
 function StringFormat() {
-    var a = arguments, h_align = 0, v_align = 0, trimming = 0, flags = 0;
+    const a = arguments, flags = 0; let h_align = 0, v_align = 0, trimming = 0;
     switch (a.length) {case 3: trimming = a[2]; case 2: v_align = a[1]; case 1: h_align = a[0]; break; default: return 0;}
     return (h_align << 28 | v_align << 24 | trimming << 20 | flags);
 }
 
-if (!window.GetProperty("SYSTEM.Software Notice Checked", false)) fb.ShowPopupMessage("THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS \"AS IS\" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.", "Library Tree"); window.SetProperty("SYSTEM.Software Notice Checked", true); window.SetProperty(" Hot Key: Add to Playlist: 1-10", null); window.SetProperty(" Hot Key: Insert in Playlist: 1-10", null); window.SetProperty(" Node: Item Counts 0-Hide 1-Tracks 2-Sub-Items", null); window.SetProperty(" Node: Show All Music", null); window.SetProperty(" Playlist: Play On Send From Menu", null); window.SetProperty(" Text Single-Click: AutoFill Playlist", null); window.SetProperty("ADV.Height Auto [Expand/Collapse With All Music]", null); window.SetProperty("SYSTEM.Zoom Update", true);
+if (!ppt.get("SYSTEM.Software Notice Checked", false)) fb.ShowPopupMessage("THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS \"AS IS\" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.", "Library Tree"); ppt.set("SYSTEM.Software Notice Checked", true);
