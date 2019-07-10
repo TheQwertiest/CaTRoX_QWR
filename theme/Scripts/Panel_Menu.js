@@ -6,6 +6,7 @@
 var trace_call = false;
 var trace_on_paint = false;
 var trace_on_move = false;
+var enable_debug = false;
 
 g_script_list.push('Panel_Menu.js');
 
@@ -197,6 +198,13 @@ function Menu() {
                 title_text += fb.TitleFormat('%_foobar2000_version%').Eval(true);
             }
 
+            if (enable_debug) {
+                if (title_text) {
+                    title_text += separator_text;
+                }
+                title_text += ' ' + GetHumanReadableSize(window.TotalMemoryUsage);
+            }
+
             var title_text_format = StringFormat();
             title_text_format.alignment = StringAlignment.center;
             title_text_format.line_alignment = StringAlignment.center;
@@ -358,6 +366,18 @@ function Menu() {
                 },
                 {is_checked: g_properties.show_cpu_usage}
             );
+            
+            if (enable_debug) {
+                cmm.append_item(
+                    'Run GC',
+                    () => { test.gc(); }
+                );
+
+                cmm.append_item(
+                    'Dump memory',
+                    () => { test.dumpHeap('collectNurseryBeforeDump','x:\\123.txt'); }
+                );
+            }
 
             qwr_utils.append_default_context_menu_to(cmm);
         }
@@ -1197,4 +1217,28 @@ function AverageUsageFunc() {
     var current_sample_count = 0;
     var reset_sample_count = 0;
     var acum_usage = 0;
+}
+
+/**
+ * 
+ * @param {number} bytes 
+ * @param {number} si 
+ * 
+ * @returns {string}
+ */
+function GetHumanReadableSize(bytes, si) {
+    let thresh = si ? 1000 : 1024;
+    if(Math.abs(bytes) < thresh) {
+        return bytes + ' B';
+    }
+    let units = si
+        ? ['kB','MB','GB','TB','PB','EB','ZB','YB']
+        : ['KiB','MiB','GiB','TiB','PiB','EiB','ZiB','YiB'];
+    let u = -1;
+    do {
+        bytes /= thresh;
+        ++u;
+    } while(Math.abs(bytes) >= thresh && u < units.length - 1);
+
+    return bytes.toFixed(1)+' '+units[u];
 }
