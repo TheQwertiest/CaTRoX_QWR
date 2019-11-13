@@ -529,50 +529,51 @@ function TrackInfoList() {
 
         cur_metadb = get_current_metadb();
         if (cur_metadb) {
-            var is_radio = _.startsWith(cur_metadb.RawPath, 'http');
-
             var fileInfo = cur_metadb.GetFileInfo();
+            if (fileInfo) {
+                var is_radio = _.startsWith(cur_metadb.RawPath, 'http');
 
-            var tag_name;
-            var value_text;
+                var tag_name;
+                var value_text;
 
-            if (g_properties.show_metadata) {
-                for (var i = 0; i < fileInfo.MetaCount; i++) {
-                    var is_readonly;
+                if (g_properties.show_metadata) {
+                    for (var i = 0; i < fileInfo.MetaCount; i++) {
+                        var is_readonly;
 
-                    tag_name = fileInfo.MetaName(i);
-                    if (tag_name === 'title' && fb.IsPlaying && is_radio) {
-                        value_text = _.tfe('%title%');
-                        is_readonly = true;
+                        tag_name = fileInfo.MetaName(i);
+                        if (tag_name === 'title' && fb.IsPlaying && is_radio) {
+                            value_text = _.tfe('%title%');
+                            is_readonly = true;
+                        }
+                        else {
+                            value_text = fileInfo.MetaValue(i, 0);
+                            is_readonly = is_radio;
+                        }
+
+                        this.cnt.rows.push(new Row(this.list_x, 0, this.list_w, this.row_h, cur_metadb, tag_name, value_text));
+                        // noinspection JSBitwiseOperatorUsage
+                        _.last(this.cnt.rows).is_odd = !(i & 1);
+                        _.last(this.cnt.rows).is_readonly = is_readonly;
                     }
-                    else {
-                        value_text = fileInfo.MetaValue(i, 0);
-                        is_readonly = is_radio;
+                }
+
+                if (g_properties.show_fileinfo) {
+                    var cur_rows_count = this.cnt.rows.length;
+                    for (var i = 0; i < fileInfo.InfoCount; i++) {
+                        tag_name = fileInfo.InfoName(i);
+                        value_text = fileInfo.InfoValue(fileInfo.InfoFind(tag_name));
+    
+                        this.cnt.rows.push(new Row(this.list_x, 0, this.list_w, this.row_h, cur_metadb, tag_name, value_text));
+                        // noinspection JSBitwiseOperatorUsage
+                        _.last(this.cnt.rows).is_odd = !((cur_rows_count + i) & 1);
+                        _.last(this.cnt.rows).is_readonly = true;
                     }
-
-                    this.cnt.rows.push(new Row(this.list_x, 0, this.list_w, this.row_h, cur_metadb, tag_name, value_text));
-                    // noinspection JSBitwiseOperatorUsage
-                    _.last(this.cnt.rows).is_odd = !(i & 1);
-                    _.last(this.cnt.rows).is_readonly = is_readonly;
                 }
+
+                alpha_timer = new _.alpha_timer(this.cnt.rows, function (row) {
+                    return row.is_pressed;
+                });
             }
-
-            if (g_properties.show_fileinfo) {
-                var cur_rows_count = this.cnt.rows.length;
-                for (var i = 0; i < fileInfo.InfoCount; i++) {
-                    tag_name = fileInfo.InfoName(i);
-                    value_text = fileInfo.InfoValue(fileInfo.InfoFind(tag_name));
-
-                    this.cnt.rows.push(new Row(this.list_x, 0, this.list_w, this.row_h, cur_metadb, tag_name, value_text));
-                    // noinspection JSBitwiseOperatorUsage
-                    _.last(this.cnt.rows).is_odd = !((cur_rows_count + i) & 1);
-                    _.last(this.cnt.rows).is_readonly = true;
-                }
-            }
-
-            alpha_timer = new _.alpha_timer(this.cnt.rows, function (row) {
-                return row.is_pressed;
-            });
         }
 
         if (was_on_size_called) {

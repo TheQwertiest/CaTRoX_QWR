@@ -334,7 +334,7 @@ Context.FoobarMenu = function (metadb_handles_arg) {
      * @protected
      */
     this.initialize_menu = function(parent_menu) {
-        this.cm.InitContext(metadb_handles);
+        this.cm.InitContextPlaylist();
         this.cm.BuildMenu(parent_menu.cm, this.idx, this.idx + 5000);
     };
 

@@ -116,6 +116,8 @@ function on_notify_data(name, info) {
 }
 //</editor-fold>
 
+var fb2k_logo = gdi.Image(fb.FoobarPath + 'themes\\' + g_theme.folder_name + '\\Images\\fooLogo.png');
+
 /**
  * @constructor
  */
@@ -135,7 +137,6 @@ function TopPanel() {
             var logo_w = 16;
             var logo_y = Math.floor((this.h - logo_w) / 2);
 
-            var fb2k_logo = gdi.Image(fb.FoobarPath + 'themes\\' + g_theme.folder_name + '\\Images\\fooLogo.png');
             gr.SetInterpolationMode(InterpolationMode.HighQualityBicubic);
             gr.DrawImage(fb2k_logo, logo_x, logo_y, logo_w, logo_w, 0, 0, fb2k_logo.Width, fb2k_logo.Height, 0, 175);
 
