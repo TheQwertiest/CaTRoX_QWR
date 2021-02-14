@@ -1,9 +1,9 @@
 ﻿{
-  "author": "",
-  "description": "",
+  "author": "TheQwertiest",
+  "description": "Design by eXtremeHunter",
   "enableDragDrop": false,
   "id": "{28AC1EBE-9010-459E-8886-8FFDC8705716}",
-  "name": "CaTRoX: playlist",
+  "name": "CaTRoX: Playlist",
   "shouldGrabFocus": true,
-  "version": ""
+  "version": "5.0.0"
 }

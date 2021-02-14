@@ -1,9 +1,9 @@
 ﻿{
-  "author": "",
+  "author": "TheQwertiest",
   "description": "",
   "enableDragDrop": false,
   "id": "{8E2B7403-5CEF-4F9E-B255-64690DEB1C58}",
   "name": "CaTRoX: mini player",
   "shouldGrabFocus": true,
-  "version": ""
+  "version": "5.0.0"
 }

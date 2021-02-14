@@ -1,9 +1,9 @@
 ﻿{
-  "author": "",
-  "description": "",
+  "author": "marc2003",
+  "description": "Based on https://github.com/TheQwertiest/smp_2003",
   "enableDragDrop": false,
   "id": "{45FBD9DF-93B7-4642-924C-9CC020A082F4}",
   "name": "CaTRoX: Last.fm Artist Info/User Charts/Recent Tracks",
   "shouldGrabFocus": true,
-  "version": ""
+  "version": "1.4.0"
 }

@@ -1,9 +1,9 @@
 ﻿{
-  "author": "",
-  "description": "",
+  "author": "marc2003",
+  "description": "Based on https://github.com/TheQwertiest/smp_2003",
   "enableDragDrop": false,
   "id": "{D4B0E6A2-3432-4647-9870-AF87D78B7251}",
   "name": "CaTRoX: Artist biography",
   "shouldGrabFocus": true,
-  "version": ""
+  "version": "1.4.0"
 }

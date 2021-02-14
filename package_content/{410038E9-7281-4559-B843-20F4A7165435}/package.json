@@ -1,9 +1,9 @@
 ﻿{
-  "author": "",
+  "author": "TheQwertiest",
   "description": "",
   "enableDragDrop": false,
   "id": "{410038E9-7281-4559-B843-20F4A7165435}",
-  "name": "CaTRoX: track information",
+  "name": "CaTRoX: Track information",
   "shouldGrabFocus": true,
-  "version": ""
+  "version": "5.0.0"
 }

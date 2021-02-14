@@ -380,16 +380,6 @@ function Menu() {
                 },
                 {is_checked: g_properties.show_cpu_usage}
             );
-            
-            cmm.append_item(
-                'Run GC',
-                () => { test.gc(); }
-            );
-            
-            cmm.append_item(
-                'Dump memory',
-                () => { test.dumpHeap('collectNurseryBeforeDump','x:\\123.txt'); }
-            );
 
             qwr_utils.append_default_context_menu_to(cmm);
         }
@@ -833,7 +823,7 @@ function Menu() {
     var buttons = undefined;
 
     // noinspection JSMismatchedCollectionQueryUpdate
-    /** @type {Object<string, !{normal: !IGdiBitmap, hover: !IGdiBitmap, pressed: !IGdiBitmap}>} */
+    /** @type {Object<string, !{normal: !GdiBitmap, hover: !GdiBitmap, pressed: !GdiBitmap}>} */
     var button_images = {};
 
     var left_pad = 0;

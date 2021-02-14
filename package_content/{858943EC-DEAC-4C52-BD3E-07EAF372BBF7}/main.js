@@ -18,7 +18,7 @@ var trace_on_move = false;
 g_script_list.push('Panel_Bottom.js');
 
 // Should be used only for default panel properties
-var g_is_mini_panel = (window.Name.toLowerCase().indexOf('mini') !== -1);
+var g_is_mini_panel = window.Name.includes('mini');
 
 g_properties.add_properties(
     {

@@ -20,7 +20,7 @@ var trace_initialize_list_performance = false;
 g_script_list.push('Panel_Playlist.js');
 
 // Should be used only for default panel properties initialization
-var g_is_mini_panel = _.includes(window.Name.toLowerCase(), 'mini');
+var g_is_mini_panel = window.Name.includes('mini');
 
 // Niceties:
 // TODO: grouping presets manager: other EsPlaylist grouping features - sorting, playlist association
@@ -968,12 +968,6 @@ function Playlist(x, y) {
 
         if (utils.IsKeyPressed(VK_SHIFT)) {
             qwr_utils.append_default_context_menu_to(cmm);
-            cmm.append_item(
-                'Dump memory',
-                function () {
-                    test.dumpHeap('collectNurseryBeforeDump','x:\\123.txt');
-                }
-            );
         }
 
         cmm.execute(x, y);
@@ -1724,7 +1718,7 @@ function Playlist(x, y) {
     //private:
 
     /**
-     * @param {IFbMetadbHandleList} playlist_items
+     * @param {FbMetadbHandleList} playlist_items
      * @return {Array<Row>}
      */
     function initialize_rows(playlist_items) {
@@ -1745,7 +1739,7 @@ function Playlist(x, y) {
 
     /**
      * @param {Array<Row>} rows
-     * @param {IFbMetadbHandleList} rows_metadb
+     * @param {FbMetadbHandleList} rows_metadb
      * @return {Array<Header>}
      */
     function create_headers(rows, rows_metadb) {
@@ -2211,7 +2205,7 @@ function Playlist(x, y) {
 
     /**
      * @param {Context.Menu} parent_menu
-     * @param {IFbMetadbHandle} metadb
+     * @param {FbMetadbHandle} metadb
      */
     function append_weblinks_menu_to(parent_menu, metadb) {
         var web = new Context.Menu('Weblinks');
@@ -3522,7 +3516,7 @@ DiscHeader.prototype.constructor = DiscHeader;
 
 /**
  * @param {Array<Row>} rows_to_process
- * @param {IFbMetadbHandleList} rows_metadb
+ * @param {FbMetadbHandleList} rows_metadb
  * @return {Array<Array>} Has the following format Array<[row,row_data]>
  */
 DiscHeader.prepare_initialization_data = function (rows_to_process, rows_metadb) {
@@ -4065,7 +4059,7 @@ function Header(parent, x, y, w, h, idx) {
     };
 
     /**
-     * @param {IGdiBitmap} image
+     * @param {GdiBitmap} image
      */
     this.assign_art = function (image) {
         if (!image || !g_properties.show_album_art) {
@@ -4110,10 +4104,10 @@ function Header(parent, x, y, w, h, idx) {
      */
     var art_max_size = that.h - 16;
 
-    /** @type {IFbMetadbHandle} */
+    /** @type {FbMetadbHandle} */
     var metadb;
     /**
-     * @type {?IGdiBitmap}
+     * @type {?GdiBitmap}
      */
     var art = undefined; // undefined > Not Loaded; null > Loaded & Not Found; !_.isNil > Loaded & Found
     var grouping_handler = Header.grouping_handler;
@@ -4124,7 +4118,7 @@ Header.prototype.constructor = Header;
 
 /**
  * @param {Array<Row>} rows_to_process
- * @param {IFbMetadbHandleList} rows_metadb
+ * @param {FbMetadbHandleList} rows_metadb
  * @return {Array} Has the following format [Array<[row,row_data]>, disc_header_prepared_data]
  */
 Header.prepare_initialization_data = function (rows_to_process, rows_metadb) {
@@ -4173,7 +4167,7 @@ Header.create_headers = function (parent, x, y, w, h, prepared_rows) {
  * @param {number} y
  * @param {number} w
  * @param {number} h
- * @param {IFbMetadbHandle} metadb
+ * @param {FbMetadbHandle} metadb
  * @param {number} idx
  * @param {number} cur_playlist_idx_arg
  * @constructor
@@ -4433,7 +4427,7 @@ function Row(x, y, w, h, metadb, idx, cur_playlist_idx_arg) {
     this.idx = idx;
     /**
      * @const
-     * @type {IFbMetadbHandle}
+     * @type {FbMetadbHandle}
      */
     this.metadb = metadb;
 
@@ -4510,7 +4504,7 @@ Row.prototype.constructor = Row;
  * @param {number} y
  * @param {number} max_w
  * @param {number} h
- * @param {IFbMetadbHandle} metadb
+ * @param {FbMetadbHandle} metadb
  * @constructor
  */
 function Rating(x, y, max_w, h, metadb) {
@@ -4603,7 +4597,7 @@ function Rating(x, y, max_w, h, metadb) {
 
     /**
      * @const
-     * @type {IFbMetadbHandle}
+     * @type {FbMetadbHandle}
      */
     this.metadb = metadb;
 
@@ -5781,9 +5775,9 @@ function PlaylistManager(x, y, w, h) {
         return item.panel_state === state.hovered;
     });
 
-    /** @type {?IGdiBitmap} */
+    /** @type {?GdiBitmap} */
     var image_normal = null;
-    /** @type {?IGdiBitmap} */
+    /** @type {?GdiBitmap} */
     var image_hovered = null;
 }
 
@@ -6023,12 +6017,24 @@ function GroupingHandler() {
             on_execute_callback_fn();
         };
 
-        var parsed_query = cur_group.name === 'user_defined' 
-            ? [cur_group.group_query, cur_group.title_query] 
-            : ['', '[%album artist%]'];
+        var field_values =
+            cur_group.name === 'user_defined'
+                ? [cur_group.group_query, cur_group.title_query]
+                : ['', '[%album artist%]'];
 
-        var htmlCode = qwr_utils.prepare_html_file(`${fb.FoobarPath}${g_theme.script_folder}html\\MsgBox.html`);
-        utils.ShowHtmlDialog(window.ID, htmlCode, { width: 650, height: 425, data: ['Foobar2000: Group by', ['Grouping Query', 'Title Query'], parsed_query, on_ok_fn] });
+        utils.ShowHtmlDialog(0,
+            `file://${common_package_path}/assets/html/MsgBox.html`,
+            {
+                width: 650,
+                height: 425,
+                data: [
+                    'Foobar2000: Group by', 
+                    ['Grouping Query', 'Title Query'],
+                    field_values,
+                    on_ok_fn
+                ],
+                context_menu:  true
+            });
     }
 
     /**
@@ -6038,12 +6044,12 @@ function GroupingHandler() {
         var on_ok_fn = function (ret_val_json) {
             ret_val = JSON.parse(ret_val_json);
             
-            settings.group_presets = ret_val[0];
-            settings.default_group_name = ret_val[2];
+            settings.group_presets = ret_val.group_presets;
+            settings.default_group_name = ret_val.default_group_name;
             initalize_name_to_preset_map();
 
-            cur_group = settings.group_presets[group_by_name.indexOf(ret_val[1])];
-            settings.playlist_group_data[cur_playlist_name] = ret_val[1];
+            cur_group = settings.group_presets[group_by_name.indexOf(ret_val.current_group_name)];
+            settings.playlist_group_data[cur_playlist_name] = ret_val.current_group_name;
 
             delete settings.playlist_custom_group_data[cur_playlist_name];
 
@@ -6052,9 +6058,22 @@ function GroupingHandler() {
 
             on_execute_callback_fn();
         };
-        
-        var htmlCode = qwr_utils.prepare_html_file(`${fb.FoobarPath}${g_theme.script_folder}html\\GroupPresetsMngr.html`);
-        utils.ShowHtmlDialog(window.ID, htmlCode, { width: 650, height: 425, data: [JSON.stringify([settings.group_presets, cur_group.name, settings.default_group_name]), on_ok_fn] });
+
+        utils.ShowHtmlDialog(
+            0,
+            `file://${qwr_utils.get_current_package_path()}/assets/html/GroupPresetsMngr.html`,
+            {
+                width: 650,
+                height: 425,
+                data: [
+                    JSON.stringify({
+                        group_presets: settings.group_presets,
+                        current_group_name: cur_group.name === 'user_defined' ? settings.group_presets[0].name : cur_group.name,
+                        default_group_name: settings.default_group_name
+                    }),
+                    on_ok_fn
+                ]
+            });
     }
 
     function initialize_playlists() {
@@ -6232,9 +6251,9 @@ Header.grouping_handler = new GroupingHandler();
  */
 function ArtImageCache(max_cache_size_arg) {
     /**
-     * @param {IFbMetadbHandle} metadb
-     * @param {IGdiBitmap} img
-     * @param {LinkedList.Iterator<IFbMetadbHandle>} queue_iterator
+     * @param {FbMetadbHandle} metadb
+     * @param {GdiBitmap} img
+     * @param {LinkedList.Iterator<FbMetadbHandle>} queue_iterator
      * @constructor
      */
     function CacheItem(metadb, img, queue_iterator) {
@@ -6244,8 +6263,8 @@ function ArtImageCache(max_cache_size_arg) {
     }
 
     /**
-     * @param {IFbMetadbHandle} metadb
-     * @return {?IGdiBitmap}
+     * @param {FbMetadbHandle} metadb
+     * @return {?GdiBitmap}
      */
     this.get_image_for_meta = function (metadb) {
         var cache_item = cache[metadb.Path];
@@ -6260,8 +6279,8 @@ function ArtImageCache(max_cache_size_arg) {
     };
 
     /**
-     * @param {IGdiBitmap} img
-     * @param {IFbMetadbHandle} metadb
+     * @param {GdiBitmap} img
+     * @param {FbMetadbHandle} metadb
      */
     this.add_image_for_meta = function (img, metadb) {
         var cache_item = cache[metadb.Path];
@@ -6298,7 +6317,7 @@ function ArtImageCache(max_cache_size_arg) {
      * @type {number}
      */
     var max_cache_size = max_cache_size_arg;
-    /** @type {LinkedList<IFbMetadbHandle>} */
+    /** @type {LinkedList<FbMetadbHandle>} */
     var queue = new LinkedList();
     /** @type {Object<string,CacheItem>} */
     var cache = {};

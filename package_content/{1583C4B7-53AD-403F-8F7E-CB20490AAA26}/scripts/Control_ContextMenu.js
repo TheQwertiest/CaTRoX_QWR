@@ -305,7 +305,7 @@ Context.Separator.prototype = Object.create(Context.BaseObject.prototype);
 Context.Separator.prototype.constructor = Context.Separator;
 
 /**
- * @param {IFbMetadbHandleList} metadb_handles_arg
+ * @param {FbMetadbHandleList} metadb_handles_arg
  * @constructor
  * @extends {Context.BaseObject}
  */
@@ -430,6 +430,7 @@ _.mixin(qwr_utils, {
 
         cm.append_separator();
 
+        /*
         var edit = new Context.Menu('Edit panel scripts');
         cm.append(edit);
 
@@ -447,6 +448,7 @@ _.mixin(qwr_utils, {
                 {is_grayed_out: !utils.IsFile(script_path)}
             );
         });
+        */
 
         cm.append_item(
             'Configure panel...',

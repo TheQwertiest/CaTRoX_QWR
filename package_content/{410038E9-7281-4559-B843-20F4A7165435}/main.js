@@ -833,7 +833,7 @@ function Row(x, y, w, h, metadb_arg, tag_name_arg, value_text_arg) {
 
     /**
      * @const
-     * @type {IFbMetadbHandle}
+     * @type {FbMetadbHandle}
      */
     var metadb = metadb_arg;
 
@@ -842,9 +842,9 @@ function Row(x, y, w, h, metadb_arg, tag_name_arg, value_text_arg) {
     /** @type {string} */
     var value_text = value_text_arg;
 
-    /** @type {?IGdiBitmap} */
+    /** @type {?GdiBitmap} */
     var row_normal_image = null;
-    /** @type {?IGdiBitmap} */
+    /** @type {?GdiBitmap} */
     var row_pressed_image = null;
 }
 Row.prototype = Object.create(List.Item.prototype);

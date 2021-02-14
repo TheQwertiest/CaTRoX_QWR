@@ -194,8 +194,13 @@
                 forEach(output_copy, function (item) {
                     delete item.is_default;
                 });
-    
-                return JSON.stringify([output_copy, selected_name, default_name]);
+
+                var output_data = {
+                    group_presets: output_copy,
+                    current_group_name: selected_name,
+                    default_group_name: default_name
+                };
+                return JSON.stringify(output_data);
             }
     
             function on_input_change() {
@@ -216,6 +221,18 @@
                 }
                 return new_name + '(' + new_name_idx + ')';
             }
+
+            window.onload = function () {
+                var d = document;
+                var someThingStyles = d.getElementsByTagName('link')[0];
+                var is_win7 = (navigator.userAgent.indexOf('Windows NT 6.1') > 0);
+                if (is_win7) {
+                    someThingStyles.href = 'styles7.css';
+                }
+                else {
+                    someThingStyles.href = 'styles10.css';
+                }
+            }
             
             resizeToImpl(650, 425);
             
@@ -234,9 +251,9 @@
             
             if (parsed_args) {
                 var parsed_data = JSON.parse(parsed_args[0]);
-                group_data_list_copy = parsed_data[0];
-                cur_group_name = parsed_data[1];
-                default_group_name = parsed_data[2];
+                group_data_list_copy = parsed_data.group_presets;
+                cur_group_name = parsed_data.current_group_name;
+                default_group_name = parsed_data.default_group_name;
                 callbackFn = parsed_args[1];
             }
             else {
@@ -251,7 +268,7 @@
                 }];
                 cur_group_name = 'preset name';
                 default_group_name = 'preset name';
-            }    
+            }
     
             // main script
             find(group_data_list_copy, function (item) { return item.name === default_group_name; }).is_default = true;
@@ -423,7 +440,7 @@
             
             forEach (['btn_new', 'btn_update', 'btn_remove', 'btn_default', 'btn_up', 'btn_down', 'btn_cancel', 'btn_apply', 'btn_ok'], function(item) {
                 window[item].onkeydown = function(e) { 
-                    if (e.keyCode == 13 && window.document.activeElement == window[item]) {
+                    if (e && e.keyCode == 13 && window.document.activeElement == window[item]) {
                         window[item].onclick();
                     } 
                 }

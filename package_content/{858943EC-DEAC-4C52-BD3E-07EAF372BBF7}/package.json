@@ -1,9 +1,9 @@
 ﻿{
-  "author": "",
+  "author": "TheQwertiest",
   "description": "",
   "enableDragDrop": false,
   "id": "{858943EC-DEAC-4C52-BD3E-07EAF372BBF7}",
-  "name": "CaTRoX: seekbar and volume bar",
+  "name": "CaTRoX: Seekbar and volume bar",
   "shouldGrabFocus": true,
-  "version": ""
+  "version": "5.0.0"
 }

@@ -1,9 +1,9 @@
 ﻿{
   "author": "TheQwertiest",
-  "description": "Scripts used in other packages of CaTRoX theme.\r\nDoes nothing by itself.",
+  "description": "Scripts used in other packages of CaTRoX theme.\nDoes nothing by itself.\nScripts in `js_marc2003` directory were originally made by marc2003",
   "enableDragDrop": false,
   "id": "{1583C4B7-53AD-403F-8F7E-CB20490AAA26}",
-  "name": "CaTRoX: common",
+  "name": "CaTRoX: Utilities",
   "shouldGrabFocus": false,
-  "version": "1.0.0"
+  "version": "5.0.0"
 }

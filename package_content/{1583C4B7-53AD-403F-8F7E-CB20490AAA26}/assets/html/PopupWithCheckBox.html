@@ -34,6 +34,18 @@
                     window.resizeTo(w, h);
                 }
             }
+
+            window.onload = function () {
+                var d = document;
+                var someThingStyles = d.getElementsByTagName('link')[0];
+                var is_win7 = (navigator.userAgent.indexOf('Windows NT 6.1') > 0);
+                if (is_win7) {
+                    someThingStyles.href = 'styles7.css';
+                }
+                else {
+                    someThingStyles.href = 'styles10.css';
+                }
+            }
         
             // parse data
             var parsed_args;
