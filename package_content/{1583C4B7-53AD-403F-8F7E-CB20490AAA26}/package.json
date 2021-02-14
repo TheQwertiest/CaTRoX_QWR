@@ -1,0 +1,9 @@
+﻿{
+  "author": "TheQwertiest",
+  "description": "Scripts used in other packages of CaTRoX theme.\r\nDoes nothing by itself.",
+  "enableDragDrop": false,
+  "id": "{1583C4B7-53AD-403F-8F7E-CB20490AAA26}",
+  "name": "CaTRoX: common",
+  "shouldGrabFocus": false,
+  "version": "1.0.0"
+}
