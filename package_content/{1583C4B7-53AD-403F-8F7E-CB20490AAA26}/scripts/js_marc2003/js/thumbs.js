@@ -178,7 +178,7 @@ function _thumbs() {
 	
 	this.playback_time = () => {
 		this.counter++;
-		if (this.properties.auto_download.enabled && this.counter == 2 && this.images.length == 0) {
+		if (this.properties.source.value == 1 && this.properties.auto_download.enabled && this.counter == 2 && this.images.length == 0) {
 			var np = fb.GetNowPlaying();
 			// check selection matches playing item
 			if (panel.metadb.Path == np.Path && panel.metadb.SubSong == np.SubSong) {

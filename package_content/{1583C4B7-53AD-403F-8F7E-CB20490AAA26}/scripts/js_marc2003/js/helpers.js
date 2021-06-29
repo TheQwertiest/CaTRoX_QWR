@@ -657,7 +657,6 @@ function _menu_item(x, y, name, flags) {
 
     var menu = window.CreatePopupMenu();
     if (name) {
-
         menuManager.Init(name);
         menuManager.BuildMenu(menu, 1, 128);
 
@@ -667,7 +666,6 @@ function _menu_item(x, y, name, flags) {
             menuManager.ExecuteByID(idx - 1);
         }
     }
-
 }
 
 function _open(file) {
