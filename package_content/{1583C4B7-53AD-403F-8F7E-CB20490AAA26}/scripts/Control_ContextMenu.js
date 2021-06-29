@@ -1,7 +1,5 @@
 include('Common.js');
 
-g_script_list.push('Control_ContextMenu.js');
-
 /** @namespace */
 var Context = {};
 
@@ -411,7 +409,7 @@ _.mixin(qwr_utils, {
         cm.append_item(
             'Restart',
             function () {
-                fb.RunMainMenuCommand("File/Restart");
+                fb.Restart();
             });
 
         cm.append_item(

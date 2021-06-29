@@ -1,10 +1,11 @@
-﻿include('js_marc2003/js/helpers.js');
+﻿const common_package_id_internal = '{1583C4B7-53AD-403F-8F7E-CB20490AAA26}';
 
-var g_theme = {};
+include('js_marc2003/js/helpers.js');
+
+let g_theme = {};
 g_theme.name = 'CaTRoX (QWR Edition)';
-g_theme.version = '4.3.0';
+g_theme.version = '5.0.0';
 g_theme.folder_name = 'CaTRoX';
-g_theme.script_folder = 'themes\\' + g_theme.folder_name + '\\Scripts\\';
 
 g_theme.colors = {};
 g_theme.colors.pss_back = _RGB(25, 25, 25);
@@ -15,7 +16,7 @@ g_theme.colors.panel_line_selected = g_theme.colors.panel_line;
 g_theme.colors.panel_text_normal = _RGB(125, 127, 129);
 
 /** @enum{number} */
-var g_font_style = {
+const g_font_style = {
     regular:     0,
     bold:        1,
     italic:      2,
@@ -25,7 +26,7 @@ var g_font_style = {
 };
 
 /** @enum{number} */
-var g_playback_order = {
+const g_playback_order = {
     default:         0,
     repeat_playlist: 1,
     repeat_track:    2,
@@ -36,7 +37,7 @@ var g_playback_order = {
 };
 
 /** @enum{string|number} */
-var g_guifx = {
+const g_guifx = {
     name:          'Guifx v2 Transports',
     play:          1,
     pause:         2,
@@ -99,7 +100,7 @@ var g_guifx = {
 };
 
 /** @enum{number} */
-var g_album_art_id = {
+const g_album_art_id = {
     front:  0,
     back:   1,
     disc:   2,
@@ -107,19 +108,19 @@ var g_album_art_id = {
     artist: 4
 };
 
-//</editor-fold>
+// #endregion
 
-//<editor-fold desc="String formatting">
+// #region String formatting
 
 /** @enum{number} */
-var StringAlignment = {
+const StringAlignment = {
     near:   0,
     center: 1,
     far:    2
 };
 
 /** @enum{number} */
-var StringTrimming = {
+const StringTrimming = {
     /** Specifies no trimming. */
     none:          0,
     /** Specifies that the text is trimmed to the nearest character. */
@@ -135,7 +136,7 @@ var StringTrimming = {
 };
 
 /** @enum{number} */
-var StringFormatFlags = {
+const StringFormatFlags = {
     /**
      * No flags.
      */
@@ -222,13 +223,13 @@ function StringFormat(format_flags) {
  * @const
  * @type {StringFormat}
  */
-var g_string_format_center = StringFormat();
+let g_string_format_center = StringFormat();
 g_string_format_center.alignment = StringAlignment.center;
 g_string_format_center.line_alignment = StringAlignment.center;
 
-//</editor-fold>
+// #endregion
 
-//<editor-fold desc="Exception types">
+// #region Exception types
 
 /**
  * @param {string} msg
@@ -245,7 +246,7 @@ function ThemeError(msg) {
 
     this.name = 'ThemeError';
 
-    var err_msg = '\n';
+    let err_msg = '\n';
     err_msg += msg;
     err_msg += '\n';
 
@@ -269,7 +270,7 @@ function LogicError(msg) {
 
     this.name = 'LogicError';
 
-    var err_msg = '\n';
+    let err_msg = '\n';
     err_msg += msg;
     err_msg += '\n';
 
@@ -297,7 +298,7 @@ function TypeError(arg_name, arg_type, valid_type, additional_msg) {
 
     this.name = 'TypeError';
 
-    var err_msg = '\n';
+    let err_msg = '\n';
     err_msg += '\'' + arg_name + '\' is not a ' + valid_type + ', it\'s a ' + arg_type;
     if (additional_msg) {
         err_msg += '\n' + additional_msg;
@@ -326,7 +327,7 @@ function ArgumentError(arg_name, arg_value, additional_msg) {
 
     this.name = 'ArgumentError';
 
-    var err_msg = '\n';
+    let err_msg = '\n';
     err_msg += '\'' + arg_name + '\' has invalid value: ' + arg_value.toString();
     if (additional_msg) {
         err_msg += '\n' + additional_msg;
@@ -351,13 +352,13 @@ function assert(predicate, exception_type, args) {
     }
 }
 
-//</editor-fold>
+// #endregion
 
-var UIHacks =
+let UIHacks =
     /** @type {IUIHacks} */
     new ActiveXObject('UIHacks');
 
-var qwr_utils = {
+let qwr_utils = {
     /**
      * @param {number} m
      */
@@ -388,25 +389,25 @@ var qwr_utils = {
      * @return {string}
      */
     caller:               function () {
-        var caller = /^function\s+([^(]+)/.exec(/** @type{string} */ arguments.callee.caller.caller);
+        let caller = /^function\s+([^(]+)/.exec(/** @type{string} */ arguments.callee.caller.caller);
         return caller ? caller[1] : '';
     },
     /**
      * @return {string}
      */
     function_name:        function () {
-        var caller = /^function\s+([^(]+)/.exec(/** @type{string} */ arguments.callee.caller);
+        let caller = /^function\s+([^(]+)/.exec(/** @type{string} */ arguments.callee.caller);
         return caller ? caller[1] : '';
     },
     /**
      * @param{Array<string>} fonts
      */
     check_fonts:          function (fonts) {
-        var msg = '';
-        var fail_counter = 0;
+        let msg = '';
+        let fail_counter = 0;
 
         fonts.forEach(function (item) {
-            var check = utils.CheckFont(item);
+            let check = utils.CheckFont(item);
             if (!check) {
                 ++fail_counter;
             }
@@ -419,10 +420,39 @@ var qwr_utils = {
         }
     },
     /**
+     * @param{string|Array<string>} path_or_paths
      * @return{string}
      */
-    get_current_package_path: function() {
-        return utils.GetPackagePath(window.ScriptInfo.PackageId);
+    common_include: function(path_or_paths) {
+        if (_.isArray(path_or_paths)) {
+            for (let path of path_or_paths) {
+                include(path);
+            }
+        }
+        else {
+            include(path);
+        }
+    },
+    /**
+     * @param{string} asset_path
+     * @param{?string=} [package_id=null]
+     * @return{string}
+     */
+    get_package_asset: function(asset_path, package_id=null) {
+        if (!package_id) {
+            package_id = window.ScriptInfo.PackageId;
+        }
+        return `${utils.GetPackageInfo(package_id).Directories.Assets}\\${asset_path}`;
+    },
+    /**
+     * @param{?string=} [package_id=null]
+     * @return{string}
+     */
+    get_package_storage: function(package_id=null) {
+        if (!package_id) {
+            package_id = window.ScriptInfo.PackageId;
+        }
+        return `${utils.GetPackageInfo(package_id).Directories.Storage}`;
     },
     /**
      * @param{string} site
@@ -433,12 +463,12 @@ var qwr_utils = {
             return;
         }
 
-        var meta_info = metadb.GetFileInfo();
-        var artist = meta_info.MetaValue(meta_info.MetaFind('artist'), 0).replace(/\s+/g, '+').replace(/&/g, '%26');
-        var album = meta_info.MetaValue(meta_info.MetaFind('album'), 0).replace(/\s+/g, '+');
-        var title = meta_info.MetaValue(meta_info.MetaFind('title'), 0).replace(/\s+/g, '+');
+        let meta_info = metadb.GetFileInfo();
+        let artist = meta_info.MetaValue(meta_info.MetaFind('artist'), 0).replace(/\s+/g, '+').replace(/&/g, '%26');
+        let album = meta_info.MetaValue(meta_info.MetaFind('album'), 0).replace(/\s+/g, '+');
+        let title = meta_info.MetaValue(meta_info.MetaFind('title'), 0).replace(/\s+/g, '+');
 
-        var search_term = artist ? artist : title;
+        let search_term = artist ? artist : title;
 
         switch (site.toLowerCase()) {
             case 'google':
@@ -488,9 +518,9 @@ var qwr_utils = {
             return false;
         };
 
-        var saved_x;
-        var saved_y;
-        var saved_m;
+        let saved_x;
+        let saved_y;
+        let saved_m;
     },
     /**
      * @constructor
@@ -506,7 +536,7 @@ var qwr_utils = {
             return false;
         };
 
-        var saved_key;
+        let saved_key;
     },
     /**
      * @return {IWindow}
@@ -518,7 +548,7 @@ var qwr_utils = {
 
         // fb2k main window class
         // Can't use UIHacks.MainWindowID, since it might be uninitialized during fb2k start-up
-        var ret_wnd = wsh_utils.GetWndByHandle(window.id);
+        let ret_wnd = wsh_utils.GetWndByHandle(window.id);
         while (ret_wnd && ret_wnd.GetAncestor(1) && ret_wnd.className !== '{E7076D1C-A7BF-4f39-B771-BCBE88F2A2A8}') {// We might have multiple instances of fb2k, thus getting the parent one instead of global search
             ret_wnd = ret_wnd.GetAncestor(1);
         }
@@ -537,7 +567,7 @@ var qwr_utils = {
             throw LogicError('Can\'t use extensions with vanilla JScript')
         }
 
-        var ret_wnd = wsh_utils.GetWndByHandle(window.id);
+        let ret_wnd = wsh_utils.GetWndByHandle(window.id);
         while (ret_wnd && ret_wnd.GetAncestor(1) && ret_wnd.GetAncestor(1).id !== qwr_utils.get_fb2k_window().id) {
             ret_wnd = ret_wnd.GetAncestor(1);
         }
@@ -552,8 +582,8 @@ var qwr_utils = {
      * @return {string}
      */
     get_windows_version:  _.once(function () {
-        var version = '';
-        var ret = _.attempt(function () {
+        let version = '';
+        let ret = _.attempt(function () {
             version = (WshShell.RegRead('HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\CurrentMajorVersionNumber')).toString();
             version += '.';
             version += (WshShell.RegRead('HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\CurrentMinorVersionNumber')).toString();
@@ -604,7 +634,7 @@ function KeyActionHandler() {
      * @return{boolean} true, if key is registered, false - otherwise
      */
     this.invoke_key_action = function (key, key_modifiers) {
-        var key_action = actions[key];
+        let key_action = actions[key];
         if (!actions[key]) {
             return false;
         }
@@ -615,7 +645,7 @@ function KeyActionHandler() {
     };
 
     /** @type {Object<number, function({ctrl: ?boolean, alt: ?boolean, shift: ?boolean})>} */
-    var actions = {};
+    let actions = {};
 }
 
 /**
@@ -645,13 +675,13 @@ function PanelProperty(name, default_value) {
     this.name = name;
 
     /** @type {*} */
-    var value = window.GetProperty(this.name, default_value);
+    let value = window.GetProperty(this.name, default_value);
 }
 
 /**
  * @hideconstructor
  */
-var PanelProperties = (function () {
+let PanelProperties = (function () {
     /**
      * @constructor
      */
@@ -696,16 +726,16 @@ var PanelProperties = (function () {
             });
         }
 
-        var that = this;
+        let that = this;
         /**
          * Used for collision checks only
          *
          * @type {Object<string, number>}
          */
-        var name_list = {};
+        let name_list = {};
     }
 
-    var instance = null;
+    let instance = null;
 
     return {
         /**
@@ -722,6 +752,4 @@ var PanelProperties = (function () {
     };
 })();
 
-var g_properties = PanelProperties.get_instance();
-
-var g_script_list = ['Common.js'];
+let g_properties = PanelProperties.get_instance();

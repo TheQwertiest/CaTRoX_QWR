@@ -1,7 +1,5 @@
 ﻿include('Common.js');
 
-g_script_list.push('Control_PssSwitch.js');
-
 var pss_switch = new function() {
 
     /**
@@ -99,9 +97,8 @@ var pss_switch = new function() {
     }
 
     // private:
-    var settings_path = fb.ProfilePath + 'theme_settings\\' + g_theme.folder_name;
-    _createFolder(fb.ProfilePath + 'theme_settings');
-    _createFolder(settings_path);
+    var settings_path = `${fb.ProfilePath}/theme_settings/${g_theme.folder_name}`;
+    _createFolder(settings_path, true);
 
     /** @type {StateObject} */
     this.minimode = new StateObject('minimode', ['Full', 'Mini', 'UltraMini'], 'Full');

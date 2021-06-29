@@ -1,19 +1,13 @@
 ﻿const common_package_id = '{1583C4B7-53AD-403F-8F7E-CB20490AAA26}';
-const common_package_path = utils.GetPackagePath(common_package_id);
-const common_files = [
-    'Common.js',
+include(`${utils.GetPackageInfo(common_package_id).Directories.Scripts}/Common.js`);
+qwr_utils.common_include([
     'Control_ContextMenu.js',
-    'Control_PssSwitch.js'
-];
-for (let f of common_files) {
-    include(`${common_package_path}/scripts/${f}`)
-}
+    'Control_PssSwitch.js',
+]);
 
 var trace_call = false;
 var trace_on_paint = false;
 var trace_on_move = false;
-
-g_script_list.push('Panel_Menu.js');
 
 g_properties.add_properties(
     {
@@ -29,9 +23,6 @@ g_properties.add_properties(
         mini_mode_saved_width:  ['system.window.mini.saved_width', 250],
         mini_mode_saved_height: ['system.window.mini.saved_height', 600],
         is_first_launch:        ['system.first_launch', true],
-
-        incompatibility_notified: ['system.jscript_incompatibility.notified', false],
-        incompatibility_version:  ['system.jscript_incompatibility.version', utils.Version]
     }
 );
 
@@ -159,7 +150,7 @@ function on_notify_data(name, info) {
  */
 function Menu() {
 
-    //<editor-fold desc="Callback Implementation">
+    // #region Callback Implementation
 
     this.on_paint = function(gr) {
         if (!has_notified) {
@@ -406,7 +397,7 @@ function Menu() {
         }
     };
 
-    //</editor-fold>
+    // #endregion
 
     var throttled_repaint = _.throttle(_.bind(function() {
         window.RepaintRect(this.x, this.y, this.w, this.h);

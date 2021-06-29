@@ -1,18 +1,12 @@
 ﻿const common_package_id = '{1583C4B7-53AD-403F-8F7E-CB20490AAA26}';
-const common_package_path = utils.GetPackagePath(common_package_id);
-const common_files = [
-    'Common.js',
+include(`${utils.GetPackageInfo(common_package_id).Directories.Scripts}/Common.js`);
+qwr_utils.common_include([
     'Control_ContextMenu.js',
-];
-for (let f of common_files) {
-    include(`${common_package_path}/scripts/${f}`)
-}
+]);
 
 var trace_call = false;
 var trace_on_paint = false;
 var trace_on_move = false;
-
-g_script_list.push('Panel_Top.js');
 
 g_properties.add_properties(
     {
@@ -36,7 +30,7 @@ var g_top_panel_colors = {
 var mouse_move_suppress = new qwr_utils.MouseMoveSuppress();
 var top_panel = new TopPanel();
 
-//<editor-fold desc="Callbacks">
+// #region Callbacks
 function on_paint(gr) {
     trace_call && trace_on_paint && console.log(qwr_utils.function_name());
     top_panel.on_paint(gr);
@@ -119,15 +113,14 @@ function on_notify_data(name, info) {
     trace_call && console.log(qwr_utils.function_name());
     top_panel.on_notify_data(name, info);
 }
-//</editor-fold>
-
-var fb2k_logo = gdi.Image(fb.FoobarPath + 'themes\\' + g_theme.folder_name + '\\Images\\fooLogo.png');
+// #endregion
+const fb2k_logo = gdi.Image(qwr_utils.get_package_asset('fooLogo.png'));
 
 /**
  * @constructor
  */
 function TopPanel() {
-    //<editor-fold desc="Callback Implementation">
+    // #region Callback Implementation
     this.on_paint = function (gr) {
         var metadb = fb.GetNowPlaying();
 
@@ -258,7 +251,7 @@ function TopPanel() {
             }
         }
     };
-    //</editor-fold>
+    // #endregion
 
     var throttled_repaint = _.throttle(_.bind(function () {
         window.RepaintRect(this.x, this.y, this.w, this.h);

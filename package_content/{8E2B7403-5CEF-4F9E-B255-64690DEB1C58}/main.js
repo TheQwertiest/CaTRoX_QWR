@@ -1,22 +1,17 @@
 ﻿const common_package_id = '{1583C4B7-53AD-403F-8F7E-CB20490AAA26}';
-const common_package_path = utils.GetPackagePath(common_package_id);
-const common_files = [
+include(`${utils.GetPackageInfo(common_package_id).Directories.Scripts}/Common.js`);
+qwr_utils.common_include([
     'js_marc2003/js/seekbar.js',
     'js_marc2003/js/volume.js',
-    'Common.js',
     'Control_ContextMenu.js',
     'Control_PssSwitch.js',
     'Module_Art.js',
-];
-for (let f of common_files) {
-    include(`${common_package_path}/scripts/${f}`)
-}
+]);
+
 
 var trace_call = false;
 var trace_on_paint = false;
 var trace_on_move = false;
-
-g_script_list.push('Panel_UltraMini.js');
 
 g_properties.add_properties(
     {
@@ -172,7 +167,7 @@ function on_notify_data(name, info) {
  * @constructor
  */
 function UltraMini() {
-    //<editor-fold desc="Callback Implementation">
+    // #region Callback Implementation
     this.on_paint = function (gr) {
         gr.FillSolidRect(0, 0, this.w, this.h, g_theme.colors.panel_back);
         gr.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
@@ -433,7 +428,7 @@ function UltraMini() {
             }
         }
     };
-    //</editor-fold>
+    // #endregion
 
     var throttled_repaint = _.throttle(_.bind(function () {
         window.RepaintRect(this.x, this.y, this.w, this.h);

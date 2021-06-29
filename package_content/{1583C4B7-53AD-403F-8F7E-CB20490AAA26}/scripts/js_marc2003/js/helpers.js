@@ -1173,17 +1173,14 @@ var TM = _scale(16);
 window.Tooltip.SetFont('Segoe UI', _scale(9));
 window.Tooltip.SetMaxWidth(1200);
 
-const _selfPackageId = '{1583C4B7-53AD-403F-8F7E-CB20490AAA26}';
-
 let folders = {};
 
-folders.home = (() => {
-  let packagePath = utils.GetPackagePath(_selfPackageId);
-  return `${packagePath}/scripts/js_marc2003/`;
+folders.home = (() => {  
+  return `${utils.GetPackageInfo(common_package_id_internal).Directories.Scripts}/js_marc2003/`;
 })();
 
 folders.images = folders.home + 'images/';
-folders.data = `${fb.ProfilePath}foo_spider_monkey_panel/package_data/${_selfPackageId}/js_data/`;
+folders.data = `${utils.GetPackageInfo(common_package_id_internal).Directories.Storage}/js_data/`;
 folders.artists = folders.data + 'artists/';
 folders.lastfm = folders.data + 'lastfm/';
 

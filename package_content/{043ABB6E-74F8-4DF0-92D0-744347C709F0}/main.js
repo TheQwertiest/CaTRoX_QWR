@@ -1,19 +1,13 @@
 ﻿const common_package_id = '{1583C4B7-53AD-403F-8F7E-CB20490AAA26}';
-const common_package_path = utils.GetPackagePath(common_package_id);
-const common_files = [
+include(`${utils.GetPackageInfo(common_package_id).Directories.Scripts}/Common.js`);
+qwr_utils.common_include([
     'js_marc2003/js/volume.js',
-    'Common.js',
     'Control_ContextMenu.js',
-];
-for (let f of common_files) {
-    include(`${common_package_path}/scripts/${f}`)
-}
+]);
 
 var trace_call = false;
 var trace_on_paint = false;
 var trace_on_move = false;
-
-g_script_list.push('Panel_Playback.js');
 
 // Should be used only for default panel properties
 var g_is_mini_panel = window.Name.includes('mini');
@@ -29,7 +23,7 @@ var mouse_move_suppress = new qwr_utils.MouseMoveSuppress();
 var playback_panel = new PlaybackPanel();
 
 
-//<editor-fold desc="Callbacks">
+// #region Callbacks
 function on_paint(gr) {
     trace_call && trace_on_paint && console.log(qwr_utils.function_name());
     playback_panel.on_paint(gr);
@@ -118,7 +112,7 @@ function on_notify_data (name, info) {
     playback_panel.on_notify_data(name, info);
 }
 
-//</editor-fold>
+// #endregion
 
 /**
  * @constructor

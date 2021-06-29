@@ -1,7 +1,5 @@
 include('Common.js');
 
-g_script_list.push('Control_Scrollbar.js');
-
 g_properties.add_properties(
     {
         wheel_scroll_page: ['user.scrollbar.wheel_whole_page', false]

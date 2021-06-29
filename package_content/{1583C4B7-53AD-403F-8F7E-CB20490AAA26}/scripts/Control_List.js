@@ -1,7 +1,5 @@
 include('Common.js');
 
-g_script_list.push('Control_List.js');
-
 g_properties.add_properties(
     {
         list_left_pad:   ['user.list.pad.left', 0],

@@ -1,13 +1,11 @@
 ﻿const common_package_id = '{1583C4B7-53AD-403F-8F7E-CB20490AAA26}';
-const common_package_path = utils.GetPackagePath(common_package_id);
-const common_files = [
+include(`${utils.GetPackageInfo(common_package_id).Directories.Scripts}/Common.js`);
+qwr_utils.common_include([
     'js_marc2003/js/panel.js',
     'js_marc2003/js/lastfm.js',
     'js_marc2003/js/list.js',
-];
-for (let f of common_files) {
-    include(`${common_package_path}/scripts/${f}`)
-}
+]);
+
 
 'use strict';
 

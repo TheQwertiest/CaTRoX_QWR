@@ -1,21 +1,16 @@
 ﻿const common_package_id = '{1583C4B7-53AD-403F-8F7E-CB20490AAA26}';
-const common_package_path = utils.GetPackagePath(common_package_id);
-const common_files = [
-    'Common.js',
+include(`${utils.GetPackageInfo(common_package_id).Directories.Scripts}/Common.js`);
+qwr_utils.common_include([
     'Control_ContextMenu.js',
     'Control_Scrollbar.js',
     'Control_List.js'
-];
-for (let f of common_files) {
-    include(`${common_package_path}/scripts/${f}`)
-}
+]);
+
 
 var trace_call = false;
 var trace_on_paint = false;
 var trace_on_move = false;
 
-
-g_script_list.push('Panel_Info.js');
 
 g_properties.add_properties(
     {
@@ -189,7 +184,7 @@ function on_metadb_changed(handles, fromhook) {
 function TrackInfoList() {
     List.call(this, 0, 0, 0, 0, new List.RowContent());
 
-    //<editor-fold desc="Callback Implementation">
+    // #region Callback Implementation
 
     this.on_paint = function (gr) {
         gr.FillSolidRect(this.x, this.y, this.w, this.h, g_tr_i_colors.background);
@@ -518,7 +513,7 @@ function TrackInfoList() {
         }
     };
 
-    //</editor-fold>
+    // #endregion
 
     // This method does not contain any redraw calls - it's purely back-end
     this.initialize_list = function () {

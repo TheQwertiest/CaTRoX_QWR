@@ -1,23 +1,18 @@
 ﻿const common_package_id = '{1583C4B7-53AD-403F-8F7E-CB20490AAA26}';
-const common_package_path = utils.GetPackagePath(common_package_id);
-const common_files = [
-    'Common.js',
+include(`${utils.GetPackageInfo(common_package_id).Directories.Scripts}/Common.js`);
+qwr_utils.common_include([
     'Control_ContextMenu.js',
     'Control_PssSwitch.js',
     'Control_Scrollbar.js',
     'Control_List.js',
     'Utility_LinkedList.js',
-];
-for (let f of common_files) {
-    include(`${common_package_path}/scripts/${f}`)
-}
+]);
+
 
 var trace_call = false;
 var trace_on_paint = false;
 var trace_on_move = false;
 var trace_initialize_list_performance = false;
-
-g_script_list.push('Panel_Playlist.js');
 
 // Should be used only for default panel properties initialization
 var g_is_mini_panel = window.Name.includes('mini');
@@ -150,7 +145,7 @@ var mouse_move_suppress = new qwr_utils.MouseMoveSuppress();
 var key_down_suppress = new qwr_utils.KeyModifiersSuppress();
 
 
-//<editor-fold desc="Callbacks">
+// #region Callbacks
 function on_paint(gr) {
     trace_call && trace_on_paint && console.log(qwr_utils.function_name());
     playlist.on_paint(gr);
@@ -335,7 +330,7 @@ function on_notify_data(name, info) {
     playlist.on_notify_data(name, info);
 }
 
-//</editor-fold>
+// #endregion
 
 /**
  * Playlist + PlaylistManager
@@ -346,7 +341,7 @@ function on_notify_data(name, info) {
  */
 function PlaylistPanel(x, y) {
 
-    //<editor-fold desc="Callback Implementation">
+    // #region Callback Implementation
 
     this.on_paint = function (gr) {
         if (!is_activated) {
@@ -613,7 +608,7 @@ function PlaylistPanel(x, y) {
         playlist.on_notify_data(name, info);
     };
 
-    //</editor-fold>
+    // #endregion
 
     this.initialize = function () {
         playlist.register_key_actions(key_handler);
@@ -671,7 +666,7 @@ function Playlist(x, y) {
 
     // public:
 
-    //<editor-fold desc="Callback Implementation">
+    // #region Callback Implementation
     this.on_paint = function (gr) {
         gr.FillSolidRect(this.x, this.y, this.w, this.h, g_pl_colors.background);
         gr.SetTextRenderingHint(TextRenderingHint.ClearTypeGridFit);
@@ -1302,7 +1297,7 @@ function Playlist(x, y) {
             }
         }
     };
-    //</editor-fold>
+    // #endregion
 
     /**
      * @param {KeyActionHandler} key_handler
@@ -1796,7 +1791,7 @@ function Playlist(x, y) {
         }
     }
 
-    //<editor-fold desc="Context Menu">
+    // #region Context Menu
 
     /**
      * @param {Context.Menu} parent_menu
@@ -2290,7 +2285,7 @@ function Playlist(x, y) {
         }
     }
 
-    //</editor-fold>
+    // #endregion
 
     /**
      * @param {number} x
@@ -2353,7 +2348,7 @@ function Playlist(x, y) {
         return drop_info;
     }
 
-    //<editor-fold desc="'Scroll to' Methods">
+    // #region 'Scroll to' Methods
     function show_now_playing() {
         var playing_item_location = plman.GetPlayingItemLocation();
         if (!playing_item_location.IsValid) {
@@ -2596,7 +2591,7 @@ function Playlist(x, y) {
         return cur_row;
     }
 
-    //</editor-fold>
+    // #endregion
 
     /**
      * @param {number} direction -1 for upward direction, 1 - for downward
@@ -3152,7 +3147,7 @@ function ContentNavigationHelper(cnt_arg) {
     var cnt = cnt_arg;
 }
 
-//<editor-fold desc="BaseHeader">
+// #region BaseHeader
 
 /**
  * @param {List.Content|BaseHeader} parent
@@ -3366,7 +3361,7 @@ BaseHeader.prototype.get_duration = function () {
     return duration_in_seconds;
 };
 
-//</editor-fold>
+// #endregion
 
 /**
  * @param {List.Content|BaseHeader} parent
@@ -5430,7 +5425,7 @@ function QueueHandler(rows_arg, cur_playlist_idx_arg) {
  * @constructor
  */
 function PlaylistManager(x, y, w, h) {
-    //<editor-fold desc="Callback Implementation">
+    // #region Callback Implementation
     this.on_paint = function (gr) {
         if (!info_text) {
             var cur_playlist_idx = plman.ActivePlaylist;
@@ -5617,7 +5612,7 @@ function PlaylistManager(x, y, w, h) {
         change_state(state.normal);
     };
 
-    //</editor-fold>
+    // #endregion
 
     this.reinitialize = function () {
         info_text = undefined;
@@ -6061,7 +6056,7 @@ function GroupingHandler() {
 
         utils.ShowHtmlDialog(
             0,
-            `file://${qwr_utils.get_current_package_path()}/assets/html/GroupPresetsMngr.html`,
+            `file://${qwr_utils.get_package_asset('html/GroupPresetsMngr.html')}`,
             {
                 width: 650,
                 height: 425,

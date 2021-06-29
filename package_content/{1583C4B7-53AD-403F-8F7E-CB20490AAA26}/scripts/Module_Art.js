@@ -1,7 +1,5 @@
 include('Common.js');
 
-g_script_list.push('Module_Art.js');
-
 g_properties.add_properties(
     {
         track_mode:         ['user.art.track_mode', 3],
@@ -36,7 +34,7 @@ g_art_module_colors.box = g_art_module_colors.title;
 function ArtModule(optional_args) {//(Most of the art handling code was done by eXtremeHunter)
 //public:
 
-    //<editor-fold desc="Callback Implementation">
+    // #region Callback Implementation
     this.paint = function (g) {
         var text_format = StringFormat();
         text_format.alignment = StringAlignment.center;
@@ -243,7 +241,7 @@ function ArtModule(optional_args) {//(Most of the art handling code was done by 
             thumbs.btns.leave();
         }
     };
-    //</editor-fold>
+    // #endregion
 
     // End of Callback methods implementation
     /////////////////////////////////////
