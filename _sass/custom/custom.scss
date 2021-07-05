@@ -1,0 +1,28 @@
+//
+// Typography
+//
+// stylelint-disable primer/selector-no-utility, primer/no-override, selector-no-type, selector-max-type
+
+h4,
+.text-delta {
+  @include fs-4;
+  font-weight: bold !important;
+  text-transform: none !important;
+}
+
+.site-title {
+  text-align: center; 
+}
+
+summary {
+  display: list-item;
+}
+
+#main-content a {
+  white-space: normal !important; 
+}
+
+@import "./code.scss";
+@import "./colours.scss";
+@import "./slideshow.scss";
+@import "./sortable_table.scss"
