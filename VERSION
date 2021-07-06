@@ -24,7 +24,7 @@ ___
 ## [Unreleased][]
 
 ### Changed
-- Adapted to `foo_spider_monkey_panel`
+- Adapted to `foo_spider_monkey_panel`.
 - Replaced WilB's `YouTube Track Manager` with it's successor `Find & Play`.
 
 ## [4.3.0][] - 2018-05-14
