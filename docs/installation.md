@@ -42,7 +42,7 @@ nav_order: 2
   1. Exit the dialog.
   1. `Display` > `Columns UI` > `Main`: 
      * `Miscelanous` > `Untick 'Show toolbars`.
-     * `FCL importing exporting` > `Import...` > choose `unzipped_theme_folder/theme.fcl`.
+     * `FCL importing exporting` > `Import...` > choose `unzipped_theme_folder/layout/theme.fcl`.
   1. Click OK =)
   1. (Optional) Right-click on top of the window (the dark grey part). Frame-style > No border.
 
