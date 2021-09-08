@@ -993,7 +993,7 @@ function Playlist(x, y) {
         drag_event_invoked = true;
 
         if (!selection_handler.is_dragging()) {
-            if (selection_handler.is_internal_drag_n_drop_active()) {
+            if (action.IsInternal) {
                 selection_handler.enable_drag();
             }
             else {
@@ -1084,7 +1084,7 @@ function Playlist(x, y) {
 
         var ctrl_pressed = utils.IsKeyPressed(VK_CONTROL);
 
-        if (selection_handler.is_internal_drag_n_drop_active()) {
+        if (action.IsInternal) {
             // noinspection JSBitwiseOperatorUsage
             var copy_drop = ctrl_pressed && ((action.Effect & 1) || (action.Effect & 4));
             selection_handler.drop(copy_drop);
@@ -4704,6 +4704,15 @@ function SelectionHandler(cnt_arg, cur_playlist_idx_arg) {
         clipImg.ReleaseGraphics(grClip);
 
         var effect = fb.DoDragDrop(window.ID, cur_playlist_selection, g_drop_effect.copy | g_drop_effect.move | g_drop_effect.link);
+        
+        is_internal_drag_n_drop_active = false;
+
+        if (is_dragging) {
+            // If drag operation was not cancelled, then it means that nor on_drag_drop, nor on_drag_leave event handlers
+            // were triggered, which means that the items were most likely dropped inside the panel
+            // (and relevant methods were not called because of async event processing)
+            return;
+        }
 
         function can_handle_move_drop() {
             // We can handle the 'move drop' properly only when playlist is still in the same state
@@ -4712,9 +4721,9 @@ function SelectionHandler(cnt_arg, cur_playlist_idx_arg) {
         }
 
         if (g_drop_effect.none === effect && can_handle_move_drop()) {
-            // This needs special handling, because on NT, DROPEFFECT_NONE
+            // DROPEFFECT_NONE needs special handling, because on NT it
             // is returned for some move operations, instead of DROPEFFECT_MOVE.
-            // See Q182219 for the details.STARMADE - A Synthwave Mix
+            // See Q182219 for the details.
 
             var items_to_remove = [];
             var playlist_items = plman.GetPlaylistItems(cur_playlist_idx);
@@ -4734,8 +4743,6 @@ function SelectionHandler(cnt_arg, cur_playlist_idx_arg) {
         else if (g_drop_effect.move === effect && can_handle_move_drop()) {
             plman.RemovePlaylistSelection(cur_playlist_idx);
         }
-
-        is_internal_drag_n_drop_active = false;
     };
 
     this.enable_drag = function () {
@@ -5120,7 +5127,7 @@ function SelectionHandler(cnt_arg, cur_playlist_idx_arg) {
             plman.MovePlaylistSelection(cur_playlist_idx, move_delta);
         }
         else {
-            var item_count_before_drop_idx = _.count(selected_indexes, function (idx) {
+            var item_count_before_drop_idx = _count(selected_indexes, function (idx) {
                 return idx < new_idx;
             });
 
