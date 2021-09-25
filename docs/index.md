@@ -24,6 +24,7 @@ Theme for [foobar2000](https://www.foobar2000.org) based on the design and color
  - Integrated YouTube support (via `foo_youtube` and `Find & Play` script).
  - Tree style media library viewer (via `Library Tree` script).
  - Borderless player window.
+ - Fully modularized via script packages.
  - And more!
 
 See [Installation Guide](installation.md) to get started!
