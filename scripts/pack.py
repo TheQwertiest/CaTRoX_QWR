@@ -35,14 +35,19 @@ def pack():
     output_zip.unlink(missing_ok=True)
     
     output_packages_dir = output_dir/'packages'
-    shutil.rmtree(output_packages_dir)
+    if output_packages_dir.exists():
+        shutil.rmtree(output_packages_dir)
     output_packages_dir.mkdir(parents=True)
     
-    for f in (root_dir/'packages').glob('*'):
-        package_zip = output_packages_dir/f'{f.name}.zip'
-        with ZipFile(package_zip, 'w', compression=zipfile.ZIP_DEFLATED, compresslevel=9) as z:
-            zipdir(z, f)   
-        print(f'Generated package: {package_zip}')
+    for d in (root_dir/'packages').glob('*'):
+        for f in d.glob('*'):
+            package_zip = output_packages_dir/f'{f.name}.zip'
+            with ZipFile(package_zip, 'w', compression=zipfile.ZIP_DEFLATED, compresslevel=9) as z:
+                zipdir(z, f)   
+            print(f'Generated package: {package_zip}')
+            
+            # there should be only one package per dir anyway
+            break
 
     with ZipFile(output_zip, 'w', compression=zipfile.ZIP_DEFLATED, compresslevel=9) as z:
         zipdir(z, output_packages_dir, 'packages')
