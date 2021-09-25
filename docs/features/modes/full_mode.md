@@ -58,7 +58,7 @@ Information about the currently played or selected track.
 
 #### LYR Tab 
 
-Track's lyrics (if available) via [foo_uie_lyrics3](https://www.foobar2000.org/components/view/foo_uie_lyrics3) component.
+Track's lyrics (if available) via [foo_openlyrics](https://www.foobar2000.org/components/view/foo_openlyrics) component.
 
 #### LAST Tab 
 

@@ -41,7 +41,7 @@ nav_order: 2
   1. Drag-n-drop all `*.zip` files from `unzipped_theme_folder/packages` to the `Package Manager` dialog.
   1. Exit the dialog.
   1. `Display` > `Columns UI` > `Main`: 
-     * `Miscelanous` > `Untick 'Show toolbars`.
+     * `Miscelanous` > `Untick 'Show toolbars'`.
      * `FCL importing exporting` > `Import...` > choose `unzipped_theme_folder/layout/theme.fcl`.
   1. Click OK =)
   1. (Optional) Right-click on top of the window (the dark grey part). Frame-style > No border.
@@ -50,7 +50,7 @@ nav_order: 2
 
  - foo_spider_monkey_panel: <https://theqwertiest.github.io/foo_spider_monkey_panel/>
  - foo_musical_spectrum: <http://wiki.hydrogenaud.io/index.php?title=Foobar2000:Components/Musical_Spectrum_(foo_musical_spectrum)>
- - foo_uie_lyrics3: <https://www.foobar2000.org/components/view/foo_uie_lyrics3>
+ - foo_openlyrics: <https://www.foobar2000.org/components/view/foo_openlyrics>
  - foo_uie_panel_splitter: <http://foo2k.chottu.net> ([backup link](https://hydrogenaud.io/index.php/topic,114249.0.html))
  - foo_ui_columns: <https://www.foobar2000.org/components/view/foo_ui_columns>
  - foo_ui_hacks: <http://foobar2000.ru/forum/viewtopic.php?p=44399#p44399>
