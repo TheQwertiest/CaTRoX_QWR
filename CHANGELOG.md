@@ -24,8 +24,10 @@ ___
 ## [Unreleased][]
 
 ### Changed
-- Adapted to `foo_spider_monkey_panel`
+- Adapted to `foo_spider_monkey_panel`.
 - Replaced WilB's `YouTube Track Manager` with it's successor `Find & Play`.
+- Replaces `foo_uie_lyrics3` with `foo_openlyrics`.
+- All panels are now provided as script packages and can be used separately from the theme.
 
 ## [4.3.0][] - 2018-05-14
 ### Added
