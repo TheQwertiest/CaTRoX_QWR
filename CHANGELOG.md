@@ -19,6 +19,8 @@
 - [4.0.1](#401---2017-11-23)
 - [4.0.0](#400---2017-11-20)
 - [3.0.0](#300---2017-10-23)
+- [2.0.0](#200)
+- [1.0.0](#100)
 
 ___
 
@@ -276,7 +278,7 @@ Playlist Panel:
 - Playlist: fixed genre display in group info.
 - Playlist: fixed various small bugs.
 
-## [3.0.0][]
+## 3.0.0 - 2017-10-23
 ### Added
 - Added Art Mode.
 - Playlist Mode: added hidden volume bar.
@@ -285,7 +287,7 @@ Playlist Panel:
 ### Changed
 - Now using modded foo_jscript_panel instead of vanilla one, for extensions.
 
-## [2.0.0][]
+## 2.0.0
 ### Added
 - Added Playlist Mode.
 - Added alpha animations to various ui elements.
@@ -294,7 +296,7 @@ Playlist Panel:
 ### Changed
 - Replaced all button handling with code from helpers.js.
 
-## [1.0.0][]
+## 1.0.0
 ### Changed
 - Migrated to JScript component from WSHScript component.
 
