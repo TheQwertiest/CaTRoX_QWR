@@ -1,0 +1,9 @@
+﻿{
+  "author": "WilB",
+  "description": "Feature rich plug-in that finds and plays music.\n Works great with youtube and your own media library.\r\n\r\nPOWERED by last.fm music discovery, MusicBrainz, Official Charts, YouTube & your own media library.\r\n\r\nDisplay & play:\r\n\r\n• full album and track discographies\r\n\r\n• top tracks, similar artists, similar songs, decades\r\n\r\n• top 100 charts (current and historic back to 1952)\r\n\r\n• can use queries or track matching with last.fm tag database (so files don't need to be tagged in any special way to identify tracks of specific genres, mood or artist locale)\n\r\n\r\nAuto DJ:\n\r\n\r\n• auto DJ option with automated weighting algorithmn that can use last.fm or own data to help select better tracks\r\n\r\nOther features:\r\n\r\n• operates on a minimum number of playlists, so there's no awkward playlist management\r\n\r\n• nowplaying pane that provides feedback or displays configurable info on current track\r\n\r\n\nTo load & play music:\r\n\r\n• click items in album & tracks pane or use context menu.\r\n\r\n• click the +  in album & tracks pane for multiple items.\r\n\r\n• choose 'Auto DJ...' or 'Find tracks in library...' on context menu. Loads a new selection in a chosen style.",
+  "enableDragDrop": false,
+  "id": "{F5E9D9EB-42AD-4A47-B8EE-C9877A8E7851}",
+  "name": "Find & Play",
+  "shouldGrabFocus": true,
+  "version": "1.0.0-Beta.1"
+}

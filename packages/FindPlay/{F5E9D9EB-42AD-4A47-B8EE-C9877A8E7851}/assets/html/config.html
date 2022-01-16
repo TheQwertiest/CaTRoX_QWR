@@ -1,0 +1,1238 @@
+<!DOCTYPE html>
+	<html>
+	<head>
+
+	<meta http-equiv="x-ua-compatible" content="IE=8"/>
+	<link rel="stylesheet" type="text/css"  href="styles10.css">
+	<style type="text/css">
+
+	body, html {height:100%; margin:0;}
+
+	.tablink {background-color:#e5e5e5; overflow:hidden; font:1em Arial;}
+	.tablink a {margin:0; background-color:#555; color:white; text-align:center; float:left; border:none; border-bottom:1px solid #d0d0d0; outline:none; cursor:pointer; padding:0.31em 2px; width:13%;}
+	.tablink a:hover {padding:0.31em 2px; background-color:#777;}
+	.tablink a:focus {padding:0.31em 2px; background-color:#777;}
+	.tablink a:focus a:hover {padding:0.31em 2px; background-color:#777;}
+	.tabcontent {display:none; padding:1px;}
+
+	input[type="checkbox"] {vertical-align:middle; position:relative; width:17px; height:15px; border:0; padding:2px 1px; margin:5px 0;}
+	input[type="checkbox"]:focus {border:1px solid #0078D7; padding:1px 0;}
+	input[type="checkbox"]:hover:focus {border:1px solid #0078D7; padding:1px 0;}
+	input[type="checkbox"]:hover {border:1px solid #000000; padding:1px 0;}
+	input[readonly] {background-color:#E1E1E1;}
+	.checkbox_label {padding:0; margin:0; vertical-align:middle; margin-left:0.31em;}
+
+	input[type="radio"] {vertical-align:middle; position:relative; width:17px; height:15px; border:0; padding:2px 1px; margin:5px 0;}
+	input[type="radio"]:focus {border:1px solid #0078D7; padding:1px 0;}
+	input[type="radio"]:hover:focus {border:1px solid #0078D7; padding:1px 0;}
+	input[type="radio"]:hover {border:1px solid #000000; padding:1px 0;}
+	
+	.alignLeftHa {width:10%; padding:1.25em 0 0; float:left;}
+	.alignRightHa {width:58%;padding:1.25em 0 0; float:left;}	
+	.alignRightHa2 {padding:1.25em 0 0; float:left;}
+
+	.div_text1 {padding:0.7em 0 0.91em;}
+	.div_text2 {padding:1.01em 0 0;}
+	.div_text3 {padding: 1.01em 0 0;}
+	.div_text4 {padding:1.57em 0 1.01em;}
+	.div_text6 {padding:1.01em 0 0.31em;}
+	.div_text8 {padding:1.25em 0 0.31em;}
+	.alignLH, .alignLeftHa, .alignRightHa, .alignRightHa2, .div_text1, .div_text2, .div_text3, .div_text4, .div_text6, .div_text8 {
+		font:bold 1.15em Segoe UI; color:#0066CC; word-wrap:break-word; white-space:pre-wrap;
+	}
+	
+	.alignLeftH {width:10%; padding:0.7em 0 0; float:left;}
+	.alignRightH {width:58%;padding:0.7em 0 0; float:left;}	
+	.alignRightH2 {padding:0.7em 0 0; float:left;}
+	.info2 {padding:0.7em 0 0.31em;}
+	.info3 {margin:0 2% 0 0;}
+	.info4 {padding:0.7em 0 0;}
+	.info5 {padding:1.25em 0 0.31em;}
+	.info6 {padding:0.7em 0;}
+	.info12 {padding:0.7em 0 0.5em;}
+	.alignLeftH, .alignRightH, .alignRightH2, .info1, .info2, .info3, .info4, .info5, .info6, .info12 {
+		word-wrap:break-word; white-space:pre-wrap;
+	}
+
+	.padMedium {height:10em;}
+	.padLarge {height:12em;}
+
+	.input_cnt1 {margin-top:0.58em; margin-bottom:0.58em;}
+	.input_cnt2 {margin:0; padding:0;}
+	.input_cnt3 {padding-top:0.7em;}
+	.input_cnt4 {padding-top:0.31em;}
+	.input_cnt5 {margin-top:0.25em; margin-bottom:0.25em;}
+	.input2 {width:2em; text-align:center}
+	.input3 {width:3em;}
+	.input21 {display:inline-block; vertical-align:middle; width:21%; margin-left:2%; margin-right:0; margin-bottom:0.46em;}
+	.input50 {width:60%; vertical-align:middle;}
+	.input70 {width:70%; margin-bottom:0.46em;}
+
+	.input87 {width:87%;}
+	.input90 {width:90%;}
+	.input87, .input90 {
+		display:block;
+	}
+
+	.input35 {width:35%; margin-bottom:0.31em;}
+	.input40 {width:40%; margin-left:5%;}
+	.input56 {width:56%; margin-left:2%; margin-bottom:0.46em;}
+	.input66 {width:66%;}
+	.input35, .input40, .input56, .input66 {
+		display:inline-block; vertical-align:middle;
+	}
+
+	.inp_label2 {padding-left:0.46em;}
+	.inp_label4 {display:inline-block; width:8%;}
+	.btn_cnt {padding:0.7em 1em; position:absolute; bottom:0; right:0; left:0;}
+	#btn_cnt_right {background:#e5e5e5; border-top:1px solid #d0d0d0; text-align:right;}
+	#btn_cnt_left {text-align:left;}
+	#mainMargin {margin: 0 2%}
+
+	table {width: 100%; text-align:center; border-collapse:collapse; border:1px solid Gainsboro; empty-cells:show;}
+	th {font:bold 100% Segoe UI; color:green; border:0;}
+	td {padding-right:5px; border:0;}
+	tr {border:0;}
+
+	.dropbtn {white-space:nowrap; width:100%; background-color:#3e8e41; color:white; text-decoration:none; padding:0.13em 5px; border:none; cursor:pointer;}
+	.dropbtn:after {font-family: FontAwesome; content: "\f107"; padding-left:0.5em; padding-right:0.19em;}
+
+	.dropdown {margin-top: 10px; position:static; display:inline-block;}
+	.dropdown-content {display:none; position:absolute; background-color:#f9f9f9; min-width:160px; box-shadow:0 8px 1.01em 0 rgba(0,0,0,0.2); z-index:1;}
+ 	.dropdown-content a {padding:0.13em 5px; color:black; text-decoration:none; display:block;}
+	.dropdown-content a:hover {background-color:#f1f1f1;}
+	.dropdown .dropdown-content {display:none;}
+	.dropdown:hover .dropbtn {background-color:#4CAF50;}
+	
+	.stub {border:0; vertical-align:middle;}
+
+	.column27 {width:27%;}
+	.column29 {width:29%;}
+	.column31 {width:31%;}
+	.column34 {width:34%;}
+	.column38 {width:38%;}
+	.column39 {width:39%;}
+	.column40 {width:40%;}
+	.column50 {width:50%;}
+	.column59 {width:59%;}
+	.column69 {width:69%;}
+
+	.column27, .column29, .column31, .column34, .column38, .column39, .column40, .column50, .column59, .column69 {
+		margin:0; padding:0; float:left;
+	}
+
+	.row:after {content:""; display:table; clear:both;}
+					
+	</style>
+	</head>
+		<div style="clear:both;"></div>
+		<div id="tablink" class="tablink">
+			<a onclick="openPage('display', this, 'red')" id="displayCfg">Display</a>
+			<a onclick="openPage('playlists', this, 'green')" id="playlistsCfg">Playlists</a>
+			<a onclick="openPage('search', this, 'orange')" id="searchCfg">Search</a>
+			<a onclick="openPage('image', this, 'blue')" id="imageCfg">Image</a>
+			<a onclick="openPage('custom', this, 'red')" id="customCfg">Custom</a>
+			<a onclick="openPage('maintenance', this, 'green')" id="maintenanceCfg">Maintenance</a>
+			<a onclick="openPage('advanced', this, 'orange')" id="advancedCfg">Advanced</a>
+		</div>
+<div id="mainMargin">
+
+		<div style="clear:both;"></div>
+		<div id="btn_cnt_right" class="btn_cnt"> 
+			<button id="btn_ok" >OK</button>
+			<button class="button_apply" id="btn_apply">Apply</button>
+			<button id="btn_cancel">Cancel</button>
+		</div>
+		<div id="btn_cnt_left" class="btn_cnt">
+			<button id="btn_reset" >Reset all panel settings</button>
+			<button id="btn_resetPage" >Reset page</button>
+		</div>
+		
+		<div id="display" class="tabcontent">
+		<div class="row">
+			<div class="column34">
+				<div class="div_text3">Metrics</div>
+				<div style="padding:1.01em 0 0;" class="info2"><b>Margin</b></div>
+				<div id="metrics"></div>
+				<div style="padding:1.01em 0 0;" class="info2"><b>Line padding</b></div>
+				<div id="metrics2"></div>
+				<div class="div_text6">Style</div>
+				<div id="displayStyle"></div>
+				<div class="div_text1">Scroll</div>
+				<span class="info3">Bar:</span>
+				<span style="margin:0 0 0.31em;" class="dropdown"><a id="sbarShow_dropdown" class="dropbtn" href="#" onclick="toggle('sbarShow');"></a>
+				<span id="sbarShow" class="dropdown-content"></span>
+				</span>
+				<span style="margin:0 0 0.31em;" class="dropdown"><a id="sbarType_dropdown" class="dropbtn" href="#" onclick="toggle('sbarType');"></a>
+				<span id="sbarType" class="dropdown-content"></span>
+				</span>
+				<span style="margin:0 0 0.31em;" id="sbar_col_dropdown" class="dropdown"><a id="sbarCol_dropdown" class="dropbtn" href="#" onclick="toggle('sbarCol');"></a>
+				<span id="sbarCol" class="dropdown-content"></span>
+				</span>
+				<span style="margin:0 0 0.31em;" id="sbar_icon_dropdown" class="dropdown"><a id="sbarIcon_dropdown" class="dropbtn" href="#" onclick="toggle('sbarIcon');"></a>
+				<span id="sbarIcon" class="dropdown-content"></span>
+				</span>
+				<div id="scrolling"></div>
+			</div>			
+						
+			<div class="column27">
+				<div class="div_text6">Theme</div>
+				<span class="dropdown"><a id="theme_dropdown" class="dropbtn" href="#" onclick="toggle('themeBg');"></a>
+				<span id="themeBg" class="dropdown-content"></span>
+				</span>
+				<div id="themeStyle" style="padding-top:0.5em;"></div>
+			<div class="div_text6">Hover effect (background)</div>
+				<span class="dropdown"><a id="showHl_dropdown" class="dropbtn" href="#" onclick="toggle('showHl');"></a>
+				<span id="showHl" class="dropdown-content"></span>
+				</span>
+				<div class="div_text6">Hover effect (foreground)</div>
+				<div id="showH2"></div>
+				<div class="div_text6">Logo style</div>
+				<div id="siteBtn"></div>
+				<div class="div_text6">Source style</div>
+				<div id="sourceStyle"></div>
+			</div>
+					
+			<div class="column38">
+			<div class="div_text6">Nowplaying</div>
+				<span class="dropdown"><a id="nowplaying_dropdown" class="dropbtn" href="#" onclick="toggle('nowplaying1');"></a>
+				<span id="nowplaying1" class="dropdown-content"></span>
+				</span>
+				<div id="nowplaying2" style="padding-top:0.5em;"></div>
+				<div class="info2"><b>Text</b></div>
+				<div id="nowplaying3"></div>
+				<div id="nowplayingPreview"></div>
+				<div style="padding:1.25em 0;"><a id="setSize" style="text-decoration:none;" href="#" onclick="setWindowSize();return false;">Click to reset window size</a></div>
+				<button id="help_button" name="help_button" style="margin:0.5em 0 0;" type="button">Show Display Help</button>
+			</div>
+		</div>
+			<div id="display_help" style="display: none; margin:2em 0 0;">
+			<div class="info5"><b>Nowplaying panel</b></div>
+			<div class="info5">
+<i>Image:</i> click to toggle artist vs album; middle click to enlarge.
+<i>Text:</i> click to toggle title format vs auto DJ info.</div>
+			<div class="info5"><b>Graphic: prefer video</b></div>
+			<div class="info5">
+This employs the foo_youtube video player popup, which is best positioned over the nowplaying album art. The album art auto-hides when a video is playing.
+
+For best results, in "foobar2000\Preferences\Tools\Youtube Source\Video", set both "show automatically" and "hide automatically" to "Never". On the popup right click menu enable "Zoom: Fixed", "Window: Lock relative to main window" & "Window: Show video only".
+
+Alternatively, switch off prefer video mode and place the video in its own panel.</div>
+<div class="info5"><b>Button mode</b></div>
+<div class="info5">
+Resize the panel according to the button size required. Setting the theme to dark shows a neutral-coloured button.
+</div>
+<div class="info5"><b>General</b></div>
+<div class="info5">
+In foobar2000\preferences\shell integration, it's recommended to uncheck "Bring to front when adding new files" to ensure that foobar2000 doesn't grab focus away from other applications.
+</div>
+<div class="info5">&nbsp</div>
+		</div>
+		</div>
+
+		<div id="playlists" class="tabcontent">
+		<div class="row">
+			<div class="column50">
+				<div class="div_text6"><b>Playlist names</b></div>
+				<div id="playlistName"></div>
+				<button id="help_autodj" name="help_autodj" style="margin:2em 0 0;" type="button">Show Playlist, AutoDJ & Find Help</button>
+			<div id="autodj_help" style="display: none;">
+			<div class="info5" style="padding-right: 10%;"><b>Load & play music</b>
+
+1) Click an item in the album & tracks pane or use the context menu.
+2) Click the +  in the album & tracks pane for multiple items (local loads cached, & if the library is used, library tracks as well).
+3) Choose 'New Selection...' on context menu. Loads auto DJ or finds music in the media library in a selected style.
+		
+<b>Album & tracks pane</b>
+			
+<i>Track source</i>
+
+Select on the album manager drop down menu.
+
+<i>Cache playlist</i>
+
+This stores youtube items obtained through the album & tracks pane. On reload, they're loaded from there into the selection playlist. The context menu has a reload option that can be used to replace dead links.
+
+The cache playlist can be viewed in tree style using library tree.
+
+Auto DJ doesn't use the cache because there is no easy way to refresh dead links.
+
+<b>Auto DJ</b>
+
+By default the last.fm music discovery service is used & selected tracks include youtube. If preferred, tracks can be limited to the library on the context menu. Some track pool sizes may vary slightly on each load due to the dynamic algorithms used. Similarly, some pool sizes are initially estimated and refine as more tracks are played.
+
+<b>Find in library</b>
+
+Find uses the same track pools as those obtained by using the autoDJ with library tracks. As find saves the whole track pool, you can choose the tracks rather than the auto DJ.
+
+It will not be known until running a look up whether the library has matching tracks.
+
+<i>Last.fm data</i>
+
+The library is filtered for tracks in last.fm top tracks lists. The number of tracks returned will depend on the last.fm popularity setting chosen.
+
+With last.fm tag searches such as a genre (e.g. rock), a style (e.g. happy) or a locale (e.g. American) etc, a last.fm top tracks list will be returned that's used to find matching tracks in the library, i.e. it's independent of the music file tags.
+
+<i>Own data</i>
+
+This mostly uses automated library queries of the type artist IS bla and genre IS bla etc and returns the results as a list sorted by the chosen method. Thus it's dependendent on music file tags.
+
+Last.fm data is used in a limited way, to get similar artists and songs, e.g. library is queried for all of the similar artists.
+
+Custom library queries can also be used.
+
+<b>Favourites</b>
+
+This remembers recent searches for the auto DJ and find. When choosing an item from the favourites list, current settings apply, i.e. auto DJ vs find and the nature of their settings. The only exception is for custom library queries, which have to use "own data" mode and which will automatically engage.
+
+</div>
+<div class="info5">&nbsp</div>
+		</div>
+			</div>
+			<div class="column50">
+				<div class="div_text6">Auto DJ</div>
+				<div id="removePlayed"></div>
+				<div class="div_text6">Auto DJ and find options</div>
+				<div id="autoDJSel"></div>
+				<div id="lfmOptions">
+				<div class="info2" style="padding:0.85em 0 0; color:RGB(213, 0, 12);" ><b>Last.fm options</b></div>
+										
+						<span style="padding:0.31em 0 0;" class="dropdown"><a id="lfm_dropdown" class="dropbtn" href="#" onclick="toggle('lfmDataPop');"></a>
+						<span id="lfmDataPop" class="dropdown-content"></span>
+						</span>
+				
+					<div class="row">
+					<div class="column50">
+						<div style="padding:0.7em 0 0;"><i>Popularity span: prefer:</i></div>
+						<div id="autoDJPop"></div>
+						</div>
+						<div id="extraLfmOptions" class="column50">
+							<div class="info2"><i>Genre method</i></div>
+							<div id="autoDJGenre"></div>
+						</div>
+					</div>
+					</div>
+				<div id="ownOptions">		
+					<div style="color:purple; margin:5px 0; padding:0.85em 0 0;"><b>Own data options</b></div>
+					<div id="ownDataFilter"></div>
+				<span style="padding:0.7em 0 1em;" class="dropdown"><a id="own_dropdown" class="dropbtn" href="#" onclick="toggle('ownDataOptions');"></a>
+				<span id="ownDataOptions" class="dropdown-content"></span>
+				</span>
+				</div>
+				<div class="row">
+					<div class="column50">
+						<div class="info4"><b>Similar artist modes</b></div>
+						<span class="dropdown"><a id="variety_dropdown" style="font:1em Segoe UI;" class="dropbtn" href="#" onclick="toggle('artistVariety');"></a>
+						<span id="artistVariety" style="font:0.85em Segoe UI;" class="dropdown-content"></span>
+						</span>
+						<div class="info4"><i>Selection from resulting list</i></div>
+						<div id="preferMoreSimilar"></div>
+						<div class="padMedium"></div>
+					</div>
+					<div class="column50">
+						<div class="info2"><b>Save as playlists:</b></div>
+						<div id="playlistSave"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+		</div>
+		
+		<div id="search" class="tabcontent">	
+			<span class="alignLeftHa">Field</span>
+			<span class="alignRightHa">Title format</span>
+			<span class="alignRightHa2">Query field (no title formatting)</span>
+			<div style="clear:both;"></div>
+			<span class="alignLeftH">&nbsp</span>
+			<span class="alignRightH">Web search</span>
+			<span class="alignRightH2">Library search</span>
+			<div style="clear:both;"></div>
+			<div id="search_title_format1"></div>
+			<span class="alignLeftH">&nbsp</span>
+			<span class="alignRightH">Library analysis (used with most played or highest rated options)</span>
+			<div style="clear:both;"></div>
+			<div id="search_title_format2"></div>
+			<div id="title_formatPreview"></div>
+			<div class="row">
+			<div class="column69">
+				<div class="div_text2">Library filter</div>
+				<div id="filterAll"></div>
+				<div class="div_text6">YouTube filters</div>
+				<div id="youtube"></div>
+			</div>
+			
+			<div class="column29">
+				<div class="div_text3">Library track matching</div>
+				<span style="padding-top:0.31em;" class="dropdown"><a id="match_dropdown" class="dropbtn" href="#" onclick="toggle('multipleMatch');"></a>
+				<span id="multipleMatch" class="dropdown-content"></span>
+				</span>
+				<div id="partialMatch"></div>
+				<div class="padLarge"></div>
+			</div>
+			</div>
+		</div>
+
+		<div id="image" class="tabcontent">
+		<div class="row">
+			<div class="column31">
+				<div class="div_text6"><b>Style</b></div>
+				<div id="imageStyle"></div>
+			</div>
+			
+			<div class="column31">
+				<div class="div_text6"><b>Seeker & counter</b></div>
+				<span class="dropdown"><a id="seeker_dropdown" class="dropbtn" href="#" onclick="toggle('seeker');"></a>
+				<span id="seeker" class="dropdown-content"></span>
+				</span>
+				<div id="seekerStyle" style="padding-top:0.5em;"></div>
+			</div>
+			
+			<div class="column31">
+				<div class="div_text6"><b>Reflection</b></div>
+				<div id="reflectionMetrics"></div>
+			</div>
+
+		</div>
+			<div class="div_text6">Artist photos</div>
+			<div id="photo"></div>
+			<div class="info2"><b>Auto-download</b></div>
+			<div id="lastfm"></div>
+			<div id="prev"></div>
+		
+		</div>
+		
+		<div id="custom" class="tabcontent">
+		<div class="row">
+			<div class="div_text6">Colours and fonts</div>
+			<div class="info1">
+User interface or theme settings are used by default. Enable & configure custom items if required.
+Ctrl+wheel over main font or buttons can also be used to change their size.</div>
+			<div class="column50">
+				<div class="info4"><b>Fonts</b></div>
+				<div class="info2" style="margin-left:8.5%">Name,size,style(0-4)</div>
+				<div id="fonts"></div>
+				<div class="info6"><b>Colours (R,G,B):</b></div>
+				<div id="colours1"></div>
+				<div class="info3">
+
+Selected colours and fonts will be used.
+Font style codes: 0 regular, 1 bold, 2 italic,  3 bold italic, 4 underline
+		</div>
+			</div>
+			<div class="column50">
+				<p style="font:1.2em Arial;" "><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Colors/Color_picker_tool#ColorPicker_tool" target=\"_blank\">Colour picker</a></p>
+				<div class="info3">
+<i>Colours</i>: flexible entry, e.g. 255,0,0 or 0-255-0 or rgba(255,0,0,64)
+<i>Alpha</i>: 0-255 or 0-1 scale
+<i>Transparent</i>: background N/A; transparent fill can be used
+				</div>
+				<div class="info6"><b>Colours (R,G,B or R,G,B,A):</b></div>
+				<div id="colours2"></div>
+			</div>
+		</div>
+		</div>
+
+		<div id="maintenance" class="tabcontent">
+		<div class="div_text6">YouTube search</div>
+		<div id="ytData"></div>
+		<div id="ytAPIKey"></div>
+		<div class="div_text2">Last.fm data source</div>
+		<div class="info2"><i>Optionally you can also use your own last.fm API key. This will remove all limits. Paste key below to use.</i></div>
+		<div id="lfmAPIKey"></div>
+<br>
+<button id="yt_help" name="yt_help" style="margin-left:0;" type="button">Show Maintenance Help</button><div id="help_text" style="display: none;">
+		<br><b>Youtube access</b>
+<br>
+<b><i>API</i></b>
+<br>
+The Youtube API is the official way of accessing Youtube. To use this method, you will need your own freely available API key:
+<br>
+<br>
+1. Follow the instructions at <a style="font:1em Arial;" href="https://developers.google.com/youtube/v3/getting-started" target=\"_blank\">Youtube</a><br>
+2. Create a project in the Google Developers Console<br>
+3. Name the project: e.g. yt_project<br>
+4. In step 2 (obtaining authorization credentials) follow instructions for API key creation. When selecting API key type, select Browser key type. You don't need to do anything connected with OAuth<br>
+5. Enable Youtube Data API v3<br>
+<br>
+The standard API quota allows up to 97 track searches / day (~6 hours of new music), which should be sufficient for personal use.
+<br>
+<br>
+<b><i>Web Search</i></b>
+<br>
+The web search method should be the same as API method for most users. There is a small difference in the handling of m-Tags if you opt to use these (see below). The web search method is also more likely to break due to site changes than the API method.
+<br>
+<br><b>m-TAGS</b>
+<br>
+If installed the context menu has the option 'Create m-TAGS Album'. m-TAGS help in building albums by enabling the same music track to be incorporated into different albums with proper tagging of track numbers and album titles, e.g. build a Greatest Hits album from the original albums. Album covers are automatically obtained for m-TAGS albums (cover.*). The folder .yttm\albums can be monitored, so items are loaded into the foobar2000 media library. They will then appear in the albums & tracks pane (prefer library & library modes). The created m-TAGS also support auto-update of dead Youtube links provided an API key is present.
+<div>&nbsp</div>
+		</div>
+	</div>
+
+		<div id="advanced" class="tabcontent">
+		<div class="row">
+			<div class="column50">
+				<div class="div_text3">Scrolling</div>
+				<div class="info2"><b>Behaviour</b></div>
+				<div id="cusScroll"></div>
+				<div class="info2"><b>Scrollbar</b></div>
+				<div id="scrollbar"></div>
+				<div class="info2"><i>*Select in 'Display Tab' under 'Scroll: arrows' (N/A if windows scrollbar set). Ensure icon is supported by font.</i></div>
+			</div>
+					
+			<div class="column50">
+				<div class="div_text3"class>Miscellaneous</div>
+				<div class="info2"><b>Theme blur</b></div>
+				<div id="themeBlur"></div>
+				<div class="info2"><b>Image: smooth transition level</b></div>
+				<div id="smoothTransLevel"></div>
+				<div class="div_text3">Auto DJ</div>
+				<div class="info2"><b>Best tracks bias</b></div>
+				<div> <i>Auto DJ uses a 'Best tracks bias' algorithmn. Defaults consider source type. Current auto value shows if auto DJ is active. A custom value can be set below that applies to all sources.</i></div>
+				<span style="margin:0.7em 0 0.31em"; class="dropdown"><a id="bias_dropdown" class="dropbtn" href="#" onclick="toggle('bestTracksBias');"></a>
+				<span id="bestTracksBias" class="dropdown-content"></span>
+				</span>
+				<div class="info4"><b>Last.fm multi-artist top tracks</b></div>
+				<div class="info12"><i>Multi-artist styles such as similar artists & genre top artists combine individual artist top track feeds. For artists lacking sufficient good tracks, the default is to apply a normalisation algorithm to shorten received feeds.</i></div>
+				
+				
+				<div id="refineTopTracks"></div>
+				<div class="padLarge"></div>
+			</div>
+		</div>
+		</div>
+		
+</div>
+<div id="div" style="height:0; width:0;outline:none; border:none; padding:none; margin:none; box-sizing:content-box;"></div>
+
+		<script>
+			var em, i = 0, is_closed_manually = false, j = 0, height, left, top, window_h, window_w;
+			
+			function getValue(id) {
+				var div = document.getElementById(id);
+				div.style.height = '1em';
+				return (em = Math.max(div.offsetHeight, 13.6));
+			}
+			getValue('div');
+
+			function setWindowSize() {
+				window_w = cur.def_w * em || screen.width * 0.67;
+				window_h = cur.def_h * em || screen.height * 0.85;
+				window_w = Math.min(window_w, screen.width * 0.67);
+				window_h = Math.min(window_h, screen.height * 0.85);
+				left = (screen.width - window_w) / 2;
+				top = (screen.height - window_h) / 2;
+				window.resizeTo(window_w, window_h);
+				window.moveTo(left, top);
+				height = document.documentElement.clientHeight || document.body.clientHeight;	
+			}
+
+			function openPage(pageName,elmnt,color) {
+				cur.page = pageName;
+				var i, tabcontent, tablinks;
+				tabcontent = document.querySelectorAll(".tabcontent");
+				for (i = 0; i < tabcontent.length; i++) {
+					tabcontent[i].style.display = "none";
+				}
+				tablinks = document.getElementsByTagName("a");
+				for (i = 0; i < tablinks.length; i++) {
+					tablinks[i].style.backgroundColor = "";
+				}
+				document.getElementById(pageName).style.display = "block";
+				elmnt.style.backgroundColor = color;
+				document.getElementById(pageName).style.height = height - window.tablink.offsetHeight - window.btn_cnt_right.offsetHeight;
+				document.getElementById(pageName).style.overflow = "auto";
+				document.getElementById("btn_ok").focus();
+			}
+			
+			document.getElementsByTagName("BODY")[0].onresize = function() {
+				height = document.documentElement.clientHeight || document.body.clientHeight;
+				document.getElementById(cur.page).style.height = height - window.tablink.offsetHeight * 2 - window.btn_cnt_right.offsetHeight;
+				window_w = (document.documentElement.clientWidth || document.body.clientWidth) + widthOffset;
+				window_h = height + heightOffset;
+				cur.w = Math.round(window_w / em);
+				cur.h = Math.round(window_h / em);
+				checkWindowDefaultSize();
+				set_state();
+			}
+
+			function checkWindowDefaultSize() {
+				var def_w = cur.def_w * em || screen.width * 0.67;
+				var def_h = cur.def_h * em || screen.height * 0.85;
+				def_w = Math.min(def_w, screen.width * 0.67);
+				def_h = Math.min(def_h, screen.height * 0.85);
+				window.setSize.disabled = window_w == def_w && window_h == def_h;
+			}
+
+			function close_window() {
+				is_closed_manually = true;
+				window.open('', '_self', '');
+				window.close();
+			}
+
+			function getPreview(id, value) {
+				switch (cur.page) {
+					case 'display':
+						if (value) value = value.replace(/\\$crlf\\(\\)/g, '\\\\n');
+						var ev = tf_callback && tf_callback(value, 'eval');
+						if (document.getElementById("tf_nowplaying_preview")) document.getElementById("tf_nowplaying_preview").value = ev;
+						break;
+					case 'search':
+						var ev = tf_callback && tf_callback(value, 'eval');
+						if (document.getElementById("tf_search_preview")) document.getElementById("tf_search_preview").value = ev;
+						break;
+					case 'image':
+						var ev = tf_callback && tf_callback(value, 'pth');
+						if (document.getElementById("dld_preview")) document.getElementById("dld_preview").value = ev;
+						break;
+				}
+			}
+			
+			function set_state() {
+				getValues();
+				document.getElementById("btn_apply").disabled = JSON.stringify(ppt) == parsed_args[0];
+				var el = document.activeElement;
+				var id = el.id;
+				if (/scrollbar_container6/.test(id)) {
+					window.scrollbar_container5.style.fontFamily = window.scrollbar_container6.value;
+				}
+				
+				var previewable = /tf_/.test(id);
+				if (previewable) {
+					getPreview(id, el.value);
+				}
+
+				var needCustomCol = /colour_container/.test(id);
+				if (needCustomCol) setCustomColours('value');
+
+				var input = document.querySelector("[id=ytAPIKey_container2]");
+				document.querySelector("label[for=maintenance_input2]").innerHTML = (input.value.length && input.value.length != 39 ? "YouTube API Key [Invalid: Wrong length]" : "YouTube API Key");
+				input = document.querySelector("[id=lfmAPIKey_container3]");
+				document.querySelector("label[for=maintenance_input3]").innerHTML = (input.value.length && input.value.length != 32 ? "Last.fm API Key [Invalid: Wrong length]" : "Last.fm API Key");
+			}
+
+			function assign(c, t) {
+				c = c.replace(/[^0-9.,-]/g, '').replace(/-/g, ',').split(',');
+				var cc = ''; if (c.length != 3 && c.length != 4) return [255, 255, 255];
+				for (i = 0; i < c.length; i++) {
+					c[i] = parseFloat(c[i]);
+					if (i < 3) c[i] = clamp(Math.round(c[i]), 0, 255);
+					else if (i == 3) {
+						if (c[i] <= 1) c[i] = Math.round(255 * c[i]);
+						else c[i] = clamp(Math.round(c[i]), 0, 255);
+					}
+				}
+				switch (t) {
+					case 0: cc = [c[0], c[1], c[2]]; break;
+					case 1: switch (c.length) {
+						case 3: cc = [c[0], c[1], c[2]]; break;
+						case 4: cc = RGBAtoRGB([c[0], c[1], c[2], c[3]], [255, 255, 255, 255]); break;
+					} break;}
+				return cc;
+			}
+			
+			function clamp(num, min, max) {
+				num = num <= max ? num : max; num = num >= min ? num : min; return num;
+			}
+
+			function getSelCol(c) {
+				var cc = [], v = 1;
+				for (i = 0; i < c.length; i++) {
+					v = c[i] / 255;
+					cc.push(v <= 0.03928 ? v /= 12.92 : Math.pow(((v + 0.055 ) / 1.055), 2.4));
+				}
+				var L = 0.2126 * cc[0] + 0.7152 * cc[1] + 0.0722 * cc[2]; if (L > 0.31) return 'black'; else return 'white';
+			}
+
+			function RGBAtoRGB(c, bg) {
+				var r = c[0] / 255, g = c[1] / 255, b = c[2] / 255, a = c[3] / 255, bgr = bg[0] / 255, bgg = bg[1] / 255, bgb = bg[2] / 255; var nR = ((1 - a) * bgr) + (a * r), nG = ((1 - a) * bgg) + (a * g), nB = ((1 - a) * bgb) + (a * b); nR = clamp(Math.round(nR * 255), 0, 255); nG = clamp(Math.round(nG * 255), 0, 255); nB = clamp(Math.round(nB * 255), 0, 255); return [nR, nG, nB];
+			}
+			
+			var bias_callback;
+			var callback;
+			var cbox_h = 15;
+			var cbox_w = 17;
+			var cur = {};
+			var parsed_args;
+			var tf_callback;
+			var ppt = {};
+			var isTransparent = false;
+
+			try {
+				parsed_args = window.external.dialogArguments.toArray();
+			}
+			catch(e) {}
+			
+			if (parsed_args) {
+				cur = JSON.parse(parsed_args[1]);
+				document.title = 'Panel Settings';
+				ppt = JSON.parse(parsed_args[0]);
+				isTransparent = parsed_args[2];
+				callback = parsed_args[3];
+				bias_callback = parsed_args[4];
+				tf_callback = parsed_args[5];
+
+				cbox_h = Math.round(Math.max(em, 13));
+				cbox_w = cbox_h + 2;
+				var cbox = "width:" + cbox_w + "px; height:" + cbox_h + "px;"
+
+				window_w = cur.w * em || screen.width * 0.67;
+				window_h = cur.h * em || screen.height * 0.85;
+				if (cur.w == cur.def_w) window_w = Math.min(window_w, screen.width * 0.67);
+				if (cur.h == cur.def_h) window_h = Math.min(window_h, screen.height * 0.85);
+				left = (screen.width - window_w) / 2;
+				top = (screen.height - window_h) / 2;		
+				window.resizeTo(window_w, window_h);
+				window.moveTo(left, top);
+				height = document.documentElement.clientHeight || document.body.clientHeight;
+				var heightOffset = window_h - height;
+				var widthOffset = window_w - (document.documentElement.clientWidth || document.body.clientWidth);
+				checkWindowDefaultSize();
+				document.getElementById(cur.page + 'Cfg').click();
+				
+				var albTrackSourceLabels = ['Last.fm preferred', 'Musicbrainz preferred'];
+				var autoDJDataSource = ["Last.fm data", 'Own data'];
+				var autoDJPopLabels = ['All-time', 'Current'];
+				var autoDJGenreLabels = ['Top artists', 'Top tracks'];
+				var defBias = bias_callback();
+				defBias = defBias ? ' (' + defBias + ')' : '';
+				var biasLabels = ['Auto' + defBias, '1&nbsp(No&nbspBias:&nbspRandom)&nbsp&nbsp', '2', '3', '4', '5', '6', '7', '8', '9', '10&nbsp(High)'];
+				var colourLabels = ['Text', 'Text highlight', 'Text selection', 'Background', 'Background highlight', 'Background selection', 'Frame hover', 'Sidemarker', 'Transparent fill'];
+				var cusScrollLabels = ['Step (0 = page)', 'Smooth duration Max (ms)', 'Touch duration Max (ms)', 'Touch sensitivity 0-10'];
+				var displayLabels = ['Auto-adjust', 'Button mode (auto DJ only)', 'Click action: prefer double-click', 'Embolden lines', 'Row stripes', 'Site', 'Neutral', 'Source', 'Neutral'];
+				var fontLabels = ['Main', 'Nowplaying'];
+				var highLightLabels = ['None', 'Side marker', 'Accent', 'Frame', 'Highlight text'];
+				var imgStyleLabels = ['Circular cover', 'Circular photo', 'Reflection', 'Border', 'Shadow', 'Smooth transition'];
+				var presets = ppt.presets_internal.value.replace(/^[,\s]+|[,\s]+$/g, ''); presets = presets.split(',');
+				var lfmDataLabels = []; for (i = 0; i < presets.length; i += 2) lfmDataLabels.push(presets[i]);
+				var lfmImage = ['Lastfm button small.png', 'Lastfm text button small.png'];
+				var npLabels = ['Graphic + text', 'Graphic', 'Text', 'Text shadow effect', 'Graphic: prefer video', 'Title format', 'Preview'];
+				var ownDataLabels = ['Most played', 'Highest rated', 'Random'];
+				var photoLabels = ['Auto-cycle', 'Auto-cycle time (seconds)', "Downloader is the same as that in Biography. If that's used, don't enable here, just ensure folder is same (default is same).", 'Save folder', 'Preview'];
+				var playlistLabels = ['Selection', 'Auto DJ', 'Loved', 'Cache'];
+				var playlistSaveLabels = ['Played tracks', 'Find results as top tracks playlists'];
+				var preferLabels = ['Most played', 'Highest rated', 'Random', 'Highest bitrate', 'Lowest bitrate', 'Longest', 'Shortest', 'Latest', 'Earliest'];
+				var refineLabels = ['Normalise for artists of varying popularity'];
+				var reflPosLabels = ['Strength (%) [shift + wheel]', 'Size (%)', 'Gradient level (%)'];
+				var removePlayedLabels = ['Remove played tracks', 'Maintain 5 Tracks in playlist'];
+				var sbarColLabels = ['Grey', 'Blend'];
+				var sbarIconLabels = ['Arrows', 'Triangles', 'Custom'];
+				var sbarShowLabels = ['Hide', 'Auto', 'Show'];
+				var sbarTypeLabels = ['Default', 'Styled', 'Windows'];
+				var scrollbarLabels = ['Bar width', 'Narrow bar width (0 = auto)', 'Arrow width', 'Arrow padding (+/-)', 'Grip min height', 'Custom icon*', 'Custom icon font name', 'Custom Icon Offset (%)', 'Prefer Full Height Scrollbar'];				
+				var scrollLabels = ['Use windows metrics', 'Smooth scroll', 'Touch control'];
+				var seekerLabels = ['Hide', 'Auto', 'Show', 'Dots', 'Counter'];
+				var similarArtistLabels = ['Favour higher similarity', 'Random pick'];
+				var similarNoLabels = [10, 20, 30, 40, 50, 60, 70, 80 , 90, 100, 125, 150, 200, 250];
+				var sourceImage = ['', 'Source red small.png', 'Source green small.png', 'Source neutral small.png'];
+				var textStyleLabels = ['Allow for scrollbar'];
+				var tfLabels = ['Artist', 'Album', 'Genre', 'Title', 'Playcount', 'Rating', '', 'All uses'];
+				var youTubeLabels = ["'Live' reduction", 'Prefer&nbsp&nbsp&nbsp']
+				var themeLabels = ['User interface', 'Dark', 'Blend', 'Light', 'Always cover based', 'Swap colours', 'Highlight heading'];
+				var themeBlurLabels = ['Auto-Fill', 'Level (%)', 'Opacity (%)', '%'];
+				var ytLabels = ['API', 'Web', 'Youtube API Key', 'Last.fm API Key'];
+
+				var input = {
+					display: {
+						name: ['bor', 'verticalPad', 'tfNowplaying'],
+						type: ['int', 'int', 'text']
+						
+					},
+					playlists: {
+						name: ['playlistSelection', 'playlistDj', 'playlistLoved', 'playlistCache', 'djPlaylistLimit', 'autoDJFilter'],
+						type: ['text', 'text', 'text', 'text', 'int', 'text']
+					},
+					search: {
+						name: ['tfArtist', 'queryArtistField', 'tfAlbum', 'queryAlbumField', 'tfGenre', 'queryGenreField', 'tfTitle', 'queryTitleField', 'tfPlaycount', 'tfRating', 'libFilter', 'yt_pref_kw'],
+						type: ['text', 'text', 'text', 'text', 'text', 'text', 'text', 'text', 'text', 'text', 'text', 'text']
+					},
+					image: {
+						name: ['reflStrength', 'reflSize', 'reflGradient', 'cycleTime', 'imgArtPth'],
+						type : ['float', 'float', 'float', 'int', 'text']
+					},
+					custom: {
+						name: ['custFont', 'custFontNowplaying', 'text', 'text_h', 'textSel', 'bg', 'bg_h', 'bgSel', 'frame', 'sideMarker', 'bgTrans'],
+						type : ['text', 'text', 'text', 'text', 'text', 'text', 'text', 'text', 'text', 'text', 'text']
+					},
+					maintenance: {
+						name: ['userAPIKeyYouTube', 'userAPIKeyLastfm'],
+						type : ['text', 'text']
+					},
+					advanced: {
+						name: ['scrollStep', 'durationScroll', 'durationTouchFlick', 'flickDistance', 'sbarWidth', 'narrowSbarWidth', 'sbarArrowWidth', 'sbarPad', 'sbarGripHeight', 'arrowSymbol', 'butCustIconFont', 'sbarButPad', 'blurTemp', 'blurAlpha', 'transLevel'],
+						type : ['float', 'float', 'float', 'float', 'float', 'float', 'float', 'float', 'float', 'text', 'text', 'float', 'float', 'float', 'float']
+					},
+					all: {}
+				}
+				input.all.name = input.display.name.concat(input.playlists.name, input.search.name, input.image.name, input.custom.name, input.maintenance.name, input.advanced.name);
+				input.all.type = input.display.type.concat(input.playlists.type, input.search.type, input.image.type, input.custom.type, input.maintenance.type, input.advanced.type);
+				var box = {
+					display: ['extra_sbar_w', 'autoLayout', 'btn_mode', 'dblClickToggle', 'linesEmbolden', 'rowStripes', 'sbarWinMetrics', 'smooth', 'touchControl', 'covBlur', 'swapCol', 'headHighlight', 'highLightText', 'npShadow', 'videoMode'],
+					playlists: ['removePlayed', 'autoRad', 'autoDJFilterUse', 'djSaveTracks', 'findSavePlaylists'],
+					search: ['libFilterUse', 'yt_filter', 'ytPref', 'partialMatch'],
+					image: ['covCirc', 'artCirc', 'imgReflection', 'imgBorder' ,'imgShadow', 'imgSmoothTrans', 'imgSeekerDots', 'imgCounter', 'cycPhoto', 'dl_art_img'],
+					custom: ['custFontUse', 'custFontNowplayingUse', 'textUse', 'text_hUse', 'textSelUse', 'bgUse', 'bg_hUse', 'bgSelUse', 'frameUse', 'sideMarkerUse', 'bgTransUse'],
+					advanced: ['blurAutofill', 'refineLastfm']
+				}
+				box.all = box.display.concat(box.playlists, box.search, box.image, box.custom, box.advanced);
+				var radio = {
+					display: ['theme', 'highLightRow', 'logoText', 'showSource'],
+					playlists: ['configOwnData', 'curPop', 'genre_tracks', 'randomArtist'],
+					search: [],
+					image: [],
+					custom: [],
+					maintenance: ['ytDataSource'],
+					advanced: []
+				}
+				radio.all = radio.display.concat(radio.playlists, radio.maintenance);
+
+				function setBestTracksBias(n) {
+					window.bias_dropdown.innerHTML = 'Best Tracks Bias: ' + biasLabels[n];
+					ppt['cusBestTracksBias_internal'].value = n;
+					window.bestTracksBias.style.display = 'none';
+				}
+				
+				function setHoverBg(n) {
+					window.showHl_dropdown.innerHTML = highLightLabels[n];
+					ppt['highLightRow_internal'].value = n;
+					window.showHl.style.display = 'none';
+				}
+
+				function setLfmDataPop(n) {
+					window.lfm_dropdown.innerHTML = '<b>Tracks: Favour: </b>' + lfmDataLabels[n];
+					ppt['djRange_internal'].value = n;
+					window.lfmDataPop.style.display = 'none';
+				}
+				
+				function setNowPlaying(n) {
+					window.nowplaying_dropdown.innerHTML = npLabels[n];
+					ppt['nowPlayingStyle_internal'].value = n;
+					window.nowplaying1.style.display = 'none';
+				}
+
+				function setOwnDataPop(n) {
+					window.own_dropdown.innerHTML = '<b>Tracks: Favour: </b>' + ownDataLabels[n];
+					ppt['sortAutoDJ_internal'].value = n;
+					window.ownDataOptions.style.display = 'none';
+				}
+
+				function setPreferredType(n) {
+					ppt['sortType_internal'].value = n;
+					window.match_dropdown.innerHTML = 'Multiple Matches: Prefer: ' + preferLabels[ppt['sortType_internal'].value];
+					window.multipleMatch.style.display = 'none';
+				}
+
+				function setSbarShow(n) {
+					window.sbarShow_dropdown.innerHTML = sbarShowLabels[n];
+					ppt['sbarShow_internal'].value = n;
+					window.sbarShow.style.display = 'none';
+				}
+
+				function setsbarType(n) {
+					window.sbarType_dropdown.innerHTML = sbarTypeLabels[n];
+					ppt['sbarType_internal'].value = n;
+					sbar_col_dropdown.style.display = n != 2 ? "inline-block" : "none";
+					sbar_icon_dropdown.style.display = n != 2 ? "inline-block" : "none";
+					window.sbarType.style.display = 'none';
+				}
+
+				function setSbarCol(n) {
+					window.sbarCol_dropdown.innerHTML = sbarColLabels[n];
+					ppt['sbarCol_internal'].value = n;
+					window.sbarCol.style.display = 'none';
+				}
+
+				function setSbarIcon(n) {
+					window.sbarIcon_dropdown.innerHTML = sbarIconLabels[n];
+					ppt['sbarButType_internal'].value = n;
+					window.sbarIcon.style.display = 'none';
+				}
+
+				function setSeekerShow(n) {
+					window.seeker_dropdown.innerHTML = seekerLabels[n];
+					ppt['imgSeeker_internal'].value = n;
+					window.seeker.style.display = 'none';
+				}
+
+				function setSimilarNo(n) {
+					window.variety_dropdown.innerHTML = 'Use: ' + similarNoLabels[n] + ' most similar';
+					ppt['lfm_variety_internal'].value = similarNoLabels[n];
+					window.artistVariety.style.display = 'none';
+				}
+
+				function setTheme(n) {
+					window.theme_dropdown.innerHTML = themeLabels[n];
+					ppt['theme_internal'].value = n;
+					window.themeBg.style.display = 'none';
+				}
+
+				function setDisplay() {
+					i = 0; window.metrics.insertAdjacentHTML('beforeend', '<div class="input_cnt3"><input id="metrics_container'+i+'" name="display_input" style="padding:0; margin-right:0.31em;" class="input2" />&nbsp<input id="textStyle_checkbox'+i+'" name="display_checkbox" style="'+cbox+'" type="checkbox" /><label for="textStyle_checkbox'+i+'" class="checkbox_label">'+textStyleLabels[i]+'</label></div>');
+					i = 1; window.metrics2.insertAdjacentHTML('beforeend', '<div class="input_cnt3"><input id="metrics_container'+i+'" name="display_input" style="padding:0; margin-right:0.31em;" class="input2" /></div>');				
+					for (i = 0; i < 5; i++) {window.displayStyle.insertAdjacentHTML('beforeend', '<div class="input_cnt2"><input id="display_checkbox'+i+'" name="display_checkbox" style="'+cbox+'" type="checkbox" /><label for="display_checkbox'+i+'" class="checkbox_label">'+displayLabels[i]+'</label></div>');}
+					i = 0; window.siteBtn.insertAdjacentHTML('beforeend', '<div class="input_cnt2"><input id="logoText'+i+'" name="logoText" style="'+cbox+'" type="radio" />&nbsp&nbsp<img src="file://' + ppt['styleImages_internal'].value + lfmImage[i]+'" width="'+ em * 1.33 +'" height="'+ em * 1.33 +'" class="stub"/></div>');
+					i = 1; window.siteBtn.insertAdjacentHTML('beforeend', '<div class="input_cnt2"><input id="logoText'+i+'" name="logoText" style="'+cbox+'" type="radio" />&nbsp&nbsp<img src="file://' + ppt['styleImages_internal'].value + lfmImage[i]+'" width="'+ 75 +'" height="'+ 19 +'" class="stub"/></div>');
+					i = 0; window.sourceStyle.insertAdjacentHTML('beforeend', '<div class="input_cnt2"><input id="showSource'+i+'" name="showSource" style="'+cbox+'" type="radio" /><label for="showSource'+i+'" class="checkbox_label">Hide</label></div>');
+					for (i = 1; i < 4; i++) {window.sourceStyle.insertAdjacentHTML('beforeend', '<div class="input_cnt2"><input id="showSource'+i+'" name="showSource" style="'+cbox+'" type="radio" />&nbsp&nbsp<img src="file://' + ppt['styleImages_internal'].value + sourceImage[i]+'"width="'+ em +'" height="'+ em +'" class="stub"/></div>');}
+
+					window.sbarShow_dropdown.innerHTML = sbarShowLabels[ppt['sbarShow_internal'].value];
+					for (i = 0; i < 3; i++) {window.sbarShow.insertAdjacentHTML('beforeend', '<a onclick="setSbarShow(' + i + ');">'+sbarShowLabels[i]+'</a>');}
+					window.sbarType_dropdown.innerHTML = sbarTypeLabels[ppt['sbarType_internal'].value];
+					for (i = 0; i < 3; i++) {window.sbarType.insertAdjacentHTML('beforeend', '<a onclick="setsbarType(' + i + ');">'+sbarTypeLabels[i]+'</a>');}
+					window.sbarCol_dropdown.innerHTML = sbarColLabels[ppt['sbarCol_internal'].value];
+					for (i = 0; i < 2; i++) {window.sbarCol.insertAdjacentHTML('beforeend', '<a onclick="setSbarCol(' + i + ');">'+sbarColLabels[i]+'</a>');}
+					sbar_col_dropdown.style.display = ppt['sbarType_internal'].value != 2 ? "inline-block" : "none";
+					window.sbarIcon_dropdown.innerHTML = sbarIconLabels[ppt['sbarButType_internal'].value];
+					for (i = 0; i < 3; i++) {window.sbarIcon.insertAdjacentHTML('beforeend', '<a onclick="setSbarIcon(' + i + ');">'+sbarIconLabels[i]+'</a>');}
+					sbar_icon_dropdown.style.display = ppt['sbarType_internal'].value != 2 ? "inline-block" : "none";
+
+					for (i = 0; i < 3; i++) {window.scrolling.insertAdjacentHTML('beforeend', '<div class="input_cnt2"><input id="scroll_checkbox'+i+'" name="display_checkbox" style="'+cbox+'" type="checkbox" /><label for="scroll_checkbox'+i+'" class="checkbox_label">'+scrollLabels[i]+'</label></div>');}
+					
+					window.theme_dropdown.innerHTML = themeLabels[ppt['theme_internal'].value];
+					for (i = 0; i < 4; i++) {window.themeBg.insertAdjacentHTML('beforeend', '<a onclick="setTheme(' + i + ');">'+themeLabels[i]+'</a>');}
+					for (i = 4; i < 7; i++) {window.themeStyle.insertAdjacentHTML('beforeend', '<div class="input_cnt2"><input id="theme_checkbox'+i+'" name="display_checkbox" style="'+cbox+'" type="checkbox" /><label for="theme_checkbox'+i+'" class="checkbox_label">'+themeLabels[i]+'</label></div>');}
+					
+					window.showHl_dropdown.innerHTML = highLightLabels[ppt['highLightRow_internal'].value];
+					for (i = 0; i < 4; i++) {window.showHl.insertAdjacentHTML('beforeend', '<a onclick="setHoverBg(' + i + ');">'+highLightLabels[i]+'</a>');}
+					for (i = 4; i < 5; i++) {window.showH2.insertAdjacentHTML('beforeend', '<div><input id="showH2_checkbox'+i+'" name="display_checkbox" style="'+cbox+'" type="checkbox" /><label for="showH2_checkbox'+i+'" class="checkbox_label">'+highLightLabels[i]+'</label></div>');}
+					
+					window.nowplaying_dropdown.innerHTML = npLabels[ppt['nowPlayingStyle_internal'].value];
+					for (i = 0; i < 3; i++) {window.nowplaying1.insertAdjacentHTML('beforeend', '<a onclick="setNowPlaying(' + i + ');">'+npLabels[i]+'</a>');}
+					
+					
+					for (i = 3; i < 5; i++) {window.nowplaying2.insertAdjacentHTML('beforeend', '<div class="input_cnt2"><input id="nowplaying_checkbox'+i+'" name="display_checkbox" style="'+cbox+'" type="checkbox" /><label for="nowplaying_checkbox'+i+'" class="checkbox_label">'+npLabels[i]+'</label></div>');}
+					i = 5; window.nowplaying3.insertAdjacentHTML('beforeend', '<div class="input_cnt3"><input id="tf_nowplaying_container'+i+'" name="display_input" class="input66" /><label for="np_container'+i+'" class="inp_label2">'+npLabels[i]+'</label></div>');
+					i = 6; window.nowplayingPreview.insertAdjacentHTML('beforeend', '<div class="input_cnt3" id="preview_container'+i+'""><input id="tf_nowplaying_preview" name="previewTf" type="text" class="input66" readonly/><label for="np_container'+i+'" class="inp_label2">'+npLabels[i]+'</label></div>')
+				}
+
+				function setPlaylists() {					
+					for (i = 0; i < 4; i++) {window.playlistName.insertAdjacentHTML('beforeend', '<div class="input_cnt3"><input id="playlistName_container'+i+'" name="playlists_input" class="input50" /><label for="playlistName_container_input'+i+'" class="inp_label2">'+playlistLabels[i]+'</label></div>');}
+
+					i = 0; window.removePlayed.insertAdjacentHTML('beforeend', '<div class="input_cnt2"><input id="removePlayed_checkbox0" name="playlists_checkbox" style="'+cbox+'" type="checkbox" /><label for="removePlayed_checkbox0" style="padding-right:0.75em;" class="checkbox_label">'+removePlayedLabels[i]+'&nbsp&nbsp&nbsp</label><input id="removePlayed_checkbox1" name="playlists_checkbox" style="'+cbox+'" type="checkbox" /><label for="removePlayed_checkbox1" class="checkbox_label">Enable</label></div>');
+					i = 1; window.removePlayed.insertAdjacentHTML('beforeend', '<div class="input_cnt1"><label for="removePlayed_container'+i+'">Maintain&nbsp&nbsp</label><input id="removePlayed'+i+'" name="playlists_input" style="padding:0; margin:0;" class="input2" /><label for="removePlayed_container'+i+'" class="inp_label2">tracks in playlist</label></div>');
+
+					for (i = 0; i < 2; i++) {window.autoDJSel.insertAdjacentHTML('beforeend', '<div class="input_cnt2"><input id="configOwnData'+i+'" name="configOwnData" style="'+cbox+'" type="radio" /><label for="configOwnData'+i+'" class="checkbox_label">'+autoDJDataSource[i]+'</label></div>');}
+					
+					window.lfm_dropdown.innerHTML = '<b>Tracks: Favour: </b>' + lfmDataLabels[ppt['djRange_internal'].value];
+					for (i = 0; i < lfmDataLabels.length; i++) {window.lfmDataPop.insertAdjacentHTML('beforeend', '<a onclick="setLfmDataPop(' + i + ');">'+lfmDataLabels[i]+'</a>');}
+
+					window.own_dropdown.innerHTML = '<b>Tracks: Favour: </b>' + ownDataLabels[ppt['sortAutoDJ_internal'].value];
+					for (i = 0; i < 3; i++) {window.ownDataOptions.insertAdjacentHTML('beforeend', '<a onclick="setOwnDataPop(' + i + ');">'+ownDataLabels[i]+'</a>');}
+					
+					i = 0; window.ownDataFilter.insertAdjacentHTML('beforeend', '<div class="input_cnt5"><input id="ownDataFilter_checkbox'+i+'" name="playlists_checkbox" style="'+cbox+'" type="checkbox" /><label for="ownDataFilter_checkbox'+i+'" class="checkbox_label">Always skip tracks matching query:</label></div>');
+					i = 1; window.ownDataFilter.insertAdjacentHTML('beforeend', '<div style="padding-top:0.31em"; ><input id="ownDataFilter_container'+i+'" name="playlists_input" class="input90" /></div>');
+					for (i = 0; i < 2; i++) {window.autoDJPop.insertAdjacentHTML('beforeend', '<div class="input_cnt2"><input id="curPop'+i+'" name="curPop" style="'+cbox+'" type="radio" /><label for="curPop'+i+'" class="checkbox_label">'+autoDJPopLabels[i]+'</label></div>');}
+					for (i = 0; i < 2; i++) {window.autoDJGenre.insertAdjacentHTML('beforeend', '<div class="input_cnt2"><input id="genre_tracks'+i+'" name="genre_tracks" style="'+cbox+'" type="radio" /><label for="genre_tracks'+i+'" class="checkbox_label">'+autoDJGenreLabels[i]+'</label></div>');}
+
+					window.variety_dropdown.innerHTML = 'Use: ' + ppt['lfm_variety_internal'].value + ' most similar';
+					for (i = 0; i < 14; i++) {window.artistVariety.insertAdjacentHTML('beforeend', '<a id="similarNo'+i+'" onclick="setSimilarNo(' + i + ');">'+similarNoLabels[i]+'</a>');}
+					window.similarNo10.style.borderTop = "1px solid Gainsboro";
+					for (i = 0; i < 2; i++) {window.preferMoreSimilar.insertAdjacentHTML('beforeend', '<div class="input_cnt2"><input id="randomArtist'+i+'" name="randomArtist" style="'+cbox+'" type="radio" /><label for="randomArtist'+i+'" class="checkbox_label">'+similarArtistLabels[i]+'</label></div>');}
+					for (i = 0; i < 2; i++) {window.playlistSave.insertAdjacentHTML('beforeend', '<div class="input_cnt2"><input id="playlistSave_checkbox'+i+'" name="playlists_checkbox" style="'+cbox+'" type="checkbox" /><label for="playlistSave_checkbox'+i+'" class="checkbox_label">'+playlistSaveLabels[i]+'</label></div>');}
+				}
+
+				function setSearch() {
+					for (i = 0; i < 4; i++) {window.search_title_format1.insertAdjacentHTML('beforeend', '<div class="input_cnt3"><label for="tf_search_container'+i+'" class="inp_label4">'+tfLabels[i]+'</label><input id="tf_search_container'+i+'" name="search_input" class="input56" /><input id="query_container'+i+'" name="search_input" type="text" class="input21" /></div>');}
+					for (i = 4; i < 6; i++) {window.search_title_format2.insertAdjacentHTML('beforeend', '<div class="input_cnt3"><label for="tf_search_container'+i+'" class="inp_label4">'+tfLabels[i]+'</label><input id="tf_search_container'+i+'" name="search_input" class="input56" /></div>');}
+					i = 6; window.title_formatPreview.insertAdjacentHTML('beforeend', '<div class="input_cnt3" id="tf_search_container'+i+'""><label for="tf_search_preview" class="inp_label4">Preview</label><input id="tf_search_preview" name="previewTf" type="text" class="input56" readonly/></div>')
+					i = 7; window.filterAll.insertAdjacentHTML('beforeend', '<div class="input_cnt3"><input id="filterAll_checkbox'+i+'" name="search_checkbox" type="checkbox" /><label for="filterAll_checkbox'+i+'" class="checkbox_label">'+tfLabels[i]+'</label><input id="filterAll_container'+i+'" name="search_input" type="text" class="input56" /></div>');
+					i = 0; window.youtube.insertAdjacentHTML('beforeend', '<div class="input_cnt2"><input id="youtube_checkbox'+i+'" name="search_checkbox" style="'+cbox+'" type="checkbox" /><label for="youtube_checkbox'+i+'" class="checkbox_label">'+youTubeLabels[i]+'</label></div>');
+					i = 1; window.youtube.insertAdjacentHTML('beforeend', '<div class="input_cnt3"><input id="youtube_checkbox'+i+'" name="search_checkbox" type="checkbox" /><label for="youtube_checkbox'+i+'" class="checkbox_label">'+youTubeLabels[i]+'</label><input id="youtube_container'+i+'" name="search_input" type="text" class="input56" /><label for="youtube_container'+i+'" class="inp_label2">Keywords (| separator)</label></div>');
+					i = 0; window.partialMatch.insertAdjacentHTML('beforeend', '<div class="input_cnt3"><input id="partialMatch_checkbox'+i+'" name="search_checkbox" style="'+cbox+'" type="checkbox" /><label for="partialMatch_checkbox'+i+'" class="checkbox_label">Include partial matches</label></div>');
+					window.match_dropdown.innerHTML = 'Multiple Matches: Prefer: ' + preferLabels[ppt['sortType_internal'].value];
+					for (i = 0; i < 9; i++) {window.multipleMatch.insertAdjacentHTML('beforeend', '<a onclick="setPreferredType(' + i + ');">'+preferLabels[i]+'</a>');}
+				}
+
+				function setImage() {
+					window.seeker_dropdown.innerHTML = seekerLabels[ppt['imgSeeker_internal'].value];
+					for (i = 0; i < 3; i++) {window.seeker.insertAdjacentHTML('beforeend', '<a onclick="setSeekerShow(' + i + ');">'+seekerLabels[i]+'</a>');}
+					for (i = 3; i < 5; i++) {window.seekerStyle.insertAdjacentHTML('beforeend', '<div class="input_cnt2"><input id="mainImg_checkbox'+i+'" name="image_checkbox" style="'+cbox+'" type="checkbox" /><label for="mainImg_checkbox'+i+'" class="checkbox_label">'+seekerLabels[i]+'</label></div>');}
+					for (i = 0; i < 6; i++) {window.imageStyle.insertAdjacentHTML('beforeend', '<div class="input_cnt2"><input id="imageStyle_checkbox'+i+'" name="image_checkbox" style="'+cbox+'" type="checkbox" /><label for="imageStyle_checkbox'+i+'" class="checkbox_label">'+imgStyleLabels[i]+'</label></div>');}
+					for (i = 0; i < 3; i++) {window.reflectionMetrics.insertAdjacentHTML('beforeend', '<div class="input_cnt3"><input id="reflectionMetrics_container'+i+'" name="image_input" class="input2" /><label for="reflectionMetrics_container'+i+'" class="inp_label2">'+reflPosLabels[i]+'</label></div>');}
+					i = 0; window.photo.insertAdjacentHTML('beforeend', '<div class="input_cnt2"><input id="photo_checkbox'+i+'" name="image_checkbox" style="'+cbox+'" type="checkbox" /><label for="photo_checkbox'+i+'" class="checkbox_label">'+photoLabels[i]+'</label></div>');
+					i = 1; window.photo.insertAdjacentHTML('beforeend', '<div class="input_cnt1"><input id="cycleTime_container'+i+'" name="image_input" style="padding:0; margin:0;" class="input2" /><label for="cycleTime_container'+i+'" class="inp_label2">'+photoLabels[i]+'</label></div>');
+					i = 2; window.lastfm.insertAdjacentHTML('beforeend', '<div class="input_cnt2"><input id="dnld_checkbox'+i+'" name="image_checkbox" style="'+cbox+'" type="checkbox" /><label for="photo_checkbox'+i+'" class="checkbox_label">'+photoLabels[i]+'</label></div>');
+					i = 3; window.lastfm.insertAdjacentHTML('beforeend', '<div class="input_cnt3"><input id="tf_dld_container'+i+'" name="image_input" class="input70" /><label for="image_input'+i+'" class="inp_label2">'+photoLabels[i]+'</label></div>');
+					i = 4; window.prev.insertAdjacentHTML('beforeend', '<div class="input_cnt3" id="preview_cnt"><input id="dld_preview" name="preview" type="text" readonly class="input70"/><label for="image_input'+i+'" class="inp_label2">'+photoLabels[i]+'</label></div>');
+				}
+				var bg = [];
+				var fg = [];
+				function setCustomColours(value) {
+					var items = ['text', 'text_h', 'textSel', 'bg', 'bg_h', 'bgSel', 'frame', 'sideMarker', 'bgTrans'];					
+					for (var i= 0; i < items.length; i++) {
+						bg[i] = assign(ppt[items[i] + '_internal'][value], i < 3 ? 0 : 1);
+						fg[i] = getSelCol(bg[i]);
+						bg[i] = "rgb("+bg[i][0]+","+bg[i][1]+","+bg[i][2]+")";
+						var el = document.getElementById('colour_container'+i);
+						el.style.background = bg[i];
+						el.style.color = fg[i];
+					}
+				}
+
+				function setCustom() {
+					for (i = 0; i < 2; i++) {window.fonts.insertAdjacentHTML('beforeend', '<div class="input_cnt1"><input id="font_checkbox'+i+'" name="custom_checkbox" style="'+cbox+'" type="checkbox" /><input id="font_container'+i+'" name="custom_input" class="input40" /><label for="font_container'+i+'" class="inp_label2">'+fontLabels[i]+'</label></div>');}
+					for (i = 0; i < 3; i++) {window.colours1.insertAdjacentHTML('beforeend', '<div class="input_cnt1"><input id="colour_checkbox'+i+'" name="custom_checkbox" style="'+cbox+'" type="checkbox" /><input id="colour_container'+i+'" name="custom_input" class="input40" /><label for="colour_container'+i+'" class="inp_label2">'+colourLabels[i]+'</label></div>');}
+					for (i = 3; i < 9; i++) {window.colours2.insertAdjacentHTML('beforeend', '<div class="input_cnt1"><input id="colour_checkbox'+i+'" name="custom_checkbox" style="'+cbox+'" type="checkbox" /><input id="colour_container'+i+'" name="custom_input" class="input40" /><label for="colour_container'+i+'" class="inp_label2">'+colourLabels[i]+'</label></div>');}
+				}
+
+				function setMaintenance() {
+					for (i = 0; i < 2; i++) {window.ytData.insertAdjacentHTML('beforeend', '<div class="input_cnt2"><input id="ytDataSource'+i+'" name="ytDataSource" style="'+cbox+'" type="radio" /><label for="ytDataSource'+i+'" class="checkbox_label">'+ytLabels[i]+'</label></div>');}
+					i = 2; window.ytAPIKey.insertAdjacentHTML('beforeend', '<div class="input_cnt3"><input id="ytAPIKey_container'+i+'" name="maintenance_input" class="input70" /><label for="maintenance_input'+i+'" class="inp_label2">'+ytLabels[i]+'</label></div>');
+					i = 3; window.lfmAPIKey.insertAdjacentHTML('beforeend', '<div class="input_cnt3"><input id="lfmAPIKey_container'+i+'" name="maintenance_input" class="input70" /><label for="maintenance_input'+i+'" class="inp_label2">'+ytLabels[i]+'</label></div>');
+				}
+
+				function setAdvanced() {
+					for (i = 0; i < 4; i++) {window.cusScroll.insertAdjacentHTML('beforeend', '<div class="input_cnt1"><input id="scroll_container'+i+'" name="advanced_input" class="input35" /><label for="scroll_container'+i+'" class="inp_label2">'+cusScrollLabels[i]+'</label></div>');}
+					for (i = 0; i < 5; i++) {window.scrollbar.insertAdjacentHTML('beforeend', '<div class="input_cnt1"><input id="scrollbar_container'+i+'" name="advanced_input" class="input35" /><label for="scrollbar_container'+i+'" class="inp_label2">'+scrollbarLabels[i]+'</label></div>');}
+					var fFamily = ppt['butCustIconFont_internal'].value;
+					i = 5; window.scrollbar.insertAdjacentHTML('beforeend', '<div class="input_cnt1"><input id="scrollbar_container'+i+'" name="advanced_input" class="input35" style="font-family:'+fFamily+'" /><label for="scrollbar_container'+i+'" class="inp_label2">'+scrollbarLabels[i]+'</label></div>');
+					for (i = 6; i < 8; i++) {window.scrollbar.insertAdjacentHTML('beforeend', '<div class="input_cnt1"><input id="scrollbar_container'+i+'" name="advanced_input" class="input35" /><label for="scrollbar_container'+i+'" class="inp_label2">'+scrollbarLabels[i]+'</label></div>');}
+					i = 0; window.themeBlur.insertAdjacentHTML('beforeend', '<div class="input_cnt2"><input id="themeBlur_checkbox'+i+'" name="advanced_checkbox" style="'+cbox+'" type="checkbox" /><label for="themeBlur_checkbox'+i+'" class="checkbox_label">'+themeBlurLabels[i]+'</label></div>');
+					for (i = 1; i < 3; i++) {window.themeBlur.insertAdjacentHTML('beforeend', '<div class="input_cnt1"><input id="themeBlur_container'+i+'" name="advanced_input" class="input35" /><label for="themeBlur_container'+i+'" class="inp_label2">'+themeBlurLabels[i]+'</label></div>');}
+					i = 3; window.smoothTransLevel.insertAdjacentHTML('beforeend', '<div class="input_cnt1"><input id="smoothing_container'+i+'" name="advanced_input" class="input2" /><label for="smoothing_container'+i+'" class="inp_label2">'+themeBlurLabels[i]+'</label></div>');
+					window.bias_dropdown.innerHTML = 'Best Tracks Bias: ' + biasLabels[ppt['cusBestTracksBias_internal'].value];
+					for (i = 0; i < 11; i++) {window.bestTracksBias.insertAdjacentHTML('beforeend', '<a id="bias'+i+'" onclick="setBestTracksBias(' + i + ');">'+biasLabels[i]+'</a>');}
+					i = 0; window.refineTopTracks.insertAdjacentHTML('beforeend', '<div class="input_cnt2"><input id="advanced_checkbox'+i+'" name="advanced_checkbox" style="'+cbox+'" type="checkbox" /><label for="advanced_checkbox'+i+'" class="checkbox_label">'+refineLabels[i]+'</label></div>');
+				}
+
+				setDisplay();
+				setPlaylists();
+				setSearch();
+				setImage();
+				setCustom();
+				setMaintenance();
+				setAdvanced();
+				setCustomColours('value');
+				setCheckboxes('all', 'value');
+				setRadioBtns('all', 'value');
+				setInputs('all', 'value');
+				setCheckboxStates();
+				document.getElementById("btn_apply").disabled = true;
+			}
+
+			function setInputs(page, value) {
+				var nm = page.toString()+'_input', inputs = document.querySelectorAll(page == 'all' ? "[name$='_input']" : "[name="+nm+"]");
+				for (i = 0; i < inputs.length; i++) {
+					inputs[i].value = ppt[input[page].name[i] + '_internal'][value];
+				}
+			}
+
+			function setCheckboxStates() {
+				window.theme_checkbox4.parentNode.disabled = ppt['theme_internal'].value == 0;
+				window.theme_checkbox5.parentNode.disabled = ppt['theme_internal'].value == 1;
+				window.removePlayed1.parentNode.disabled = !window.removePlayed_checkbox0.checked;
+				window.imageStyle_checkbox2.disabled = window.imageStyle_checkbox4.checked;
+				window.imageStyle_checkbox4.disabled = window.imageStyle_checkbox2.checked;
+				window.lfmOptions.style.display = window.configOwnData[0].checked ? 'block' : 'none';
+				window.ownOptions.style.display = window.configOwnData[0].checked ? 'none' : 'block';
+				defBias = bias_callback();
+				defBias = defBias ? ' (' + defBias + ')' : '';
+				document.getElementById('bias0').innerHTML = biasLabels[0] = 'Auto' + defBias;
+			}
+
+			function setCheckboxes(page, value) {
+				var nm = page.toString()+'_checkbox', boxes = document.querySelectorAll(page == 'all' ? "[name$='_checkbox']" : "[name="+nm+"]");
+				for (i = 0; i < boxes.length; i++) {
+					boxes[i].checked = ppt[box[page][i] + '_internal'][value];
+				}
+				
+			}
+
+			setInterval(inputChanged, 500);
+			function inputChanged() {
+				set_state();
+			}
+
+			function setRadioBtns(page, value) {
+				var radios = radio[page];
+				for (i = 0; i < radios.length; i++) {
+					var radioBtns = document.getElementsByName(radios[i]);
+					for (j = 0; j < radioBtns.length; j++) {
+						if (j == ppt[radios[i] + '_internal'][value]) {
+							radioBtns[j].checked = true;
+							radioBtns[j].value = j;	
+						}
+					}
+				}
+			}
+
+			function getValues() {
+				var inputs = document.querySelectorAll("[name$='_input']");
+				for (i = 0; i < inputs.length; i++) {
+					ppt[input.all.name[i] + '_internal'].value = input.all.type[i] == 'text' ? inputs[i].value : input.all.type[i] == 'int' ? parseInt(inputs[i].value) : parseFloat(inputs[i].value);
+				}
+
+				var boxes = document.querySelectorAll("[name$='_checkbox']");
+				for (i = 0; i < boxes.length; i++) {
+					ppt[box.all[i] + '_internal'].value = boxes[i].checked;
+				}
+				for (i = 0; i < radio.all.length; i++) {
+					var radioBtns = document.getElementsByName(radio.all[i]);
+					for (j = 0; j < radioBtns.length; j++) {
+						if (radioBtns[j].checked) {
+							ppt[radio.all[i] + '_internal'].value = j;
+							break;
+						}
+					}
+				}
+			}
+
+			window.btn_ok.onclick = function () {
+				getValues();
+				var new_ppt = JSON.stringify(ppt);
+				var new_cur = JSON.stringify(cur);
+				if (new_ppt == parsed_args[0]) new_ppt = '';
+				if (new_cur == parsed_args[1]) new_cur = '';
+				if (new_ppt || new_cur) {
+					callback && callback(new_ppt, '' , new_cur);
+				} else {
+					if (new_cur) callback && callback('', '', new_cur);
+				}
+				close_window();
+			}
+
+			window.btn_apply.onclick = function () {
+				getValues();
+				var new_ppt = JSON.stringify(ppt);
+				if (new_ppt == parsed_args[0]) new_ppt = ''; else parsed_args[0] = new_ppt;
+				if (new_ppt) {
+					callback && callback(new_ppt);
+				}
+			}
+
+			window.btn_resetPage.onclick = function () {
+				setCheckboxes(cur.page, 'default_value');
+				setInputs(cur.page, 'default_value');
+				setRadioBtns(cur.page, 'default_value');
+				if (cur.page == 'display') {
+					setHoverBg(ppt['highLightRow_internal'].default_value);
+					setNowPlaying(ppt['nowPlayingStyle_internal'].default_value);
+					setSbarShow(ppt['sbarShow_internal'].default_value);
+					setsbarType(ppt['sbarType_internal'].default_value);
+					setSbarCol(ppt['sbarCol_internal'].default_value);
+					setSbarIcon(ppt['sbarButType_internal'].default_value);
+					setTheme(ppt['theme_internal'].default_value);
+				}
+				if (cur.page == 'playlists') {
+					setLfmDataPop(ppt['djRange_internal'].default_value);
+					setOwnDataPop(ppt['sortAutoDJ_internal'].default_value);
+				}
+				if (cur.page == 'image') {
+					setSeekerShow(ppt['imgSeeker_internal'].default_value);
+				}
+				if (cur.page == 'custom') setCustomColours('default_value');
+				if (cur.page == 'advanced') setBestTracksBias('default_value');
+				set_state();
+			}
+
+			window.btn_reset.onclick = function () {
+				var msg = 'This will reset all Find & Play settings to default; all your settings, including any entered API keys, will be lost.\\n\\nSettings are stored in panel properties, which has back-up options, and which can be opened by shift+right click of Find & Play.\\n\\nContinue with reset?';
+				var r = window.confirm(msg);
+				if (r == true) {
+					var new_cur = JSON.stringify(cur);
+					if (new_cur == parsed_args[1]) new_cur = '';
+					close_window();
+					callback && callback('', 'reset', new_cur);
+				}
+			}
+
+			document.onkeydown = function () {
+				if (window.event.keyCode == 13 && window.btn_ok.onclick) {
+					window.btn_ok.onclick();
+				}
+			}
+			
+			document.onkeyup = function () {
+				set_state();
+			}
+
+			document.onclick = function () {
+				set_state();
+				setCheckboxStates();
+				hide();
+			}
+
+			window.btn_cancel.onclick = function () {
+				var new_cur = JSON.stringify(cur);
+				if (new_cur != parsed_args[1]) callback && callback('', '', new_cur);
+				close_window();
+			}
+			
+			var vis = document.getElementById('display_help');
+			var help_btn = document.getElementById('help_button');
+ 
+			help_btn.onclick = function() {
+				if (vis.style.display === 'none') {
+					vis.style.display = 'block';
+					help_btn.innerHTML = 'Hide Display Help';
+				} else {
+					vis.style.display = 'none';
+					help_btn.innerHTML = 'Show Display Help';
+				}
+			}
+			
+			var visib = document.getElementById('autodj_help');
+			var autodj_btn = document.getElementById('help_autodj');
+ 
+			autodj_btn.onclick = function() {
+				if (visib.style.display === 'none') {
+					visib.style.display = 'block';
+					autodj_btn.innerHTML = 'Hide Playlist, AutoDJ & Find Help';
+				} else {
+					visib.style.display = 'none';
+					autodj_btn.innerHTML = 'Show Playlist, AutoDJ & Find Help';
+				}
+			}
+
+			var divToggleVis = document.getElementById('help_text');
+			var yt_help_btn = document.getElementById('yt_help');
+ 
+			yt_help_btn.onclick = function() {
+				if (divToggleVis.style.display === 'none') {
+					divToggleVis.style.display = 'block';
+					yt_help_btn.innerHTML = 'Hide Maintenance Help';
+				} else {
+					divToggleVis.style.display = 'none';
+					yt_help_btn.innerHTML = 'Show Maintenance Help';
+				}
+			}
+			
+			function toggle(item) {
+				if (window[item].style.display != 'block') window[item].style.display = 'block'
+				else window[item].style.display = 'none';
+			}
+
+			var h = [
+				['bias_dropdown', 'bestTracksBias'],
+				['lfm_dropdown', 'lfmDataPop'],
+				['own_dropdown', 'ownDataOptions'],
+				['match_dropdown', 'multipleMatch'],
+				['nowplaying_dropdown', 'nowplaying1'],
+				['sbarShow_dropdown', 'sbarShow'],
+				['sbarType_dropdown', 'sbarType'],
+				['sbarCol_dropdown', 'sbarCol'],
+				['sbarIcon_dropdown', 'sbarIcon'],
+				['seeker_dropdown', 'seeker'],
+				['showHl_dropdown', 'showHl'],
+				['theme_dropdown', 'themeBg'],
+				['variety_dropdown', 'artistVariety']
+			];
+			
+			function hide() {
+				var id = document.activeElement.id;
+				for (i = 0; i < h.length; i++) {
+					if (id != h[i][0]) window[h[i][1]].style.display = 'none';
+				}
+			}
+
+			window.onunload = function () {
+				if (!is_closed_manually) {
+					var new_cur = JSON.stringify(cur);
+					if (new_cur != parsed_args[1]) callback && callback('', '', new_cur);
+				}
+			}
+
+			window.document.body.focus();
+			document.getElementById("btn_ok").focus();
+		</script>
+	</body>
+	</html>
