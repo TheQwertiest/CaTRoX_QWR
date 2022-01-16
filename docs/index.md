@@ -34,7 +34,7 @@ Use [Support Thread](https://hydrogenaud.io/index.php/topic,114991.100000.html) 
 See [Changelog][changelog] for information about changes in upcoming and previous releases.
 
 ## Included 3rd party scripts
- - [Find & Play](https://hydrogenaud.io/index.php/topic,105522.0.html) by WilB.
+ - [Find & Play](https://hydrogenaud.io/index.php?topic=121006) by WilB.
  - [Library Tree](https://hydrogenaud.io/index.php/topic,110938.0.html) by WilB.
  - [Various samples](https://github.com/TheQwertiest/smp_2003) by marc2003.
 
