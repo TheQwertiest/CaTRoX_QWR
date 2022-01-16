@@ -2,6 +2,7 @@
 
 #### Table of Contents
 - [Unreleased](#unreleased)
+- [5.0.0](#500---2022-01-17)
 - [4.3.0](#430---2020-05-14)
 - [4.2.1](#421---2019-04-16)
 - [4.2.0b](#420b---2018-03-27)
@@ -22,6 +23,8 @@
 ___
 
 ## [Unreleased][]
+
+## [5.0.0][] - 2022-01-17
 
 ### Changed
 - Adapted to `foo_spider_monkey_panel`.
@@ -298,7 +301,8 @@ Playlist Panel:
 ### Fixed
 - Fixed various crashes caused by incompatibility with JScript.
 
-[unreleased]: https://github.com/TheQwertiest/CaTRoX_QWR/compare/v4.3.0...HEAD
+[unreleased]: https://github.com/TheQwertiest/CaTRoX_QWR/compare/v5.0.0...HEAD
+[5.0.0]: https://github.com/TheQwertiest/CaTRoX_QWR/compare/v4.3.0...v5.0.0
 [4.3.0]: https://github.com/TheQwertiest/CaTRoX_QWR/compare/v4.2.1...v4.3.0
 [4.2.1]: https://github.com/TheQwertiest/CaTRoX_QWR/compare/v4.2.0b...v4.2.1
 [4.2.0b]: https://github.com/TheQwertiest/CaTRoX_QWR/compare/v4.2.0a...v4.2.0b
