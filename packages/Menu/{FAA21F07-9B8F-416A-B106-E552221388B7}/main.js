@@ -475,7 +475,7 @@ function Menu() {
             var h = button_images.Menu.normal.Height;
             var w = button_images.Menu.normal.Width;
 
-            buttons.buttons.menu = new _button(x, y, w, h, button_images.Menu, function(xx, yy, x, y, h, w) { _.menu(x, y + h); });
+            buttons.buttons.menu = new _button(x, y, w, h, button_images.Menu, function(xx, yy, x, y, h, w) { _menu(x, y + h); });
 
             left_pad = x + w;
         }
